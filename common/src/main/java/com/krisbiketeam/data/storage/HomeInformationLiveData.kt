@@ -12,7 +12,7 @@ class HomeInformationLiveData(private val databaseReference: DatabaseReference) 
     private val valueEventListener = object : ValueEventListener {
         override fun onDataChange(snapshot: DataSnapshot) {
             val newValue = snapshot.getValue(HomeInformation::class.java)
-            Timber.d("onDataChange (value=$value)")
+            Timber.d("onDataChange (value=$value) (newValue=$newValue)")
             value = newValue
         }
 

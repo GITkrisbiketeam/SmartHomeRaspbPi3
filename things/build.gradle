@@ -20,32 +20,52 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-    lintOptions {
-        disable 'UnusedResources'
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    dataBinding {
+        enabled = true
     }
 }
 
 dependencies {
     implementation project(':common')
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
+
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:0.21"
+
     // Google dependencies
     implementation "com.android.support:support-v4:$supportLibraryVersion"
     implementation "com.android.support:appcompat-v7:$supportLibraryVersion"
+    implementation "com.android.support.constraint:constraint-layout:$contraintLayoutVersion"
+    implementation "com.android.support:support-annotations:$supportLibraryVersion"
+
     implementation "com.google.android.gms:play-services-base:$playServicesVersion"
-    implementation "com.google.android.gms:play-services-nearby:$playServicesVersion"
+
     implementation "com.google.firebase:firebase-core:$firebaseCoreVersion"
     implementation "com.google.firebase:firebase-database:$firebaseDatabaseVersion"
     implementation "com.google.firebase:firebase-auth:$firebaseAuthVersion"
+
     implementation "android.arch.lifecycle:extensions:$androidArchComponentsVersion"
 
-    implementation "com.jakewharton.timber:timber:$timberVersion"
     implementation "com.squareup.moshi:moshi:$moshiVersion"
+    implementation "com.jakewharton.timber:timber:$timberVersion"
+
     compileOnly "com.google.android.things:androidthings:$thingsVersion"
     implementation "com.google.android.things.contrib:driver-rainbowhat:$rainbowhatVersion"
 
-    androidTestImplementation 'com.android.support.test:runner:1.0.2'
     testImplementation "junit:junit:$junitVersion"
+
+    testImplementation 'com.google.android.things:androidthings:1.0'
+    testImplementation 'org.powermock:powermock-module-junit4:1.6.6'
+    testImplementation 'org.powermock:powermock-classloading-base:1.6.6'
+    testImplementation 'org.powermock:powermock-classloading-xstream:1.6.6'
+    testImplementation 'org.powermock:powermock-api-mockito:1.6.6'
+
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
 }
 
 kotlin {

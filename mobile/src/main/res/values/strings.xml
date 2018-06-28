@@ -11,9 +11,6 @@
     <string name="error_invalid_password">This password is too short</string>
     <string name="error_incorrect_password">This password is incorrect</string>
     <string name="error_field_required">This field is required</string>
-    <string name="permission_rationale">"Contacts permissions are needed for providing email
-        completions."
-    </string>
     <string name="led_status_text">Led Status</string>
     <string name="current_temperature_text">Current temperature</string>
     <string name="current_pressure_text">Current Pressure</string>
