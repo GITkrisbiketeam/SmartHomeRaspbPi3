@@ -1,0 +1,57 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
+
+android {
+    buildToolsVersion buildToolsVersion
+    compileSdkVersion compileWithSDK
+    defaultConfig {
+        applicationId "com.krisbiketeam.smarthomeraspbpi3"
+        minSdkVersion minSdkVersionThings
+        targetSdkVersion targetedSDK
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    lintOptions {
+        disable 'UnusedResources'
+    }
+}
+
+dependencies {
+    implementation project(':common')
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:0.21"
+    // Google dependencies
+    implementation "com.android.support:support-v4:$supportLibraryVersion"
+    implementation "com.android.support:appcompat-v7:$supportLibraryVersion"
+    implementation "com.google.android.gms:play-services-base:$playServicesVersion"
+    implementation "com.google.android.gms:play-services-nearby:$playServicesVersion"
+    implementation "com.google.firebase:firebase-core:$firebaseCoreVersion"
+    implementation "com.google.firebase:firebase-database:$firebaseDatabaseVersion"
+    implementation "com.google.firebase:firebase-auth:$firebaseAuthVersion"
+    implementation "android.arch.lifecycle:extensions:$androidArchComponentsVersion"
+
+    implementation "com.jakewharton.timber:timber:$timberVersion"
+    implementation "com.squareup.moshi:moshi:$moshiVersion"
+    compileOnly "com.google.android.things:androidthings:$thingsVersion"
+    implementation "com.google.android.things.contrib:driver-rainbowhat:$rainbowhatVersion"
+
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    testImplementation "junit:junit:$junitVersion"
+}
+
+kotlin {
+    experimental {
+        coroutines "enable"
+    }
+}
+
+apply plugin: "com.google.gms.google-services"

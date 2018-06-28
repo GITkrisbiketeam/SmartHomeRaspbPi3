@@ -1,0 +1,51 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
+
+android {
+    buildToolsVersion buildToolsVersion
+    compileSdkVersion compileWithSDK
+    defaultConfig {
+        applicationId "com.krisbiketeam.smarthomeraspbpi3"
+        minSdkVersion minSdkVersionApp
+        targetSdkVersion targetedSDK
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    lintOptions {
+        disable 'UnusedResources'
+    }
+}
+
+dependencies {
+    implementation project(':common')
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
+
+    // Google dependencies
+    implementation "com.android.support:design:$supportLibraryVersion"
+    implementation "com.android.support:support-v4:$supportLibraryVersion"
+    implementation "com.android.support:appcompat-v7:$supportLibraryVersion"
+    implementation "com.android.support.constraint:constraint-layout:$contraintLayoutVersion"
+    implementation "com.google.android.gms:play-services-base:$playServicesVersion"
+    implementation "com.google.firebase:firebase-core:$firebaseCoreVersion"
+    implementation "com.google.firebase:firebase-database:$firebaseDatabaseVersion"
+    implementation "com.google.firebase:firebase-auth:$firebaseAuthVersion"
+    implementation "android.arch.lifecycle:extensions:$androidArchComponentsVersion"
+
+    implementation "com.squareup.moshi:moshi:$moshiVersion"
+    implementation "com.jakewharton.timber:timber:$timberVersion"
+
+    testImplementation "junit:junit:$junitVersion"
+    androidTestImplementation "com.android.support.test:runner:$testRunnerVersion"
+    androidTestImplementation "com.android.support.test.espresso:espresso-core:$espressoVersion"
+}
+
+apply plugin: "com.google.gms.google-services"
