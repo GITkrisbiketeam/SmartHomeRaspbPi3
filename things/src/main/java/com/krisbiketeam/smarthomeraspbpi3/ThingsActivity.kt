@@ -68,6 +68,9 @@ class ThingsActivity : AppCompatActivity() {
 
         val wifiManager = getSystemService(Context.WIFI_SERVICE) as WifiManager
 
+        Timber.e("onCreate isNetworkConnectedVal: ${networkConnectionMonitor.isNetworkConnectedVal}")
+        Timber.e("onCreate isNetworkConnected(): ${networkConnectionMonitor.isNetworkConnected()}")
+
         if (!networkConnectionMonitor.isNetworkConnected()) {
             if (!wifiManager.isWifiEnabled) {
                 Timber.d("Wifi not enabled try enable it")

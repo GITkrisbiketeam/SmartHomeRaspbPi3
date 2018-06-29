@@ -81,6 +81,8 @@ class WiFiCredentialsReceiverActivity : AppCompatActivity() {
 
         networkConnectionMonitor = NetworkConnectionMonitor(this)
 
+        Timber.e("onCreate isWifiConnectedVal: ${networkConnectionMonitor.isWifiConnectedVal}")
+        Timber.e("onCreate isWifiConnected(): ${networkConnectionMonitor.isWifiConnected()}")
         // TODO: wht if user wants to connect to another Wifi???
         if (networkConnectionMonitor.isWifiConnected()) {
             Timber.d("onCreate we are already connected so go to main")

@@ -24,7 +24,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ViewConfiguration.class, SensorGpio.class, Gpio.class, Log.class})
+@PrepareForTest({ViewConfiguration.class, HomeUnitGpioNoiseSensor.class, Gpio.class, Log.class})
 public class SensorGpioTest {
 
     @Mock
@@ -44,7 +44,7 @@ public class SensorGpioTest {
 
     @Test
     public void close() {
-        SensorGpio gpio = new SensorGpio(mGpio, Gpio.ACTIVE_LOW);
+        HomeUnitGpioNoiseSensor gpio = new HomeUnitGpioNoiseSensor(mGpio, Gpio.ACTIVE_LOW);
         gpio.close();
         Mockito.verify(mGpio).unregisterGpioCallback(any(GpioCallback.class));
         //Mockito.verify(mGpio).close();
@@ -52,7 +52,7 @@ public class SensorGpioTest {
 
     @Test
     public void close_safeToCallTwice() throws IOException {
-        SensorGpio gpio = new SensorGpio(mGpio, Gpio.ACTIVE_LOW);
+        HomeUnitGpioNoiseSensor gpio = new HomeUnitGpioNoiseSensor(mGpio, Gpio.ACTIVE_LOW);
         gpio.close();
         gpio.close(); // should not throw
         Mockito.verify(mGpio, times(1)).close();
@@ -60,7 +60,7 @@ public class SensorGpioTest {
 
     @Test
     public void setDebounceDelay() {
-        SensorGpio gpio = new SensorGpio(mGpio, Gpio.ACTIVE_LOW);
+        HomeUnitGpioNoiseSensor gpio = new HomeUnitGpioNoiseSensor(mGpio, Gpio.ACTIVE_LOW);
         final long DELAY = 1000L;
         gpio.setDebounceDelay(DELAY);
         assertEquals(DELAY, gpio.getDebounceDelay());
@@ -68,7 +68,7 @@ public class SensorGpioTest {
 
     @Test
     public void setDebounceDelay_throwsIfTooSmall() {
-        SensorGpio gpio = new SensorGpio(mGpio, Gpio.ACTIVE_LOW);
+        HomeUnitGpioNoiseSensor gpio = new HomeUnitGpioNoiseSensor(mGpio, Gpio.ACTIVE_LOW);
         mExpectedException.expect(IllegalArgumentException.class);
         gpio.setDebounceDelay(-1);
     }
@@ -76,14 +76,14 @@ public class SensorGpioTest {
     @Test
     public void getValue() throws IOException {
         PowerMockito.when(mGpio.getValue()).thenReturn(Boolean.TRUE);
-        SensorGpio gpio = new SensorGpio(mGpio, Gpio.ACTIVE_LOW);
+        HomeUnitGpioNoiseSensor gpio = new HomeUnitGpioNoiseSensor(mGpio, Gpio.ACTIVE_LOW);
         assertEquals(gpio.readValue(), Boolean.TRUE);
     }
 
     @Test
     public void setButtonEventListener() {
         PowerMockito.mockStatic(Log.class);
-        SensorGpio gpio = new SensorGpio(mGpio, Gpio.ACTIVE_LOW);
+        HomeUnitGpioNoiseSensor gpio = new HomeUnitGpioNoiseSensor(mGpio, Gpio.ACTIVE_LOW);
         // Add listener
         HomeUnit.HomeUnitListener mockListener = Mockito.mock(HomeUnit.HomeUnitListener.class);
         gpio.registerListener(mockListener);

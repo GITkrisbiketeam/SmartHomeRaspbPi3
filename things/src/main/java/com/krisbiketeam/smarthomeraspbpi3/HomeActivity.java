@@ -19,9 +19,11 @@ import com.google.android.things.pio.PeripheralManager;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.krisbiketeam.smarthomeraspbpi3.driver.TMP102;
-import com.krisbiketeam.smarthomeraspbpi3.units.ActuatorGpio;
 import com.krisbiketeam.smarthomeraspbpi3.units.HomeUnit;
-import com.krisbiketeam.smarthomeraspbpi3.units.SensorGpio;
+import com.krisbiketeam.smarthomeraspbpi3.units.HomeUnitGpioActuator;
+import com.krisbiketeam.smarthomeraspbpi3.units.HomeUnitGpioNoiseSensor;
+import com.krisbiketeam.smarthomeraspbpi3.units.Sensor;
+import com.krisbiketeam.smarthomeraspbpi3.units.Unit;
 import com.krisbiketeam.smarthomeraspbpi3.utils.Logger;
 import com.krisbiketeam.smarthomeraspbpi3.utils.Utils;
 
@@ -49,13 +51,13 @@ import java.util.Map;
  * @see <a href="https://github.com/androidthings/contrib-drivers#readme">https://github
  * .com/androidthings/contrib-drivers#readme</a>
  */
-public class HomeActivity extends Activity implements HomeUnit.HomeUnitListener {
+public class HomeActivity extends Activity implements Sensor.HomeUnitListener {
     private static final String TAG = Utils.getLogTag(HomeActivity.class);
     private static final String BUTTON_PIN_NAME = "BCM21"; // GPIO port wired to the button
     private static final int INTERVAL_BETWEEN_BLINKS_MS = 1000;
     private static final String LED_PIN_NAME = "BCM6"; // GPIO port wired to the LED
 
-    final Map<String, HomeUnit> mUnitList = new HashMap<>();
+    final Map<String, Unit> mUnitList = new HashMap<>();
 
     private final Handler mHandler = new Handler();
 
@@ -108,30 +110,30 @@ public class HomeActivity extends Activity implements HomeUnit.HomeUnitListener 
         }
         lightTheRainbow(false);
 
-        ActuatorGpio ledB = new ActuatorGpio(BoardConfig.LED_B, "Raspberry Pi", BoardConfig
-                .LED_B_PIN, Gpio.ACTIVE_HIGH);
+        HomeUnitGpioActuator ledB = new HomeUnitGpioActuator(new HomeUnit(BoardConfig.LED_B, ConnectionType.GPIO, "Raspberry Pi", BoardConfig
+                .LED_B_PIN, null, null), Gpio.ACTIVE_HIGH, null);
         mUnitList.put(BoardConfig.LED_B, ledB);
-        ActuatorGpio ledC = new ActuatorGpio(BoardConfig.LED_C, "Raspberry Pi", BoardConfig
-                .LED_C_PIN, Gpio.ACTIVE_HIGH);
+        HomeUnitGpioActuator ledC = new HomeUnitGpioActuator(new HomeUnit(BoardConfig.LED_C, ConnectionType.GPIO, "Raspberry Pi", BoardConfig
+                .LED_C_PIN, null, null), Gpio.ACTIVE_HIGH, null);
         mUnitList.put(BoardConfig.LED_C, ledC);
 
-        HomeUnit buttonB = new SensorGpio(BoardConfig.BUTTON_B, "Raspberry Pi", BoardConfig
-                .BUTTON_B_PIN, Gpio.ACTIVE_LOW);
+        Sensor buttonB = new HomeUnitGpioNoiseSensor(new HomeUnit(BoardConfig.BUTTON_B, ConnectionType.GPIO, "Raspberry Pi", BoardConfig
+                .BUTTON_B_PIN, null, null), Gpio.ACTIVE_LOW, null);
         mUnitList.put(BoardConfig.BUTTON_B, buttonB);
         buttonB.registerListener(this);
 
-        HomeUnit buttonC = new SensorGpio(BoardConfig.BUTTON_C, "Raspberry Pi", BoardConfig
-                .BUTTON_C_PIN, Gpio.ACTIVE_LOW);
+        Sensor buttonC = new HomeUnitGpioNoiseSensor(new HomeUnit(BoardConfig.BUTTON_C, ConnectionType.GPIO, "Raspberry Pi", BoardConfig
+                .BUTTON_C_PIN, null, null), Gpio.ACTIVE_LOW, null);
         mUnitList.put(BoardConfig.BUTTON_C, buttonC);
         buttonC.registerListener(this);
 
-        HomeUnit motion = new SensorGpio(BoardConfig.MOTION_1, "Raspberry Pi", BoardConfig
-                .MOTION_1_PIN, Gpio.ACTIVE_HIGH);
+        Sensor motion = new HomeUnitGpioNoiseSensor(new HomeUnit(BoardConfig.MOTION_1, ConnectionType.GPIO, "Raspberry Pi", BoardConfig
+                .MOTION_1_PIN, null, null), Gpio.ACTIVE_HIGH, null);
         mUnitList.put(BoardConfig.MOTION_1, motion);
         motion.registerListener(this);
 
-        HomeUnit contactron = new SensorGpio(BoardConfig.CONTACT_1, "Raspberry Pi", BoardConfig
-                .CONTACT_1_PIN, Gpio.ACTIVE_LOW);
+        Sensor contactron = new HomeUnitGpioNoiseSensor(new HomeUnit(BoardConfig.CONTACT_1, ConnectionType.GPIO, "Raspberry Pi", BoardConfig
+                .CONTACT_1_PIN, null, null), Gpio.ACTIVE_LOW, null);
         mUnitList.put(BoardConfig.CONTACT_1, contactron);
         contactron.registerListener(this);
 
@@ -279,7 +281,7 @@ public class HomeActivity extends Activity implements HomeUnit.HomeUnitListener 
             }
         }
 
-        for (HomeUnit unit : mUnitList.values()) {
+        for (Unit unit : mUnitList.values()) {
             try {
                 unit.close();
             } catch (Exception e) {
@@ -293,14 +295,14 @@ public class HomeActivity extends Activity implements HomeUnit.HomeUnitListener 
     public void onUnitChanged(@NonNull HomeUnit homeUnit, @Nullable Object value) {
         Logger.d(TAG, "onUnitChanged unit: " + homeUnit + " value: " + value);
         mDatabaseManager.addButtonPress(homeUnit);
-        HomeUnit unit;
+        Unit unit;
         switch (homeUnit.getName()) {
             case BoardConfig.BUTTON_A:
                 break;
             case BoardConfig.BUTTON_B:
                 unit = mUnitList.get(BoardConfig.LED_B);
-                if (unit instanceof ActuatorGpio && value != null) {
-                    ((ActuatorGpio) unit).setValue((Boolean) value);
+                if (unit instanceof HomeUnitGpioActuator && value != null) {
+                    ((HomeUnitGpioActuator) unit).setValue(value);
                 }
                 try {
                     mBuzzer.play(440);
@@ -310,8 +312,8 @@ public class HomeActivity extends Activity implements HomeUnit.HomeUnitListener 
                 break;
             case BoardConfig.BUTTON_C:
                 unit = mUnitList.get(BoardConfig.LED_C);
-                if (unit instanceof ActuatorGpio && value != null) {
-                    ((ActuatorGpio) unit).setValue((Boolean) value);
+                if (unit instanceof HomeUnitGpioActuator && value != null) {
+                    ((HomeUnitGpioActuator) unit).setValue(value);
                 }
                 try {
                     // Stop the buzzer.
