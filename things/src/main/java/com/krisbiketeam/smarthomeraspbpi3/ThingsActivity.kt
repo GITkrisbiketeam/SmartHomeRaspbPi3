@@ -20,7 +20,7 @@ class ThingsActivity : AppCompatActivity() {
     private lateinit var lightsLiveData: LiveData<HomeInformation>
     private lateinit var homeInformationRepository: HomeInformationRepository
     private lateinit var secureStorage: SecureStorage
-    private lateinit var wifiManager: WifiManager
+    private lateinit var networkConnectionMonitor: NetworkConnectionMonitor
 
     private val led = Led()
     private val ledHat = LedHat(LedHat.LED.GREEN)
@@ -41,6 +41,13 @@ class ThingsActivity : AppCompatActivity() {
         }
     }
 
+    private val networkConnectionListener = object : NetworkConnectionListener {
+        override fun onNetworkAvailable(available: Boolean) {
+            Timber.d("Received onNetworkAvailable $available")
+
+        }
+    }
+
     private val loginResultListener = object : Authentication.LoginResultListener {
         override fun success() {
             Timber.d("LoginResultListener success")
@@ -56,14 +63,17 @@ class ThingsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         secureStorage = NotSecureStorage(this)
-        wifiManager = getSystemService(Context.WIFI_SERVICE) as WifiManager
 
-        if (!wifiManager.isWifiEnabled ) {
-            Timber.d("Wifi not enabled try enable it")
-            val enabled = wifiManager.setWifiEnabled(true)
-            Timber.d("Wifi enabled? $enabled")
-        }
-        if (wifiManager.connectionInfo.networkId == -1) {
+        networkConnectionMonitor = NetworkConnectionMonitor(this)
+
+        val wifiManager = getSystemService(Context.WIFI_SERVICE) as WifiManager
+
+        if (!networkConnectionMonitor.isNetworkConnected()) {
+            if (!wifiManager.isWifiEnabled) {
+                Timber.d("Wifi not enabled try enable it")
+                val enabled = wifiManager.setWifiEnabled(true)
+                Timber.d("Wifi enabled? $enabled")
+            }
             Timber.d("Not connected to WiFi, starting WiFiCredentialsReceiverActivity")
             val intent = Intent(this, WiFiCredentialsReceiverActivity::class.java)
             startActivity(intent)
@@ -87,6 +97,10 @@ class ThingsActivity : AppCompatActivity() {
         authentication.addLoginResultListener(loginResultListener)
         authentication.login(secureStorage.retrieveFirebaseCredentials()!!)
 
+        // lightsLiveData is registered after successful login
+
+        networkConnectionMonitor.startListen(networkConnectionListener)
+
         tempAndPressureSensor.start(temperatureAndPressureChangedListener)
         led.start()
         ledHat.start()
@@ -94,13 +108,16 @@ class ThingsActivity : AppCompatActivity() {
     }
 
     override fun onStop() {
-        super.onStop()
         Timber.d("Shutting down lights observer")
         lightsLiveData.removeObserver { lightsDataObserver }
+
+        networkConnectionMonitor.stopListen()
+
         tempAndPressureSensor.stop()
         led.stop()
         ledHat.stop()
         fourCharDisplay.stop()
+        super.onStop()
     }
 
     private fun observeLightsData() {
@@ -115,6 +132,7 @@ class ThingsActivity : AppCompatActivity() {
     }
 
     private fun setMessage(message: String?) {
+        Timber.d("Setting message to $message")
         fourCharDisplay.setState(message ?: "")
     }
 }

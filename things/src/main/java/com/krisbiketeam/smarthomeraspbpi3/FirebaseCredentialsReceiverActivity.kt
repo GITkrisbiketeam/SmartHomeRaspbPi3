@@ -41,6 +41,8 @@ class FirebaseCredentialsReceiverActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         secureStorage = NotSecureStorage(this)
+
+        //TODO: we need to distinguish nearby connection for WiFi credentials and Firebase credentials
         nearbyService = NearbyServiceProvider(this)
         nearbyService.dataReceivedListener(dataReceiverListener)
     }
