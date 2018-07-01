@@ -42,5 +42,7 @@ dependencies {
     implementation "com.google.android.gms:play-services-base:$playServicesVersion"
     implementation "com.google.android.gms:play-services-nearby:$playServicesVersion"
 
+    implementation "com.squareup.moshi:moshi:$moshiVersion"
+
     testImplementation "junit:junit:$junitVersion"
 }

@@ -2,6 +2,7 @@ package com.krisbiketeam.smarthomeraspbpi3
 
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.Observer
+import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import com.krisbiketeam.data.auth.Authentication
@@ -44,6 +45,13 @@ class MobileActivity : AppCompatActivity() {
             homeInformationRepository.saveMessage(messageEdit.text.toString())
             messageEdit.text.clear()
         }
+
+        buttonWifi.setOnClickListener {
+            callActivity(LoginActivity::class.java)
+        }
+        buttonLogin.setOnClickListener {
+            callActivity(LoginActivity::class.java)
+        }
     }
 
     private fun observeLightsData() {
@@ -81,5 +89,11 @@ class MobileActivity : AppCompatActivity() {
 
     private fun setTemperature(temperature: Float) {
         temperatureText.text = String.format(Locale.UK, "Current pressure: %.2f", temperature)
+    }
+
+    private fun callActivity(clazz: Class<*>) {
+        val intent = Intent(this, clazz)
+        startActivity(intent)
+        finish()
     }
 }
