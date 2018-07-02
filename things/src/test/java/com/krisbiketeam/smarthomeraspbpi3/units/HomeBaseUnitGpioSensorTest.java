@@ -25,7 +25,7 @@ import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ViewConfiguration.class, HomeUnitGpioSensor.class, Gpio.class, Log.class})
-public class HomeUnitGpioSensorTest {
+public class HomeBaseUnitGpioSensorTest {
 
 
     @Mock

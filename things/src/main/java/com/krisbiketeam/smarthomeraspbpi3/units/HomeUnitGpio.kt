@@ -7,8 +7,7 @@ import com.krisbiketeam.smarthomeraspbpi3.utils.Utils
 
 import java.io.IOException
 
-interface HomeUnitGpio : Unit {
-    val homeUnit: HomeUnit
+interface HomeUnitGpio<T> : BaseUnit<T> {
     val activeType: Int
     var gpio: Gpio?
 
@@ -44,18 +43,5 @@ interface HomeUnitGpio : Unit {
         } finally {
             gpio = null
         }
-    }
-
-    override fun readValue(): Any? {
-        return readValue(gpio)
-    }
-
-    fun readValue(gpio: Gpio?): Any? {
-        homeUnit.value = try {
-            gpio?.value
-        } catch (e: IOException) {
-            Logger.e(TAG, "Error getting Value PeripheralIO API on: $homeUnit", e)
-        }
-        return homeUnit.value
     }
 }

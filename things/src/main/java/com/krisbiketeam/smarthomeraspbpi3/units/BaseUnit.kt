@@ -1,9 +1,8 @@
 package com.krisbiketeam.smarthomeraspbpi3.units
 
-interface Unit : AutoCloseable{
+interface BaseUnit<T> : AutoCloseable {
+    val homeUnit: HomeUnit<T>
 
     fun connect()
-
-    fun readValue(): Any?
 
 }

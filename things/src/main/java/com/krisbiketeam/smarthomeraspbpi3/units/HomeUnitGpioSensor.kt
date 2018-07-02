@@ -2,22 +2,25 @@ package com.krisbiketeam.smarthomeraspbpi3.units
 
 import com.google.android.things.pio.Gpio
 import com.google.android.things.pio.GpioCallback
+import com.krisbiketeam.data.storage.ConnectionType
 import com.krisbiketeam.smarthomeraspbpi3.utils.Logger
 import com.krisbiketeam.smarthomeraspbpi3.utils.Utils
 
 import java.io.IOException
 
-open class HomeUnitGpioSensor(override val homeUnit: HomeUnit, override val activeType: Int, override var gpio: Gpio?) : HomeUnitGpio, Sensor {
+open class HomeUnitGpioSensor(name: String,
+                              location: String,
+                              pinName: String,
+                              override val activeType: Int = Gpio.ACTIVE_HIGH,
+                              override var gpio: Gpio? = null) : HomeUnitGpio<Boolean>, Sensor<Boolean> {
+
     companion object {
         private val TAG = Utils.getLogTag(HomeUnitGpioSensor::class.java)
     }
 
-    var homeUnitListener: Sensor.HomeUnitListener? = null
+    override val homeUnit: HomeUnit<Boolean> = HomeUnit(name, location, pinName, ConnectionType.GPIO)
 
-    init {
-        //We can safely connect from constructor as this does not block other HomeUnit peripherals
-        connect()
-    }
+    var homeUnitListener: Sensor.HomeUnitListener<Boolean>? = null
 
     open val mGpioCallback = object : GpioCallback {
         override fun onGpioEdge(gpio: Gpio): Boolean {
@@ -39,7 +42,7 @@ open class HomeUnitGpioSensor(override val homeUnit: HomeUnit, override val acti
         super.close()
     }
 
-    override fun registerListener(listener: Sensor.HomeUnitListener) {
+    override fun registerListener(listener: Sensor.HomeUnitListener<Boolean>) {
         Logger.d(TAG, "registerListener")
         homeUnitListener = listener
         try {
@@ -53,5 +56,21 @@ open class HomeUnitGpioSensor(override val homeUnit: HomeUnit, override val acti
         Logger.d(TAG, "unregisterListener")
         gpio?.unregisterGpioCallback(mGpioCallback)
         homeUnitListener = null
+    }
+
+
+    override fun readValue(): Boolean? {
+        return readValue(gpio)
+    }
+
+    fun readValue(gpio: Gpio?): Boolean? {
+        homeUnit.value = try {
+            gpio?.value
+        } catch (e: IOException) {
+            Logger.e(TAG, "Error getting Value PeripheralIO API on: $homeUnit", e)
+            // Set null value on error
+            null
+        }
+        return homeUnit.value
     }
 }

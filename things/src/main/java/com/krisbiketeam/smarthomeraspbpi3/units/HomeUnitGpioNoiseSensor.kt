@@ -8,7 +8,11 @@ import com.google.android.things.pio.GpioCallback
 import com.krisbiketeam.smarthomeraspbpi3.utils.Logger
 import com.krisbiketeam.smarthomeraspbpi3.utils.Utils
 
-class HomeUnitGpioNoiseSensor(homeUnit: HomeUnit, activeType: Int, gpio: Gpio?) : HomeUnitGpioSensor(homeUnit, activeType, gpio) {
+class HomeUnitGpioNoiseSensor(name: String,
+                              location: String,
+                              pinName: String,
+                              activeType: Int,
+                              gpio: Gpio? = null) : HomeUnitGpioSensor(name, location, pinName, activeType, gpio) {
 
     companion object {
         private val TAG = Utils.getLogTag(HomeUnitGpioNoiseSensor::class.java)
@@ -69,7 +73,7 @@ class HomeUnitGpioNoiseSensor(homeUnit: HomeUnit, activeType: Int, gpio: Gpio?) 
      * Invoke button event callback
      */
     @VisibleForTesting
-    internal fun performSensorEvent(event: Any?) {
+    internal fun performSensorEvent(event: Boolean?) {
         homeUnit.value = event
         Logger.d(TAG, "performSensorEvent event: $event on: $homeUnit")
         homeUnitListener?.onUnitChanged(homeUnit, event)

@@ -1,4 +1,4 @@
-package com.krisbiketeam.smarthomeraspbpi3
+package com.krisbiketeam.smarthomeraspbpi3.ui.setup
 
 import android.content.Context
 import android.content.Intent
@@ -9,6 +9,9 @@ import android.support.v7.app.AppCompatActivity
 import com.krisbiketeam.data.auth.WifiCredentials
 import com.krisbiketeam.data.nearby.NearbyService
 import com.krisbiketeam.data.nearby.NearbyServiceProvider
+import com.krisbiketeam.smarthomeraspbpi3.ui.NetworkConnectionListener
+import com.krisbiketeam.smarthomeraspbpi3.ui.NetworkConnectionMonitor
+import com.krisbiketeam.smarthomeraspbpi3.ui.ThingsActivity
 import com.squareup.moshi.Moshi
 import timber.log.Timber
 

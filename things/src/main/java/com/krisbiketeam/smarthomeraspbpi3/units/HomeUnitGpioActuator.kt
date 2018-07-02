@@ -1,21 +1,25 @@
 package com.krisbiketeam.smarthomeraspbpi3.units
 
 import com.google.android.things.pio.Gpio
+import com.krisbiketeam.data.storage.ConnectionType
 import com.krisbiketeam.smarthomeraspbpi3.utils.Logger
 import com.krisbiketeam.smarthomeraspbpi3.utils.Utils
 import java.io.IOException
 
-class HomeUnitGpioActuator(override val homeUnit: HomeUnit, override val activeType: Int, override var gpio: Gpio?) : HomeUnitGpio, Actuator {
+class HomeUnitGpioActuator(name: String,
+                           location: String,
+                           pinName: String,
+                           override val activeType: Int,
+                           override var gpio: Gpio? = null) : HomeUnitGpio<Boolean>, Actuator<Boolean> {
+
     companion object {
         private val TAG = Utils.getLogTag(HomeUnitGpioActuator::class.java)
     }
 
-    init {
-        //We can safely connect from constructor as this does not block other HomeUnit peripherals
-        connect()
-    }
+    override val homeUnit: HomeUnit<Boolean> = HomeUnit(name, location, pinName, ConnectionType.GPIO)
 
-    override fun setValue(value: Any?) {
+
+    override fun setValue(value: Boolean?) {
         if (value is Boolean) {
             homeUnit.value = value
             try {

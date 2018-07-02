@@ -25,6 +25,7 @@ public class TMP102 implements AutoCloseable {
     public static final int DEFAULT_I2C_VCC_ADDRESS = 0x49;
     public static final int DEFAULT_I2C_SDA_ADDRESS = 0x4A;
     public static final int DEFAULT_I2C_SCL_ADDRESS = 0x4B;
+
     @Deprecated
     public static final int I2C_ADDRESS = DEFAULT_I2C_GND_ADDRESS;
 

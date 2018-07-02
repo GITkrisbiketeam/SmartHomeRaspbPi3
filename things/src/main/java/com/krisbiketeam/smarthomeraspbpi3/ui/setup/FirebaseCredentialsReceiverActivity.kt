@@ -1,4 +1,4 @@
-package com.krisbiketeam.smarthomeraspbpi3
+package com.krisbiketeam.smarthomeraspbpi3.ui.setup
 
 import android.content.Intent
 import android.os.Bundle
@@ -8,6 +8,7 @@ import com.krisbiketeam.data.nearby.NearbyService
 import com.krisbiketeam.data.nearby.NearbyServiceProvider
 import com.krisbiketeam.data.storage.NotSecureStorage
 import com.krisbiketeam.data.storage.SecureStorage
+import com.krisbiketeam.smarthomeraspbpi3.ui.ThingsActivity
 import com.squareup.moshi.Moshi
 import timber.log.Timber
 

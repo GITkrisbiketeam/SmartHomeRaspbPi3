@@ -6,6 +6,7 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import com.krisbiketeam.data.storage.HomeUnitDB
 import com.krisbiketeam.smarthomeraspbpi3.units.HomeUnit
 
 /**
@@ -48,7 +49,7 @@ class DatabaseManager {
         })
     }
 
-    fun addButtonPress(homeUnit: HomeUnit) {
+    fun addButtonPress(homeUnit: HomeUnit<Any>) {
         database.reference
                 .child("data")
                 .child(currentEvent)

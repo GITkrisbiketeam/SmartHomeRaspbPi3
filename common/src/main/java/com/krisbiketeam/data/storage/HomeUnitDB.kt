@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.krisbiketeam.smarthomeraspbpi3
+package com.krisbiketeam.data.storage
 
 import com.google.firebase.database.IgnoreExtraProperties
 import com.google.firebase.database.ServerValue
@@ -26,6 +26,6 @@ import java.util.*
 @IgnoreExtraProperties
 data class HomeUnitDB(var name: String, var connectionType: ConnectionType,
                       var location: String, var pinName: String,
-                      var softAddress: String? = "", var value: Any? = null,
+                      var softAddress: Int? = null, var value: Any? = null,
                       var localtime: Long = Date().time,
                       var servertime: Map<String, String>? = ServerValue.TIMESTAMP)

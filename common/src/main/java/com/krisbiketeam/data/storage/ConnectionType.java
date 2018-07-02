@@ -1,4 +1,4 @@
-package com.krisbiketeam.smarthomeraspbpi3;
+package com.krisbiketeam.data.storage;
 
 public enum ConnectionType {
     I2C,

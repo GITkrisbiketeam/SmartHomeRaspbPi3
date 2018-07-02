@@ -16,6 +16,7 @@ interface HomeInformationRepository {
     fun saveTemperature(temperature: Float)
     fun savePressure(pressure: Float)
     fun lightsLiveData(): LiveData<HomeInformation>
+    fun logUnitEvent(homeUnitDB: HomeUnitDB)
 }
 
 class FirebaseHomeInformationRepository : HomeInformationRepository {
@@ -45,5 +46,12 @@ class FirebaseHomeInformationRepository : HomeInformationRepository {
 
     override fun lightsLiveData(): LiveData<HomeInformation> {
         return lightsLiveData
+    }
+
+    override fun logUnitEvent(homeUnitDB: HomeUnitDB) {
+        reference
+                .child("log")
+                .push()
+                .setValue(homeUnitDB)
     }
 }

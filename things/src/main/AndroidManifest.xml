@@ -14,13 +14,13 @@
     <uses-permission android:name="com.google.android.things.permission.USE_PERIPHERAL_IO"/>
 
     <application
-        android:name=".ThingsApplication"
+        android:name=".ui.ThingsApplication"
         android:allowBackup="false"
         android:theme="@style/Theme.AppCompat"
         tools:ignore="GoogleAppIndexingWarning,MissingApplicationIcon">
         <uses-library android:name="com.google.android.things" />
 
-        <activity android:name=".ThingsActivity">
+        <activity android:name=".ui.ThingsActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -34,8 +34,8 @@
                 <category android:name="android.intent.category.HOME"/>
             </intent-filter>
         </activity>
-        <activity android:name=".FirebaseCredentialsReceiverActivity" />
-        <activity android:name=".WiFiCredentialsReceiverActivity" />
+        <activity android:name=".ui.setup.FirebaseCredentialsReceiverActivity" />
+        <activity android:name=".ui.setup.WiFiCredentialsReceiverActivity" />
     </application>
 
 </manifest>

@@ -1,7 +1,7 @@
 package com.krisbiketeam.smarthomeraspbpi3.units
 
-interface Actuator : Unit {
+interface Actuator<T> : BaseUnit<T> {
 
-    fun setValue(value: Any?)
+    fun setValue(value: T?)
 
 }
