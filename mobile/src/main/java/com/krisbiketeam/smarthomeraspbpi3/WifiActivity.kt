@@ -8,46 +8,43 @@ import android.support.v7.app.AppCompatActivity
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.TextView
-import com.krisbiketeam.data.auth.Authentication
-import com.krisbiketeam.data.auth.FirebaseCredentials
-import com.krisbiketeam.data.auth.FirebaseAuthentication
+import com.krisbiketeam.data.auth.WifiCredentials
 import com.krisbiketeam.data.nearby.NearbyService
 import com.krisbiketeam.data.nearby.NearbyServiceProvider
 import com.krisbiketeam.data.storage.NotSecureStorage
 import com.krisbiketeam.data.storage.SecureStorage
-import kotlinx.android.synthetic.main.activity_login.*
+import kotlinx.android.synthetic.main.activity_wifi.*
 import timber.log.Timber
 
-class LoginActivity : AppCompatActivity() {
-    private lateinit var authentication: Authentication
+class WifiActivity : AppCompatActivity() {
     private lateinit var secureStorage: SecureStorage
     private lateinit var nearByService: NearbyService
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_login)
+        setContentView(R.layout.activity_wifi)
 
-        authentication = FirebaseAuthentication()
         secureStorage = NotSecureStorage(this)
+
         nearByService = NearbyServiceProvider(this)
         nearByService.dataSendResultListener(dataSendResultListener)
 
         password.setOnEditorActionListener(TextView.OnEditorActionListener { _, id, _ ->
             if (id == EditorInfo.IME_ACTION_DONE || id == EditorInfo.IME_NULL) {
-                attemptLogin()
+                attemptRemoteConnect()
                 return@OnEditorActionListener true
             }
             false
         })
 
-        wifi_connect_button.setOnClickListener { attemptLogin() }
+        wifi_connect_button.setOnClickListener { attemptRemoteConnect() }
     }
 
-    private fun attemptLogin() {
+    private fun attemptRemoteConnect() {
         ssid.error = null
         password.error = null
 
-        val emailStr = ssid.text.toString()
+        val ssidStr = ssid.text.toString()
         val passwordStr = password.text.toString()
 
         var cancel = false
@@ -59,11 +56,11 @@ class LoginActivity : AppCompatActivity() {
             cancel = true
         }
 
-        if (emailStr.isEmpty()) {
+        if (ssidStr.isEmpty()) {
             ssid.error = getString(R.string.error_field_required)
             focusView = ssid
             cancel = true
-        } else if (!isEmailValid(emailStr)) {
+        } else if (!isSsidValid(ssidStr)) {
             ssid.error = getString(R.string.error_invalid_email)
             focusView = ssid
             cancel = true
@@ -73,13 +70,12 @@ class LoginActivity : AppCompatActivity() {
             focusView?.requestFocus()
         } else {
             showProgress(true)
-            authentication.addLoginResultListener(loginResultListener)
-            authentication.login(FirebaseCredentials(emailStr, passwordStr))
+            nearByService.sendData(WifiCredentials(ssidStr, passwordStr))
         }
     }
 
-    private fun isEmailValid(email: String): Boolean {
-        return email.contains("@")
+    private fun isSsidValid(email: String): Boolean {
+        return true//email.contains("@")
     }
 
     private fun isPasswordValid(password: String): Boolean {
@@ -89,30 +85,30 @@ class LoginActivity : AppCompatActivity() {
     private fun showProgress(show: Boolean) {
         val shortAnimTime = resources.getInteger(android.R.integer.config_shortAnimTime).toLong()
 
-        login_form.visibility = if (show) View.GONE else View.VISIBLE
-        login_form.animate()
+        wifi_form.visibility = if (show) View.GONE else View.VISIBLE
+        wifi_form.animate()
                 .setDuration(shortAnimTime)
                 .alpha((if (show) 0 else 1).toFloat())
                 .setListener(object : AnimatorListenerAdapter() {
                     override fun onAnimationEnd(animation: Animator) {
-                        login_form.visibility = if (show) View.GONE else View.VISIBLE
+                        wifi_form.visibility = if (show) View.GONE else View.VISIBLE
                     }
                 })
 
-        login_progress.visibility = if (show) View.VISIBLE else View.GONE
-        login_progress.animate()
+        wifi_progress.visibility = if (show) View.VISIBLE else View.GONE
+        wifi_progress.animate()
                 .setDuration(shortAnimTime)
                 .alpha((if (show) 1 else 0).toFloat())
                 .setListener(object : AnimatorListenerAdapter() {
                     override fun onAnimationEnd(animation: Animator) {
-                        login_progress.visibility = if (show) View.VISIBLE else View.GONE
+                        wifi_progress.visibility = if (show) View.VISIBLE else View.GONE
                     }
                 })
     }
 
     private val dataSendResultListener = object : NearbyService.DataSendResultListener {
         override fun onSuccess() {
-            secureStorage.saveFirebaseCredentials(FirebaseCredentials(ssid.text.toString(), password.text.toString()))
+            //secureStorage.saveFirebaseCredentials(FirebaseCredentials(ssid.text.toString(), password.text.toString()))
             toMainActivity()
         }
 
@@ -120,16 +116,6 @@ class LoginActivity : AppCompatActivity() {
             onFailure(exception)
         }
 
-    }
-
-    private val loginResultListener = object : Authentication.LoginResultListener {
-        override fun success() {
-            nearByService.sendData(FirebaseCredentials(ssid.text.toString(), password.text.toString()))
-        }
-
-        override fun failed(exception: Exception) {
-            onFailure(exception)
-        }
     }
 
     private fun onFailure(exception: Exception) {

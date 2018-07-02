@@ -1,7 +1,7 @@
 package com.krisbiketeam.data.nearby
 
 interface NearbyService {
-    fun sendData(data: String)
+    fun sendData(data: Any)
     fun dataSendResultListener(dataSendResultListener: DataSendResultListener)
     fun dataReceivedListener(dataReceiverListener: DataReceiverListener)
 

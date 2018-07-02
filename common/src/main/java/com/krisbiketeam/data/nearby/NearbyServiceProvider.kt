@@ -7,6 +7,10 @@ import com.google.android.gms.nearby.connection.PayloadTransferUpdate.Status.FAI
 import com.google.android.gms.nearby.connection.PayloadTransferUpdate.Status.SUCCESS
 import timber.log.Timber
 import com.google.android.gms.nearby.connection.ConnectionsStatusCodes
+import com.krisbiketeam.data.auth.FirebaseCredentials
+import com.krisbiketeam.data.auth.WifiCredentials
+import com.squareup.moshi.JsonAdapter
+import com.squareup.moshi.Moshi
 
 class NearbyServiceProvider(private val context: Context) : NearbyService {
 
@@ -16,6 +20,7 @@ class NearbyServiceProvider(private val context: Context) : NearbyService {
         private const val CLIENT_ID = "clientId"
     }
 
+    private val moshi = Moshi.Builder().build()
     private var dataSendResultListener: NearbyService.DataSendResultListener? = null
     private var dataReceiverListener: NearbyService.DataReceiverListener? = null
     private var dataToBeSent: String? = null
@@ -148,8 +153,19 @@ class NearbyServiceProvider(private val context: Context) : NearbyService {
                 }
     }
 
-    override fun sendData(data: String) {
-        this.dataToBeSent = data
+    override fun sendData(data: Any) {
+
+        when(data) {
+            is WifiCredentials ->{
+                val adapter = moshi.adapter(WifiCredentials::class.java)
+                dataToBeSent = adapter.toJson(data)
+            }
+            is FirebaseCredentials -> {
+                val adapter = moshi.adapter(FirebaseCredentials::class.java)
+                dataToBeSent = adapter.toJson(data)
+            }
+        }
+
         startDiscovery()
     }
 
