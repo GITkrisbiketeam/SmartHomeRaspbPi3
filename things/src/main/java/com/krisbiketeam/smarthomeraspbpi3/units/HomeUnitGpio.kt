@@ -8,7 +8,6 @@ import com.krisbiketeam.smarthomeraspbpi3.utils.Utils
 import java.io.IOException
 
 interface HomeUnitGpio<T> : BaseUnit<T> {
-    val activeType: Int
     var gpio: Gpio?
 
     companion object {
@@ -16,6 +15,7 @@ interface HomeUnitGpio<T> : BaseUnit<T> {
     }
 
     override fun connect() {
+        Logger.e(TAG, "connect on: $homeUnit")
         if (gpio == null) {
             val peripheralManager = PeripheralManager.getInstance()
             try {
@@ -24,18 +24,10 @@ interface HomeUnitGpio<T> : BaseUnit<T> {
                 close()
             }
         }
-        gpio?.run {
-            try {
-                setDirection(Gpio.DIRECTION_IN)
-                setEdgeTriggerType(Gpio.EDGE_BOTH)
-                setActiveType(activeType)
-            } catch (e: IOException) {
-                Logger.e(TAG, "Error initializing PeripheralIO API on: $homeUnit", e)
-            }
-        }
     }
 
     override fun close() {
+        Logger.e(TAG, "close on: $homeUnit")
         try {
             gpio?.close()
         } catch (e: IOException) {

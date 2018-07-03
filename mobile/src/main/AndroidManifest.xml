@@ -23,7 +23,10 @@
         <activity android:name=".MobileActivity" />
         <activity
             android:name=".LoginActivity"
-            android:label="@string/title_activity_login" />
+            android:label="@string/title_activity_firebase_login" />
+        <activity
+            android:name=".WifiActivity"
+            android:label="@string/title_activity_wifi_login" />
         <activity android:name=".LoadActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -1,9 +1,13 @@
-package com.krisbiketeam.smarthomeraspbpi3.units
+package com.krisbiketeam.smarthomeraspbpi3.units.hardware
 
 import com.google.android.things.contrib.driver.ht16k33.AlphanumericDisplay
 import com.google.android.things.contrib.driver.ht16k33.Ht16k33
 import com.google.android.things.contrib.driver.rainbowhat.RainbowHat
 import com.krisbiketeam.data.storage.ConnectionType
+import com.krisbiketeam.smarthomeraspbpi3.units.Actuator
+import com.krisbiketeam.data.storage.HomeUnit
+import com.krisbiketeam.smarthomeraspbpi3.units.HomeUnitI2C
+import java.util.*
 
 class HomeUnitI2CFourCharDisplay(name: String,
                                  location: String,
@@ -30,6 +34,7 @@ class HomeUnitI2CFourCharDisplay(name: String,
             }
             else -> display.setEnabled(false)
         }
+        homeUnit.localtime = Date().toString()
         display.close()
     }
 }

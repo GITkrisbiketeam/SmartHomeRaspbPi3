@@ -32,7 +32,7 @@ public class Logger {
     }
 
     private int printlnInternal(int priority, String tag, String msg) {
-        if(priority>Log.VERBOSE) {
+        if(priority>Log.VERBOSE && logger != null) {
             String lastConsoleMsg = logger.getConsoleMessage();
             if (lastConsoleMsg == null) {
                 lastConsoleMsg = "";

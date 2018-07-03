@@ -5,12 +5,10 @@ import com.google.android.gms.nearby.Nearby
 import com.google.android.gms.nearby.connection.*
 import com.google.android.gms.nearby.connection.PayloadTransferUpdate.Status.FAILURE
 import com.google.android.gms.nearby.connection.PayloadTransferUpdate.Status.SUCCESS
-import timber.log.Timber
-import com.google.android.gms.nearby.connection.ConnectionsStatusCodes
 import com.krisbiketeam.data.auth.FirebaseCredentials
 import com.krisbiketeam.data.auth.WifiCredentials
-import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
+import timber.log.Timber
 
 class NearbyServiceProvider(private val context: Context) : NearbyService {
 

@@ -6,8 +6,7 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
-import com.krisbiketeam.data.storage.HomeUnitDB
-import com.krisbiketeam.smarthomeraspbpi3.units.HomeUnit
+import com.krisbiketeam.data.storage.HomeUnit
 
 /**
  * Handles connection to Firebase
@@ -54,6 +53,6 @@ class DatabaseManager {
                 .child("data")
                 .child(currentEvent)
                 .push()
-                .setValue(HomeUnitDB(homeUnit.name, homeUnit.connectionType, homeUnit.location, homeUnit.pinName, homeUnit.softAddress, homeUnit.value))
+                .setValue(homeUnit)
     }
 }

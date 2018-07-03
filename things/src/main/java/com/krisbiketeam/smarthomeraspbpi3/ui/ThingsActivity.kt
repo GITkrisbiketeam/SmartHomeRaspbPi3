@@ -11,14 +11,17 @@ import com.google.android.things.pio.Gpio
 import com.krisbiketeam.data.auth.Authentication
 import com.krisbiketeam.data.auth.FirebaseAuthentication
 import com.krisbiketeam.data.storage.*
+import com.krisbiketeam.data.storage.HomeInformation
 import com.krisbiketeam.smarthomeraspbpi3.units.Actuator
 import com.krisbiketeam.smarthomeraspbpi3.units.BaseUnit
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
 import com.krisbiketeam.smarthomeraspbpi3.BoardConfig
+import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.ui.setup.FirebaseCredentialsReceiverActivity
 import com.krisbiketeam.smarthomeraspbpi3.ui.setup.WiFiCredentialsReceiverActivity
-import com.krisbiketeam.smarthomeraspbpi3.units.*
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor.HomeUnitListener
+import com.krisbiketeam.smarthomeraspbpi3.units.hardware.*
+import com.krisbiketeam.smarthomeraspbpi3.utils.Logger
 import timber.log.Timber
 import java.util.*
 
@@ -30,65 +33,54 @@ class ThingsActivity : AppCompatActivity(), HomeUnitListener<Any> {
     private lateinit var secureStorage: SecureStorage
     private lateinit var networkConnectionMonitor: NetworkConnectionMonitor
 
+    private val home = Home()
+
     private val unitList: MutableMap<String, BaseUnit<Any>> = HashMap()
 
-    //private val tempAndPressureSensor = HatTemperatureAndPressureSensor()
     private val fourCharDisplay = HomeUnitI2CFourCharDisplay(BoardConfig.FOUR_CHAR_DISP, "Raspberry Pi", BoardConfig.FOUR_CHAR_DISP_PIN)
 
     init{
+        Timber.d("init")
+
         val ledA = HomeUnitGpioActuator(BoardConfig.LED_A, "Raspberry Pi", BoardConfig
                 .LED_A_PIN, Gpio.ACTIVE_HIGH) as Actuator<Any>
-        unitList.put(BoardConfig.LED_A, ledA)
+        unitList[BoardConfig.LED_A] = ledA
         val ledB = HomeUnitGpioActuator(BoardConfig.LED_B, "Raspberry Pi", BoardConfig
                 .LED_B_PIN, Gpio.ACTIVE_HIGH) as Actuator<Any>
-        unitList.put(BoardConfig.LED_B, ledB)
+        unitList[BoardConfig.LED_B] = ledB
         val ledC = HomeUnitGpioActuator(BoardConfig.LED_C, "Raspberry Pi", BoardConfig
                 .LED_C_PIN, Gpio.ACTIVE_HIGH) as BaseUnit<Any>
-        unitList.put(BoardConfig.LED_C, ledC)
+        unitList[BoardConfig.LED_C] = ledC
 
         val buttonA = HomeUnitGpioSensor(BoardConfig.BUTTON_A, "Raspberry Pi", BoardConfig
                 .BUTTON_A_PIN, Gpio.ACTIVE_LOW) as Sensor<Any>
-        unitList.put(BoardConfig.BUTTON_A, buttonA)
-        buttonA.registerListener(this)
+        unitList[BoardConfig.BUTTON_A] = buttonA
 
         val buttonB = HomeUnitGpioSensor(BoardConfig.BUTTON_B, "Raspberry Pi", BoardConfig
                 .BUTTON_B_PIN, Gpio.ACTIVE_LOW) as Sensor<Any>
-        unitList.put(BoardConfig.BUTTON_B, buttonB)
-        buttonB.registerListener(this)
+        unitList[BoardConfig.BUTTON_B] = buttonB
 
         val buttonC = HomeUnitGpioSensor(BoardConfig.BUTTON_C, "Raspberry Pi", BoardConfig
                 .BUTTON_C_PIN, Gpio.ACTIVE_LOW) as Sensor<Any>
-        unitList.put(BoardConfig.BUTTON_C, buttonC)
-        buttonC.registerListener(this)
+        unitList[BoardConfig.BUTTON_C] = buttonC
 
         val motion = HomeUnitGpioSensor(BoardConfig.MOTION_1, "Raspberry Pi", BoardConfig
                 .MOTION_1_PIN, Gpio.ACTIVE_HIGH) as Sensor<Any>
-        unitList.put(BoardConfig.MOTION_1, motion)
-        motion.registerListener(this)
+        unitList[BoardConfig.MOTION_1] = motion
 
-        val contactron = HomeUnitGpioNoiseSensor(BoardConfig.CONTACT_1, "Raspberry Pi", BoardConfig
-                .CONTACT_1_PIN, Gpio.ACTIVE_LOW) as Sensor<Any>
-        unitList.put(BoardConfig.CONTACT_1, contactron)
-        contactron.registerListener(this)
+        val contactron = HomeUnitGpioNoiseSensor(BoardConfig.REED_SWITCH_1, "Raspberry Pi", BoardConfig
+                .REED_SWITCH_1_PIN, Gpio.ACTIVE_LOW) as Sensor<Any>
+        unitList[BoardConfig.REED_SWITCH_1] = contactron
 
-        val temperatureSensor = HomeUnitI2CTemperatureSensor(BoardConfig.TEMP_SENSOR_TMP102, "Raspberry Pi", BoardConfig
+        val temperatureSensor = HomeUnitI2CTempTMP102Sensor(BoardConfig.TEMP_SENSOR_TMP102, "Raspberry Pi", BoardConfig
                 .TEMP_SENSOR_TMP102_PIN, BoardConfig.TEMP_SENSOR_TMP102_ADDR) as Sensor<Any>
-        unitList.put(BoardConfig.TEMP_SENSOR_TMP102, temperatureSensor)
-        temperatureSensor.registerListener(this)
+        unitList[BoardConfig.TEMP_SENSOR_TMP102] = temperatureSensor
 
-        //private val tempAndPressureSensor = HatTemperatureAndPressureSensor()
-        //unitList.put(BoardConfig.TEMP_SENSOR_TMP102, tempAndPressureSensor)
-        //tempAndPressureSensor.registerListener(this)
+        val tempePressSensor = HomeUnitI2CTempPressBMP280Sensor(BoardConfig.TEMP_PRESS_SENSOR_BMP280, "Raspberry Pi", BoardConfig
+                .TEMP_PRESS_SENSOR_BMP280_PIN, BoardConfig.TEMP_PRESS_SENSOR_BMP280_ADDR) as Sensor<Any>
+        unitList[BoardConfig.TEMP_PRESS_SENSOR_BMP280] = tempePressSensor
 
     }
-
-    /*private val temperatureAndPressureChangedListener = object : Sensor.OnStateChangeListener<TemperatureAndPressure> {
-        override fun onStateChanged(state: TemperatureAndPressure) {
-            Timber.d("Received TemperatureAndPressure $state")
-            homeInformationRepository.saveTemperature(state.temperature)
-            homeInformationRepository.savePressure(state.pressure)
-        }
-    }*/
 
     private val lightsDataObserver = Observer<HomeInformation> { homeInformation ->
         setLightState(homeInformation?.light ?: false)
@@ -115,7 +107,11 @@ class ThingsActivity : AppCompatActivity(), HomeUnitListener<Any> {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        Timber.d("onCreate")
         super.onCreate(savedInstanceState)
+
+        setContentView(R.layout.activity_home)
+        Logger.getInstance().setLogConsole(this)
 
         secureStorage = NotSecureStorage(this)
 
@@ -147,19 +143,21 @@ class ThingsActivity : AppCompatActivity(), HomeUnitListener<Any> {
 
         homeInformationRepository = FirebaseHomeInformationRepository()
         authentication = FirebaseAuthentication()
-        lightsLiveData = homeInformationRepository.lightsLiveData()
+        lightsLiveData = homeInformationRepository.lightLiveData()
     }
 
     override fun onStart() {
+        Timber.d("onStart")
         super.onStart()
         authentication.addLoginResultListener(loginResultListener)
         authentication.login(secureStorage.retrieveFirebaseCredentials()!!)
 
-        // lightsLiveData is registered after successful login
+        // lightLiveData is registered after successful login
 
         networkConnectionMonitor.startListen(networkConnectionListener)
 
         unitList.values.forEach { unit ->
+            Timber.d("onStart connect unit: ${unit.homeUnit}")
             unit.connect()
             if (unit is Sensor) {
                 unit.registerListener(this)
@@ -168,7 +166,7 @@ class ThingsActivity : AppCompatActivity(), HomeUnitListener<Any> {
     }
 
     override fun onStop() {
-        Timber.d("Shutting down lights observer")
+        Timber.d("onStop Shutting down lights observer")
         lightsLiveData.removeObserver { lightsDataObserver }
 
         networkConnectionMonitor.stopListen()
@@ -191,7 +189,7 @@ class ThingsActivity : AppCompatActivity(), HomeUnitListener<Any> {
 
     private fun setLightState(b: Boolean) {
         Timber.d("Setting light to $b")
-        val unit = unitList.get(BoardConfig.LED_A)
+        val unit = unitList[BoardConfig.LED_C]
         if (unit is Actuator) {
             unit.setValue(b)
         }
@@ -204,18 +202,17 @@ class ThingsActivity : AppCompatActivity(), HomeUnitListener<Any> {
 
     override fun onUnitChanged(homeUnit: HomeUnit<out Any>, value: Any?) {
         Timber.d("onUnitChanged unit: $homeUnit value: $value")
-        homeInformationRepository.logUnitEvent(
-                HomeUnitDB(homeUnit.name, homeUnit.connectionType, homeUnit.location, homeUnit.pinName, homeUnit.softAddress, homeUnit.value))
+        homeInformationRepository.logUnitEvent(homeUnit)
         val unit: BaseUnit<Any>?
         when (homeUnit.name) {
             BoardConfig.BUTTON_A -> {
-                unit = unitList.get(BoardConfig.LED_A)
+                unit = unitList[BoardConfig.LED_A]
                 if (unit is Actuator && value != null) {
                     unit.setValue(value)
                 }
             }
             BoardConfig.BUTTON_B -> {
-                unit = unitList.get(BoardConfig.LED_B)
+                unit = unitList[BoardConfig.LED_B]
                 if (unit is Actuator && value != null) {
                     unit.setValue(value)
                 }
@@ -227,7 +224,7 @@ class ThingsActivity : AppCompatActivity(), HomeUnitListener<Any> {
 
             }
             BoardConfig.BUTTON_C -> {
-                unit = unitList.get(BoardConfig.LED_C)
+                unit = unitList[BoardConfig.LED_C]
                 if (unit is Actuator && value != null) {
                     unit.setValue(value)
                 }
@@ -239,10 +236,22 @@ class ThingsActivity : AppCompatActivity(), HomeUnitListener<Any> {
                 }*/
 
             }
+            BoardConfig.TEMP_PRESS_SENSOR_BMP280 -> {
+                if (value is TemperatureAndPressure) {
+                    Timber.d("Received TemperatureAndPressure $value")
+                    homeInformationRepository.saveTemperature(value.temperature)
+                    homeInformationRepository.savePressure(value.pressure)
+                    homeInformationRepository.saveTemperature(
+                            home.temperatures.values.first().apply {
+                                this.value = value.temperature
+                            })
+                }
+
+            }
             /*BoardConfig.MOTION_1 -> if (value != null) {
                 lightOnOffOneRainbowLed(0, (value as Boolean?)!!)
             }
-            BoardConfig.CONTACT_1 -> if (value != null) {
+            BoardConfig.REED_SWITCH_1 -> if (value != null) {
                 lightOnOffOneRainbowLed(1, (value as Boolean?)!!)
             }*/
         }

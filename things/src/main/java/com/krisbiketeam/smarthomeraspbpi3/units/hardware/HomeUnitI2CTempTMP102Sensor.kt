@@ -1,21 +1,25 @@
-package com.krisbiketeam.smarthomeraspbpi3.units
+package com.krisbiketeam.smarthomeraspbpi3.units.hardware
 
 import com.krisbiketeam.data.storage.ConnectionType
 import com.krisbiketeam.smarthomeraspbpi3.driver.TMP102
+import com.krisbiketeam.data.storage.HomeUnit
+import com.krisbiketeam.smarthomeraspbpi3.units.HomeUnitI2C
+import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
 import com.krisbiketeam.smarthomeraspbpi3.utils.Logger
 import com.krisbiketeam.smarthomeraspbpi3.utils.Utils
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.launch
+import java.util.*
 
-class HomeUnitI2CTemperatureSensor(name: String,
-                                   location: String,
-                                   pinName: String,
-                                   softAddress: Int,
-                                   override var device: AutoCloseable? = null) : HomeUnitI2C<Float>, Sensor<Float> {
+class HomeUnitI2CTempTMP102Sensor(name: String,
+                                  location: String,
+                                  pinName: String,
+                                  softAddress: Int,
+                                  override var device: AutoCloseable? = null) : HomeUnitI2C<Float>, Sensor<Float> {
     companion object {
-        private val TAG = Utils.getLogTag(HomeUnitI2CTemperatureSensor::class.java)
-        private const val REFRESH_RATE = 1000L // One second
+        private val TAG = Utils.getLogTag(HomeUnitI2CTempTMP102Sensor::class.java)
+        private const val REFRESH_RATE = 10000L // ten seconds
     }
 
 
@@ -54,15 +58,15 @@ class HomeUnitI2CTemperatureSensor(name: String,
         }
     }
     override fun readValue(): Float? {
-        val temperature : Float? = null
         // We do not want to block I2C buss so open device to only display some data and then immediately close it.
         // use block automatically closes resources referenced to tmp102
         val tmp102 = TMP102(homeUnit.pinName)
         tmp102.use {
-            val temperature = tmp102.readTemperature()
-            Logger.d(TAG, "temperature:$temperature")
+            homeUnit.value = it.readTemperature()
+            homeUnit.localtime = Date().toString()
+            Logger.d(TAG, "temperature:${homeUnit.value}")
         }
 
-        return temperature
+        return homeUnit.value
     }
 }

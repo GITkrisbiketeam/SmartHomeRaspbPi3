@@ -1,17 +1,21 @@
-package com.krisbiketeam.smarthomeraspbpi3.units
+package com.krisbiketeam.smarthomeraspbpi3.units.hardware
 
 import com.google.android.things.pio.Gpio
 import com.google.android.things.pio.GpioCallback
 import com.krisbiketeam.data.storage.ConnectionType
+import com.krisbiketeam.data.storage.HomeUnit
+import com.krisbiketeam.smarthomeraspbpi3.units.HomeUnitGpio
+import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
 import com.krisbiketeam.smarthomeraspbpi3.utils.Logger
 import com.krisbiketeam.smarthomeraspbpi3.utils.Utils
 
 import java.io.IOException
+import java.util.*
 
 open class HomeUnitGpioSensor(name: String,
                               location: String,
                               pinName: String,
-                              override val activeType: Int = Gpio.ACTIVE_HIGH,
+                              private val activeType: Int = Gpio.ACTIVE_HIGH,
                               override var gpio: Gpio? = null) : HomeUnitGpio<Boolean>, Sensor<Boolean> {
 
     companion object {
@@ -34,6 +38,19 @@ open class HomeUnitGpioSensor(name: String,
 
         override fun onGpioError(gpio: Gpio?, error: Int) {
             Logger.w(TAG, gpio.toString() + ": Error event $error on: $homeUnit")
+        }
+    }
+    override fun connect() {
+        super.connect()
+
+        gpio?.run {
+            try {
+                setDirection(Gpio.DIRECTION_IN)
+                setEdgeTriggerType(Gpio.EDGE_BOTH)
+                setActiveType(activeType)
+            } catch (e: IOException) {
+                Logger.e(TAG, "Error initializing PeripheralIO API on: $homeUnit", e)
+            }
         }
     }
 
@@ -71,6 +88,8 @@ open class HomeUnitGpioSensor(name: String,
             // Set null value on error
             null
         }
+        homeUnit.localtime = Date().toString()
+
         return homeUnit.value
     }
 }

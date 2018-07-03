@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">SmartHome Raspberry Pi3</string>
-    <string name="title_activity_login">Sign in</string>
+    <string name="title_activity_firebase_login">Firebase Log in</string>
+    <string name="title_activity_wifi_login">WiFi Log in</string>
 
     <!-- Strings related to login -->
     <string name="prompt_email">Email</string>

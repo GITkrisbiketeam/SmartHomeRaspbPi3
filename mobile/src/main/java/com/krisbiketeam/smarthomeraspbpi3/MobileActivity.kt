@@ -8,6 +8,7 @@ import android.support.v7.app.AppCompatActivity
 import com.krisbiketeam.data.auth.Authentication
 import com.krisbiketeam.data.auth.FirebaseAuthentication
 import com.krisbiketeam.data.storage.*
+import com.krisbiketeam.data.storage.HomeInformation
 import kotlinx.android.synthetic.main.activity_mobile.*
 import timber.log.Timber
 import java.util.*
@@ -35,7 +36,7 @@ class MobileActivity : AppCompatActivity() {
         secureStorage = NotSecureStorage(this)
         homeInformationRepository = FirebaseHomeInformationRepository()
         authentication = FirebaseAuthentication()
-        lightsLiveData = homeInformationRepository.lightsLiveData()
+        lightsLiveData = homeInformationRepository.lightLiveData()
 
         lightToggle.setOnCheckedChangeListener { _, state: Boolean ->
             homeInformationRepository.saveLightState(state)
@@ -47,17 +48,30 @@ class MobileActivity : AppCompatActivity() {
         }
 
         buttonWifi.setOnClickListener {
-            callActivity(LoginActivity::class.java)
+            callActivity(WifiActivity::class.java)
         }
         buttonLogin.setOnClickListener {
             callActivity(LoginActivity::class.java)
         }
+        val home = Home()
+        homeInformationRepository.saveRooms(home.rooms)
+        homeInformationRepository.saveBlinds(home.blinds)
+        homeInformationRepository.saveLights(home.lights)
+        homeInformationRepository.saveMotions(home.motions)
+        homeInformationRepository.savePressures(home.pressures)
+        homeInformationRepository.saveReedSwitches(home.reedSwitches)
+        homeInformationRepository.saveTemperatures(home.temperatures)
+
     }
 
     private fun observeLightsData() {
-        lightToggle.isActivated = true
         Timber.d("Observing lights data")
         lightsLiveData.observe(this, lightsDataObserver)
+    }
+
+    private fun stopObserveLightsData() {
+        Timber.d("Stop Observing lights data")
+        lightsLiveData.removeObserver { lightsDataObserver }
     }
 
     override fun onResume() {
@@ -68,13 +82,13 @@ class MobileActivity : AppCompatActivity() {
             }
             else -> throw Exception("You should have credentials!")
         }
+        lightToggle.isActivated = true
         observeLightsData()
     }
 
     override fun onPause() {
         super.onPause()
-        Timber.d("Shutting down lights observer")
-        lightsLiveData.removeObserver { lightsDataObserver }
+        stopObserveLightsData()
         lightToggle.isActivated = false
     }
 

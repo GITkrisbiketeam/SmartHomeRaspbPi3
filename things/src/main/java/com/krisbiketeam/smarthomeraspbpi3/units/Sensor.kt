@@ -1,5 +1,7 @@
 package com.krisbiketeam.smarthomeraspbpi3.units
 
+import com.krisbiketeam.data.storage.HomeUnit
+
 interface Sensor<T> : BaseUnit<T> {
 
     fun registerListener(listener: HomeUnitListener<T>)

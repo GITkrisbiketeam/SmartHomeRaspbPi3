@@ -1,4 +1,4 @@
-package com.krisbiketeam.smarthomeraspbpi3.units
+package com.krisbiketeam.smarthomeraspbpi3.units.hardware
 
 import android.os.Handler
 import android.support.annotation.VisibleForTesting
