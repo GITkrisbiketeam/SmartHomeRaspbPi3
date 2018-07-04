@@ -5,7 +5,7 @@ import android.view.ViewConfiguration;
 
 import com.google.android.things.pio.Gpio;
 import com.google.android.things.pio.GpioCallback;
-import com.krisbiketeam.data.storage.HomeUnit;
+import com.krisbiketeam.data.storage.dto.HomeUnitLog;
 import com.krisbiketeam.smarthomeraspbpi3.units.hardware.HomeUnitGpioNoiseSensor;
 
 import org.junit.Before;
@@ -87,7 +87,7 @@ public class SensorGpioTest {
         PowerMockito.mockStatic(Log.class);
         HomeUnitGpioNoiseSensor gpio = new HomeUnitGpioNoiseSensor(mGpio, Gpio.ACTIVE_LOW);
         // Add listener
-        HomeUnit.HomeUnitListener mockListener = Mockito.mock(HomeUnit.HomeUnitListener.class);
+        HomeUnitLog.HomeUnitListener mockListener = Mockito.mock(HomeUnitLog.HomeUnitListener.class);
         gpio.registerListener(mockListener);
 
         // Perform button events and check the listener is called

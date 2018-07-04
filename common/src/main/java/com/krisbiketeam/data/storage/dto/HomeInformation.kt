@@ -1,4 +1,4 @@
-package com.krisbiketeam.data.storage
+package com.krisbiketeam.data.storage.dto
 
 data class HomeInformation(var message: String = "",
                            var button: Boolean = false,

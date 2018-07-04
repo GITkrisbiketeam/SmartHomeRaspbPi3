@@ -5,7 +5,7 @@ import com.google.android.things.contrib.driver.ht16k33.Ht16k33
 import com.google.android.things.contrib.driver.rainbowhat.RainbowHat
 import com.krisbiketeam.data.storage.ConnectionType
 import com.krisbiketeam.smarthomeraspbpi3.units.Actuator
-import com.krisbiketeam.data.storage.HomeUnit
+import com.krisbiketeam.data.storage.dto.HomeUnitLog
 import com.krisbiketeam.smarthomeraspbpi3.units.HomeUnitI2C
 import java.util.*
 
@@ -19,7 +19,7 @@ class HomeUnitI2CFourCharDisplay(name: String,
         // and then immediately closed to release resources
     }
 
-    override val homeUnit: HomeUnit<String> = HomeUnit(name, location, pinName, ConnectionType.I2C, AlphanumericDisplay.I2C_ADDRESS)
+    override val homeUnit: HomeUnitLog<String> = HomeUnitLog(name, location, pinName, ConnectionType.I2C, AlphanumericDisplay.I2C_ADDRESS)
 
     override fun setValue(value: String?) {
         // We do not want to block I2C buss so open device to only display some data and then immediately close it.

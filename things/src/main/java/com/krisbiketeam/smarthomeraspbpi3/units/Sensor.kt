@@ -1,6 +1,6 @@
 package com.krisbiketeam.smarthomeraspbpi3.units
 
-import com.krisbiketeam.data.storage.HomeUnit
+import com.krisbiketeam.data.storage.dto.HomeUnitLog
 
 interface Sensor<T> : BaseUnit<T> {
 
@@ -15,11 +15,11 @@ interface Sensor<T> : BaseUnit<T> {
      */
     interface HomeUnitListener<in T> {
         /**
-         * Called when a HomeUnit event occurs
+         * Called when a HomeUnitLog event occurs
          *
-         * @param homeUnit the HomeUnit for which the event occurred
+         * @param homeUnit the HomeUnitLog for which the event occurred
          * @param value Object with unit changed value
          */
-        fun onUnitChanged(homeUnit: HomeUnit<out T>, value: T?)
+        fun onUnitChanged(homeUnit: HomeUnitLog<out T>, value: T?)
     }
 }

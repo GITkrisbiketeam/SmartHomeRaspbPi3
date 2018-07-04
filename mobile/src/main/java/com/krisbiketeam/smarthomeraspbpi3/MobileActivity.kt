@@ -8,8 +8,8 @@ import android.support.v7.app.AppCompatActivity
 import com.krisbiketeam.data.auth.Authentication
 import com.krisbiketeam.data.auth.FirebaseAuthentication
 import com.krisbiketeam.data.storage.*
-import com.krisbiketeam.data.storage.HomeInformation
-import com.krisbiketeam.data.storage.dto.Temperature
+import com.krisbiketeam.data.storage.dto.HomeInformation
+import com.krisbiketeam.data.storage.UnitsLiveData
 import kotlinx.android.synthetic.main.activity_mobile.*
 import timber.log.Timber
 import java.util.*
@@ -21,7 +21,7 @@ class MobileActivity : AppCompatActivity() {
     private lateinit var lightsLiveData: LiveData<HomeInformation>
     private lateinit var homeInformationRepository: HomeInformationRepository
     private lateinit var secureStorage: SecureStorage
-    private lateinit var temperaturesLiveData: LiveData<Temperature>
+    private lateinit var unitsLiveData: UnitsLiveData
 
     // Mobile Activity
     private val lightDataObserver = Observer<HomeInformation> { homeInformation ->
@@ -30,8 +30,8 @@ class MobileActivity : AppCompatActivity() {
         setPressure(homeInformation?.pressure ?: 0f)
         Timber.d("HomeInformation changed: $homeInformation")
     }
-    private val temperaturesDataObserver = Observer<Temperature> { temperature ->
-        Timber.d("Temperature changed: $temperature")
+    private val unitsDataObserver = Observer<Any> { temperature ->
+        Timber.d("Unit changed: $temperature")
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,7 +42,7 @@ class MobileActivity : AppCompatActivity() {
         homeInformationRepository = FirebaseHomeInformationRepository()
         authentication = FirebaseAuthentication()
         lightsLiveData = homeInformationRepository.lightLiveData()
-        temperaturesLiveData = homeInformationRepository.temperaturesLiveData()
+        unitsLiveData = homeInformationRepository.unitsLiveData()
 
         lightToggle.setOnCheckedChangeListener { _, state: Boolean ->
             homeInformationRepository.saveLightState(state)
@@ -72,13 +72,13 @@ class MobileActivity : AppCompatActivity() {
     private fun observeLightsData() {
         Timber.d("Observing lights data")
         lightsLiveData.observe(this, lightDataObserver)
-        temperaturesLiveData.observe(this, temperaturesDataObserver)
+        unitsLiveData.observe(this, unitsDataObserver)
     }
 
     private fun stopObserveLightsData() {
         Timber.d("Stop Observing lights data")
         lightsLiveData.removeObserver { lightDataObserver }
-        temperaturesLiveData.removeObserver(temperaturesDataObserver)
+        unitsLiveData.removeObserver(unitsDataObserver)
     }
 
     override fun onResume() {

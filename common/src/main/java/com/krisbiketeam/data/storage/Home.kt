@@ -36,12 +36,12 @@ class Home {
     }
 
     fun saveToRepository(homeRepository: HomeInformationRepository){
-        homeRepository.saveRooms(rooms)
-        homeRepository.saveBlinds(blinds)
-        homeRepository.saveLights(lights)
-        homeRepository.saveMotions(motions)
-        homeRepository.savePressures(pressures)
-        homeRepository.saveReedSwitches(reedSwitches)
-        homeRepository.saveTemperatures(temperatures)
+        rooms.values.forEach{homeRepository.saveRoom(it)}
+        blinds.values.forEach{homeRepository.saveBlind(it)}
+        lights.values.forEach{homeRepository.saveLight(it)}
+        motions.values.forEach{homeRepository.saveMotion(it)}
+        pressures.values.forEach{homeRepository.savePressure(it)}
+        reedSwitches.values.forEach{homeRepository.saveReedSwitch(it)}
+        temperatures.values.forEach{homeRepository.saveTemperature(it)}
     }
 }

@@ -18,7 +18,6 @@ import com.krisbiketeam.data.storage.FirebaseTables.Companion.HOME_ROOMS
 import com.krisbiketeam.data.storage.FirebaseTables.Companion.HOME_TEMPERATURES
 import com.krisbiketeam.data.storage.FirebaseTables.Companion.LOG_INFORMATION_BASE
 import com.krisbiketeam.data.storage.dto.*
-import com.krisbiketeam.data.storage.livedata.*
 
 interface HomeInformationRepository {
     fun saveMessage(message: String)
@@ -28,15 +27,8 @@ interface HomeInformationRepository {
     fun savePressure(pressure: Float)
 
     fun lightLiveData(): LiveData<HomeInformation>
-    fun logUnitEvent(homeUnit: HomeUnit<out Any>)
 
-    fun saveRooms(rooms: Map<String, Room>)
-    fun saveBlinds(blinds: Map<String, Blind>)
-    fun saveLights(lights: Map<String, Light>)
-    fun saveMotions(motions: Map<String, Motion>)
-    fun savePressures(pressures: Map<String, Pressure>)
-    fun saveTemperatures(temperatures: Map<String, Temperature>)
-    fun saveReedSwitches(reedSwitches: Map<String, ReedSwitch>)
+    fun logUnitEvent(homeUnit: HomeUnitLog<out Any>)
 
     fun saveRoom(room: Room)
     fun saveBlind(blind: Blind)
@@ -46,13 +38,7 @@ interface HomeInformationRepository {
     fun saveTemperature(temperature: Temperature)
     fun saveReedSwitch(reedSwitch: ReedSwitch)
 
-    fun roomsLiveData(): LiveData<Room>
-    fun blindsLiveData(): LiveData<Blind>
-    fun lightsLiveData(): LiveData<Light>
-    fun motionsLiveData(): LiveData<Motion>
-    fun pressuresLiveData(): LiveData<Pressure>
-    fun temperaturesLiveData(): LiveData<Temperature>
-    fun reedSwitchesLiveData(): LiveData<ReedSwitch>
+    fun unitsLiveData(): UnitsLiveData
 
     fun clearLog()
 }
@@ -65,13 +51,11 @@ class FirebaseHomeInformationRepository : HomeInformationRepository {
     private val referenceHome = FirebaseDatabase.getInstance().reference.child(HOME_INFORMATION_BASE)
     private val referenceLog = FirebaseDatabase.getInstance().reference.child(LOG_INFORMATION_BASE)
 
-    private val roomsLiveData = RoomsLiveData(referenceHome.child(HOME_ROOMS))
-    private val blindsLiveData = BlindsLiveData(referenceHome.child(HOME_BLINDS))
-    private val lightsLiveData = LightsLiveData(referenceHome.child(HOME_LIGHTS))
-    private val motionsLiveData = MotionsLiveData(referenceHome.child(HOME_MOTIONS))
-    private val pressuresLiveData = PressuresLiveData(referenceHome.child(HOME_PRESSURES))
-    private val temperaturesLiveData = TemperaturesLiveData(referenceHome.child(HOME_TEMPERATURES))
-    private val reedSwitchesLiveData = ReedSwitchesLiveData(referenceHome.child(HOME_REED_SWITCHES))
+    private val unitsDataList: UnitsLiveData = UnitsLiveData(referenceHome)
+
+    init {
+        FirebaseDatabase.getInstance().reference.keepSynced(true)
+    }
 
     override fun saveMessage(message: String) {
         referenceOldHome.child(OLD_HOME_INFORMATION_MESSAGE).setValue(message)
@@ -98,37 +82,8 @@ class FirebaseHomeInformationRepository : HomeInformationRepository {
     }
 
 
-    override fun logUnitEvent(homeUnit: HomeUnit<out Any>) {
+    override fun logUnitEvent(homeUnit: HomeUnitLog<out Any>) {
         referenceLog.push().setValue(homeUnit)
-    }
-
-
-    override fun saveRooms(rooms: Map<String, Room>) {
-        referenceHome.child(HOME_ROOMS).setValue(rooms)
-    }
-
-    override fun saveBlinds(blinds: Map<String, Blind>) {
-        referenceHome.child(HOME_BLINDS).setValue(blinds)
-    }
-
-    override fun saveLights(lights: Map<String, Light>) {
-        referenceHome.child(HOME_LIGHTS).setValue(lights)
-    }
-
-    override fun saveMotions(motions: Map<String, Motion>) {
-        referenceHome.child(HOME_MOTIONS).setValue(motions)
-    }
-
-    override fun savePressures(pressures: Map<String, Pressure>) {
-        referenceHome.child(HOME_PRESSURES).setValue(pressures)
-    }
-
-    override fun saveTemperatures(temperatures: Map<String, Temperature>) {
-        referenceHome.child(HOME_TEMPERATURES).setValue(temperatures)
-    }
-
-    override fun saveReedSwitches(reedSwitches: Map<String, ReedSwitch>) {
-        referenceHome.child(HOME_REED_SWITCHES).setValue(reedSwitches)
     }
 
 
@@ -161,33 +116,10 @@ class FirebaseHomeInformationRepository : HomeInformationRepository {
     }
 
 
-    override fun roomsLiveData(): LiveData<Room> {
-        return roomsLiveData
+    override fun unitsLiveData(): UnitsLiveData {
+        return unitsDataList
     }
 
-    override fun blindsLiveData(): LiveData<Blind> {
-        return blindsLiveData
-    }
-
-    override fun lightsLiveData(): LiveData<Light> {
-        return lightsLiveData
-    }
-
-    override fun motionsLiveData(): LiveData<Motion> {
-        return motionsLiveData
-    }
-
-    override fun pressuresLiveData(): LiveData<Pressure> {
-        return pressuresLiveData
-    }
-
-    override fun temperaturesLiveData(): LiveData<Temperature> {
-        return temperaturesLiveData
-    }
-
-    override fun reedSwitchesLiveData(): LiveData<ReedSwitch> {
-        return reedSwitchesLiveData
-    }
 
     override fun clearLog() {
         referenceLog.removeValue()

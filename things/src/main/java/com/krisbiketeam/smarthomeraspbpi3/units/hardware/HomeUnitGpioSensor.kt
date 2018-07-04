@@ -3,7 +3,7 @@ package com.krisbiketeam.smarthomeraspbpi3.units.hardware
 import com.google.android.things.pio.Gpio
 import com.google.android.things.pio.GpioCallback
 import com.krisbiketeam.data.storage.ConnectionType
-import com.krisbiketeam.data.storage.HomeUnit
+import com.krisbiketeam.data.storage.dto.HomeUnitLog
 import com.krisbiketeam.smarthomeraspbpi3.units.HomeUnitGpio
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
 import com.krisbiketeam.smarthomeraspbpi3.utils.Logger
@@ -22,7 +22,7 @@ open class HomeUnitGpioSensor(name: String,
         private val TAG = Utils.getLogTag(HomeUnitGpioSensor::class.java)
     }
 
-    override val homeUnit: HomeUnit<Boolean> = HomeUnit(name, location, pinName, ConnectionType.GPIO)
+    override val homeUnit: HomeUnitLog<Boolean> = HomeUnitLog(name, location, pinName, ConnectionType.GPIO)
 
     var homeUnitListener: Sensor.HomeUnitListener<Boolean>? = null
 

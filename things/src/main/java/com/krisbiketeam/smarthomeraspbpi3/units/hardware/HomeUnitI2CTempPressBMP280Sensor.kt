@@ -3,7 +3,7 @@ package com.krisbiketeam.smarthomeraspbpi3.units.hardware
 import com.google.android.things.contrib.driver.bmx280.Bmx280
 import com.google.android.things.contrib.driver.rainbowhat.RainbowHat
 import com.krisbiketeam.data.storage.ConnectionType
-import com.krisbiketeam.data.storage.HomeUnit
+import com.krisbiketeam.data.storage.dto.HomeUnitLog
 import com.krisbiketeam.smarthomeraspbpi3.units.HomeUnitI2C
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
 import com.krisbiketeam.smarthomeraspbpi3.utils.Logger
@@ -27,7 +27,7 @@ class HomeUnitI2CTempPressBMP280Sensor(name: String,
     }
 
 
-    override val homeUnit: HomeUnit<TemperatureAndPressure> = HomeUnit(name, location, pinName, ConnectionType.I2C, softAddress)
+    override val homeUnit: HomeUnitLog<TemperatureAndPressure> = HomeUnitLog(name, location, pinName, ConnectionType.I2C, softAddress)
 
     private var job: Job? = null
     private var homeUnitListener: Sensor.HomeUnitListener<TemperatureAndPressure>? = null

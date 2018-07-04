@@ -11,8 +11,9 @@ import com.google.android.things.pio.Gpio
 import com.krisbiketeam.data.auth.Authentication
 import com.krisbiketeam.data.auth.FirebaseAuthentication
 import com.krisbiketeam.data.storage.*
-import com.krisbiketeam.data.storage.HomeInformation
-import com.krisbiketeam.data.storage.dto.Temperature
+import com.krisbiketeam.data.storage.dto.HomeInformation
+import com.krisbiketeam.data.storage.UnitsLiveData
+import com.krisbiketeam.data.storage.dto.HomeUnitLog
 import com.krisbiketeam.smarthomeraspbpi3.units.Actuator
 import com.krisbiketeam.smarthomeraspbpi3.units.BaseUnit
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
@@ -30,10 +31,12 @@ import java.util.*
 class ThingsActivity : AppCompatActivity(), HomeUnitListener<Any> {
     private lateinit var authentication: Authentication
     private lateinit var lightsLiveData: LiveData<HomeInformation>
-    private lateinit var temperaturesLiveData: LiveData<Temperature>
     private lateinit var homeInformationRepository: HomeInformationRepository
     private lateinit var secureStorage: SecureStorage
     private lateinit var networkConnectionMonitor: NetworkConnectionMonitor
+
+    private lateinit var unitsLiveData: UnitsLiveData
+
 
     private val home = Home()
 
@@ -82,7 +85,6 @@ class ThingsActivity : AppCompatActivity(), HomeUnitListener<Any> {
                 .TEMP_PRESS_SENSOR_BMP280_PIN, BoardConfig.TEMP_PRESS_SENSOR_BMP280_ADDR) as Sensor<Any>
         unitList[BoardConfig.TEMP_PRESS_SENSOR_BMP280] = tempePressSensor
 
-        home.saveToRepository(homeInformationRepository)
     }
 
     private val lightDataObserver = Observer<HomeInformation> { homeInformation ->
@@ -91,8 +93,8 @@ class ThingsActivity : AppCompatActivity(), HomeUnitListener<Any> {
         Timber.d("homeInformation changed: $homeInformation")
     }
 
-    private val temperaturesDataObserver = Observer<Temperature> { temperature ->
-        Timber.d("Temperature changed: $temperature")
+    private val unitsDataObserver = Observer<Any> { value ->
+        Timber.d("unitsDataObserver changed: $value")
     }
 
     private val networkConnectionListener = object : NetworkConnectionListener {
@@ -151,7 +153,10 @@ class ThingsActivity : AppCompatActivity(), HomeUnitListener<Any> {
         homeInformationRepository = FirebaseHomeInformationRepository()
         authentication = FirebaseAuthentication()
         lightsLiveData = homeInformationRepository.lightLiveData()
-        temperaturesLiveData = homeInformationRepository.temperaturesLiveData()
+
+        unitsLiveData = homeInformationRepository.unitsLiveData()
+
+        //home.saveToRepository(homeInformationRepository)
     }
 
     override fun onStart() {
@@ -176,7 +181,7 @@ class ThingsActivity : AppCompatActivity(), HomeUnitListener<Any> {
     override fun onStop() {
         Timber.d("onStop Shutting down lights observer")
         lightsLiveData.removeObserver { lightDataObserver }
-        temperaturesLiveData.removeObserver(temperaturesDataObserver)
+        unitsLiveData.removeObserver(unitsDataObserver)
 
         networkConnectionMonitor.stopListen()
 
@@ -194,7 +199,8 @@ class ThingsActivity : AppCompatActivity(), HomeUnitListener<Any> {
     private fun observeLightsData() {
         Timber.d("Observing lights data")
         lightsLiveData.observe(this, lightDataObserver)
-        temperaturesLiveData.observe(this, temperaturesDataObserver)
+
+        unitsLiveData.observe(this, unitsDataObserver)
     }
 
     private fun setLightState(b: Boolean) {
@@ -210,7 +216,7 @@ class ThingsActivity : AppCompatActivity(), HomeUnitListener<Any> {
         fourCharDisplay.setValue(message)
     }
 
-    override fun onUnitChanged(homeUnit: HomeUnit<out Any>, value: Any?) {
+    override fun onUnitChanged(homeUnit: HomeUnitLog<out Any>, value: Any?) {
         Timber.d("onUnitChanged unit: $homeUnit value: $value")
         homeInformationRepository.logUnitEvent(homeUnit)
         val unit: BaseUnit<Any>?
@@ -248,8 +254,8 @@ class ThingsActivity : AppCompatActivity(), HomeUnitListener<Any> {
             }
             BoardConfig.TEMP_PRESS_SENSOR_BMP280 -> if (value is TemperatureAndPressure) {
                 Timber.d("Received TemperatureAndPressure $value")
-                homeInformationRepository.saveTemperature(value.temperature)
-                homeInformationRepository.savePressure(value.pressure)
+                //homeInformationRepository.saveTemperature(value.temperature)
+                //homeInformationRepository.savePressure(value.pressure)
                 homeInformationRepository.saveTemperature(
                         home.temperatures.values.first().apply {
                             this.value = value.temperature
