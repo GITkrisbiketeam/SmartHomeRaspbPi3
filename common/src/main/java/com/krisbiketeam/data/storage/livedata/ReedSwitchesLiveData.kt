@@ -1,32 +1,63 @@
 package com.krisbiketeam.data.storage.livedata
 
 import android.arch.lifecycle.LiveData
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.*
 import com.krisbiketeam.data.storage.dto.ReedSwitch
 import timber.log.Timber
 
 class ReedSwitchesLiveData(private val databaseReference: DatabaseReference) : LiveData<ReedSwitch>() {
 
-    private val valueEventListener = object : ValueEventListener {
-        override fun onDataChange(snapshot: DataSnapshot) {
-            val newValue = snapshot.getValue(ReedSwitch::class.java)
-            Timber.d("onDataChange (value=$value) (newValue=$newValue)")
-            value = newValue
+    private val childEventListener = object : ChildEventListener {
+        override fun onChildAdded(dataSnapshot: DataSnapshot, previousChildName: String?) {
+            // A new temperature has been added, add it to the displayed list
+            val temperature = dataSnapshot.getValue(ReedSwitch::class.java)
+            val temperatureKey = dataSnapshot.getKey()
+
+            Timber.d("onChildChanged (temperatureKey=$temperatureKey) (value=$value) (newValue=$temperature) ")
+            value = temperature
         }
 
-        override fun onCancelled(error: DatabaseError) {
-            Timber.w(error.toException(), "onCancelled")
+        override  fun onChildChanged(dataSnapshot: DataSnapshot , previousChildName: String?) {
+            // A temperature has changed, use the key to determine if we are displaying this
+            // temperature and if so displayed the changed temperature.
+            val temperature = dataSnapshot.getValue(ReedSwitch::class.java)
+            val temperatureKey = dataSnapshot.getKey()
+            Timber.d("onChildChanged (temperatureKey=$temperatureKey) (value=$value) (newValue=$temperature)")
+            value = temperature
+        }
+
+        override  fun onChildRemoved(dataSnapshot: DataSnapshot) {
+            Timber.d("onChildRemoved:" + dataSnapshot.getKey());
+
+            // A temperature has changed, use the key to determine if we are displaying this
+            // temperature and if so remove it.
+            val temperatureKey = dataSnapshot.getKey()
+
+            // ...
+        }
+
+        override  fun onChildMoved(dataSnapshot: DataSnapshot , previousChildName: String?) {
+            Timber.d("onChildMoved:" + dataSnapshot.getKey());
+
+            // A temperature has changed position, use the key to determine if we are
+            // displaying this temperature and if so move it.
+            val temperature = dataSnapshot.getValue(ReedSwitch::class.java)
+            val temperatureKey = dataSnapshot.getKey()
+
+            // ...
+        }
+
+        override fun onCancelled(databaseError: DatabaseError) {
+            Timber.e("onCancelled:", databaseError);
+
         }
     }
 
     override fun onActive() {
-        databaseReference.addValueEventListener(valueEventListener)
+        databaseReference.addChildEventListener(childEventListener)
     }
 
     override fun onInactive() {
-        databaseReference.removeEventListener(valueEventListener)
+        databaseReference.removeEventListener(childEventListener)
     }
 }

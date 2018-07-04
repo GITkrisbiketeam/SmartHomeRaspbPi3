@@ -1,7 +1,5 @@
 package com.krisbiketeam.data.storage.dto
 
-data class Temperature(var name: String,
+data class Temperature(var name: String = "",
                        var room: String = "",
-                       var value: Float = 0f) {
-    val id: Int = hashCode()
-}
+                       var value: Float = 0f)

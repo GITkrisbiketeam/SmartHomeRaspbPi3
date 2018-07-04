@@ -12,6 +12,7 @@ import com.krisbiketeam.data.auth.Authentication
 import com.krisbiketeam.data.auth.FirebaseAuthentication
 import com.krisbiketeam.data.storage.*
 import com.krisbiketeam.data.storage.HomeInformation
+import com.krisbiketeam.data.storage.dto.Temperature
 import com.krisbiketeam.smarthomeraspbpi3.units.Actuator
 import com.krisbiketeam.smarthomeraspbpi3.units.BaseUnit
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
@@ -29,6 +30,7 @@ import java.util.*
 class ThingsActivity : AppCompatActivity(), HomeUnitListener<Any> {
     private lateinit var authentication: Authentication
     private lateinit var lightsLiveData: LiveData<HomeInformation>
+    private lateinit var temperaturesLiveData: LiveData<Temperature>
     private lateinit var homeInformationRepository: HomeInformationRepository
     private lateinit var secureStorage: SecureStorage
     private lateinit var networkConnectionMonitor: NetworkConnectionMonitor
@@ -39,7 +41,7 @@ class ThingsActivity : AppCompatActivity(), HomeUnitListener<Any> {
 
     private val fourCharDisplay = HomeUnitI2CFourCharDisplay(BoardConfig.FOUR_CHAR_DISP, "Raspberry Pi", BoardConfig.FOUR_CHAR_DISP_PIN)
 
-    init{
+    init {
         Timber.d("init")
 
         val ledA = HomeUnitGpioActuator(BoardConfig.LED_A, "Raspberry Pi", BoardConfig
@@ -80,12 +82,17 @@ class ThingsActivity : AppCompatActivity(), HomeUnitListener<Any> {
                 .TEMP_PRESS_SENSOR_BMP280_PIN, BoardConfig.TEMP_PRESS_SENSOR_BMP280_ADDR) as Sensor<Any>
         unitList[BoardConfig.TEMP_PRESS_SENSOR_BMP280] = tempePressSensor
 
+        home.saveToRepository(homeInformationRepository)
     }
 
-    private val lightsDataObserver = Observer<HomeInformation> { homeInformation ->
+    private val lightDataObserver = Observer<HomeInformation> { homeInformation ->
         setLightState(homeInformation?.light ?: false)
         setMessage(homeInformation?.message)
         Timber.d("homeInformation changed: $homeInformation")
+    }
+
+    private val temperaturesDataObserver = Observer<Temperature> { temperature ->
+        Timber.d("Temperature changed: $temperature")
     }
 
     private val networkConnectionListener = object : NetworkConnectionListener {
@@ -144,6 +151,7 @@ class ThingsActivity : AppCompatActivity(), HomeUnitListener<Any> {
         homeInformationRepository = FirebaseHomeInformationRepository()
         authentication = FirebaseAuthentication()
         lightsLiveData = homeInformationRepository.lightLiveData()
+        temperaturesLiveData = homeInformationRepository.temperaturesLiveData()
     }
 
     override fun onStart() {
@@ -167,7 +175,8 @@ class ThingsActivity : AppCompatActivity(), HomeUnitListener<Any> {
 
     override fun onStop() {
         Timber.d("onStop Shutting down lights observer")
-        lightsLiveData.removeObserver { lightsDataObserver }
+        lightsLiveData.removeObserver { lightDataObserver }
+        temperaturesLiveData.removeObserver(temperaturesDataObserver)
 
         networkConnectionMonitor.stopListen()
 
@@ -175,7 +184,7 @@ class ThingsActivity : AppCompatActivity(), HomeUnitListener<Any> {
             try {
                 unit.close()
             } catch (e: Exception) {
-                Timber.e( "Error on PeripheralIO API", e)
+                Timber.e("Error on PeripheralIO API", e)
             }
         }
 
@@ -184,7 +193,8 @@ class ThingsActivity : AppCompatActivity(), HomeUnitListener<Any> {
 
     private fun observeLightsData() {
         Timber.d("Observing lights data")
-        lightsLiveData.observe(this, lightsDataObserver)
+        lightsLiveData.observe(this, lightDataObserver)
+        temperaturesLiveData.observe(this, temperaturesDataObserver)
     }
 
     private fun setLightState(b: Boolean) {
@@ -236,24 +246,36 @@ class ThingsActivity : AppCompatActivity(), HomeUnitListener<Any> {
                 }*/
 
             }
-            BoardConfig.TEMP_PRESS_SENSOR_BMP280 -> {
-                if (value is TemperatureAndPressure) {
-                    Timber.d("Received TemperatureAndPressure $value")
-                    homeInformationRepository.saveTemperature(value.temperature)
-                    homeInformationRepository.savePressure(value.pressure)
-                    homeInformationRepository.saveTemperature(
-                            home.temperatures.values.first().apply {
-                                this.value = value.temperature
-                            })
-                }
-
+            BoardConfig.TEMP_PRESS_SENSOR_BMP280 -> if (value is TemperatureAndPressure) {
+                Timber.d("Received TemperatureAndPressure $value")
+                homeInformationRepository.saveTemperature(value.temperature)
+                homeInformationRepository.savePressure(value.pressure)
+                homeInformationRepository.saveTemperature(
+                        home.temperatures.values.first().apply {
+                            this.value = value.temperature
+                        })
             }
-            /*BoardConfig.MOTION_1 -> if (value != null) {
-                lightOnOffOneRainbowLed(0, (value as Boolean?)!!)
+            BoardConfig.TEMP_SENSOR_TMP102 -> if (value is Float) {
+                Timber.d("Received Temperature $value")
+                homeInformationRepository.saveTemperature(
+                        home.temperatures.values.last().apply {
+                            this.value = value
+                        })
             }
-            BoardConfig.REED_SWITCH_1 -> if (value != null) {
-                lightOnOffOneRainbowLed(1, (value as Boolean?)!!)
-            }*/
+            BoardConfig.MOTION_1 -> if (value is Boolean) {
+                //lightOnOffOneRainbowLed(0, (value as Boolean?)!!)
+                homeInformationRepository.saveMotion(
+                        home.motions.values.first().apply {
+                            this.active = value
+                        })
+            }
+            BoardConfig.REED_SWITCH_1 -> if (value is Boolean) {
+                //lightOnOffOneRainbowLed(1, (value as Boolean?)!!)
+                homeInformationRepository.saveReedSwitch(
+                        home.reedSwitches.values.first().apply {
+                            this.active = value
+                        })
+            }
         }
     }
 

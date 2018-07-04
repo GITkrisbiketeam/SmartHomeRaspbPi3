@@ -9,6 +9,7 @@ import com.krisbiketeam.data.auth.Authentication
 import com.krisbiketeam.data.auth.FirebaseAuthentication
 import com.krisbiketeam.data.storage.*
 import com.krisbiketeam.data.storage.HomeInformation
+import com.krisbiketeam.data.storage.dto.Temperature
 import kotlinx.android.synthetic.main.activity_mobile.*
 import timber.log.Timber
 import java.util.*
@@ -20,13 +21,17 @@ class MobileActivity : AppCompatActivity() {
     private lateinit var lightsLiveData: LiveData<HomeInformation>
     private lateinit var homeInformationRepository: HomeInformationRepository
     private lateinit var secureStorage: SecureStorage
+    private lateinit var temperaturesLiveData: LiveData<Temperature>
 
     // Mobile Activity
-    private val lightsDataObserver = Observer<HomeInformation> { homeInformation ->
+    private val lightDataObserver = Observer<HomeInformation> { homeInformation ->
         setToggle(homeInformation?.light ?: false)
         setTemperature(homeInformation?.temperature ?: 0f)
         setPressure(homeInformation?.pressure ?: 0f)
         Timber.d("HomeInformation changed: $homeInformation")
+    }
+    private val temperaturesDataObserver = Observer<Temperature> { temperature ->
+        Timber.d("Temperature changed: $temperature")
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -37,6 +42,7 @@ class MobileActivity : AppCompatActivity() {
         homeInformationRepository = FirebaseHomeInformationRepository()
         authentication = FirebaseAuthentication()
         lightsLiveData = homeInformationRepository.lightLiveData()
+        temperaturesLiveData = homeInformationRepository.temperaturesLiveData()
 
         lightToggle.setOnCheckedChangeListener { _, state: Boolean ->
             homeInformationRepository.saveLightState(state)
@@ -47,31 +53,32 @@ class MobileActivity : AppCompatActivity() {
             messageEdit.text.clear()
         }
 
+        buttonClearLog.setOnClickListener {
+            homeInformationRepository.clearLog()
+        }
+
         buttonWifi.setOnClickListener {
             callActivity(WifiActivity::class.java)
         }
         buttonLogin.setOnClickListener {
             callActivity(LoginActivity::class.java)
         }
+
         val home = Home()
-        homeInformationRepository.saveRooms(home.rooms)
-        homeInformationRepository.saveBlinds(home.blinds)
-        homeInformationRepository.saveLights(home.lights)
-        homeInformationRepository.saveMotions(home.motions)
-        homeInformationRepository.savePressures(home.pressures)
-        homeInformationRepository.saveReedSwitches(home.reedSwitches)
-        homeInformationRepository.saveTemperatures(home.temperatures)
+        home.saveToRepository(homeInformationRepository)
 
     }
 
     private fun observeLightsData() {
         Timber.d("Observing lights data")
-        lightsLiveData.observe(this, lightsDataObserver)
+        lightsLiveData.observe(this, lightDataObserver)
+        temperaturesLiveData.observe(this, temperaturesDataObserver)
     }
 
     private fun stopObserveLightsData() {
         Timber.d("Stop Observing lights data")
-        lightsLiveData.removeObserver { lightsDataObserver }
+        lightsLiveData.removeObserver { lightDataObserver }
+        temperaturesLiveData.removeObserver(temperaturesDataObserver)
     }
 
     override fun onResume() {

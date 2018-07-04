@@ -34,4 +34,14 @@ class Home {
         room = Room(roomName, 0, listOf(temp), listOf(light), listOf(reedSwitch), listOf(motion))
         rooms[room.name] = room
     }
+
+    fun saveToRepository(homeRepository: HomeInformationRepository){
+        homeRepository.saveRooms(rooms)
+        homeRepository.saveBlinds(blinds)
+        homeRepository.saveLights(lights)
+        homeRepository.saveMotions(motions)
+        homeRepository.savePressures(pressures)
+        homeRepository.saveReedSwitches(reedSwitches)
+        homeRepository.saveTemperatures(temperatures)
+    }
 }
