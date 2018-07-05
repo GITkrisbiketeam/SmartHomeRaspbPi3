@@ -17,4 +17,7 @@
     <string name="current_pressure_text">Current Pressure</string>
     <string name="message_edit_hint_text">abc</string>
     <string name="send_button_text">Send text</string>
+    <string name="button_wifi_text">WiFi</string>
+    <string name="button_login_text">Login</string>
+    <string name="button_clear_log_text">Clear Log</string>
 </resources>

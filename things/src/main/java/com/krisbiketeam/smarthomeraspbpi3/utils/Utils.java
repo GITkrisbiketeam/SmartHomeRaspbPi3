@@ -5,8 +5,6 @@ import android.support.annotation.NonNull;
 public class Utils {
     private static final String TAG_PREFIX = "SmartHome_";
 
-    private static final String TAG = getLogTag(Utils.class);
-
     /**
      * Generate uniform Log TAG
      */

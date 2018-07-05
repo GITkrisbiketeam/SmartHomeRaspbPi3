@@ -19,6 +19,8 @@ import com.krisbiketeam.smarthomeraspbpi3.units.BaseUnit
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
 import com.krisbiketeam.smarthomeraspbpi3.BoardConfig
 import com.krisbiketeam.smarthomeraspbpi3.R
+import com.krisbiketeam.smarthomeraspbpi3.driver.MCP23017
+import com.krisbiketeam.smarthomeraspbpi3.driver.MCP23017Pin
 import com.krisbiketeam.smarthomeraspbpi3.ui.setup.FirebaseCredentialsReceiverActivity
 import com.krisbiketeam.smarthomeraspbpi3.ui.setup.WiFiCredentialsReceiverActivity
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor.HomeUnitListener
@@ -84,7 +86,6 @@ class ThingsActivity : AppCompatActivity(), HomeUnitListener<Any> {
         val tempePressSensor = HomeUnitI2CTempPressBMP280Sensor(BoardConfig.TEMP_PRESS_SENSOR_BMP280, "Raspberry Pi", BoardConfig
                 .TEMP_PRESS_SENSOR_BMP280_PIN, BoardConfig.TEMP_PRESS_SENSOR_BMP280_ADDR) as Sensor<Any>
         unitList[BoardConfig.TEMP_PRESS_SENSOR_BMP280] = tempePressSensor
-
     }
 
     private val lightDataObserver = Observer<HomeInformation> { homeInformation ->
@@ -157,6 +158,7 @@ class ThingsActivity : AppCompatActivity(), HomeUnitListener<Any> {
         unitsLiveData = homeInformationRepository.unitsLiveData()
 
         //home.saveToRepository(homeInformationRepository)
+
     }
 
     override fun onStart() {
@@ -176,6 +178,13 @@ class ThingsActivity : AppCompatActivity(), HomeUnitListener<Any> {
                 unit.registerListener(this)
             }
         }
+        // For test MCP23017
+        val pinExtender = MCP23017(BoardConfig.I2C)
+        pinExtender.setMode(MCP23017Pin.GPIO_B0, MCP23017Pin.PinMode.DIGITAL_OUTPUT)
+        pinExtender.setState(MCP23017Pin.GPIO_B0, MCP23017Pin.PinState.HIGH)
+        pinExtender.setMode(MCP23017Pin.GPIO_A7, MCP23017Pin.PinMode.DIGITAL_INPUT)
+        Timber.e("extender state: ${pinExtender.getState(MCP23017Pin.GPIO_A7)}")
+
     }
 
     override fun onStop() {

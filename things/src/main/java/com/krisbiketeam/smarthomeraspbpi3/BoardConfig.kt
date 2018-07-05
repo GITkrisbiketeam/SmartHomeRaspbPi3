@@ -27,14 +27,14 @@ object BoardConfig {
     const val REED_SWITCH_1_PIN = "BCM15"
 
     const val FOUR_CHAR_DISP = "Hat Four Char Display"
-    val FOUR_CHAR_DISP_PIN = I2C
+    const val FOUR_CHAR_DISP_PIN = I2C
 
     const val TEMP_SENSOR_TMP102 = "Temperature Sensor"
-    val TEMP_SENSOR_TMP102_PIN = I2C
+    const val TEMP_SENSOR_TMP102_PIN = I2C
     const val TEMP_SENSOR_TMP102_ADDR = TMP102.DEFAULT_I2C_GND_ADDRESS
 
     const val TEMP_PRESS_SENSOR_BMP280 = "Temperature and Pressure Sensor"
-    val TEMP_PRESS_SENSOR_BMP280_PIN = I2C
+    const val TEMP_PRESS_SENSOR_BMP280_PIN = I2C
     const val TEMP_PRESS_SENSOR_BMP280_ADDR = Bmx280.DEFAULT_I2C_ADDRESS
 
 }

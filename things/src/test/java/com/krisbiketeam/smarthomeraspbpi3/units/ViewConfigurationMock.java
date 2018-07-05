@@ -21,7 +21,7 @@ import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
 
-public class ViewConfigurationMock {
+class ViewConfigurationMock {
 
     public static void mockStatic() {
         PowerMockito.mockStatic(ViewConfiguration.class);

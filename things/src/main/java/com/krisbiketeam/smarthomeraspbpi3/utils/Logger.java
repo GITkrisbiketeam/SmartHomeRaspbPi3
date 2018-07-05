@@ -7,6 +7,7 @@ import android.util.Log;
 import com.krisbiketeam.smarthomeraspbpi3.R;
 import com.krisbiketeam.smarthomeraspbpi3.databinding.ActivityHomeBinding;
 
+@SuppressWarnings("unused")
 public class Logger {
 
     private volatile static Logger sInstance;

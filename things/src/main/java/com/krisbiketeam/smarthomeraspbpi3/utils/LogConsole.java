@@ -5,6 +5,7 @@ import android.databinding.Bindable;
 
 import com.krisbiketeam.smarthomeraspbpi3.BR;
 
+@SuppressWarnings("WeakerAccess")
 public class LogConsole extends BaseObservable {
 
     private String consoleMessage;
