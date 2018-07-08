@@ -3,6 +3,10 @@ package com.krisbiketeam.smarthomeraspbpi3.driver;
 @SuppressWarnings("WeakerAccess")
 public class MCP23017Pin {
 
+    interface MCP23017PinStateChangeListener {
+        void onPinStateChanged(MCP23017Pin pin, PinState state);
+    }
+
     public enum PinMode {
         DIGITAL_INPUT, DIGITAL_OUTPUT
     }
@@ -48,7 +52,7 @@ public class MCP23017Pin {
     private final int address;
     private final String name;
     
-    public MCP23017Pin(int address, String name) {
+    private MCP23017Pin(int address, String name) {
         this.address = address;
         this.name = name;
     }

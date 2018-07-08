@@ -18,6 +18,7 @@ import com.krisbiketeam.smarthomeraspbpi3.units.Actuator
 import com.krisbiketeam.smarthomeraspbpi3.units.BaseUnit
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
 import com.krisbiketeam.smarthomeraspbpi3.BoardConfig
+import com.krisbiketeam.smarthomeraspbpi3.BoardConfig.IO_EXTENDER_MCP23017_INTA_PIN
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.driver.MCP23017
 import com.krisbiketeam.smarthomeraspbpi3.driver.MCP23017Pin
@@ -75,9 +76,9 @@ class ThingsActivity : AppCompatActivity(), HomeUnitListener<Any> {
                 .MOTION_1_PIN, Gpio.ACTIVE_HIGH) as Sensor<Any>
         unitList[BoardConfig.MOTION_1] = motion
 
-        val contactron = HomeUnitGpioNoiseSensor(BoardConfig.REED_SWITCH_1, "Raspberry Pi", BoardConfig
+        /*val contactron = HomeUnitGpioNoiseSensor(BoardConfig.REED_SWITCH_1, "Raspberry Pi", BoardConfig
                 .REED_SWITCH_1_PIN, Gpio.ACTIVE_LOW) as Sensor<Any>
-        unitList[BoardConfig.REED_SWITCH_1] = contactron
+        unitList[BoardConfig.REED_SWITCH_1] = contactron*/
 
         val temperatureSensor = HomeUnitI2CTempTMP102Sensor(BoardConfig.TEMP_SENSOR_TMP102, "Raspberry Pi", BoardConfig
                 .TEMP_SENSOR_TMP102_PIN, BoardConfig.TEMP_SENSOR_TMP102_ADDR) as Sensor<Any>
@@ -179,11 +180,18 @@ class ThingsActivity : AppCompatActivity(), HomeUnitListener<Any> {
             }
         }
         // For test MCP23017
-        val pinExtender = MCP23017(BoardConfig.I2C)
+        val pinExtender = MCP23017(BoardConfig.IO_EXTENDER_MCP23017_PIN,
+                BoardConfig.IO_EXTENDER_MCP23017_ADDR,
+                MCP23017.NO_POLLING_TIME,
+                IO_EXTENDER_MCP23017_INTA_PIN,
+                null)
         pinExtender.setMode(MCP23017Pin.GPIO_B0, MCP23017Pin.PinMode.DIGITAL_OUTPUT)
         pinExtender.setState(MCP23017Pin.GPIO_B0, MCP23017Pin.PinState.HIGH)
         pinExtender.setMode(MCP23017Pin.GPIO_A7, MCP23017Pin.PinMode.DIGITAL_INPUT)
-        Timber.e("extender state: ${pinExtender.getState(MCP23017Pin.GPIO_A7)}")
+
+        pinExtender.registerPinListener(MCP23017Pin.GPIO_A7) { pin, state ->
+            Timber.e("extender state: ${pin.name} state: $state")
+        }
 
     }
 
@@ -263,8 +271,8 @@ class ThingsActivity : AppCompatActivity(), HomeUnitListener<Any> {
             }
             BoardConfig.TEMP_PRESS_SENSOR_BMP280 -> if (value is TemperatureAndPressure) {
                 Timber.d("Received TemperatureAndPressure $value")
-                //homeInformationRepository.saveTemperature(value.temperature)
-                //homeInformationRepository.savePressure(value.pressure)
+                homeInformationRepository.saveTemperature(value.temperature)
+                homeInformationRepository.savePressure(value.pressure)
                 homeInformationRepository.saveTemperature(
                         home.temperatures.values.first().apply {
                             this.value = value.temperature

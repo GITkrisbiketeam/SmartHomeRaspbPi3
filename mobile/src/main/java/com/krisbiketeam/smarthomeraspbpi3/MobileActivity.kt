@@ -65,7 +65,7 @@ class MobileActivity : AppCompatActivity() {
         }
 
         val home = Home()
-        home.saveToRepository(homeInformationRepository)
+        //home.saveToRepository(homeInformationRepository)
 
     }
 

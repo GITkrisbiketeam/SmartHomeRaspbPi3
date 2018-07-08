@@ -1,6 +1,7 @@
 package com.krisbiketeam.smarthomeraspbpi3
 
 import com.google.android.things.contrib.driver.bmx280.Bmx280
+import com.krisbiketeam.smarthomeraspbpi3.driver.MCP23017
 import com.krisbiketeam.smarthomeraspbpi3.driver.TMP102
 
 object BoardConfig {
@@ -36,5 +37,10 @@ object BoardConfig {
     const val TEMP_PRESS_SENSOR_BMP280 = "Temperature and Pressure Sensor"
     const val TEMP_PRESS_SENSOR_BMP280_PIN = I2C
     const val TEMP_PRESS_SENSOR_BMP280_ADDR = Bmx280.DEFAULT_I2C_ADDRESS
+
+    const val IO_EXTENDER_MCP23017 = "16-bit IO Extender"
+    const val IO_EXTENDER_MCP23017_PIN = I2C
+    const val IO_EXTENDER_MCP23017_ADDR = MCP23017.DEFAULT_I2C_000_ADDRESS
+    const val IO_EXTENDER_MCP23017_INTA_PIN = "BCM15"
 
 }

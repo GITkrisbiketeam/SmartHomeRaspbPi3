@@ -40,6 +40,7 @@ open class HomeUnitGpioSensor(name: String,
             Logger.w(TAG, gpio.toString() + ": Error event $error on: $homeUnit")
         }
     }
+
     override fun connect() {
         super.connect()
 

@@ -23,7 +23,7 @@ class HomeUnitI2CTempPressBMP280Sensor(name: String,
                                        override var device: AutoCloseable? = null) : HomeUnitI2C<TemperatureAndPressure>, Sensor<TemperatureAndPressure> {
     companion object {
         private val TAG = Utils.getLogTag(HomeUnitI2CTempPressBMP280Sensor::class.java)
-        private const val REFRESH_RATE = 10000L // ten seconds
+        private const val REFRESH_RATE = 30000L // 30 seconds
     }
 
 

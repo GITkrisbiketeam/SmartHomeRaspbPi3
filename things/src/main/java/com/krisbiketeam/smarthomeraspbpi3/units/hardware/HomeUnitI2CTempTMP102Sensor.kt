@@ -19,7 +19,7 @@ class HomeUnitI2CTempTMP102Sensor(name: String,
                                   override var device: AutoCloseable? = null) : HomeUnitI2C<Float>, Sensor<Float> {
     companion object {
         private val TAG = Utils.getLogTag(HomeUnitI2CTempTMP102Sensor::class.java)
-        private const val REFRESH_RATE = 10000L // ten seconds
+        private const val REFRESH_RATE = 30000L // 30 seconds
     }
 
 
