@@ -1,6 +1,8 @@
 package com.krisbiketeam.smarthomeraspbpi3.driver
 
+import android.os.Handler
 import android.support.annotation.VisibleForTesting
+import android.view.ViewConfiguration
 import com.google.android.things.pio.Gpio
 import com.google.android.things.pio.I2cDevice
 import com.google.android.things.pio.PeripheralManager
@@ -90,19 +92,29 @@ class MCP23017(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS, poll
 
     private var pollingTime = DEFAULT_POLLING_TIME
 
-    private val i2cBusOwner = false
+    private val debounceDelay = ViewConfiguration.getTapTimeout()
+
+    private val mHandler = Handler()
+
     private var monitor: GpioStateMonitor? = null
 
     private var mDevice: I2cDevice? = null
     private var mIntAGpio: Gpio? = null
     private var mIntBGpio: Gpio? = null
 
-    private val mListeners = HashMap<MCP23017Pin, List<MCP23017PinStateChangeListener>>()
+    private val mListeners = HashMap<MCP23017Pin, MutableList<MCP23017PinStateChangeListener>>()
 
     private val mIntACallback = { gpio: Gpio ->
         try {
-            Timber.d("mIntACallback onGpioEdge " + gpio.getValue())
-            checkInterrupt()
+            Timber.d("mIntACallback onGpioEdge " + gpio.value)
+            mHandler.removeCallbacksAndMessages(null)
+            mHandler.postDelayed({
+                try {
+                    checkInterrupt()
+                } catch (e: IOException) {
+                    Timber.e("mIntACallback onGpioEdge exception", e)
+                }
+            }, debounceDelay.toLong())
         } catch (e: IOException) {
             Timber.e("mIntACallback onGpioEdge exception", e)
         }
@@ -113,8 +125,17 @@ class MCP23017(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS, poll
 
     private val mIntBCallback = { gpio: Gpio ->
         try {
-            Timber.d("mIntBCallback onGpioEdge " + gpio.getValue())
-            checkInterrupt()
+            Timber.d("mIntBCallback onGpioEdge " + gpio.value)
+            if (!gpio.value) {
+                mHandler.removeCallbacksAndMessages(null)
+                mHandler.postDelayed({
+                    try {
+                        checkInterrupt()
+                    } catch (e: IOException) {
+                        Timber.e("mIntACallback onGpioEdge exception", e)
+                    }
+                }, debounceDelay.toLong())
+            }
         } catch (e: IOException) {
             Timber.e("mIntBCallback onGpioEdge exception", e)
         }
@@ -132,6 +153,7 @@ class MCP23017(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS, poll
                     connectGpio(intAGpio, intBGpio)
                 }
             } catch (e: IOException) {
+                Timber.e("init error connectiong I2C", e)
                 try {
                     close()
                 } catch (ignored: IOException) {
@@ -157,13 +179,13 @@ class MCP23017(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS, poll
         }
 
         // read initial GPIO pin states
-        currentStatesA = readRegister(REGISTER_GPIO_A) ?: currentStatesA
-        currentStatesB = readRegister(REGISTER_GPIO_B) ?: currentStatesB
+        currentStatesA = readRegister(REGISTER_GPIO_A) ?: -1
+        currentStatesB = readRegister(REGISTER_GPIO_B) ?: -1
 
-        val currentConf = mDevice?.readRegByte(REGISTER_IOCON)?.toInt() ?: -1
+        val currentConf = readRegister(REGISTER_IOCON) ?: -1
 
         Timber.d("connect currentStatesA: " + currentStatesA + " currentStatesB: " +
-                currentStatesA + " currentConf: " + currentConf)
+                currentStatesB + " currentConf: " + currentConf)
         resetToDefaults()
     }
 
@@ -175,22 +197,22 @@ class MCP23017(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS, poll
             // Step 1. Create GPIO connection.
             mIntAGpio = manager.openGpio(intAGpio)
             // Step 2. Configure as an input.
-            mIntAGpio!!.setDirection(Gpio.DIRECTION_IN)
+            mIntAGpio?.setDirection(Gpio.DIRECTION_IN)
             // Step 3. Enable edge trigger events.
-            mIntAGpio!!.setEdgeTriggerType(Gpio.EDGE_RISING)    // INT active Low
+            mIntAGpio?.setEdgeTriggerType(Gpio.EDGE_FALLING)    // INT active Low
             // Step 4. Register an event callback.
-            mIntAGpio!!.registerGpioCallback(mIntACallback)
+            mIntAGpio?.registerGpioCallback(mIntACallback)
         }
         if (intBGpio != null) {
             Timber.d("connectGpio intBGpio openGpio $intBGpio")
             // Step 1. Create GPIO connection.
             mIntBGpio = manager.openGpio(intBGpio)
             // Step 2. Configure as an input.
-            mIntBGpio!!.setDirection(Gpio.DIRECTION_IN)
+            mIntBGpio?.setDirection(Gpio.DIRECTION_IN)
             // Step 3. Enable edge trigger events.
-            mIntBGpio!!.setEdgeTriggerType(Gpio.EDGE_RISING)    // INT active Low
+            mIntBGpio?.setEdgeTriggerType(Gpio.EDGE_FALLING)    // INT active Low
             // Step 4. Register an event callback.
-            mIntBGpio!!.registerGpioCallback(mIntBCallback)
+            mIntBGpio?.registerGpioCallback(mIntBCallback)
         }
     }
 
@@ -226,12 +248,12 @@ class MCP23017(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS, poll
     }
 
 
-    fun readRegister(reg: Int) = mDevice?.readRegByte(reg)?.toInt()?.and(0xff)
+    private fun readRegister(reg: Int): Int? = mDevice?.readRegByte(reg)?.toInt()?.and(0xff)
 
-    fun writeRegister(reg: Int, regVal: Int) = mDevice?.writeRegByte(reg, regVal.toByte())
+    private fun writeRegister(reg: Int, regVal: Int) = mDevice?.writeRegByte(reg, regVal.toByte())
 
     @Throws(IOException::class, IllegalStateException::class)
-    fun resetToDefaults() {
+    private fun resetToDefaults() {
         if (mDevice == null) {
             throw IllegalStateException("I2C device is already closed")
         }
@@ -297,11 +319,12 @@ class MCP23017(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS, poll
         val pinAddress = pin.address - GPIO_A_OFFSET
 
         // determine update direction value based on mode
-        if (mode === PinMode.DIGITAL_INPUT) {
+        if (mode == PinMode.DIGITAL_INPUT) {
             currentDirectionA = currentDirectionA or pinAddress
-        } else if (mode === PinMode.DIGITAL_OUTPUT) {
+        } else if (mode == PinMode.DIGITAL_OUTPUT) {
             currentDirectionA = currentDirectionA and pinAddress.inv()
         }
+        Timber.d("setModeA currentDirectionA: $currentDirectionA")
 
         // next update direction value
         writeRegister(REGISTER_IODIR_A, currentDirectionA)
@@ -316,11 +339,13 @@ class MCP23017(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS, poll
         val pinAddress = pin.address - GPIO_B_OFFSET
 
         // determine update direction value based on mode
-        if (mode === PinMode.DIGITAL_INPUT) {
+        if (mode == PinMode.DIGITAL_INPUT) {
             currentDirectionB = currentDirectionB or pinAddress
-        } else if (mode === PinMode.DIGITAL_OUTPUT) {
+        } else if (mode == PinMode.DIGITAL_OUTPUT) {
             currentDirectionB = currentDirectionB and pinAddress.inv()
         }
+
+        Timber.d("setModeB currentDirectionB: $currentDirectionB")
 
         // next update direction (mode) value
         writeRegister(REGISTER_IODIR_B, currentDirectionB)
@@ -365,10 +390,10 @@ class MCP23017(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS, poll
         val pinAddress = pin.address - GPIO_A_OFFSET
 
         // determine state value for pin bit
-        if (state === PinState.HIGH) {
-            currentStatesA = currentStatesA or pinAddress
+        currentStatesA = if (state == PinState.HIGH) {
+            currentStatesA or pinAddress
         } else {
-            currentStatesA = currentStatesA and pinAddress.inv()
+            currentStatesA and pinAddress.inv()
         }
 
         // update state value
@@ -381,10 +406,10 @@ class MCP23017(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS, poll
         val pinAddress = pin.address - GPIO_B_OFFSET
 
         // determine state value for pin bit
-        if (state === PinState.HIGH) {
-            currentStatesB = currentStatesB or pinAddress
+        currentStatesB = if (state == PinState.HIGH) {
+            currentStatesB or pinAddress
         } else {
-            currentStatesB = currentStatesB and pinAddress.inv()
+            currentStatesB and pinAddress.inv()
         }
 
         // update state value
@@ -404,7 +429,7 @@ class MCP23017(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS, poll
     private fun getStateA(pin: MCP23017Pin): PinState {
 
         try {
-            currentStatesA = mDevice?.readRegByte(REGISTER_GPIO_A)?.toInt() ?: currentStatesA
+            currentStatesA = readRegister(REGISTER_GPIO_A) ?: currentStatesA
         } catch (e: IOException) {
             throw RuntimeException(e)
         }
@@ -420,7 +445,7 @@ class MCP23017(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS, poll
     private fun getStateB(pin: MCP23017Pin): PinState {
 
         try {
-            currentStatesB = mDevice?.readRegByte(REGISTER_GPIO_B)?.toInt() ?: currentStatesB
+            currentStatesB = readRegister(REGISTER_GPIO_B) ?: currentStatesB
         } catch (e: IOException) {
             throw RuntimeException(e)
         }
@@ -453,10 +478,10 @@ class MCP23017(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS, poll
         val pinAddress = pin.address - GPIO_A_OFFSET
 
         // determine pull up value for pin bit
-        if (resistance === PinPullResistance.PULL_UP) {
-            currentPullupA = currentPullupA or pinAddress
+        currentPullupA = if (resistance == PinPullResistance.PULL_UP) {
+            currentPullupA or pinAddress
         } else {
-            currentPullupA = currentPullupA and pinAddress.inv()
+            currentPullupA and pinAddress.inv()
         }
 
         // next update pull up resistor value
@@ -469,10 +494,10 @@ class MCP23017(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS, poll
         val pinAddress = pin.address - GPIO_B_OFFSET
 
         // determine pull up value for pin bit
-        if (resistance === PinPullResistance.PULL_UP) {
-            currentPullupB = currentPullupB or pinAddress
+        currentPullupB = if (resistance == PinPullResistance.PULL_UP) {
+            currentPullupB or pinAddress
         } else {
-            currentPullupB = currentPullupB and pinAddress.inv()
+            currentPullupB and pinAddress.inv()
         }
 
         // next update pull up resistor value
@@ -499,21 +524,22 @@ class MCP23017(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS, poll
         this.pollingTime = pollingTime
     }
 
-    /*fun registerPinListener(pin: MCP23017Pin, listener: MCP23017PinStateChangeListener): Boolean {
-        if (getMode(pin) === PinMode.DIGITAL_INPUT) {
-            val pinListeners = (mListeners as java.util.Map<MCP23017Pin, List<MCP23017PinStateChangeListener>>).computeIfAbsent(pin) { k -> ArrayList(1) }
+    fun registerPinListener(pin: MCP23017Pin, listener: MCP23017PinStateChangeListener): Boolean {
+        return if (getMode(pin) == PinMode.DIGITAL_INPUT) {
+            //val pinListeners = (mListeners as java.util.Map<MCP23017Pin, MutableList<MCP23017PinStateChangeListener>>).computeIfAbsent(pin) { k -> ArrayList(1) }
+            val pinListeners = mListeners.computeIfAbsent(pin) { k -> ArrayList(1)}
             pinListeners.add(listener)
-            return true
+            true
         } else {
             // Given pin not set for input
-            return false
+            false
         }
     }
 
     fun unRegisterPinListener(pin: MCP23017Pin, listener: MCP23017PinStateChangeListener): Boolean {
         val pinListeners = mListeners[pin]
-        return pinListeners != null && pinListeners.remove(listener)
-    }*/
+        return pinListeners?.remove(listener) ?: false
+    }
 
     @Throws(IOException::class)
     private fun checkInterrupt() {
@@ -523,7 +549,7 @@ class MCP23017(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS, poll
         // input pin
         if (currentDirectionA > 0) {
             // process interrupts for port A
-            val pinInterruptA = mDevice?.readRegByte(REGISTER_INTF_A)?.toInt() ?: -1
+            val pinInterruptA = readRegister(REGISTER_INTF_A) ?: -1
             Timber.v("checkInterrupt pinInterruptA:$pinInterruptA")
 
             // validate that there is at least one interrupt active on port A
@@ -531,12 +557,14 @@ class MCP23017(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS, poll
                 //TODO: We should think of reading INTCAP instead of GPIO to eliminate noise on
                 // input and not loose other interrupt while reading GPIO
                 // read the current pin states on port A
-                val pinInterruptState = mDevice?.readRegByte(REGISTER_INTCAP_A)?.toInt() ?: -1
-                Timber.v("checkInterrupt pinInterruptState:$pinInterruptState")
+                val pinInterruptCapState = readRegister(REGISTER_INTCAP_A)
+                Timber.v("checkInterrupt pinInterruptCapState:$pinInterruptCapState")
+                val pinInterruptRegState = readRegister(REGISTER_GPIO_A)
+                Timber.v("checkInterrupt pinInterruptRegState:$pinInterruptRegState")
 
                 // loop over the available pins on port B
                 for (pin in MCP23017Pin.ALL_A_PINS) {
-                    evaluatePinForChangeA(pin, pinInterruptState)
+                    evaluatePinForChangeA(pin, pinInterruptRegState)
                 }
             }
         }
@@ -545,53 +573,55 @@ class MCP23017(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS, poll
         // input pin
         if (currentDirectionB > 0) {
             // process interrupts for port B
-            val pinInterruptB = mDevice?.readRegByte(REGISTER_INTF_B)?.toInt() ?: -1
+            val pinInterruptB = readRegister(REGISTER_INTF_B) ?: -1
             Timber.v("checkInterrupt pinInterruptB:$pinInterruptB")
 
             // validate that there is at least one interrupt active on port B
             if (pinInterruptB > 0) {
                 // read the current pin states on port B
-                val pinInterruptState = mDevice?.readRegByte(REGISTER_INTCAP_B)?.toInt() ?: -1
-                Timber.v("checkInterrupt pinInterruptState:$pinInterruptState")
+                val pinInterruptCapState = readRegister(REGISTER_INTCAP_B)
+                Timber.v("checkInterrupt pinInterruptCapState:$pinInterruptCapState")
+                val pinInterruptRegState = readRegister(REGISTER_GPIO_B)
+                Timber.v("checkInterrupt pinInterruptRegState:$pinInterruptRegState")
 
                 // loop over the available pins on port B
                 for (pin in MCP23017Pin.ALL_B_PINS) {
-                    evaluatePinForChangeB(pin, pinInterruptState)
+                    evaluatePinForChangeB(pin, pinInterruptRegState)
                 }
             }
         }
     }
 
-    private fun evaluatePinForChangeA(pin: MCP23017Pin, state: Int) {
+    private fun evaluatePinForChangeA(pin: MCP23017Pin, state: Int?) {
         // determine pin address
         val pinAddress = pin.address - GPIO_A_OFFSET
 
-        if (state and pinAddress != currentStatesA and pinAddress) {
+        if (state != null && state and pinAddress != currentStatesA and pinAddress) {
             val newState = if (state and pinAddress == pinAddress) PinState.HIGH else PinState.LOW
 
             // determine and cache state value for pin bit
-            if (newState === PinState.HIGH) {
-                currentStatesA = currentStatesA or pinAddress
+            currentStatesA = if (newState == PinState.HIGH) {
+                currentStatesA or pinAddress
             } else {
-                currentStatesA = currentStatesA and pinAddress.inv()
+                currentStatesA and pinAddress.inv()
             }
 
             dispatchPinChangeEvent(pin, newState)
         }
     }
 
-    private fun evaluatePinForChangeB(pin: MCP23017Pin, state: Int) {
+    private fun evaluatePinForChangeB(pin: MCP23017Pin, state: Int?) {
         // determine pin address
         val pinAddress = pin.address - GPIO_B_OFFSET
 
-        if (state and pinAddress != currentStatesB and pinAddress) {
+        if (state != null && state and pinAddress != currentStatesB and pinAddress) {
             val newState = if (state and pinAddress == pinAddress) PinState.HIGH else PinState.LOW
 
             // determine and cache state value for pin bit
-            if (newState === PinState.HIGH) {
-                currentStatesB = currentStatesB or pinAddress
+            currentStatesB = if (newState == PinState.HIGH) {
+                currentStatesB or pinAddress
             } else {
-                currentStatesB = currentStatesB and pinAddress.inv()
+                currentStatesB and pinAddress.inv()
             }
 
             // change detected for INPUT PIN

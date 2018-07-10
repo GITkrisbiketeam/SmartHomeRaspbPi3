@@ -1,10 +1,10 @@
 package com.krisbiketeam.smarthomeraspbpi3.driver
 
-interface MCP23017PinStateChangeListener {
-    fun onPinStateChanged(pin: MCP23017Pin, state: MCP23017Pin.PinState)
-}
-
 class MCP23017Pin private constructor(val address: Int, val name: String) {
+
+    interface MCP23017PinStateChangeListener {
+        fun onPinStateChanged(pin: MCP23017Pin, state: MCP23017Pin.PinState)
+    }
 
     enum class PinMode {
         DIGITAL_INPUT, DIGITAL_OUTPUT

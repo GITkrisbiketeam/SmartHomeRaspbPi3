@@ -188,10 +188,20 @@ class ThingsActivity : AppCompatActivity(), HomeUnitListener<Any> {
         pinExtender.setMode(MCP23017Pin.GPIO_B0, MCP23017Pin.PinMode.DIGITAL_OUTPUT)
         pinExtender.setState(MCP23017Pin.GPIO_B0, MCP23017Pin.PinState.HIGH)
         pinExtender.setMode(MCP23017Pin.GPIO_A7, MCP23017Pin.PinMode.DIGITAL_INPUT)
+        val result = pinExtender.registerPinListener(MCP23017Pin.GPIO_A7, object : MCP23017Pin.MCP23017PinStateChangeListener{
+            override fun onPinStateChanged(pin: MCP23017Pin, state: MCP23017Pin.PinState) {
+                Timber.d("onPinStateChanged pin: ${pin.name} state: $state")
+            }
+        })
+        Timber.e("registerPinListener result: $result")
 
-        /*pinExtender.registerPinListener(MCP23017Pin.GPIO_A7) { pin, state ->
-            Timber.e("extender state: ${pin.name} state: $state")
-        }*/
+        pinExtender.setMode(MCP23017Pin.GPIO_A6, MCP23017Pin.PinMode.DIGITAL_INPUT)
+        pinExtender.setPullResistance(MCP23017Pin.GPIO_A6, MCP23017Pin.PinPullResistance.PULL_UP)
+        pinExtender.registerPinListener(MCP23017Pin.GPIO_A6, object : MCP23017Pin.MCP23017PinStateChangeListener{
+            override fun onPinStateChanged(pin: MCP23017Pin, state: MCP23017Pin.PinState) {
+                Timber.d("onPinStateChanged pin: ${pin.name} state: $state")
+            }
+        })
 
     }
 
