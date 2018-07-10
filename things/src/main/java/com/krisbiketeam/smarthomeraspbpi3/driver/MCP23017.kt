@@ -1,21 +1,18 @@
 package com.krisbiketeam.smarthomeraspbpi3.driver
 
+import android.support.annotation.VisibleForTesting
 import com.google.android.things.pio.Gpio
 import com.google.android.things.pio.I2cDevice
 import com.google.android.things.pio.PeripheralManager
 import com.krisbiketeam.smarthomeraspbpi3.driver.MCP23017Pin.*
-
-import java.io.IOException
-import java.util.ArrayList
-import java.util.HashMap
-
 import timber.log.Timber
-import kotlin.experimental.and
+import java.io.IOException
+import java.util.*
 
 /**
  * Driver for the MCP23017 16 bit I/O Expander.
  */
-class MCP23017(device: I2cDevice? = null, bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS, pollingTime: Int = DEFAULT_POLLING_TIME, intAGpio: String? = null, intBGpio: String? = null) : AutoCloseable {
+class MCP23017(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS, pollingTime: Int = DEFAULT_POLLING_TIME, intAGpio: String? = null, intBGpio: String? = null) : AutoCloseable {
 
 
     companion object {
@@ -102,7 +99,7 @@ class MCP23017(device: I2cDevice? = null, bus: String? = null, address: Int = DE
 
     private val mListeners = HashMap<MCP23017Pin, List<MCP23017PinStateChangeListener>>()
 
-    private val mIntACallback = { gpio:Gpio ->
+    private val mIntACallback = { gpio: Gpio ->
         try {
             Timber.d("mIntACallback onGpioEdge " + gpio.getValue())
             checkInterrupt()
@@ -114,7 +111,7 @@ class MCP23017(device: I2cDevice? = null, bus: String? = null, address: Int = DE
         true
     }
 
-    private val mIntBCallback = { gpio:Gpio ->
+    private val mIntBCallback = { gpio: Gpio ->
         try {
             Timber.d("mIntBCallback onGpioEdge " + gpio.getValue())
             checkInterrupt()
@@ -126,26 +123,34 @@ class MCP23017(device: I2cDevice? = null, bus: String? = null, address: Int = DE
         true
     }
 
+
     init {
-        try {
-            connectI2c(device, bus, address)
-            if (intAGpio != null || intBGpio != null) {
-                connectGpio(intAGpio, intBGpio)
-            }
-        } catch (e: IOException) {
+        if (bus != null) {
             try {
-                close()
-            } catch (ignored: IOException) {
+                connectI2c(PeripheralManager.getInstance().openI2cDevice(bus, address))
+                if (intAGpio != null || intBGpio != null) {
+                    connectGpio(intAGpio, intBGpio)
+                }
+            } catch (e: IOException) {
+                try {
+                    close()
+                } catch (ignored: IOException) {
+                }
             }
         }
 
         this.pollingTime = pollingTime
     }
 
+    @VisibleForTesting
+    internal constructor(device: I2cDevice) : this() {
+        mDevice = device
+    }
+
 
     @Throws(IOException::class)
-    private fun connectI2c(device: I2cDevice?, bus: String? = "", address: Int = DEFAULT_I2C_000_ADDRESS) {
-        mDevice = device ?: PeripheralManager.getInstance().openI2cDevice(bus, address)
+    private fun connectI2c(device: I2cDevice?) {
+        mDevice = device
 
         if (mDevice == null) {
             throw IllegalStateException("I2C device could not be open")
@@ -198,24 +203,32 @@ class MCP23017(device: I2cDevice? = null, bus: String? = null, address: Int = DE
         monitor?.shutdown()
         monitor = null
 
-        try {mDevice?.close()} finally { mDevice = null}
+        try {
+            mDevice?.close()
+        } finally {
+            mDevice = null
+        }
 
 
         mIntAGpio?.unregisterGpioCallback(mIntACallback)
-        try {mIntAGpio?.close()} finally { mIntAGpio = null}
-        
+        try {
+            mIntAGpio?.close()
+        } finally {
+            mIntAGpio = null
+        }
+
         mIntBGpio?.unregisterGpioCallback(mIntBCallback)
-        try {mIntBGpio?.close()} finally {mIntBGpio = null}
+        try {
+            mIntBGpio?.close()
+        } finally {
+            mIntBGpio = null
+        }
     }
 
 
-    fun readRegister(reg: Int): Int?{
-        return mDevice?.readRegByte(reg)?.toInt()?.and(0xff)
-    }
-    
-    fun writeRegister(reg: Int, regVal: Int){
-        mDevice?.writeRegByte(reg, regVal.toByte())
-    }
+    fun readRegister(reg: Int) = mDevice?.readRegByte(reg)?.toInt()?.and(0xff)
+
+    fun writeRegister(reg: Int, regVal: Int) = mDevice?.writeRegByte(reg, regVal.toByte())
 
     @Throws(IOException::class, IllegalStateException::class)
     fun resetToDefaults() {

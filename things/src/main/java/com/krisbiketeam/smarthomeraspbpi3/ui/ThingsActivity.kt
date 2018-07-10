@@ -180,7 +180,7 @@ class ThingsActivity : AppCompatActivity(), HomeUnitListener<Any> {
             }
         }
         // For test MCP23017
-        val pinExtender = MCP23017(null, BoardConfig.IO_EXTENDER_MCP23017_PIN,
+        val pinExtender = MCP23017(BoardConfig.IO_EXTENDER_MCP23017_PIN,
                 BoardConfig.IO_EXTENDER_MCP23017_ADDR,
                 MCP23017.NO_POLLING_TIME,
                 IO_EXTENDER_MCP23017_INTA_PIN,
