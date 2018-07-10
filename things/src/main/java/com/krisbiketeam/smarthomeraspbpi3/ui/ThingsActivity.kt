@@ -183,8 +183,7 @@ class ThingsActivity : AppCompatActivity(), HomeUnitListener<Any> {
         val pinExtender = MCP23017(BoardConfig.IO_EXTENDER_MCP23017_PIN,
                 BoardConfig.IO_EXTENDER_MCP23017_ADDR,
                 MCP23017.NO_POLLING_TIME,
-                IO_EXTENDER_MCP23017_INTA_PIN,
-                null)
+                IO_EXTENDER_MCP23017_INTA_PIN)
         pinExtender.setMode(MCP23017Pin.GPIO_B0, MCP23017Pin.PinMode.DIGITAL_OUTPUT)
         pinExtender.setState(MCP23017Pin.GPIO_B0, MCP23017Pin.PinState.HIGH)
         pinExtender.setMode(MCP23017Pin.GPIO_A7, MCP23017Pin.PinMode.DIGITAL_INPUT)
@@ -193,7 +192,6 @@ class ThingsActivity : AppCompatActivity(), HomeUnitListener<Any> {
                 Timber.d("onPinStateChanged pin: ${pin.name} state: $state")
             }
         })
-        Timber.e("registerPinListener result: $result")
 
         pinExtender.setMode(MCP23017Pin.GPIO_A6, MCP23017Pin.PinMode.DIGITAL_INPUT)
         pinExtender.setPullResistance(MCP23017Pin.GPIO_A6, MCP23017Pin.PinPullResistance.PULL_UP)

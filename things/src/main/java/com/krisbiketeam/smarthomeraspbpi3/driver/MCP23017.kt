@@ -14,7 +14,7 @@ import java.util.*
 /**
  * Driver for the MCP23017 16 bit I/O Expander.
  */
-class MCP23017(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS, pollingTime: Int = DEFAULT_POLLING_TIME, intAGpio: String? = null, intBGpio: String? = null) : AutoCloseable {
+class MCP23017(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS, pollingTime: Int = DEFAULT_POLLING_TIME, intAGpio: String? = null, intBGpio: String? = null, private val debounceDelay: Int = DEBOUNCE_DELAY) : AutoCloseable {
 
 
     companion object {
@@ -39,6 +39,9 @@ class MCP23017(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS, poll
         // https://cdn-shop.adafruit.com/datasheets/BST-BMP280-DS001-11.pdf
         const val DEFAULT_POLLING_TIME = 50
         const val NO_POLLING_TIME = -1
+
+        val DEBOUNCE_DELAY = ViewConfiguration.getTapTimeout()
+        const val NO_DEBOUNCE_DELAY = 0
 
         /// Registers all are 8 bit long
         // Direction registers
@@ -91,8 +94,6 @@ class MCP23017(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS, poll
     private var currentPullupB = 0
 
     private var pollingTime = DEFAULT_POLLING_TIME
-
-    private val debounceDelay = ViewConfiguration.getTapTimeout()
 
     private val mHandler = Handler()
 
@@ -526,7 +527,6 @@ class MCP23017(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS, poll
 
     fun registerPinListener(pin: MCP23017Pin, listener: MCP23017PinStateChangeListener): Boolean {
         return if (getMode(pin) == PinMode.DIGITAL_INPUT) {
-            //val pinListeners = (mListeners as java.util.Map<MCP23017Pin, MutableList<MCP23017PinStateChangeListener>>).computeIfAbsent(pin) { k -> ArrayList(1) }
             val pinListeners = mListeners.computeIfAbsent(pin) { k -> ArrayList(1)}
             pinListeners.add(listener)
             true
