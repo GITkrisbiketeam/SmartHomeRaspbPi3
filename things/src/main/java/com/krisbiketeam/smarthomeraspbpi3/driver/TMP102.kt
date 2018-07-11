@@ -1,18 +1,12 @@
 package com.krisbiketeam.smarthomeraspbpi3.driver
 
-import android.support.annotation.IntDef
 import android.support.annotation.VisibleForTesting
-
 import com.google.android.things.pio.I2cDevice
 import com.google.android.things.pio.PeripheralManager
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.launch
-
-import java.io.IOException
-import java.lang.annotation.Retention
-import java.lang.annotation.RetentionPolicy
-
 import timber.log.Timber
+import java.io.IOException
 
 /**
  * Driver for the TMP102 temperature sensor.
@@ -55,6 +49,12 @@ class TMP102(bus: String? = null, address: Int = DEFAULT_I2C_GND_ADDRESS) : Auto
          * Minimum frequency of the measurements.
          */
         const val MIN_FREQ_HZ = 0.25f
+
+        /**
+         * Maximum frequency of the measurements.
+         */
+        const val POWER_ON_CONVERSION_DELAY = 26L
+
 
         private const val TMP102_EXTENDED_MODE_BIT_SHIFT = 4
 
@@ -220,14 +220,11 @@ class TMP102(bus: String? = null, address: Int = DEFAULT_I2C_GND_ADDRESS) : Auto
     /**
      * Close the driver and the underlying device.
      */
-    @Throws(IOException::class)
     override fun close() {
-        if (mDevice != null) {
-            try {
-                mDevice!!.close()
-            } finally {
-                mDevice = null
-            }
+        try {
+            mDevice?.close()
+        } finally {
+            mDevice = null
         }
     }
 
@@ -240,11 +237,8 @@ class TMP102(bus: String? = null, address: Int = DEFAULT_I2C_GND_ADDRESS) : Auto
     fun readTemperature(): Float? = calculateTemperature(readSample16(TMP102_REG_TEMP))
 
     /**
-     * Read the current temperature.
-     *
-     * @return the current temperature in degrees Celsius
-     */
-    @Throws(IOException::class)
+     * Read the current temperature in SD (ShutDown) mode. Callback will be triggered after temp read is completed
+      */
     fun readOneShotTemperature(onResult: (Float?)-> Unit) {
         if (shutdownMode) {
             synchronized(mBuffer) {
@@ -252,15 +246,10 @@ class TMP102(bus: String? = null, address: Int = DEFAULT_I2C_GND_ADDRESS) : Auto
                     // Write OneShot bit to config to wakeupd device for one shot read temp
                     mConfig = mConfig or (1 shl TMP102_ONE_SHOT_BIT_SHIFT)
                     writeSample16(TMP102_REG_CONF, mConfig)
-
-                    val conversionStarted = 1.shl(TMP102_ONE_SHOT_BIT_SHIFT).and(readSample16(TMP102_REG_CONF)
-                            ?: 0) == 0
-                    Timber.d("readOneShotTemperature conversion started? $conversionStarted")
-                    // Wait 30 ms for conversion to complete
-                    delay(30)
+                    // Wait 26 ms for conversion to complete
+                    delay(POWER_ON_CONVERSION_DELAY)
                     // check if conversion finished by reading OS bit to '1'
-                    if (1.shl(TMP102_ONE_SHOT_BIT_SHIFT).and(readSample16(TMP102_REG_CONF)
-                                    ?: 0) > 0) {
+                    if (1.shl(TMP102_ONE_SHOT_BIT_SHIFT).and(readSample16(TMP102_REG_CONF) ?: 0) > 0) {
                         val temp = readTemperature()
                         Timber.d("readOneShotTemperature conversion finished temp? $temp")
                         onResult(temp)
@@ -279,8 +268,6 @@ class TMP102(bus: String? = null, address: Int = DEFAULT_I2C_GND_ADDRESS) : Auto
 
     /**
      * Reads 16 bits from the given address.
-     *
-     * @throws IOException
      */
     private fun readSample16(address: Int): Int? {
         synchronized(mBuffer) {

@@ -50,21 +50,22 @@ class HomeUnitI2CTempTMP102Sensor(name: String,
     private fun startJob() {
         job = launch(CommonPool) {
             while (true) {
+                val tmp102 = TMP102(homeUnit.pinName)
                 // We do not want to block I2C buss so open device to only display some data and then immediately close it.
                 // use block automatically closes resources referenced to tmp102
-                val tmp102 = TMP102(homeUnit.pinName)
                 tmp102.shutdownMode = true
-                tmp102.use {
-                    it.readOneShotTemperature {
-                        homeUnit.value = it
-                        homeUnit.localtime = Date().toString()
-                        Logger.d(TAG, "temperature:${homeUnit.value}")}
+                tmp102.readOneShotTemperature {
+                    homeUnit.value = it
+                    homeUnit.localtime = Date().toString()
+                    Logger.d(TAG, "temperature:${homeUnit.value}")
                     homeUnitListener?.onUnitChanged(homeUnit, homeUnit.value)
+                    tmp102.close()
                 }
                 Thread.sleep(REFRESH_RATE)
             }
         }
     }
+
     override fun readValue(): Float? {
         // We do not want to block I2C buss so open device to only display some data and then immediately close it.
         // use block automatically closes resources referenced to tmp102
