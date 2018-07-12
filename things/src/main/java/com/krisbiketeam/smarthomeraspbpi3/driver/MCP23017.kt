@@ -89,7 +89,7 @@ class MCP23017(bus: String? = null,
         private const val GPIO_A_OFFSET = 0
         private const val GPIO_B_OFFSET = 1000
 
-        private const val MIRROR_INT_A_INT_B = 0x64
+        private const val MIRROR_INT_A_INT_B = 0x40
     }
 
     private var currentStatesA = 0
@@ -109,19 +109,19 @@ class MCP23017(bus: String? = null,
 
     private val mListeners = HashMap<MCP23017Pin, MutableList<MCP23017PinStateChangeListener>>()
 
-    private val mIntACallback = { gpio: Gpio ->
+    private val mIntCallback = { gpio: Gpio ->
         try {
-            Timber.d("mIntACallback onGpioEdge " + gpio.value)
+            Timber.d("mIntCallback onGpioEdge " + gpio.value)
             mHandler.removeCallbacksAndMessages(null)
             mHandler.postDelayed({
                 try {
                     checkInterrupt()
                 } catch (e: IOException) {
-                    Timber.e("mIntACallback onGpioEdge exception", e)
+                    Timber.e("mIntCallback onGpioEdge exception", e)
                 }
             }, debounceDelay.toLong())
         } catch (e: IOException) {
-            Timber.e("mIntACallback onGpioEdge exception", e)
+            Timber.e("mIntCallback onGpioEdge exception", e)
         }
 
         // Return true to keep callback active.
@@ -165,10 +165,11 @@ class MCP23017(bus: String? = null,
 
     private fun connectGpio() {
         val manager = PeripheralManager.getInstance()
-        if (intGpio != null) {
+        if (intGpio != null && mIntGpio == null) {
             //Mirror IntA and IntB pins to single Interrupt from either A or B ports
             currentConf = currentConf.or(MIRROR_INT_A_INT_B)
             writeRegister(REGISTER_IOCON, currentConf)
+            Timber.d("connectGpio currentConf: $currentConf")
 
             Timber.d("connectGpio intGpio openGpio $intGpio")
             // Step 1. Create GPIO connection.
@@ -178,13 +179,14 @@ class MCP23017(bus: String? = null,
             // Step 3. Enable edge trigger events.
             mIntGpio?.setEdgeTriggerType(Gpio.EDGE_FALLING)    // INT active Low
             // Step 4. Register an event callback.
-            mIntGpio?.registerGpioCallback(mIntACallback)
+            mIntGpio?.registerGpioCallback(mIntCallback)
 
         }
     }
+
     private fun disconnectGpio() {
         Timber.d("disconnect int Gpio ")
-        mIntGpio = mIntGpio?.unregisterGpioCallback(mIntACallback).run { null }
+        mIntGpio = mIntGpio?.unregisterGpioCallback(mIntCallback).run { null }
     }
 
     private fun startMonitor(){
@@ -223,7 +225,7 @@ class MCP23017(bus: String? = null,
         }
 
 
-        mIntGpio?.unregisterGpioCallback(mIntACallback)
+        mIntGpio?.unregisterGpioCallback(mIntCallback)
         try {
             mIntGpio?.close()
         } finally {
@@ -261,6 +263,7 @@ class MCP23017(bus: String? = null,
         writeRegister(REGISTER_GPPU_A, currentPullupA)
         writeRegister(REGISTER_GPPU_B, currentPullupB)
 
+        writeRegister(REGISTER_IOCON, 0)
     }
 
     // Set Input or output mode functions
@@ -293,10 +296,10 @@ class MCP23017(bus: String? = null,
         val pinAddress = pin.address - GPIO_A_OFFSET
 
         // determine update direction value based on mode
-        if (mode == PinMode.DIGITAL_INPUT) {
-            currentDirectionA = currentDirectionA or pinAddress
-        } else if (mode == PinMode.DIGITAL_OUTPUT) {
-            currentDirectionA = currentDirectionA and pinAddress.inv()
+        currentDirectionA = if (mode == PinMode.DIGITAL_INPUT) {
+            currentDirectionA or pinAddress
+        } else {
+            currentDirectionA and pinAddress.inv()
         }
         Timber.d("setModeA currentDirectionA: $currentDirectionA")
 
@@ -313,10 +316,10 @@ class MCP23017(bus: String? = null,
         val pinAddress = pin.address - GPIO_B_OFFSET
 
         // determine update direction value based on mode
-        if (mode == PinMode.DIGITAL_INPUT) {
-            currentDirectionB = currentDirectionB or pinAddress
-        } else if (mode == PinMode.DIGITAL_OUTPUT) {
-            currentDirectionB = currentDirectionB and pinAddress.inv()
+        currentDirectionB = if (mode == PinMode.DIGITAL_INPUT) {
+            currentDirectionB or pinAddress
+        } else {
+            currentDirectionB and pinAddress.inv()
         }
 
         Timber.d("setModeB currentDirectionB: $currentDirectionB")
@@ -457,6 +460,7 @@ class MCP23017(bus: String? = null,
         } else {
             currentPullupA and pinAddress.inv()
         }
+        Timber.d("setPullResistanceA currentPullupA: $currentPullupA")
 
         // next update pull up resistor value
         writeRegister(REGISTER_GPPU_A, currentPullupA)
@@ -473,6 +477,7 @@ class MCP23017(bus: String? = null,
         } else {
             currentPullupB and pinAddress.inv()
         }
+        Timber.d("setPullResistanceB currentPullupB: $currentPullupB")
 
         // next update pull up resistor value
         writeRegister(REGISTER_GPPU_B, currentPullupB)
