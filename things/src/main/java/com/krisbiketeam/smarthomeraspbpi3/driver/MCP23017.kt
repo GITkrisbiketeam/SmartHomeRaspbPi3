@@ -14,7 +14,11 @@ import java.util.*
 /**
  * Driver for the MCP23017 16 bit I/O Expander.
  */
-class MCP23017(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS, pollingTime: Int = DEFAULT_POLLING_TIME, intAGpio: String? = null, intBGpio: String? = null, private val debounceDelay: Int = DEBOUNCE_DELAY) : AutoCloseable {
+class MCP23017(bus: String? = null,
+               address: Int = DEFAULT_I2C_000_ADDRESS,
+               var intGpio: String? = null,
+               var pollingTime: Int = NO_POLLING_TIME,
+               private val debounceDelay: Int = DEBOUNCE_DELAY) : AutoCloseable {
 
 
     companion object {
@@ -84,6 +88,8 @@ class MCP23017(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS, poll
 
         private const val GPIO_A_OFFSET = 0
         private const val GPIO_B_OFFSET = 1000
+
+        private const val MIRROR_INT_A_INT_B = 0x64
     }
 
     private var currentStatesA = 0
@@ -92,16 +98,14 @@ class MCP23017(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS, poll
     private var currentDirectionB = 0
     private var currentPullupA = 0
     private var currentPullupB = 0
-
-    private var pollingTime = DEFAULT_POLLING_TIME
+    private var currentConf = 0
 
     private val mHandler = Handler()
 
     private var monitor: GpioStateMonitor? = null
 
     private var mDevice: I2cDevice? = null
-    private var mIntAGpio: Gpio? = null
-    private var mIntBGpio: Gpio? = null
+    private var mIntGpio: Gpio? = null
 
     private val mListeners = HashMap<MCP23017Pin, MutableList<MCP23017PinStateChangeListener>>()
 
@@ -124,35 +128,11 @@ class MCP23017(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS, poll
         true
     }
 
-    private val mIntBCallback = { gpio: Gpio ->
-        try {
-            Timber.d("mIntBCallback onGpioEdge " + gpio.value)
-            if (!gpio.value) {
-                mHandler.removeCallbacksAndMessages(null)
-                mHandler.postDelayed({
-                    try {
-                        checkInterrupt()
-                    } catch (e: IOException) {
-                        Timber.e("mIntACallback onGpioEdge exception", e)
-                    }
-                }, debounceDelay.toLong())
-            }
-        } catch (e: IOException) {
-            Timber.e("mIntBCallback onGpioEdge exception", e)
-        }
-
-        // Return true to keep callback active.
-        true
-    }
-
 
     init {
         if (bus != null) {
             try {
                 connectI2c(PeripheralManager.getInstance().openI2cDevice(bus, address))
-                if (intAGpio != null || intBGpio != null) {
-                    connectGpio(intAGpio, intBGpio)
-                }
             } catch (e: IOException) {
                 Timber.e("init error connectiong I2C", e)
                 try {
@@ -161,8 +141,6 @@ class MCP23017(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS, poll
                 }
             }
         }
-
-        this.pollingTime = pollingTime
     }
 
     @VisibleForTesting
@@ -171,50 +149,62 @@ class MCP23017(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS, poll
     }
 
 
-    @Throws(IOException::class)
     private fun connectI2c(device: I2cDevice?) {
         mDevice = device
-
-        if (mDevice == null) {
-            throw IllegalStateException("I2C device could not be open")
-        }
 
         // read initial GPIO pin states
         currentStatesA = readRegister(REGISTER_GPIO_A) ?: -1
         currentStatesB = readRegister(REGISTER_GPIO_B) ?: -1
 
-        val currentConf = readRegister(REGISTER_IOCON) ?: -1
+        currentConf = readRegister(REGISTER_IOCON) ?: -1
 
         Timber.d("connect currentStatesA: " + currentStatesA + " currentStatesB: " +
                 currentStatesB + " currentConf: " + currentConf)
         resetToDefaults()
     }
 
-    @Throws(IOException::class)
-    private fun connectGpio(intAGpio: String?, intBGpio: String?) {
+    private fun connectGpio() {
         val manager = PeripheralManager.getInstance()
-        if (intAGpio != null) {
-            Timber.d("connectGpio intAGpio openGpio $intAGpio")
+        if (intGpio != null) {
+            //Mirror IntA and IntB pins to single Interrupt from either A or B ports
+            currentConf = currentConf.or(MIRROR_INT_A_INT_B)
+            writeRegister(REGISTER_IOCON, currentConf)
+
+            Timber.d("connectGpio intGpio openGpio $intGpio")
             // Step 1. Create GPIO connection.
-            mIntAGpio = manager.openGpio(intAGpio)
+            mIntGpio = manager.openGpio(intGpio)
             // Step 2. Configure as an input.
-            mIntAGpio?.setDirection(Gpio.DIRECTION_IN)
+            mIntGpio?.setDirection(Gpio.DIRECTION_IN)
             // Step 3. Enable edge trigger events.
-            mIntAGpio?.setEdgeTriggerType(Gpio.EDGE_FALLING)    // INT active Low
+            mIntGpio?.setEdgeTriggerType(Gpio.EDGE_FALLING)    // INT active Low
             // Step 4. Register an event callback.
-            mIntAGpio?.registerGpioCallback(mIntACallback)
+            mIntGpio?.registerGpioCallback(mIntACallback)
+
         }
-        if (intBGpio != null) {
-            Timber.d("connectGpio intBGpio openGpio $intBGpio")
-            // Step 1. Create GPIO connection.
-            mIntBGpio = manager.openGpio(intBGpio)
-            // Step 2. Configure as an input.
-            mIntBGpio?.setDirection(Gpio.DIRECTION_IN)
-            // Step 3. Enable edge trigger events.
-            mIntBGpio?.setEdgeTriggerType(Gpio.EDGE_FALLING)    // INT active Low
-            // Step 4. Register an event callback.
-            mIntBGpio?.registerGpioCallback(mIntBCallback)
+    }
+    private fun disconnectGpio() {
+        Timber.d("disconnect int Gpio ")
+        mIntGpio = mIntGpio?.unregisterGpioCallback(mIntACallback).run { null }
+    }
+
+    private fun startMonitor(){
+        if(pollingTime != NO_POLLING_TIME) {
+            // if the monitor has not been started, then start it now
+            if (monitor == null) {
+                // start monitoring thread
+                monitor = GpioStateMonitor()
+                monitor?.start()
+            }
+        } else {
+            stopMonitor()
         }
+    }
+
+    private fun stopMonitor(){
+        // shutdown and destroy monitoring thread since there are no input pins configured
+        monitor?.shutdown()
+        monitor = null
+
     }
 
     /**
@@ -233,18 +223,11 @@ class MCP23017(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS, poll
         }
 
 
-        mIntAGpio?.unregisterGpioCallback(mIntACallback)
+        mIntGpio?.unregisterGpioCallback(mIntACallback)
         try {
-            mIntAGpio?.close()
+            mIntGpio?.close()
         } finally {
-            mIntAGpio = null
-        }
-
-        mIntBGpio?.unregisterGpioCallback(mIntBCallback)
-        try {
-            mIntBGpio?.close()
-        } finally {
-            mIntBGpio = null
+            mIntGpio = null
         }
     }
 
@@ -253,12 +236,7 @@ class MCP23017(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS, poll
 
     private fun writeRegister(reg: Int, regVal: Int) = mDevice?.writeRegByte(reg, regVal.toByte())
 
-    @Throws(IOException::class, IllegalStateException::class)
     private fun resetToDefaults() {
-        if (mDevice == null) {
-            throw IllegalStateException("I2C device is already closed")
-        }
-
         // set all default pins directions
         writeRegister(REGISTER_IODIR_A, currentDirectionA)
         writeRegister(REGISTER_IODIR_B, currentDirectionB)
@@ -300,17 +278,12 @@ class MCP23017(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS, poll
 
         // if any pins are configured as input pins, then we need to start the interrupt monitoring
         // thread
-        if ((currentDirectionA > 0 || currentDirectionB > 0) && pollingTime != NO_POLLING_TIME) {
-            // if the monitor has not been started, then start it now
-            if (monitor == null) {
-                // start monitoring thread
-                monitor = GpioStateMonitor()
-                monitor?.start()
-            }
+        if ((currentDirectionA > 0 || currentDirectionB > 0)) {
+            startMonitor()
+            connectGpio()
         } else {
-            // shutdown and destroy monitoring thread since there are no input pins configured
-            monitor?.shutdown()
-            monitor = null
+            stopMonitor()
+            disconnectGpio()
         }
     }
 
@@ -521,13 +494,9 @@ class MCP23017(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS, poll
     }
 
 
-    fun setPollingTime(pollingTime: Int) {
-        this.pollingTime = pollingTime
-    }
-
     fun registerPinListener(pin: MCP23017Pin, listener: MCP23017PinStateChangeListener): Boolean {
         return if (getMode(pin) == PinMode.DIGITAL_INPUT) {
-            val pinListeners = mListeners.computeIfAbsent(pin) { k -> ArrayList(1)}
+            val pinListeners = mListeners.computeIfAbsent(pin) { _ -> ArrayList(1)}
             pinListeners.add(listener)
             true
         } else {

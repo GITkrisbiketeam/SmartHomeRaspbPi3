@@ -18,10 +18,7 @@ import com.krisbiketeam.smarthomeraspbpi3.units.Actuator
 import com.krisbiketeam.smarthomeraspbpi3.units.BaseUnit
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
 import com.krisbiketeam.smarthomeraspbpi3.BoardConfig
-import com.krisbiketeam.smarthomeraspbpi3.BoardConfig.IO_EXTENDER_MCP23017_INTA_PIN
 import com.krisbiketeam.smarthomeraspbpi3.R
-import com.krisbiketeam.smarthomeraspbpi3.driver.MCP23017
-import com.krisbiketeam.smarthomeraspbpi3.driver.MCP23017Pin
 import com.krisbiketeam.smarthomeraspbpi3.ui.setup.FirebaseCredentialsReceiverActivity
 import com.krisbiketeam.smarthomeraspbpi3.ui.setup.WiFiCredentialsReceiverActivity
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor.HomeUnitListener
@@ -50,43 +47,81 @@ class ThingsActivity : AppCompatActivity(), HomeUnitListener<Any> {
     init {
         Timber.d("init")
 
-        val ledA = HomeUnitGpioActuator(BoardConfig.LED_A, "Raspberry Pi", BoardConfig
-                .LED_A_PIN, Gpio.ACTIVE_HIGH) as Actuator<Any>
+        val ledA = HomeUnitGpioActuator(BoardConfig.LED_A, "Raspberry Pi",
+                BoardConfig.LED_A_PIN,
+                Gpio.ACTIVE_HIGH) as Actuator<Any>
         unitList[BoardConfig.LED_A] = ledA
-        val ledB = HomeUnitGpioActuator(BoardConfig.LED_B, "Raspberry Pi", BoardConfig
-                .LED_B_PIN, Gpio.ACTIVE_HIGH) as Actuator<Any>
+        val ledB = HomeUnitGpioActuator(BoardConfig.LED_B, "Raspberry Pi",
+                BoardConfig.LED_B_PIN,
+                Gpio.ACTIVE_HIGH) as Actuator<Any>
         unitList[BoardConfig.LED_B] = ledB
-        val ledC = HomeUnitGpioActuator(BoardConfig.LED_C, "Raspberry Pi", BoardConfig
-                .LED_C_PIN, Gpio.ACTIVE_HIGH) as BaseUnit<Any>
+        val ledC = HomeUnitGpioActuator(BoardConfig.LED_C, "Raspberry Pi",
+                BoardConfig.LED_C_PIN,
+                Gpio.ACTIVE_HIGH) as BaseUnit<Any>
         unitList[BoardConfig.LED_C] = ledC
 
-        val buttonA = HomeUnitGpioSensor(BoardConfig.BUTTON_A, "Raspberry Pi", BoardConfig
-                .BUTTON_A_PIN, Gpio.ACTIVE_LOW) as Sensor<Any>
+        val buttonA = HomeUnitGpioSensor(BoardConfig.BUTTON_A, "Raspberry Pi",
+                BoardConfig.BUTTON_A_PIN,
+                Gpio.ACTIVE_LOW) as Sensor<Any>
         unitList[BoardConfig.BUTTON_A] = buttonA
 
-        val buttonB = HomeUnitGpioSensor(BoardConfig.BUTTON_B, "Raspberry Pi", BoardConfig
-                .BUTTON_B_PIN, Gpio.ACTIVE_LOW) as Sensor<Any>
+        val buttonB = HomeUnitGpioSensor(BoardConfig.BUTTON_B, "Raspberry Pi",
+                BoardConfig.BUTTON_B_PIN,
+                Gpio.ACTIVE_LOW) as Sensor<Any>
         unitList[BoardConfig.BUTTON_B] = buttonB
 
-        val buttonC = HomeUnitGpioSensor(BoardConfig.BUTTON_C, "Raspberry Pi", BoardConfig
-                .BUTTON_C_PIN, Gpio.ACTIVE_LOW) as Sensor<Any>
+        val buttonC = HomeUnitGpioSensor(BoardConfig.BUTTON_C, "Raspberry Pi",
+                BoardConfig.BUTTON_C_PIN,
+                Gpio.ACTIVE_LOW) as Sensor<Any>
         unitList[BoardConfig.BUTTON_C] = buttonC
 
-        val motion = HomeUnitGpioSensor(BoardConfig.MOTION_1, "Raspberry Pi", BoardConfig
-                .MOTION_1_PIN, Gpio.ACTIVE_HIGH) as Sensor<Any>
+        val motion = HomeUnitGpioSensor(BoardConfig.MOTION_1, "Raspberry Pi",
+                BoardConfig.MOTION_1_PIN,
+                Gpio.ACTIVE_HIGH) as Sensor<Any>
         unitList[BoardConfig.MOTION_1] = motion
 
         /*val contactron = HomeUnitGpioNoiseSensor(BoardConfig.REED_SWITCH_1, "Raspberry Pi", BoardConfig
                 .REED_SWITCH_1_PIN, Gpio.ACTIVE_LOW) as Sensor<Any>
         unitList[BoardConfig.REED_SWITCH_1] = contactron*/
 
-        val temperatureSensor = HomeUnitI2CTempTMP102Sensor(BoardConfig.TEMP_SENSOR_TMP102, "Raspberry Pi", BoardConfig
-                .TEMP_SENSOR_TMP102_PIN, BoardConfig.TEMP_SENSOR_TMP102_ADDR) as Sensor<Any>
+        val temperatureSensor = HomeUnitI2CTempTMP102Sensor(BoardConfig.TEMP_SENSOR_TMP102,
+                "Raspberry Pi",
+                BoardConfig.TEMP_SENSOR_TMP102_PIN,
+                BoardConfig.TEMP_SENSOR_TMP102_ADDR) as Sensor<Any>
         unitList[BoardConfig.TEMP_SENSOR_TMP102] = temperatureSensor
 
-        val tempePressSensor = HomeUnitI2CTempPressBMP280Sensor(BoardConfig.TEMP_PRESS_SENSOR_BMP280, "Raspberry Pi", BoardConfig
-                .TEMP_PRESS_SENSOR_BMP280_PIN, BoardConfig.TEMP_PRESS_SENSOR_BMP280_ADDR) as Sensor<Any>
+        val tempePressSensor = HomeUnitI2CTempPressBMP280Sensor(BoardConfig.TEMP_PRESS_SENSOR_BMP280,
+                "Raspberry Pi",
+                BoardConfig.TEMP_PRESS_SENSOR_BMP280_PIN,
+                BoardConfig.TEMP_PRESS_SENSOR_BMP280_ADDR) as Sensor<Any>
         unitList[BoardConfig.TEMP_PRESS_SENSOR_BMP280] = tempePressSensor
+
+        val mcpContactron = HomeUnitI2CMCP23017Sensor(BoardConfig.IO_EXTENDER_MCP23017_1_IN_A7,
+                "Raspberry Pi",
+                BoardConfig.IO_EXTENDER_MCP23017_1_PIN,
+                BoardConfig.IO_EXTENDER_MCP23017_1_ADDR,
+                BoardConfig.IO_EXTENDER_MCP23017_1_INTA_PIN,
+                BoardConfig.IO_EXTENDER_MCP23017_1_IN_A7_PIN) as Sensor<Any>
+        unitList[BoardConfig.IO_EXTENDER_MCP23017_1_IN_A7] = mcpContactron
+
+        val mcpContactron2 = HomeUnitI2CMCP23017Sensor(BoardConfig.IO_EXTENDER_MCP23017_1_IN_A6,
+                "Raspberry Pi",
+                BoardConfig.IO_EXTENDER_MCP23017_1_PIN,
+                BoardConfig.IO_EXTENDER_MCP23017_1_ADDR,
+                BoardConfig.IO_EXTENDER_MCP23017_1_INTA_PIN,
+                BoardConfig.IO_EXTENDER_MCP23017_1_IN_A6_PIN,
+                true) as Sensor<Any>
+        unitList[BoardConfig.IO_EXTENDER_MCP23017_1_IN_A6] = mcpContactron2
+
+        val mcpLed = HomeUnitI2CMCP23017Actuator(BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B0,
+                "Raspberry Pi",
+                BoardConfig.IO_EXTENDER_MCP23017_1_PIN,
+                BoardConfig.IO_EXTENDER_MCP23017_1_ADDR,
+                BoardConfig.IO_EXTENDER_MCP23017_1_INTA_PIN,
+                BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B0_PIN) as Actuator<Any>
+        unitList[BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B0] = mcpLed
+
+
     }
 
     private val lightDataObserver = Observer<HomeInformation> { homeInformation ->
@@ -179,28 +214,6 @@ class ThingsActivity : AppCompatActivity(), HomeUnitListener<Any> {
                 unit.registerListener(this)
             }
         }
-        // For test MCP23017
-        val pinExtender = MCP23017(BoardConfig.IO_EXTENDER_MCP23017_PIN,
-                BoardConfig.IO_EXTENDER_MCP23017_ADDR,
-                MCP23017.NO_POLLING_TIME,
-                IO_EXTENDER_MCP23017_INTA_PIN)
-        pinExtender.setMode(MCP23017Pin.GPIO_B0, MCP23017Pin.PinMode.DIGITAL_OUTPUT)
-        pinExtender.setState(MCP23017Pin.GPIO_B0, MCP23017Pin.PinState.HIGH)
-        pinExtender.setMode(MCP23017Pin.GPIO_A7, MCP23017Pin.PinMode.DIGITAL_INPUT)
-        val result = pinExtender.registerPinListener(MCP23017Pin.GPIO_A7, object : MCP23017Pin.MCP23017PinStateChangeListener{
-            override fun onPinStateChanged(pin: MCP23017Pin, state: MCP23017Pin.PinState) {
-                Timber.d("onPinStateChanged pin: ${pin.name} state: $state")
-            }
-        })
-
-        pinExtender.setMode(MCP23017Pin.GPIO_A6, MCP23017Pin.PinMode.DIGITAL_INPUT)
-        pinExtender.setPullResistance(MCP23017Pin.GPIO_A6, MCP23017Pin.PinPullResistance.PULL_UP)
-        pinExtender.registerPinListener(MCP23017Pin.GPIO_A6, object : MCP23017Pin.MCP23017PinStateChangeListener{
-            override fun onPinStateChanged(pin: MCP23017Pin, state: MCP23017Pin.PinState) {
-                Timber.d("onPinStateChanged pin: ${pin.name} state: $state")
-            }
-        })
-
     }
 
     override fun onStop() {
@@ -300,8 +313,19 @@ class ThingsActivity : AppCompatActivity(), HomeUnitListener<Any> {
                             this.active = value
                         })
             }
-            BoardConfig.REED_SWITCH_1 -> if (value is Boolean) {
+            /*BoardConfig.REED_SWITCH_1 -> if (value is Boolean) {
                 //lightOnOffOneRainbowLed(1, (value as Boolean?)!!)
+                homeInformationRepository.saveReedSwitch(
+                        home.reedSwitches.values.first().apply {
+                            this.active = value
+                        })
+            }*/
+            BoardConfig.IO_EXTENDER_MCP23017_1_IN_A7 -> if (value is Boolean) {
+                //lightOnOffOneRainbowLed(1, (value as Boolean?)!!)
+                unit = unitList[BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B0]
+                if (unit is Actuator && value != null) {
+                    unit.setValue(value)
+                }
                 homeInformationRepository.saveReedSwitch(
                         home.reedSwitches.values.first().apply {
                             this.active = value

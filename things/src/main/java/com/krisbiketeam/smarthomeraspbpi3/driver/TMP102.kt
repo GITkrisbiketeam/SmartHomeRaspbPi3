@@ -103,10 +103,10 @@ class TMP102(bus: String? = null, address: Int = DEFAULT_I2C_GND_ADDRESS) : Auto
          * @throws IOException
          */
         set(extended) {
-            if (extended) {
-                mConfig = mConfig or (1 shl TMP102_EXTENDED_MODE_BIT_SHIFT)
+            mConfig = if (extended) {
+                mConfig or (1 shl TMP102_EXTENDED_MODE_BIT_SHIFT)
             } else {
-                mConfig = mConfig and (1 shl TMP102_EXTENDED_MODE_BIT_SHIFT).inv()
+                mConfig and (1 shl TMP102_EXTENDED_MODE_BIT_SHIFT).inv()
             }
             writeSample16(TMP102_REG_CONF, mConfig)
         }
@@ -131,11 +131,11 @@ class TMP102(bus: String? = null, address: Int = DEFAULT_I2C_GND_ADDRESS) : Auto
         get() {
             var tmp = mConfig and TMP102_CONVERSION_RATE_MASK
             tmp = (tmp shr TMP102_CONVERSION_RATE_BIT_SHIFT)
-            when (tmp) {
-                3 -> return ConversionRate.CONVERSION_RATE8
-                2 -> return ConversionRate.CONVERSION_RATE4
-                1 -> return ConversionRate.CONVERSION_RATE1
-                else -> return ConversionRate.CONVERSION_RATE025
+            return when (tmp) {
+                3 -> ConversionRate.CONVERSION_RATE8
+                2 -> ConversionRate.CONVERSION_RATE4
+                1 -> ConversionRate.CONVERSION_RATE1
+                else -> ConversionRate.CONVERSION_RATE025
             }
         }
         /**
@@ -174,14 +174,14 @@ class TMP102(bus: String? = null, address: Int = DEFAULT_I2C_GND_ADDRESS) : Auto
         /**
          * Set TMP102 in ShutDown Mode where device gets into sleep mode after temp read
          *
-         * @param extended true if we want to switch to SD (ShutDown) mode
+         * @param shutdown true if we want to switch to SD (ShutDown) mode
          * @throws IOException
          */
         set(shutdown) {
-            if (shutdown) {
-                mConfig = mConfig or (1 shl TMP102_SHUTDOWN_MODE_BIT_SHIFT)
+            mConfig = if (shutdown) {
+                mConfig or (1 shl TMP102_SHUTDOWN_MODE_BIT_SHIFT)
             } else {
-                mConfig = mConfig and (1 shl TMP102_SHUTDOWN_MODE_BIT_SHIFT).inv()
+                mConfig and (1 shl TMP102_SHUTDOWN_MODE_BIT_SHIFT).inv()
             }
             writeSample16(TMP102_REG_CONF, mConfig)
         }
@@ -311,9 +311,9 @@ class TMP102(bus: String? = null, address: Int = DEFAULT_I2C_GND_ADDRESS) : Auto
     @VisibleForTesting
     internal fun calculateTemperature(rawTemp: Int?): Float? {
         if (rawTemp == null) return null
-        if (rawTemp < 0x8000) {
+        return if (rawTemp < 0x8000) {
             // Check if raw Data is not in extended EM 13 bit mode
-            return if (rawTemp and 0x01 > 0) {
+            if (rawTemp and 0x01 > 0) {
                 (rawTemp shr 3) * TEMP_REG_FACTOR
             } else {
                 (rawTemp shr 4) * TEMP_REG_FACTOR
@@ -321,9 +321,9 @@ class TMP102(bus: String? = null, address: Int = DEFAULT_I2C_GND_ADDRESS) : Auto
         } else {    // Negative number of 2's compliment
             // Check if raw Data is not in extended EM 13 bit mode
             if (rawTemp and 0x01f > 0) {
-                return ((((rawTemp - 8).inv()) and 0xFFFF) shr 3) * -TEMP_REG_FACTOR
+                ((((rawTemp - 8).inv()) and 0xFFFF) shr 3) * -TEMP_REG_FACTOR
             } else {
-                return ((((rawTemp - 16).inv()) and 0xFFFF) shr 4) * -TEMP_REG_FACTOR
+                ((((rawTemp - 16).inv()) and 0xFFFF) shr 4) * -TEMP_REG_FACTOR
             }
         }
     }

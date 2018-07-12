@@ -1,8 +1,10 @@
 package com.krisbiketeam.smarthomeraspbpi3.driver
 
 import android.util.Log
+import android.view.ViewConfiguration
 
 import com.google.android.things.pio.I2cDevice
+import com.krisbiketeam.smarthomeraspbpi3.ViewConfigurationMock
 
 import org.junit.Rule
 import org.junit.Test
@@ -16,10 +18,11 @@ import org.powermock.modules.junit4.PowerMockRunner
 import java.io.IOException
 
 import org.junit.Assert.assertEquals
+import org.junit.Before
 import org.mockito.Matchers.anyInt
 
 @RunWith(PowerMockRunner::class)
-@PrepareForTest(Log::class)
+@PrepareForTest(Log::class, ViewConfiguration::class)
 class MCP23017Test {
 
     @Mock
@@ -27,6 +30,15 @@ class MCP23017Test {
 
     @Rule
     var mMockitoRule = MockitoJUnit.rule()
+
+    @Before
+    @Throws(Exception::class)
+    fun setup() {
+        ViewConfigurationMock.mockStatic()
+
+        // Note: we need PowerMockito, so instantiate mocks here instead of using a MockitoRule
+        mI2c = PowerMockito.mock(I2cDevice::class.java)
+    }
 
     @Test
     @Throws(IOException::class)

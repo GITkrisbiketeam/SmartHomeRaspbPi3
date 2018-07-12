@@ -5,6 +5,7 @@ import android.view.ViewConfiguration;
 
 import com.google.android.things.pio.Gpio;
 import com.google.android.things.pio.GpioCallback;
+import com.krisbiketeam.smarthomeraspbpi3.ViewConfigurationMock;
 import com.krisbiketeam.smarthomeraspbpi3.units.hardware.HomeUnitGpioNoiseSensor;
 
 import org.junit.Before;
