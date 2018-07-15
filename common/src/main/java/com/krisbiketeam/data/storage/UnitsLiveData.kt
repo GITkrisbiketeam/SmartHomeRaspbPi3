@@ -12,6 +12,7 @@ class UnitsLiveData(private val databaseReference: DatabaseReference) : LiveData
             MyChildEventListener(Light::class.java, FirebaseTables.HOME_LIGHTS),
             MyChildEventListener(Motion::class.java, FirebaseTables.HOME_MOTIONS),
             MyChildEventListener(Pressure::class.java, FirebaseTables.HOME_PRESSURES),
+            MyChildEventListener(LightSwitch::class.java, FirebaseTables.HOME_LIGHT_SWITCHES),
             MyChildEventListener(ReedSwitch::class.java, FirebaseTables.HOME_REED_SWITCHES),
             MyChildEventListener(Room::class.java, FirebaseTables.HOME_ROOMS),
             MyChildEventListener(Temperature::class.java, FirebaseTables.HOME_TEMPERATURES))
