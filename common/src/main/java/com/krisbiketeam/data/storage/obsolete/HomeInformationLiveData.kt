@@ -1,11 +1,10 @@
-package com.krisbiketeam.data.storage
+package com.krisbiketeam.data.storage.obsolete
 
 import android.arch.lifecycle.LiveData
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.ValueEventListener
-import com.krisbiketeam.data.storage.dto.HomeInformation
 import timber.log.Timber
 
 class HomeInformationLiveData(private val databaseReference: DatabaseReference) : LiveData<HomeInformation>() {

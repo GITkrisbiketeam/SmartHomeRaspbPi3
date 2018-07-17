@@ -76,7 +76,7 @@ class HomeUnitGpioNoiseSensor(name: String,
     internal fun performSensorEvent(event: Boolean?) {
         homeUnit.value = event
         Logger.d(TAG, "performSensorEvent event: $event on: $homeUnit")
-        homeUnitListener?.onUnitChanged(homeUnit, event)
+        homeUnitListener?.onUnitChanged(homeUnit)
                 ?: Logger.w(TAG, "listener not registered on: $homeUnit")
 
     }

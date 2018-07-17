@@ -17,9 +17,12 @@ class FirebaseTables {
         const val HOME_LIGHTS = "lights"
         const val HOME_TEMPERATURES = "temperatures"
         const val HOME_PRESSURES = "pressures"
+        const val HOME_LIGHT_SWITCHES = "light_switches"
         const val HOME_REED_SWITCHES = "reed_switches"
         const val HOME_MOTIONS = "motions"
         const val HOME_BLINDS = "blinds"
+
+        const val HOME_UNITS = "units"
 
     }
 }

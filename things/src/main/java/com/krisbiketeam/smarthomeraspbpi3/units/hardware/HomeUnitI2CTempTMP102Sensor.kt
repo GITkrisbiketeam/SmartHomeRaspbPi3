@@ -19,7 +19,7 @@ class HomeUnitI2CTempTMP102Sensor(name: String,
                                   override var device: AutoCloseable? = null) : HomeUnitI2C<Float>, Sensor<Float> {
     companion object {
         private val TAG = Utils.getLogTag(HomeUnitI2CTempTMP102Sensor::class.java)
-        private const val REFRESH_RATE = 30000L // 30 seconds
+        private const val REFRESH_RATE = 60000L // 60 seconds
     }
 
 
@@ -58,7 +58,7 @@ class HomeUnitI2CTempTMP102Sensor(name: String,
                     homeUnit.value = it
                     homeUnit.localtime = Date().toString()
                     Logger.d(TAG, "temperature:${homeUnit.value}")
-                    homeUnitListener?.onUnitChanged(homeUnit, homeUnit.value)
+                    homeUnitListener?.onUnitChanged(homeUnit)
                     tmp102.close()
                 }
                 Thread.sleep(REFRESH_RATE)

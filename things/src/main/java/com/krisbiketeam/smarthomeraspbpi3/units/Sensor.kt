@@ -18,8 +18,7 @@ interface Sensor<T> : BaseUnit<T> {
          * Called when a HomeUnitLog event occurs
          *
          * @param homeUnit the HomeUnitLog for which the event occurred
-         * @param value Object with unit changed value
          */
-        fun onUnitChanged(homeUnit: HomeUnitLog<out T>, value: T?)
+        fun onUnitChanged(homeUnit: HomeUnitLog<out T>)
     }
 }

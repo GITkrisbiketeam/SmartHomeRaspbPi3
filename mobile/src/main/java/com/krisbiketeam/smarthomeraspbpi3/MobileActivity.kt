@@ -8,7 +8,7 @@ import android.support.v7.app.AppCompatActivity
 import com.krisbiketeam.data.auth.Authentication
 import com.krisbiketeam.data.auth.FirebaseAuthentication
 import com.krisbiketeam.data.storage.*
-import com.krisbiketeam.data.storage.dto.HomeInformation
+import com.krisbiketeam.data.storage.obsolete.HomeInformation
 import com.krisbiketeam.data.storage.UnitsLiveData
 import kotlinx.android.synthetic.main.activity_mobile.*
 import timber.log.Timber
@@ -64,7 +64,7 @@ class MobileActivity : AppCompatActivity() {
             callActivity(LoginActivity::class.java)
         }
 
-        val home = Home()
+        //val home = Home()
         //home.saveToRepository(homeInformationRepository)
 
     }

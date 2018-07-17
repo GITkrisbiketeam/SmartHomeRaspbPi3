@@ -82,7 +82,7 @@ class TMP102(bus: String? = null, address: Int = DEFAULT_I2C_GND_ADDRESS) : Auto
     /**
      * Extended mode EM.
      */
-    enum class ExtendedMode(val value: Int) {
+    enum class ExtendedMode(var value: Int) {
         NOT_EXTENDED_MODE(0),      // default
         EXTENDED_MODE(1);
     }
@@ -115,7 +115,7 @@ class TMP102(bus: String? = null, address: Int = DEFAULT_I2C_GND_ADDRESS) : Auto
      * Conversion mode CR1 and CR0.
      * "01" CONVERSION_RATE4 is default
      */
-    enum class ConversionRate(val value: Int) {
+    enum class ConversionRate(var value: Int) {
         CONVERSION_RATE025(0),
         CONVERSION_RATE1(1),
         CONVERSION_RATE4(2),
@@ -157,7 +157,7 @@ class TMP102(bus: String? = null, address: Int = DEFAULT_I2C_GND_ADDRESS) : Auto
      * the device shuts down when current conversion is completed. When SD is equal to '0', the A
      * fault condition exists when the measured device maintains a continuous conversion state.
      */
-    enum class ShutdownMode(val value: Int) {
+    enum class ShutdownMode(var value: Int) {
         CONTINOUS_MODE(0),
         SHUTDOWN_MODE(1)
     }

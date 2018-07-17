@@ -28,9 +28,9 @@ open class HomeUnitGpioSensor(name: String,
 
     open val mGpioCallback = object : GpioCallback {
         override fun onGpioEdge(gpio: Gpio): Boolean {
-            val value = readValue(gpio)
-            Logger.v(TAG, "onGpioEdge gpio.readValue(): $value on: $homeUnit")
-            homeUnitListener?.onUnitChanged(homeUnit, value)
+            readValue(gpio)
+            Logger.v(TAG, "onGpioEdge gpio.readValue(): $homeUnit.value on: $homeUnit")
+            homeUnitListener?.onUnitChanged(homeUnit)
 
             // Continue listening for more interrupts
             return true

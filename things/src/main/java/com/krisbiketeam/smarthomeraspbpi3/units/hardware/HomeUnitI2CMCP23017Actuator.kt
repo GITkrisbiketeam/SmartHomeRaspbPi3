@@ -3,9 +3,7 @@ package com.krisbiketeam.smarthomeraspbpi3.units.hardware
 import com.krisbiketeam.data.storage.ConnectionType
 import com.krisbiketeam.data.storage.dto.HomeUnitLog
 import com.krisbiketeam.smarthomeraspbpi3.driver.MCP23017
-import com.krisbiketeam.smarthomeraspbpi3.driver.MCP23017Pin
-import com.krisbiketeam.smarthomeraspbpi3.driver.MCP23017Pin.PinMode
-import com.krisbiketeam.smarthomeraspbpi3.driver.MCP23017Pin.PinState
+import com.krisbiketeam.smarthomeraspbpi3.driver.MCP23017Pin.*
 import com.krisbiketeam.smarthomeraspbpi3.units.Actuator
 import com.krisbiketeam.smarthomeraspbpi3.units.HomeUnitI2C
 import timber.log.Timber
@@ -16,10 +14,10 @@ class HomeUnitI2CMCP23017Actuator(name: String,
                                   private val pinName: String,
                                   private val address: Int,
                                   private val pinInterrupt: String,
-                                  private val ioPin: MCP23017Pin,
+                                  private val ioPin: Pin,
                                   override var device: AutoCloseable? = null) : HomeUnitI2C<Boolean>, Actuator<Boolean> {
 
-    override val homeUnit: HomeUnitLog<Boolean> = HomeUnitLog(name, location, pinName, ConnectionType.I2C, address)
+    override val homeUnit: HomeUnitLog<Boolean> = HomeUnitLog(name, location, pinName, ConnectionType.I2C, address, pinInterrupt, ioPin.address)
 
     override fun connect() {
         device = HomeUnitI2CMCP23017.getMcp23017Instance(pinName, address)

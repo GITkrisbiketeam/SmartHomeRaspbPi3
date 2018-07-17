@@ -17,6 +17,9 @@ data class HomeUnitLog<T>(
         var connectionType: ConnectionType,
         // HomeUnitLog address for multiple units connected to one input ex I2c
         var softAddress: Int? = null,
+        var pinInterrupt: String? = null,
+        var ioPin: Int? = null,
+        private val internalPullUp: Boolean = false,
         // Current value this unit holds
         var value: T? = null,
         var localtime: String = Date().toString(),

@@ -75,7 +75,7 @@ class TMP102Test {
     @Test
     fun isExtendedMode_Extended() {
         PowerMockito.mockStatic(Log::class.java)
-        val tmp102 = TMP102(mI2c,0x60B0)
+        val tmp102 = TMP102(mI2c, 0x60B0)
 
         assertTrue(tmp102.extendedMode)
     }
@@ -108,14 +108,14 @@ class TMP102Test {
     @Test
     fun getConversionRateMode_rate4() {
         PowerMockito.mockStatic(Log::class.java)
-        val tmp102 = TMP102(mI2c,DEF_TMP102_CONFIG)
+        val tmp102 = TMP102(mI2c, DEF_TMP102_CONFIG)
         assertEquals(TMP102.ConversionRate.CONVERSION_RATE4, tmp102.conversionRateMode)
     }
 
     @Test
     fun setConversionRateMode_rate1() {
         PowerMockito.mockStatic(Log::class.java)
-        val tmp102 = TMP102(mI2c,DEF_TMP102_CONFIG)
+        val tmp102 = TMP102(mI2c, DEF_TMP102_CONFIG)
         tmp102.conversionRateMode = TMP102.ConversionRate.CONVERSION_RATE1
         val expectedValue = 0x6060
         assertEquals(expectedValue, tmp102.mConfig)
@@ -124,7 +124,7 @@ class TMP102Test {
     @Test
     fun isShutdownMode_ShutDown() {
         PowerMockito.mockStatic(Log::class.java)
-        val tmp102 = TMP102(mI2c,0x61B0)
+        val tmp102 = TMP102(mI2c, 0x61B0)
         assertTrue(tmp102.shutdownMode)
     }
 

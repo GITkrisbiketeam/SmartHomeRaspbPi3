@@ -46,8 +46,8 @@ class MCP23017Test {
         PowerMockito.mockStatic(Log::class.java)
         PowerMockito.`when`(mI2c.readRegByte(anyInt())).thenReturn(0b10000000.toByte())
         val mcp23017 = MCP23017(mI2c)
-        mcp23017.setMode(MCP23017Pin.GPIO_A1, MCP23017Pin.PinMode.DIGITAL_INPUT)
-        val pinMode = mcp23017.getMode(MCP23017Pin.GPIO_A1)
+        mcp23017.setMode(MCP23017Pin.Pin.GPIO_A0, MCP23017Pin.PinMode.DIGITAL_INPUT)
+        val pinMode = mcp23017.getMode(MCP23017Pin.Pin.GPIO_A0)
         assertEquals(MCP23017Pin.PinMode.DIGITAL_INPUT, pinMode)
     }
 
@@ -57,8 +57,8 @@ class MCP23017Test {
         PowerMockito.mockStatic(Log::class.java)
         PowerMockito.`when`(mI2c.readRegByte(anyInt())).thenReturn(0.toByte())
         val mcp23017 = MCP23017(mI2c)
-        mcp23017.setMode(MCP23017Pin.GPIO_B2, MCP23017Pin.PinMode.DIGITAL_INPUT)
-        val pinMode = mcp23017.getMode(MCP23017Pin.GPIO_B2)
+        mcp23017.setMode(MCP23017Pin.Pin.GPIO_B2, MCP23017Pin.PinMode.DIGITAL_INPUT)
+        val pinMode = mcp23017.getMode(MCP23017Pin.Pin.GPIO_B2)
         assertEquals(MCP23017Pin.PinMode.DIGITAL_INPUT, pinMode)
     }
 
@@ -68,8 +68,8 @@ class MCP23017Test {
         PowerMockito.mockStatic(Log::class.java)
         PowerMockito.`when`(mI2c.readRegByte(anyInt())).thenReturn(0.toByte())
         val mcp23017 = MCP23017(mI2c)
-        mcp23017.setMode(MCP23017Pin.GPIO_A4, MCP23017Pin.PinMode.DIGITAL_OUTPUT)
-        val pinMode = mcp23017.getMode(MCP23017Pin.GPIO_A4)
+        mcp23017.setMode(MCP23017Pin.Pin.GPIO_A4, MCP23017Pin.PinMode.DIGITAL_OUTPUT)
+        val pinMode = mcp23017.getMode(MCP23017Pin.Pin.GPIO_A4)
         assertEquals(MCP23017Pin.PinMode.DIGITAL_OUTPUT, pinMode)
     }
 
@@ -79,9 +79,8 @@ class MCP23017Test {
         PowerMockito.mockStatic(Log::class.java)
         PowerMockito.`when`(mI2c.readRegByte(anyInt())).thenReturn(0.toByte())
         val mcp23017 = MCP23017(mI2c)
-        mcp23017.setPullResistance(MCP23017Pin.GPIO_A1, MCP23017Pin.PinPullResistance.PULL_UP)
-        val pullRes = mcp23017.getPullResistance(MCP23017Pin
-                .GPIO_A1)
+        mcp23017.setPullResistance(MCP23017Pin.Pin.GPIO_A1, MCP23017Pin.PinPullResistance.PULL_UP)
+        val pullRes = mcp23017.getPullResistance(MCP23017Pin.Pin.GPIO_A1)
         assertEquals(MCP23017Pin.PinPullResistance.PULL_UP, pullRes)
     }
 
@@ -91,8 +90,8 @@ class MCP23017Test {
         PowerMockito.mockStatic(Log::class.java)
         PowerMockito.`when`(mI2c.readRegByte(anyInt())).thenReturn(0.toByte())
         val mcp23017 = MCP23017(mI2c)
-        mcp23017.setPullResistance(MCP23017Pin.GPIO_B2, MCP23017Pin.PinPullResistance.PULL_UP)
-        val pullRes = mcp23017.getPullResistance(MCP23017Pin.GPIO_B2)
+        mcp23017.setPullResistance(MCP23017Pin.Pin.GPIO_B2, MCP23017Pin.PinPullResistance.PULL_UP)
+        val pullRes = mcp23017.getPullResistance(MCP23017Pin.Pin.GPIO_B2)
         assertEquals(MCP23017Pin.PinPullResistance.PULL_UP, pullRes)
     }
 
@@ -102,8 +101,8 @@ class MCP23017Test {
         PowerMockito.mockStatic(Log::class.java)
         PowerMockito.`when`(mI2c.readRegByte(anyInt())).thenReturn(0.toByte())
         val mcp23017 = MCP23017(mI2c)
-        mcp23017.setPullResistance(MCP23017Pin.GPIO_A1, MCP23017Pin.PinPullResistance.OFF)
-        val pullRes = mcp23017.getPullResistance(MCP23017Pin.GPIO_A1)
+        mcp23017.setPullResistance(MCP23017Pin.Pin.GPIO_A1, MCP23017Pin.PinPullResistance.OFF)
+        val pullRes = mcp23017.getPullResistance(MCP23017Pin.Pin.GPIO_A1)
         assertEquals(MCP23017Pin.PinPullResistance.OFF, pullRes)
     }
 }

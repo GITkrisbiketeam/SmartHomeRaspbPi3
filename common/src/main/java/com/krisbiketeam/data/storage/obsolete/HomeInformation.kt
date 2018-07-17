@@ -1,4 +1,4 @@
-package com.krisbiketeam.data.storage.dto
+package com.krisbiketeam.data.storage.obsolete
 
 data class HomeInformation(var message: String = "",
                            var button: Boolean = false,

@@ -2,15 +2,16 @@ package com.krisbiketeam.data.storage
 
 import android.arch.lifecycle.LiveData
 import com.google.firebase.database.FirebaseDatabase
-import com.krisbiketeam.data.storage.FirebaseTables.Companion.HOME_BLINDS
-import com.krisbiketeam.data.storage.FirebaseTables.Companion.HOME_INFORMATION_BASE
 import com.krisbiketeam.data.storage.FirebaseTables.Companion.OLD_HOME_INFORMATION_BASE
 import com.krisbiketeam.data.storage.FirebaseTables.Companion.OLD_HOME_INFORMATION_BUTTON
 import com.krisbiketeam.data.storage.FirebaseTables.Companion.OLD_HOME_INFORMATION_LIGHT
 import com.krisbiketeam.data.storage.FirebaseTables.Companion.OLD_HOME_INFORMATION_MESSAGE
 import com.krisbiketeam.data.storage.FirebaseTables.Companion.OLD_HOME_INFORMATION_PRESSURE
 import com.krisbiketeam.data.storage.FirebaseTables.Companion.OLD_HOME_INFORMATION_TEMPERATURE
+import com.krisbiketeam.data.storage.FirebaseTables.Companion.HOME_BLINDS
+import com.krisbiketeam.data.storage.FirebaseTables.Companion.HOME_INFORMATION_BASE
 import com.krisbiketeam.data.storage.FirebaseTables.Companion.HOME_LIGHTS
+import com.krisbiketeam.data.storage.FirebaseTables.Companion.HOME_LIGHT_SWITCHES
 import com.krisbiketeam.data.storage.FirebaseTables.Companion.HOME_MOTIONS
 import com.krisbiketeam.data.storage.FirebaseTables.Companion.HOME_PRESSURES
 import com.krisbiketeam.data.storage.FirebaseTables.Companion.HOME_REED_SWITCHES
@@ -18,6 +19,8 @@ import com.krisbiketeam.data.storage.FirebaseTables.Companion.HOME_ROOMS
 import com.krisbiketeam.data.storage.FirebaseTables.Companion.HOME_TEMPERATURES
 import com.krisbiketeam.data.storage.FirebaseTables.Companion.LOG_INFORMATION_BASE
 import com.krisbiketeam.data.storage.dto.*
+import com.krisbiketeam.data.storage.obsolete.HomeInformation
+import com.krisbiketeam.data.storage.obsolete.HomeInformationLiveData
 
 interface HomeInformationRepository {
     fun saveMessage(message: String)
@@ -36,6 +39,7 @@ interface HomeInformationRepository {
     fun saveMotion(motion: Motion)
     fun savePressure(pressure: Pressure)
     fun saveTemperature(temperature: Temperature)
+    fun saveLightSwitch(lightSwitch: LightSwitch)
     fun saveReedSwitch(reedSwitch: ReedSwitch)
 
     fun unitsLiveData(): UnitsLiveData
@@ -109,6 +113,10 @@ class FirebaseHomeInformationRepository : HomeInformationRepository {
 
     override fun saveTemperature(temperature: Temperature) {
         referenceHome.child(HOME_TEMPERATURES).child(temperature.name).setValue(temperature)
+    }
+
+    override fun saveLightSwitch(lightSwitch: LightSwitch) {
+        referenceHome.child(HOME_LIGHT_SWITCHES).child(lightSwitch.name).setValue(lightSwitch)
     }
 
     override fun saveReedSwitch(reedSwitch: ReedSwitch) {
