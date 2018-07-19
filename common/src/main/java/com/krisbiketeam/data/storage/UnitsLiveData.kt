@@ -4,36 +4,48 @@ import android.arch.lifecycle.LiveData
 import com.google.firebase.database.*
 import com.krisbiketeam.data.storage.dto.*
 import timber.log.Timber
+import com.google.firebase.database.GenericTypeIndicator
+
+
 
 class UnitsLiveData(private val databaseReference: DatabaseReference) : LiveData<Any>() {
 
     private val unitsList: List<MyChildEventListener> = listOf(
-            MyChildEventListener(Blind::class.java, FirebaseTables.HOME_BLINDS),
-            MyChildEventListener(Light::class.java, FirebaseTables.HOME_LIGHTS),
-            MyChildEventListener(Motion::class.java, FirebaseTables.HOME_MOTIONS),
-            MyChildEventListener(Pressure::class.java, FirebaseTables.HOME_PRESSURES),
-            MyChildEventListener(LightSwitch::class.java, FirebaseTables.HOME_LIGHT_SWITCHES),
-            MyChildEventListener(ReedSwitch::class.java, FirebaseTables.HOME_REED_SWITCHES),
-            MyChildEventListener(Room::class.java, FirebaseTables.HOME_ROOMS),
-            MyChildEventListener(Temperature::class.java, FirebaseTables.HOME_TEMPERATURES))
+            //MyChildEventListener(Blind::class.java, FirebaseTables.HOME_BLINDS),
+            MyChildEventListener(StorageUnit::class.java, FirebaseTables.HOME_LIGHTS),
+            //MyChildEventListener(Motion::class.java, FirebaseTables.HOME_MOTIONS),
+            //MyChildEventListener(Pressure::class.java, FirebaseTables.HOME_PRESSURES),
+            MyChildEventListener(StorageUnit::class.java, FirebaseTables.HOME_LIGHT_SWITCHES)
+            //MyChildEventListener(ReedSwitch::class.java, FirebaseTables.HOME_REED_SWITCHES),
+            //MyChildEventListener(Room::class.java, FirebaseTables.HOME_ROOMS),
+            //MyChildEventListener(Temperature::class.java, FirebaseTables.HOME_TEMPERATURES)
+            )
 
     inner class MyChildEventListener(private val liveClass: Class<*>, val childNode: String) : ChildEventListener {
         override fun onChildAdded(dataSnapshot: DataSnapshot, previousChildName: String?) {
             // A new value has been added, add it to the displayed list
-            val newValue = dataSnapshot.getValue(liveClass)
             val key = dataSnapshot.key
 
-            Timber.d("onChildAdded (key=$key) (newValue=$newValue) (value=$value)")
-            value = newValue
+            if (liveClass == StorageUnit::class.java) {
+                val genericTypeIndicator = object : GenericTypeIndicator<StorageUnit<Boolean>>() {}
+                value = dataSnapshot.getValue(genericTypeIndicator)
+            } else {
+                value = dataSnapshot.getValue(liveClass)
+            }
+            Timber.d("onChildAdded (key=$key)(value=$value)")
         }
 
         override  fun onChildChanged(dataSnapshot: DataSnapshot , previousChildName: String?) {
             // A value has changed, use the key to determine if we are displaying this
             // value and if so displayed the changed value.
-            val newValue = dataSnapshot.getValue(liveClass)
             val key = dataSnapshot.key
-            Timber.d("onChildChanged (key=$key) (newValue=$newValue) (value=$value)")
-            value = newValue
+            if (liveClass == StorageUnit::class.java) {
+                val genericTypeIndicator = object : GenericTypeIndicator<StorageUnit<Boolean>>() {}
+                value = dataSnapshot.getValue(genericTypeIndicator)
+            } else {
+                value = dataSnapshot.getValue(liveClass)
+            }
+            Timber.d("onChildChanged (key=$key)(value=$value)")
         }
 
         override  fun onChildRemoved(dataSnapshot: DataSnapshot) {

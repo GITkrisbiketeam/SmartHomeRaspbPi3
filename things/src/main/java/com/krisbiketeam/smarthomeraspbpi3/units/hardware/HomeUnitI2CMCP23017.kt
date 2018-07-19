@@ -15,11 +15,11 @@ object HomeUnitI2CMCP23017 {
     }
 
     fun increaseUseCount(bus: String, i2cAddr: Int): Int? {
-        return mcpUseCountMap.compute(getKeyHash(bus, i2cAddr)){k, v -> v?.inc() ?: 1}
+        return mcpUseCountMap.compute(getKeyHash(bus, i2cAddr)){_, v -> v?.inc() ?: 1}
     }
 
     fun decreaseUseCount(bus: String, i2cAddr: Int): Int? {
-        return mcpUseCountMap.compute(getKeyHash(bus, i2cAddr)){k, v -> v?.dec() ?: 0}
+        return mcpUseCountMap.compute(getKeyHash(bus, i2cAddr)){_, v -> v?.dec() ?: 0}
     }
 
     private fun getKeyHash(bus: String, i2cAddr: Int): Int {

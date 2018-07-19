@@ -41,6 +41,8 @@ interface HomeInformationRepository {
     fun saveTemperature(temperature: Temperature)
     fun saveLightSwitch(lightSwitch: LightSwitch)
     fun saveReedSwitch(reedSwitch: ReedSwitch)
+    fun <T>saveStorageUnit(storageUnit: StorageUnit<T>)
+
 
     fun unitsLiveData(): UnitsLiveData
 
@@ -48,7 +50,6 @@ interface HomeInformationRepository {
 }
 
 class FirebaseHomeInformationRepository : HomeInformationRepository {
-
     private val referenceOldHome = FirebaseDatabase.getInstance().reference.child(OLD_HOME_INFORMATION_BASE)
     private val lightLiveData = HomeInformationLiveData(referenceOldHome)
 
@@ -121,6 +122,10 @@ class FirebaseHomeInformationRepository : HomeInformationRepository {
 
     override fun saveReedSwitch(reedSwitch: ReedSwitch) {
         referenceHome.child(HOME_REED_SWITCHES).child(reedSwitch.name).setValue(reedSwitch)
+    }
+
+    override fun <T> saveStorageUnit(storageUnit: StorageUnit<T>) {
+        referenceHome.child(storageUnit.firebaseTableName).child(storageUnit.name).setValue(storageUnit)
     }
 
 

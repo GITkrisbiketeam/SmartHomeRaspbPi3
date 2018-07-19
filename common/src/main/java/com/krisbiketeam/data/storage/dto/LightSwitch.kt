@@ -8,5 +8,8 @@ data class LightSwitch(var name: String = "",
                        var lightName: String = "",
                        var active: Boolean = false) {
 
-    @Exclude @set:Exclude @get:Exclude var applyFunction: LightSwitch.(Boolean) -> Unit = { Unit }
+    @Exclude
+    @set:Exclude
+    @get:Exclude
+    var applyFunction: LightSwitch.(Boolean) -> Unit = { Unit }
 }

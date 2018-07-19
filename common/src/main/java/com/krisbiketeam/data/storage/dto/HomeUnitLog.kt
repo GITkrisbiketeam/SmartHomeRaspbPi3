@@ -19,7 +19,7 @@ data class HomeUnitLog<T>(
         var softAddress: Int? = null,
         var pinInterrupt: String? = null,
         var ioPin: Int? = null,
-        private val internalPullUp: Boolean = false,
+        val internalPullUp: Boolean = false,
         // Current value this unit holds
         var value: T? = null,
         var localtime: String = Date().toString(),

@@ -1,6 +1,7 @@
 package com.krisbiketeam.smarthomeraspbpi3
 
 import android.arch.lifecycle.Observer
+import com.krisbiketeam.data.storage.FirebaseTables
 import com.krisbiketeam.data.storage.HomeInformationRepository
 import com.krisbiketeam.data.storage.dto.*
 import com.krisbiketeam.smarthomeraspbpi3.units.Actuator
@@ -9,21 +10,25 @@ import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
 import com.krisbiketeam.smarthomeraspbpi3.units.hardware.*
 import timber.log.Timber
 
-class Home(val homeInformationRepository: HomeInformationRepository): Sensor.HomeUnitListener<Any> {
+typealias LightSw = StorageUnit<Boolean>
+typealias Lig = StorageUnit<Boolean>
+
+
+
+class Home(val homeInformationRepository: HomeInformationRepository) : Sensor.HomeUnitListener<Any> {
     private var unitsLiveData = homeInformationRepository.unitsLiveData()
+
 
     var rooms: MutableMap<String, Room> = HashMap()
     var temperatures: MutableMap<String, Temperature> = HashMap()
-    var lights: MutableMap<String, Light> = HashMap()
-    var lightSwitches: MutableMap<String, LightSwitch> = HashMap()
+    var lights: MutableMap<String, Lig> = HashMap()
+    var lightSwitches: MutableMap<String, LightSw> = HashMap()
     var reedSwitches: MutableMap<String, ReedSwitch> = HashMap()
     var motions: MutableMap<String, Motion> = HashMap()
     var blinds: MutableMap<String, Blind> = HashMap()
     var pressures: MutableMap<String, Pressure> = HashMap()
 
     val unitList: MutableMap<String, BaseUnit<Any>> = HashMap()
-
-
 
 
     init {
@@ -33,15 +38,19 @@ class Home(val homeInformationRepository: HomeInformationRepository): Sensor.Hom
         var roomName = "Kitchen"
         var temp = Temperature("Kitchen 1", roomName, BoardConfig.TEMP_PRESS_SENSOR_BMP280)
         var pressure = Pressure("Kitchen 1", roomName, BoardConfig.TEMP_PRESS_SENSOR_BMP280)
-        var light = Light("Kitchen 1", roomName, BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B0)
-        var lightSwitch = LightSwitch("Kitchen 1", roomName, BoardConfig.IO_EXTENDER_MCP23017_1_IN_A7, light.name)
+        var light = Lig("Kitchen 1", roomName, BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B0, FirebaseTables.HOME_LIGHTS)
+        var lightSwitch = LightSw("Kitchen 1", roomName, BoardConfig.IO_EXTENDER_MCP23017_1_IN_A7, FirebaseTables.HOME_LIGHT_SWITCHES)
+        lightSwitch.unitsTasks.add(UnitTask(light.name, light.firebaseTableName))
         lightSwitch.applyFunction = {
             Timber.d("lightSwitch applyFunction it: $it this: $this")
-            val light = lights[this.lightName]
-            light?.run{
-                this.on = it
-                Timber.d("lightSwitch applyFunction run it: $it this: $this")
-                homeInformationRepository.saveLight(this)
+            val value = it
+            this.unitsTasks.forEach {
+                val l = lights[it.unitName]
+                l?.run {
+                    this.value = value
+                    Timber.d("lightSwitch applyFunction run it: $it this: $this")
+                    homeInformationRepository.saveStorageUnit(this)
+                }
             }
         }
         var reedSwitch = ReedSwitch("Kitchen 1", roomName, BoardConfig.IO_EXTENDER_MCP23017_1_IN_A6)
@@ -52,13 +61,13 @@ class Home(val homeInformationRepository: HomeInformationRepository): Sensor.Hom
         reedSwitches[reedSwitch.name] = reedSwitch
         motions[motion.name] = motion
         pressures[pressure.name] = pressure
-        var room = Room(roomName, 0, listOf(temp), listOf(light), listOf(lightSwitch), listOf(reedSwitch), listOf(motion), ArrayList(), listOf(pressure))
+        var room = Room(roomName, 0, listOf(temp), /*listOf(light)*/emptyList(), /*listOf(lightSwitch)*/emptyList(), listOf(reedSwitch), listOf(motion), ArrayList(), listOf(pressure))
         rooms[room.name] = room
 
         roomName = "Bathroom"
         temp = Temperature("Bathroom 1", roomName, BoardConfig.TEMP_SENSOR_TMP102)
-        light = Light("Bathroom 1", roomName, BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B7)
-        lightSwitch = LightSwitch("Bathroom 1", roomName, BoardConfig.IO_EXTENDER_MCP23017_1_IN_A5, light.name)
+        //light = Light("Bathroom 1", roomName, BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B7)
+        /*lightSwitch = LightSwitch("Bathroom 1", roomName, BoardConfig.IO_EXTENDER_MCP23017_1_IN_A5, light.name)
         lightSwitch.applyFunction = {
             Timber.d("lightSwitch applyFunction it: $it this: $this")
             val light = lights[this.lightName]
@@ -67,11 +76,11 @@ class Home(val homeInformationRepository: HomeInformationRepository): Sensor.Hom
                 Timber.d("lightSwitch applyFunction run it: $it this: $this")
                 homeInformationRepository.saveLight(this)
             }
-        }
+        }*/
         temperatures[temp.name] = temp
         lights[light.name] = light
         lightSwitches[lightSwitch.name] = lightSwitch
-        room = Room(roomName, 0, listOf(temp), listOf(light), listOf(lightSwitch))
+        room = Room(roomName, 0, listOf(temp)/*, listOf(light), listOf(lightSwitch)*/)
         rooms[room.name] = room
 
     }
@@ -175,16 +184,34 @@ class Home(val homeInformationRepository: HomeInformationRepository): Sensor.Hom
 
     private val unitsDataObserver = Observer<Any> { value ->
         Timber.d("unitsDataObserver changed: $value")
-        when(value){
+        when (value) {
+            is StorageUnit<*> -> {
+                when (value.firebaseTableName) {
+                    FirebaseTables.HOME_LIGHT_SWITCHES -> {
+                        val lightSwitch = lightSwitches[value.name]
+                        Timber.d("unitsDataObserver lightSwitch: $lightSwitch")
+                        lightSwitch ?. applyFunction ?. invoke (lightSwitch, value.value as Boolean)
+                    }
+                    FirebaseTables.HOME_LIGHTS -> {
+                        val unit = unitList[value.unitName]
+                        Timber.d("unitsDataObserver unit: $unit")
+                        if (unit is Actuator) {
+                            Timber.d("unitsDataObserver unit setValue")
+                            unit.setValue(value.value)
+                        }
+                    }
+                }
+            }
+
             is LightSwitch -> {
                 val lightSwitch = lightSwitches[value.name]
                 Timber.d("unitsDataObserver lightSwitch: $lightSwitch")
                 lightSwitch?.applyFunction?.invoke(lightSwitch, value.active)
             }
-            is Light ->{
+            is Light -> {
                 val unit = unitList[value.unitName]
                 Timber.d("unitsDataObserver unit: $unit")
-                if (unit is Actuator){
+                if (unit is Actuator) {
                     Timber.d("unitsDataObserver unit setValue")
                     unit.setValue(value.on)
                 }
@@ -228,9 +255,9 @@ class Home(val homeInformationRepository: HomeInformationRepository): Sensor.Hom
                 if (unit is Actuator && value != null) {
                     unit.setValue(value)
                 }*/
-                homeInformationRepository.saveLightSwitch(
+                homeInformationRepository.saveStorageUnit(
                         lightSwitches.values.first().apply {
-                            this.active = value
+                            this.value = value
                         })
             }
             BoardConfig.IO_EXTENDER_MCP23017_1_IN_A5 -> if (value is Boolean) {
@@ -239,16 +266,16 @@ class Home(val homeInformationRepository: HomeInformationRepository): Sensor.Hom
                 if (unit is Actuator && value != null) {
                     unit.setValue(value)
                 }*/
-                homeInformationRepository.saveLightSwitch(
+                homeInformationRepository.saveStorageUnit(
                         lightSwitches.values.last().apply {
-                            this.active = value
+                            this.value = value
                         })
             }
         }
     }
 
 
-    fun saveToRepository(){
+    /*fun saveToRepository(){
         rooms.values.forEach{homeInformationRepository.saveRoom(it)}
         blinds.values.forEach{homeInformationRepository.saveBlind(it)}
         lights.values.forEach{homeInformationRepository.saveLight(it)}
@@ -257,5 +284,5 @@ class Home(val homeInformationRepository: HomeInformationRepository): Sensor.Hom
         lightSwitches.values.forEach{homeInformationRepository.saveLightSwitch(it)}
         reedSwitches.values.forEach{homeInformationRepository.saveReedSwitch(it)}
         temperatures.values.forEach{homeInformationRepository.saveTemperature(it)}
-    }
+    }*/
 }
