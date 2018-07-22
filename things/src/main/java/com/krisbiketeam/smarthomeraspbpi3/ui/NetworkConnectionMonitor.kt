@@ -30,7 +30,7 @@ class NetworkConnectionMonitor(activity: Activity) : ConnectivityManager.Network
             hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true
 
     //TODO: will this work properly???
-    val isNetworkConnectedVal get() = connectivityManager.activeNetworkInfo?.isConnected == true
+    val isNetworkConnectedVal get() = connectivityManager.activeNetworkInfo?.isConnected ?: false
 
     fun startListen(listener: NetworkConnectionListener) {
         networkConnectionListener = listener

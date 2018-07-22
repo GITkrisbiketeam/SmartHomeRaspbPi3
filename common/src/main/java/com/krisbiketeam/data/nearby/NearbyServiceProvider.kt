@@ -69,12 +69,12 @@ class NearbyServiceProvider(private val context: Context) : NearbyService {
             Nearby.getConnectionsClient(context).acceptConnection(endpointId, payloadCallback)
             // TODO: Can we safely stop Advertising????
             dataReceiverListener?.run {
-                //Nearby.getConnectionsClient(context).stopAdvertising()
+                Nearby.getConnectionsClient(context).stopAdvertising()
             }
 
             // TODO: Can we safely stop Discovery????
             dataSendResultListener?.run {
-                //Nearby.getConnectionsClient(context).stopDiscovery()
+                Nearby.getConnectionsClient(context).stopDiscovery()
             }
         }
     }
@@ -82,23 +82,33 @@ class NearbyServiceProvider(private val context: Context) : NearbyService {
     private val payloadCallback = object : PayloadCallback() {
         override fun onPayloadReceived(endpointId: String, payload: Payload) {
             Timber.d("onPayloadReceived $payload")
-            payload.let { dataReceiverListener?.onDataReceived(payload.asBytes()) }
+            payload.let {
+                dataReceiverListener?.onDataReceived(payload.asBytes())
+                Nearby.getConnectionsClient(context).stopAllEndpoints()
+                dataReceiverListener = null
+            }
         }
 
         override fun onPayloadTransferUpdate(endpointId: String, update: PayloadTransferUpdate) {
             when (update.status) {
                 SUCCESS -> {
                     dataSendResultListener?.onSuccess()
+                    Nearby.getConnectionsClient(context).stopAllEndpoints()
+                    dataSendResultListener = null
                     Timber.d("onPayloadTransferUpdate: SUCCESS")
                 }
-                FAILURE -> dataSendResultListener?.onFailure(Exception("onPayloadTransferUpdate: FAILED"))
+                FAILURE -> {
+                    dataSendResultListener?.onFailure(Exception("onPayloadTransferUpdate: FAILED"))
+                    dataSendResultListener = null
+                }
             }
         }
     }
 
     private fun sendDataPayload(endpointId: String) {
-        if (dataToBeSent != null) {
-            Nearby.getConnectionsClient(context).sendPayload(endpointId, Payload.fromBytes(dataToBeSent!!.toByteArray()))
+        dataToBeSent?.run {
+            Nearby.getConnectionsClient(context).sendPayload(endpointId, Payload.fromBytes(dataToBeSent?.toByteArray()
+                    ?: ByteArray(0)))
         }
     }
 
@@ -107,12 +117,12 @@ class NearbyServiceProvider(private val context: Context) : NearbyService {
                 CLIENT_ID,
                 endpointId,
                 connectionLifecycleCallback)
-                .addOnSuccessListener{
+                .addOnSuccessListener {
                     // We successfully requested a connection. Now both sides
                     // must accept before the connection is established.
                     Timber.d("requestConnection:SUCCESS")
                 }
-                .addOnFailureListener{
+                .addOnFailureListener {
                     // Nearby Connections failed to request the connection.
                     Timber.w("requestConnection:FAILURE ${it.stackTrace}")
                 }
@@ -153,8 +163,8 @@ class NearbyServiceProvider(private val context: Context) : NearbyService {
 
     override fun sendData(data: Any) {
 
-        when(data) {
-            is WifiCredentials ->{
+        when (data) {
+            is WifiCredentials -> {
                 val adapter = moshi.adapter(WifiCredentials::class.java)
                 dataToBeSent = adapter.toJson(data)
             }
@@ -174,5 +184,9 @@ class NearbyServiceProvider(private val context: Context) : NearbyService {
     override fun dataReceivedListener(dataReceiverListener: NearbyService.DataReceiverListener) {
         this.dataReceiverListener = dataReceiverListener
         startAdvertising()
+    }
+
+    override fun isActive(): Boolean {
+        return dataSendResultListener != null || dataReceiverListener != null
     }
 }
