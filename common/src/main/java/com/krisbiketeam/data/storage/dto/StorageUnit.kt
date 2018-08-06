@@ -20,7 +20,7 @@ typealias Blind = StorageUnit<BlindType>
 data class StorageUnit<T>(var name: String = "",
                           var firebaseTableName: String = "",
                           var room: String = "",
-                          var unitName: String = "",
+                          var hardwareUnitName: String = "",
                           var value: T? = null,
                           val unitsTasks: MutableList<UnitTask> = ArrayList()) {
 
