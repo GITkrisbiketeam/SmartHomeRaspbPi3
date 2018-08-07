@@ -5,29 +5,31 @@ import com.google.firebase.database.*
 import com.krisbiketeam.data.storage.dto.*
 import timber.log.Timber
 import com.google.firebase.database.GenericTypeIndicator
+import com.krisbiketeam.data.storage.FirebaseTables.*
 
 
-class UnitsLiveData(private val databaseReference: DatabaseReference) : LiveData<Any>() {
+class StorageUnitsLiveData(private val databaseReference: DatabaseReference) : LiveData<Any>() {
 
     private val unitsList: List<MyChildEventListener> = listOf(
-            MyChildEventListener(StorageUnit::class.java, FirebaseTables.HOME_LIGHTS),
-            MyChildEventListener(StorageUnit::class.java, FirebaseTables.HOME_LIGHT_SWITCHES),
-            MyChildEventListener(StorageUnit::class.java, FirebaseTables.HOME_REED_SWITCHES),
-            MyChildEventListener(StorageUnit::class.java, FirebaseTables.HOME_MOTIONS),
-            MyChildEventListener(StorageUnit::class.java, FirebaseTables.HOME_TEMPERATURES),
-            MyChildEventListener(StorageUnit::class.java, FirebaseTables.HOME_PRESSURES),
-            MyChildEventListener(StorageUnit::class.java, FirebaseTables.HOME_BLINDS),
-            MyChildEventListener(Room::class.java, FirebaseTables.HOME_ROOMS)
+            MyChildEventListener(StorageUnit::class.java, HOME_LIGHTS),
+            MyChildEventListener(StorageUnit::class.java, HOME_LIGHT_SWITCHES),
+            MyChildEventListener(StorageUnit::class.java, HOME_REED_SWITCHES),
+            MyChildEventListener(StorageUnit::class.java, HOME_MOTIONS),
+            MyChildEventListener(StorageUnit::class.java, HOME_TEMPERATURES),
+            MyChildEventListener(StorageUnit::class.java, HOME_PRESSURES),
+            MyChildEventListener(StorageUnit::class.java, HOME_BLINDS),
+            MyChildEventListener(Room::class.java, HOME_ROOMS),
+            MyChildEventListener(HomeUnit::class.java, HOME_HW_UNITS)
     )
 
     private val typeIndicatorMap: HashMap<String, GenericTypeIndicator<out StorageUnit<out Any>>> = hashMapOf(
-            FirebaseTables.HOME_LIGHTS to object : GenericTypeIndicator<StorageUnit<LightType>>() {},
-            FirebaseTables.HOME_LIGHT_SWITCHES to object : GenericTypeIndicator<StorageUnit<LightSwitchType>>() {},
-            FirebaseTables.HOME_REED_SWITCHES to object : GenericTypeIndicator<StorageUnit<ReedSwitchType>>() {},
-            FirebaseTables.HOME_MOTIONS to object : GenericTypeIndicator<StorageUnit<MotionType>>() {},
-            FirebaseTables.HOME_TEMPERATURES to object : GenericTypeIndicator<StorageUnit<TemperatureType>>() {},
-            FirebaseTables.HOME_PRESSURES to object : GenericTypeIndicator<StorageUnit<PressureType>>() {},
-            FirebaseTables.HOME_BLINDS to object : GenericTypeIndicator<StorageUnit<BlindType>>() {}
+            HOME_LIGHTS to object : GenericTypeIndicator<StorageUnit<LightType>>() {},
+            HOME_LIGHT_SWITCHES to object : GenericTypeIndicator<StorageUnit<LightSwitchType>>() {},
+            HOME_REED_SWITCHES to object : GenericTypeIndicator<StorageUnit<ReedSwitchType>>() {},
+            HOME_MOTIONS to object : GenericTypeIndicator<StorageUnit<MotionType>>() {},
+            HOME_TEMPERATURES to object : GenericTypeIndicator<StorageUnit<TemperatureType>>() {},
+            HOME_PRESSURES to object : GenericTypeIndicator<StorageUnit<PressureType>>() {},
+            HOME_BLINDS to object : GenericTypeIndicator<StorageUnit<BlindType>>() {}
     )
 
     inner class MyChildEventListener(private val liveClass: Class<*>, val childNode: String) : ChildEventListener {

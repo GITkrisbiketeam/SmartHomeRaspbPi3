@@ -17,14 +17,11 @@ import kotlinx.android.synthetic.main.activity_wifi.*
 import timber.log.Timber
 
 class WifiActivity : AppCompatActivity() {
-    private lateinit var secureStorage: SecureStorage
     private lateinit var nearByService: NearbyService
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_wifi)
-
-        secureStorage = NotSecureStorage(this)
 
         nearByService = NearbyServiceProvider(this)
         nearByService.dataSendResultListener(dataSendResultListener)
@@ -113,12 +110,12 @@ class WifiActivity : AppCompatActivity() {
         }
 
         override fun onFailure(exception: Exception) {
-            onFailure(exception)
+            onError(exception)
         }
 
     }
 
-    private fun onFailure(exception: Exception) {
+    private fun onError(exception: Exception) {
         Timber.e(exception, "Request failed")
         password.error = getString(R.string.error_incorrect_password)
         password.requestFocus()

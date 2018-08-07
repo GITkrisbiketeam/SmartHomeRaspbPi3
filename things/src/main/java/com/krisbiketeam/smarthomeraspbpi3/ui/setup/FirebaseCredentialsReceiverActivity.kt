@@ -33,7 +33,7 @@ class FirebaseCredentialsReceiverActivity : AppCompatActivity() {
         val credentials = adapter.fromJson(jsonString)
         Timber.d("Data as credentials $credentials")
         credentials?.let {
-            secureStorage.saveFirebaseCredentials(credentials)
+            secureStorage.firebaseCredentials = credentials
             goToMain()
         }
     }

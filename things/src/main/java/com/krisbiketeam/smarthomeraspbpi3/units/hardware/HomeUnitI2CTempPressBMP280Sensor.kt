@@ -3,6 +3,7 @@ package com.krisbiketeam.smarthomeraspbpi3.units.hardware
 import com.google.android.things.contrib.driver.bmx280.Bmx280
 import com.google.android.things.contrib.driver.rainbowhat.RainbowHat
 import com.krisbiketeam.data.storage.ConnectionType
+import com.krisbiketeam.data.storage.dto.HomeUnit
 import com.krisbiketeam.data.storage.dto.HomeUnitLog
 import com.krisbiketeam.smarthomeraspbpi3.units.HomeUnitI2C
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
@@ -13,21 +14,20 @@ import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.launch
 import java.util.*
 
-data class TemperatureAndPressure(val temperature: Float,
-                                  val pressure: Float)
+private val TAG = Utils.getLogTag(HomeUnitI2CTempPressBMP280Sensor::class.java)
+private const val REFRESH_RATE = 60000L // 60 seconds
+
+data class TemperatureAndPressure(val temperature: Float, val pressure: Float)
 
 class HomeUnitI2CTempPressBMP280Sensor(name: String,
                                        location: String,
                                        pinName: String,
                                        softAddress: Int,
                                        override var device: AutoCloseable? = null) : HomeUnitI2C<TemperatureAndPressure>, Sensor<TemperatureAndPressure> {
-    companion object {
-        private val TAG = Utils.getLogTag(HomeUnitI2CTempPressBMP280Sensor::class.java)
-        private const val REFRESH_RATE = 60000L // 60 seconds
-    }
 
-
-    override val homeUnit: HomeUnitLog<TemperatureAndPressure> = HomeUnitLog(name, location, pinName, ConnectionType.I2C, softAddress)
+    override val homeUnit: HomeUnit = HomeUnit(name, location, pinName, ConnectionType.I2C, softAddress)
+    override var unitValue: TemperatureAndPressure? = null
+    override var valueUpdateTime: String = ""
 
     private var job: Job? = null
     private var homeUnitListener: Sensor.HomeUnitListener<TemperatureAndPressure>? = null
@@ -56,7 +56,7 @@ class HomeUnitI2CTempPressBMP280Sensor(name: String,
             while (true) {
                 readValue()
 
-                homeUnitListener?.onUnitChanged(homeUnit)
+                homeUnitListener?.onUnitChanged(homeUnit, unitValue, valueUpdateTime)
                 Thread.sleep(REFRESH_RATE)
             }
         }
@@ -71,10 +71,10 @@ class HomeUnitI2CTempPressBMP280Sensor(name: String,
             it.temperatureOversampling = Bmx280.OVERSAMPLING_1X
             it.pressureOversampling = Bmx280.OVERSAMPLING_1X
             it.setMode(Bmx280.MODE_NORMAL)
-            homeUnit.value = TemperatureAndPressure(it.readTemperature(), it.readPressure())
-            homeUnit.localtime = Date().toString()
-            Logger.d(TAG, "temperature:${homeUnit.value}")
+            unitValue = TemperatureAndPressure(it.readTemperature(), it.readPressure())
+            valueUpdateTime = Date().toString()
+            Logger.d(TAG, "temperature:${unitValue}")
         }
-        return homeUnit.value
+        return unitValue
     }
 }

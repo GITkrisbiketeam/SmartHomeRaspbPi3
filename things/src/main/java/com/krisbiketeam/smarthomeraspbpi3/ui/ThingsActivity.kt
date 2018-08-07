@@ -30,6 +30,8 @@ import com.krisbiketeam.smarthomeraspbpi3.utils.Logger
 import timber.log.Timber
 import java.io.IOException
 
+private const val WIFI_RAINBOW_LED = 0
+private const val FIREBASE_RAINBOW_LED = 1
 
 class ThingsActivity : AppCompatActivity() {
     private lateinit var authentication: Authentication
@@ -50,11 +52,6 @@ class ThingsActivity : AppCompatActivity() {
     private var wiFiCredentialsReceiverManager: WiFiCredentialsReceiverManager? = null
 
     private val mRainbowLeds = IntArray(RainbowHat.LEDSTRIP_LENGTH)
-
-    companion object {
-        private const val WIFI_RAINBOW_LED = 0
-        private const val FIREBASE_RAINBOW_LED = 1
-    }
 
     private val fourCharDisplay = HomeUnitI2CFourCharDisplay(BoardConfig.FOUR_CHAR_DISP, "Raspberry Pi", BoardConfig.FOUR_CHAR_DISP_PIN)
 
@@ -182,8 +179,10 @@ class ThingsActivity : AppCompatActivity() {
     override fun onStart() {
         Timber.d("onStart")
         super.onStart()
-        authentication.addLoginResultListener(loginResultListener)
-        authentication.login(secureStorage.retrieveFirebaseCredentials()!!)
+        if (secureStorage.isAuthenticated()) {
+            authentication.addLoginResultListener(loginResultListener)
+            authentication.login(secureStorage.firebaseCredentials)
+        }
 
         // lightLiveData is registered after successful login
 

@@ -112,12 +112,12 @@ class LoginActivity : AppCompatActivity() {
 
     private val dataSendResultListener = object : NearbyService.DataSendResultListener {
         override fun onSuccess() {
-            secureStorage.saveFirebaseCredentials(FirebaseCredentials(ssid.text.toString(), password.text.toString()))
+            secureStorage.firebaseCredentials = FirebaseCredentials(ssid.text.toString(), password.text.toString())
             toMainActivity()
         }
 
         override fun onFailure(exception: Exception) {
-            onFailure(exception)
+            onError(exception)
         }
 
     }
@@ -128,11 +128,11 @@ class LoginActivity : AppCompatActivity() {
         }
 
         override fun failed(exception: Exception) {
-            onFailure(exception)
+            onError(exception)
         }
     }
 
-    private fun onFailure(exception: Exception) {
+    private fun onError(exception: Exception) {
         Timber.e(exception, "Request failed")
         password.error = getString(R.string.error_incorrect_password)
         password.requestFocus()

@@ -7,16 +7,15 @@ import com.google.android.things.pio.Gpio
 import com.google.android.things.pio.GpioCallback
 import com.krisbiketeam.smarthomeraspbpi3.utils.Logger
 import com.krisbiketeam.smarthomeraspbpi3.utils.Utils
+import java.util.*
+
+private val TAG = Utils.getLogTag(HomeUnitGpioNoiseSensor::class.java)
 
 class HomeUnitGpioNoiseSensor(name: String,
                               location: String,
                               pinName: String,
                               activeType: Int,
                               gpio: Gpio? = null) : HomeUnitGpioSensor(name, location, pinName, activeType, gpio) {
-
-    companion object {
-        private val TAG = Utils.getLogTag(HomeUnitGpioNoiseSensor::class.java)
-    }
 
     private var mDebounceHandler: Handler = Handler()
     private var mPendingCheckDebounce: CheckDebounce? = null
@@ -74,9 +73,10 @@ class HomeUnitGpioNoiseSensor(name: String,
      */
     @VisibleForTesting
     internal fun performSensorEvent(event: Boolean?) {
-        homeUnit.value = event
+        unitValue = event
+        valueUpdateTime = Date().toString()
         Logger.d(TAG, "performSensorEvent event: $event on: $homeUnit")
-        homeUnitListener?.onUnitChanged(homeUnit)
+        homeUnitListener?.onUnitChanged(homeUnit, unitValue, valueUpdateTime)
                 ?: Logger.w(TAG, "listener not registered on: $homeUnit")
 
     }

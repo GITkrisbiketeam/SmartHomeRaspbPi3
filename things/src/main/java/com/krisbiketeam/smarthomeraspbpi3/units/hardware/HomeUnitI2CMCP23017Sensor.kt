@@ -1,6 +1,7 @@
 package com.krisbiketeam.smarthomeraspbpi3.units.hardware
 
 import com.krisbiketeam.data.storage.ConnectionType
+import com.krisbiketeam.data.storage.dto.HomeUnit
 import com.krisbiketeam.data.storage.dto.HomeUnitLog
 import com.krisbiketeam.smarthomeraspbpi3.driver.MCP23017
 import com.krisbiketeam.smarthomeraspbpi3.driver.MCP23017Pin.*
@@ -18,16 +19,18 @@ open class HomeUnitI2CMCP23017Sensor(name: String,
                                      private val internalPullUp: Boolean = false,
                                      override var device: AutoCloseable? = null) : HomeUnitI2C<Boolean>, Sensor<Boolean> {
 
-    override val homeUnit: HomeUnitLog<Boolean> = HomeUnitLog(name, location, pinName, ConnectionType.I2C, address, pinInterrupt, ioPin.address, internalPullUp)
+    override val homeUnit: HomeUnit = HomeUnit(name, location, pinName, ConnectionType.I2C, address, pinInterrupt, ioPin.name, internalPullUp)
+    override var unitValue: Boolean? = null
+    override var valueUpdateTime: String = ""
 
     var homeUnitListener: Sensor.HomeUnitListener<Boolean>? = null
 
     open val mMCP23017Callback = object : MCP23017PinStateChangeListener {
         override fun onPinStateChanged(pin: Pin, state: PinState) {
             Timber.d("onPinStateChanged pin: ${pin.name} state: $state")
-            homeUnit.value = state == PinState.HIGH
-            homeUnit.localtime = Date().toString()
-            homeUnitListener?.onUnitChanged(homeUnit)
+            unitValue = state == PinState.HIGH
+            valueUpdateTime = Date().toString()
+            homeUnitListener?.onUnitChanged(homeUnit, unitValue, valueUpdateTime)
 
         }
     }
@@ -71,10 +74,10 @@ open class HomeUnitI2CMCP23017Sensor(name: String,
     }
 
     override fun readValue(): Boolean? {
-        homeUnit.value = (device as MCP23017).run {
+        unitValue = (device as MCP23017).run {
             getState(ioPin) == PinState.HIGH
         }
 
-        return homeUnit.value
+        return unitValue
     }
 }

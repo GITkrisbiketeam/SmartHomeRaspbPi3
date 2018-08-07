@@ -9,7 +9,7 @@ import com.krisbiketeam.data.auth.Authentication
 import com.krisbiketeam.data.auth.FirebaseAuthentication
 import com.krisbiketeam.data.storage.*
 import com.krisbiketeam.data.storage.obsolete.HomeInformation
-import com.krisbiketeam.data.storage.UnitsLiveData
+import com.krisbiketeam.data.storage.StorageUnitsLiveData
 import kotlinx.android.synthetic.main.activity_mobile.*
 import timber.log.Timber
 import java.util.*
@@ -21,7 +21,7 @@ class MobileActivity : AppCompatActivity() {
     private lateinit var lightsLiveData: LiveData<HomeInformation>
     private lateinit var homeInformationRepository: HomeInformationRepository
     private lateinit var secureStorage: SecureStorage
-    private lateinit var unitsLiveData: UnitsLiveData
+    private lateinit var storageUnitsLiveData: StorageUnitsLiveData
 
     // Mobile Activity
     private val lightDataObserver = Observer<HomeInformation> { homeInformation ->
@@ -42,7 +42,7 @@ class MobileActivity : AppCompatActivity() {
         homeInformationRepository = FirebaseHomeInformationRepository()
         authentication = FirebaseAuthentication()
         lightsLiveData = homeInformationRepository.lightLiveData()
-        unitsLiveData = homeInformationRepository.unitsLiveData()
+        storageUnitsLiveData = homeInformationRepository.storageUnitsLiveData()
 
         lightToggle.setOnCheckedChangeListener { _, state: Boolean ->
             homeInformationRepository.saveLightState(state)
@@ -72,20 +72,20 @@ class MobileActivity : AppCompatActivity() {
     private fun observeLightsData() {
         Timber.d("Observing lights data")
         lightsLiveData.observe(this, lightDataObserver)
-        unitsLiveData.observe(this, unitsDataObserver)
+        storageUnitsLiveData.observe(this, unitsDataObserver)
     }
 
     private fun stopObserveLightsData() {
         Timber.d("Stop Observing lights data")
         lightsLiveData.removeObserver { lightDataObserver }
-        unitsLiveData.removeObserver(unitsDataObserver)
+        storageUnitsLiveData.removeObserver(unitsDataObserver)
     }
 
     override fun onResume() {
         super.onResume()
         when {
-            secureStorage.retrieveFirebaseCredentials() != null -> {
-                authentication.login(secureStorage.retrieveFirebaseCredentials()!!)
+            secureStorage.isAuthenticated() -> {
+                authentication.login(secureStorage.firebaseCredentials)
             }
             else -> throw Exception("You should have credentials!")
         }

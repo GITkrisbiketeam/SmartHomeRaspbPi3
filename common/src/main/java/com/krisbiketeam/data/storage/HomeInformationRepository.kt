@@ -2,15 +2,8 @@ package com.krisbiketeam.data.storage
 
 import android.arch.lifecycle.LiveData
 import com.google.firebase.database.FirebaseDatabase
-import com.krisbiketeam.data.storage.FirebaseTables.Companion.HOME_INFORMATION_BASE
-import com.krisbiketeam.data.storage.FirebaseTables.Companion.HOME_ROOMS
-import com.krisbiketeam.data.storage.FirebaseTables.Companion.LOG_INFORMATION_BASE
-import com.krisbiketeam.data.storage.FirebaseTables.Companion.OLD_HOME_INFORMATION_BASE
-import com.krisbiketeam.data.storage.FirebaseTables.Companion.OLD_HOME_INFORMATION_BUTTON
-import com.krisbiketeam.data.storage.FirebaseTables.Companion.OLD_HOME_INFORMATION_LIGHT
-import com.krisbiketeam.data.storage.FirebaseTables.Companion.OLD_HOME_INFORMATION_MESSAGE
-import com.krisbiketeam.data.storage.FirebaseTables.Companion.OLD_HOME_INFORMATION_PRESSURE
-import com.krisbiketeam.data.storage.FirebaseTables.Companion.OLD_HOME_INFORMATION_TEMPERATURE
+import com.krisbiketeam.data.storage.FirebaseTables.*
+import com.krisbiketeam.data.storage.dto.HomeUnit
 import com.krisbiketeam.data.storage.dto.HomeUnitLog
 import com.krisbiketeam.data.storage.dto.Room
 import com.krisbiketeam.data.storage.dto.StorageUnit
@@ -28,13 +21,33 @@ interface HomeInformationRepository {
     fun lightLiveData(): LiveData<HomeInformation>
     //Obsolete Code End
 
+    /**
+     *  Adds given @see[HomeUnitLog] to the log @see[LOG_INFORMATION_BASE] list in DB
+     */
     fun logUnitEvent(homeUnit: HomeUnitLog<out Any>)
 
+    /**
+     *  Saves/updates given @see[Room] in DB
+     */
     fun saveRoom(room: Room)
+    /**
+     *  Saves/updates given @see[StorageUnit] in DB
+     */
     fun <T>saveStorageUnit(storageUnit: StorageUnit<T>)
 
-    fun unitsLiveData(): UnitsLiveData
+    /**
+     *  Saves/updates given @see[HomeUnitLog] as a hardware module list in DB
+     */
+    fun saveHardwareUnit(hwUnit: HomeUnit)
 
+    /**
+     * get instance of @see[StorageUnitsLiveData] for listening to changes in entried in DB
+     */
+    fun storageUnitsLiveData(): StorageUnitsLiveData
+
+    /**
+     * Clear all Logs entries from DB
+     */
     fun clearLog()
 }
 
@@ -44,10 +57,12 @@ class FirebaseHomeInformationRepository : HomeInformationRepository {
     private val lightLiveData = HomeInformationLiveData(referenceOldHome)
     // Obsolete Code End
 
+    // Reference for all home related "Units"
     private val referenceHome = FirebaseDatabase.getInstance().reference.child(HOME_INFORMATION_BASE)
+    // Reference for all log related events
     private val referenceLog = FirebaseDatabase.getInstance().reference.child(LOG_INFORMATION_BASE)
 
-    private val unitsDataList: UnitsLiveData = UnitsLiveData(referenceHome)
+    private val storageUnitsLiveData: StorageUnitsLiveData = StorageUnitsLiveData(referenceHome)
 
     init {
         FirebaseDatabase.getInstance().reference.keepSynced(true)
@@ -88,11 +103,13 @@ class FirebaseHomeInformationRepository : HomeInformationRepository {
         referenceHome.child(storageUnit.firebaseTableName).child(storageUnit.name).setValue(storageUnit)
     }
 
-
-    override fun unitsLiveData(): UnitsLiveData {
-        return unitsDataList
+    override fun saveHardwareUnit(hwUnit: HomeUnit) {
+        referenceHome.child(HOME_HW_UNITS).child(hwUnit.name).setValue(hwUnit)
     }
 
+    override fun storageUnitsLiveData(): StorageUnitsLiveData {
+        return storageUnitsLiveData
+    }
 
     override fun clearLog() {
         referenceLog.removeValue()

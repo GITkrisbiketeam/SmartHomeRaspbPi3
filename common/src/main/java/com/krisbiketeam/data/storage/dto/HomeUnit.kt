@@ -6,7 +6,7 @@ import com.krisbiketeam.data.storage.ConnectionType
 import java.util.*
 
 @IgnoreExtraProperties
-data class HomeUnitLog<T>(
+data class HomeUnit(
         // HomeUnitLog type name ex. "BMP280" "Light"
         var name: String,
         // Location of the sensor, ex. kitchen
@@ -19,20 +19,4 @@ data class HomeUnitLog<T>(
         var softAddress: Int? = null,
         var pinInterrupt: String? = null,
         var ioPin: String? = null,
-        val internalPullUp: Boolean? = null,
-        // Current value this unit holds
-        var value: T? = null,
-        var localtime: String = Date().toString(),
-        var servertime: Map<String, String>? = ServerValue.TIMESTAMP) {
-    constructor(hwHomeUnit: HomeUnit, value: T?, localtime: String) : this(
-            hwHomeUnit.name,
-            hwHomeUnit.location,
-            hwHomeUnit.pinName,
-            hwHomeUnit.connectionType,
-            hwHomeUnit.softAddress,
-            hwHomeUnit.pinInterrupt,
-            hwHomeUnit.ioPin,
-            hwHomeUnit.internalPullUp,
-            value,
-            localtime)
-}
+        val internalPullUp: Boolean? = null)

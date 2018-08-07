@@ -8,6 +8,21 @@ import kotlinx.coroutines.experimental.launch
 import timber.log.Timber
 import java.io.IOException
 
+private const val TMP102_EXTENDED_MODE_BIT_SHIFT = 4
+
+private const val TMP102_CONVERSION_RATE_BIT_SHIFT = 6
+private const val TMP102_CONVERSION_RATE_MASK = 192
+
+private const val TMP102_SHUTDOWN_MODE_BIT_SHIFT = 8
+private const val TMP102_ONE_SHOT_BIT_SHIFT = 15
+
+// Registers
+private const val TMP102_REG_TEMP = 0x00
+private const val TMP102_REG_CONF = 0x01
+private const val TMP102_REG_T_LOW = 0x02
+private const val TMP102_REG_T_HIGH = 0x03
+
+private const val TEMP_REG_FACTOR = 0.0625f
 /**
  * Driver for the TMP102 temperature sensor.
  */
@@ -54,24 +69,6 @@ class TMP102(bus: String? = null, address: Int = DEFAULT_I2C_GND_ADDRESS) : Auto
          * Maximum frequency of the measurements.
          */
         const val POWER_ON_CONVERSION_DELAY = 26L
-
-
-        private const val TMP102_EXTENDED_MODE_BIT_SHIFT = 4
-
-        private const val TMP102_CONVERSION_RATE_BIT_SHIFT = 6
-        private const val TMP102_CONVERSION_RATE_MASK = 192
-
-        private const val TMP102_SHUTDOWN_MODE_BIT_SHIFT = 8
-        private const val TMP102_ONE_SHOT_BIT_SHIFT = 15
-
-        // Registers
-        private const val TMP102_REG_TEMP = 0x00
-        @VisibleForTesting
-        internal const val TMP102_REG_CONF = 0x01
-        private const val TMP102_REG_T_LOW = 0x02
-        private const val TMP102_REG_T_HIGH = 0x03
-
-        private const val TEMP_REG_FACTOR = 0.0625f
     }
 
     private var mDevice: I2cDevice? = null

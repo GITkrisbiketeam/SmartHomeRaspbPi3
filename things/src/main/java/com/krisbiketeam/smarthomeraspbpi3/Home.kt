@@ -1,11 +1,10 @@
 package com.krisbiketeam.smarthomeraspbpi3
 
 import android.arch.lifecycle.Observer
-import com.krisbiketeam.data.storage.FirebaseTables
-import com.krisbiketeam.data.storage.FirebaseTables.Companion.HOME_PRESSURES
-import com.krisbiketeam.data.storage.FirebaseTables.Companion.HOME_TEMPERATURES
+import com.krisbiketeam.data.storage.FirebaseTables.*
 import com.krisbiketeam.data.storage.HomeInformationRepository
 import com.krisbiketeam.data.storage.dto.*
+import com.krisbiketeam.smarthomeraspbpi3.driver.MCP23017Pin
 import com.krisbiketeam.smarthomeraspbpi3.units.Actuator
 import com.krisbiketeam.smarthomeraspbpi3.units.BaseUnit
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
@@ -13,7 +12,7 @@ import com.krisbiketeam.smarthomeraspbpi3.units.hardware.*
 import timber.log.Timber
 
 class Home(private val homeInformationRepository: HomeInformationRepository) : Sensor.HomeUnitListener<Any> {
-    private var storageUnitsLiveData = homeInformationRepository.unitsLiveData()
+    private var storageUnitsLiveData = homeInformationRepository.storageUnitsLiveData()
 
 
     private var rooms: MutableMap<String, Room> = HashMap()
@@ -56,21 +55,21 @@ class Home(private val homeInformationRepository: HomeInformationRepository) : S
 
         var roomName = "Kitchen"
 
-        var temp = Temperature("Kitchen 1 Temp", FirebaseTables.HOME_TEMPERATURES, roomName, BoardConfig.TEMP_PRESS_SENSOR_BMP280) as StorageUnit<Any>
+        var temp = Temperature("Kitchen 1 Temp", HOME_TEMPERATURES, roomName, BoardConfig.TEMP_PRESS_SENSOR_BMP280) as StorageUnit<Any>
 
-        var pressure = Pressure("Kitchen 1 Press", FirebaseTables.HOME_PRESSURES, roomName, BoardConfig.TEMP_PRESS_SENSOR_BMP280) as StorageUnit<Any>
+        var pressure = Pressure("Kitchen 1 Press", HOME_PRESSURES, roomName, BoardConfig.TEMP_PRESS_SENSOR_BMP280) as StorageUnit<Any>
 
-        var light = Light("Kitchen 1 Light", FirebaseTables.HOME_LIGHTS, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B0) as StorageUnit<Any>
+        var light = Light("Kitchen 1 Light", HOME_LIGHTS, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B0) as StorageUnit<Any>
         light.unitsTasks.add(UnitTask(hardwareUnitName = light.hardwareUnitName))
         light.applyFunction = booleanApplyFunction
 
-        var lightSwitch = LightSwitch("Kitchen 1 Light Switch", FirebaseTables.HOME_LIGHT_SWITCHES, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_IN_A7) as StorageUnit<Any>
+        var lightSwitch = LightSwitch("Kitchen 1 Light Switch", HOME_LIGHT_SWITCHES, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_IN_A7) as StorageUnit<Any>
         lightSwitch.unitsTasks.add(UnitTask(storageUnitName = light.name))
         lightSwitch.applyFunction = booleanApplyFunction
 
-        var reedSwitch = ReedSwitch("Kitchen 1 Reed Switch", FirebaseTables.HOME_REED_SWITCHES, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_IN_A6) as StorageUnit<Any>
+        var reedSwitch = ReedSwitch("Kitchen 1 Reed Switch", HOME_REED_SWITCHES, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_IN_A6) as StorageUnit<Any>
 
-        val motion = Motion("Kitchen 1 Motion Sensor", FirebaseTables.HOME_MOTIONS, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_IN_A0) as StorageUnit<Any>
+        val motion = Motion("Kitchen 1 Motion Sensor", HOME_MOTIONS, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_IN_A0) as StorageUnit<Any>
 
         storageUnitUnitList[temp.name] = temp
         storageUnitUnitList[pressure.name] = pressure
@@ -85,13 +84,13 @@ class Home(private val homeInformationRepository: HomeInformationRepository) : S
         // Second room
         roomName = "Bathroom"
 
-        temp = Temperature("Bathroom 1 Temp", FirebaseTables.HOME_TEMPERATURES, roomName, BoardConfig.TEMP_SENSOR_TMP102) as StorageUnit<Any>
+        temp = Temperature("Bathroom 1 Temp", HOME_TEMPERATURES, roomName, BoardConfig.TEMP_SENSOR_TMP102) as StorageUnit<Any>
 
-        light = Light("Bathroom 1 Light", FirebaseTables.HOME_LIGHTS, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B7) as StorageUnit<Any>
+        light = Light("Bathroom 1 Light", HOME_LIGHTS, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B7) as StorageUnit<Any>
         light.unitsTasks.add(UnitTask(hardwareUnitName = light.hardwareUnitName))
         light.applyFunction = booleanApplyFunction
 
-        lightSwitch = LightSwitch("Bathroom 1 Light Switch", FirebaseTables.HOME_LIGHT_SWITCHES, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_IN_A5) as StorageUnit<Any>
+        lightSwitch = LightSwitch("Bathroom 1 Light Switch", HOME_LIGHT_SWITCHES, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_IN_A5) as StorageUnit<Any>
         lightSwitch.unitsTasks.add(UnitTask(storageUnitName = light.name))
         lightSwitch.applyFunction = booleanApplyFunction
 
@@ -207,50 +206,82 @@ class Home(private val homeInformationRepository: HomeInformationRepository) : S
         Timber.d("storageUnitsDataObserver changed: $value")
         when (value) {
             is StorageUnit<*> -> {
-                when (value.firebaseTableName) {
-                    FirebaseTables.HOME_LIGHT_SWITCHES -> {
-                        val lightSwitch = storageUnitUnitList[value.name]
-                        Timber.d("storageUnitsDataObserver lightSwitch: $lightSwitch")
-                        lightSwitch?.applyFunction?.invoke(lightSwitch, value.value)
-                    }
-                    FirebaseTables.HOME_LIGHTS -> {
-                        val unit = hardwareUnitList[value.hardwareUnitName]
-                        Timber.d("storageUnitsDataObserver unit: $unit")
-                        if (unit is Actuator) {
-                            Timber.d("storageUnitsDataObserver unit setValue")
-                            unit.setValue(value.value)
-                        }
-                    }
-                }
-                Timber.d("storageUnitsDataObserver unit: ${storageUnitUnitList[value.name]}")
-                storageUnitUnitList[value.name]?.run{
+                Timber.d("storageUnitsDataObserver StorageUnit: ${storageUnitUnitList[value.name]}")
+                storageUnitUnitList[value.name]?.run {
                     applyFunction.invoke(this, value.value)
+                }
+            }
+            is HomeUnit -> {
+                Timber.d("storageUnitsDataObserver HomeUnit: ${hardwareUnitList[value.name]}")
+                when(value.name) {
+                    BoardConfig.TEMP_SENSOR_TMP102 -> {
+                        hardwareUnitList[value.name] =
+                                HomeUnitI2CTempTMP102Sensor(
+                                        value.name,
+                                        value.location,
+                                        value.pinName,
+                                        value.softAddress!!) as Sensor<Any>
+                    }
+                    BoardConfig.TEMP_PRESS_SENSOR_BMP280 -> {
+                        hardwareUnitList[value.name] =
+                                HomeUnitI2CTempPressBMP280Sensor(
+                                        value.name,
+                                        value.location,
+                                        value.pinName,
+                                        value.softAddress!!) as Sensor<Any>
+                    }
+                    BoardConfig.IO_EXTENDER_MCP23017_1_IN_A7,
+                    BoardConfig.IO_EXTENDER_MCP23017_1_IN_A6,
+                    BoardConfig.IO_EXTENDER_MCP23017_1_IN_A5,
+                    BoardConfig.IO_EXTENDER_MCP23017_1_IN_A0 -> {
+                        hardwareUnitList[value.name] =
+                                HomeUnitI2CMCP23017Sensor(
+                                        value.name,
+                                        value.location,
+                                        value.pinName,
+                                        value.softAddress!!,
+                                        value.pinInterrupt!!,
+                                        MCP23017Pin.Pin.valueOf(value.ioPin!!),
+                                        value.internalPullUp!!) as Sensor<Any>
+                    }
+
+                    BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B0,
+                    BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B7 -> {
+                        hardwareUnitList[value.name] =
+                                HomeUnitI2CMCP23017Actuator(
+                                        value.name,
+                                        value.location,
+                                        value.pinName,
+                                        value.softAddress!!,
+                                        value.pinInterrupt!!,
+                                        MCP23017Pin.Pin.valueOf(value.ioPin!!)) as Actuator<Any>
+                    }
                 }
             }
         }
     }
 
-    override fun onUnitChanged(hardwareHomeUnit: HomeUnitLog<out Any>) {
-        Timber.d("onUnitChanged unit: $hardwareHomeUnit")
-        homeInformationRepository.logUnitEvent(hardwareHomeUnit)
+    override fun onUnitChanged(hwHomeUnit: HomeUnit, unitValue: Any?, updateTime: String) {
+        Timber.d("onUnitChanged unit: $hwHomeUnit; unitValue: $unitValue; updateTime: $updateTime")
+        homeInformationRepository.logUnitEvent(HomeUnitLog(hwHomeUnit, unitValue, updateTime))
 
-        val hardwareValue = hardwareHomeUnit.value
-        Timber.d("Received Hardware changed $hardwareValue")
-
-        storageUnitUnitList.values.find { it.hardwareUnitName == hardwareHomeUnit.name }?.apply {
-            if (hardwareValue is TemperatureAndPressure) {
+        storageUnitUnitList.values.find {
+            it.hardwareUnitName == hwHomeUnit.name
+        }?.apply {
+            // We need to handel differently values of non Basic Types
+            if (unitValue is TemperatureAndPressure) {
                 Timber.d("Received TemperatureAndPressure $value")
                 // obsolete code start
-                homeInformationRepository.saveTemperature(hardwareValue.temperature)
-                homeInformationRepository.savePressure(hardwareValue.pressure)
+                homeInformationRepository.saveTemperature(unitValue.temperature)
+                homeInformationRepository.savePressure(unitValue.pressure)
                 // obsolete code end
-                if(firebaseTableName == HOME_TEMPERATURES) {
-                    value = hardwareValue.temperature
-                } else if(firebaseTableName == HOME_PRESSURES) {
-                    value = hardwareValue.pressure
+                if (firebaseTableName == HOME_TEMPERATURES) {
+                    value = unitValue.temperature
+                } else if (firebaseTableName == HOME_PRESSURES) {
+                    value = unitValue.pressure
                 }
             } else {
-                value = hardwareValue
+                value = unitValue
             }
             homeInformationRepository.saveStorageUnit(this)
         }
@@ -260,5 +291,6 @@ class Home(private val homeInformationRepository: HomeInformationRepository) : S
     fun saveToRepository() {
         rooms.values.forEach { homeInformationRepository.saveRoom(it) }
         storageUnitUnitList.values.forEach { homeInformationRepository.saveStorageUnit(it) }
+        hardwareUnitList.values.forEach { homeInformationRepository.saveHardwareUnit(it.homeUnit) }
     }
 }

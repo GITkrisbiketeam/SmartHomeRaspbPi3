@@ -4,12 +4,10 @@ import com.krisbiketeam.smarthomeraspbpi3.utils.Logger
 import com.krisbiketeam.smarthomeraspbpi3.utils.Utils
 import java.io.IOException
 
+private val TAG = Utils.getLogTag(HomeUnitGpio::class.java)
+
 interface HomeUnitI2C <T> : BaseUnit<T> {
     var device: AutoCloseable?
-
-    companion object {
-        private val TAG = Utils.getLogTag(HomeUnitGpio::class.java)
-    }
 
     override fun close() {
         try {

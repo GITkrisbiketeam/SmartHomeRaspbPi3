@@ -1,41 +1,42 @@
 package com.krisbiketeam.data.storage
 
 import android.content.Context
+import android.content.SharedPreferences
 import com.krisbiketeam.data.auth.FirebaseCredentials
+import kotlin.properties.ReadWriteProperty
+import kotlin.reflect.KProperty
+
+private const val SHARED_FILE = "androidThingsExample"
+private const val EMAIL_KEY = "secureEmailKey"
+private const val PASSWORD_KEY = "securePasswordKey"
 
 interface SecureStorage {
-    fun saveFirebaseCredentials(firebaseCredentials: FirebaseCredentials)
-    fun retrieveFirebaseCredentials(): FirebaseCredentials?
     fun isAuthenticated(): Boolean
+    var firebaseCredentials: FirebaseCredentials
 }
 
 // Todo: implement a encrypted secure storage since this is not secure
 class NotSecureStorage(context: Context) : SecureStorage {
-    companion object {
-        private const val SHARED_FILE = "androidThingsExample"
-        private const val EMAIL_KEY = "secureEmailKey"
-        private const val PASSWORD_KEY = "securePasswordKey"
-    }
 
-    private val sharedPreferences = context.getSharedPreferences(SHARED_FILE, Context.MODE_PRIVATE)
-    private val editor = sharedPreferences.edit()
-    override fun saveFirebaseCredentials(firebaseCredentials: FirebaseCredentials) {
-        editor.putString(EMAIL_KEY, firebaseCredentials.email)
-        editor.putString(PASSWORD_KEY, firebaseCredentials.password)
-        editor.apply()
-    }
-
-    override fun retrieveFirebaseCredentials(): FirebaseCredentials? {
-        val email = sharedPreferences.getString(EMAIL_KEY, "")
-        val password = sharedPreferences.getString(PASSWORD_KEY, "")
-        return when {
-            email.isNotEmpty() && password.isNotEmpty() ->
-                FirebaseCredentials(email, password)
-            else -> null
-        }
-    }
+    override var firebaseCredentials: FirebaseCredentials by
+            context.getSharedPreferences(SHARED_FILE, Context.MODE_PRIVATE).firebaseCredentials()
 
     override fun isAuthenticated(): Boolean {
-        return retrieveFirebaseCredentials() != null
+        return firebaseCredentials.email.isNotEmpty() && firebaseCredentials.password.isNotEmpty()
+    }
+
+    fun SharedPreferences.firebaseCredentials():
+            ReadWriteProperty<Any, FirebaseCredentials> {
+        return object : ReadWriteProperty<Any, FirebaseCredentials> {
+            override fun getValue(thisRef: Any, property: KProperty<*>) =
+                    FirebaseCredentials(
+                            getString(EMAIL_KEY, ""),
+                            getString(PASSWORD_KEY, ""))
+
+            override fun setValue(thisRef: Any, property: KProperty<*>, value: FirebaseCredentials) {
+                edit().putString(EMAIL_KEY, value.email).apply()
+                edit().putString(PASSWORD_KEY, value.password).apply()
+            }
+        }
     }
 }

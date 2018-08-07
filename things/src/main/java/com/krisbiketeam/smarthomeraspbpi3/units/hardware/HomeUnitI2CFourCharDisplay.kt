@@ -4,6 +4,7 @@ import com.google.android.things.contrib.driver.ht16k33.AlphanumericDisplay
 import com.google.android.things.contrib.driver.ht16k33.Ht16k33
 import com.google.android.things.contrib.driver.rainbowhat.RainbowHat
 import com.krisbiketeam.data.storage.ConnectionType
+import com.krisbiketeam.data.storage.dto.HomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.units.Actuator
 import com.krisbiketeam.data.storage.dto.HomeUnitLog
 import com.krisbiketeam.smarthomeraspbpi3.units.HomeUnitI2C
@@ -19,7 +20,9 @@ class HomeUnitI2CFourCharDisplay(name: String,
         // and then immediately closed to release resources
     }
 
-    override val homeUnit: HomeUnitLog<String> = HomeUnitLog(name, location, pinName, ConnectionType.I2C, AlphanumericDisplay.I2C_ADDRESS)
+    override val homeUnit: HomeUnit = HomeUnit(name, location, pinName, ConnectionType.I2C, AlphanumericDisplay.I2C_ADDRESS)
+    override var unitValue: String? = null
+    override var valueUpdateTime: String = ""
 
     override fun setValue(value: String?) {
         // We do not want to block I2C buss so open device to only display some data and then immediately close it.
@@ -27,6 +30,7 @@ class HomeUnitI2CFourCharDisplay(name: String,
             setEnabled(false)
             setBrightness(Ht16k33.HT16K33_BRIGHTNESS_MAX)
         }
+        unitValue = value
         when {
             value?.isNotEmpty()!! -> {
                 display.display(value)
@@ -34,7 +38,7 @@ class HomeUnitI2CFourCharDisplay(name: String,
             }
             else -> display.setEnabled(false)
         }
-        homeUnit.localtime = Date().toString()
+        valueUpdateTime = Date().toString()
         display.close()
     }
 }

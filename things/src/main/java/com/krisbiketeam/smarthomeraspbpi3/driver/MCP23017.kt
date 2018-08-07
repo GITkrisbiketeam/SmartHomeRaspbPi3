@@ -11,6 +11,50 @@ import timber.log.Timber
 import java.io.IOException
 import java.util.*
 
+/// Registers all are 8 bit long
+// Direction registers
+// I/O DIRECTION REGISTER: Input - 1 or output - 0; def 0
+private const val REGISTER_IODIR_A = 0x00
+private const val REGISTER_IODIR_B = 0x01
+// INPUT POLARITY PORT REGISTER; GPIO bit will be inverted LOW/HIGH; def 0
+private const val REGISTER_IPOL_A = 0x02
+private const val REGISTER_IPOL_B = 0x03
+// INTERRUPT-ON-CHANGE PINS; enable interrupts - 1 or disable interrupts - 0; def 0; see
+// INTCON and DEFVAL; def 0
+private const val REGISTER_GPINTEN_A = 0x04
+private const val REGISTER_GPINTEN_B = 0x05
+// DEFAULT VALUE REGISTER; if GPIO differs from DEFVAL interrupt is triggered; def 0
+private const val REGISTER_DEFVAL_A = 0x06
+private const val REGISTER_DEFVAL_B = 0x07
+// INTERRUPT-ON-CHANGE CONTROL REGISTER; if set - 1 GPIO is compared with DEFVAL or if cleard
+// - 0 interrupt is triggered when GPIO changed compared to its previous state; def 0
+private const val REGISTER_INTCON_A = 0x08
+private const val REGISTER_INTCON_B = 0x09
+// I/O EXPANDER CONFIGURATION REGISTER; MIRROR 1 INTA and INTB are internally connected to
+// i=one INT def not connected; INTPOL: 0 active Low (DEFAULT) 1 active high; etc; def 0
+private const val REGISTER_IOCON = 0x0A //0x0B
+// GPIO PULL-UP RESISTOR REGISTER only for IODIR input pins 0 disabled, 1 enabled with 100k;
+// def 0
+private const val REGISTER_GPPU_A = 0x0C
+private const val REGISTER_GPPU_B = 0x0D
+// Read only INTERRUPT FLAG REGISTER; if 1 interrupt was on that pin
+private const val REGISTER_INTF_A = 0x0E
+private const val REGISTER_INTF_B = 0x0F
+// Read only INTERRUPT CAPTURED VALUE FOR PORT REGISTER; These bits reflect the logic level
+// on the port pins at the time of interrupt due to pin change cleared on read of INTCAP or GPIO
+private const val REGISTER_INTCAP_A = 0x10
+private const val REGISTER_INTCAP_B = 0x11
+// GENERAL PURPOSE I/O PORT REGISTER; The GPIO register reflects the value on the port.
+//Reading from this register reads the port. Writing to this
+//register modifies the Output Latch (OLAT) register
+private const val REGISTER_GPIO_A = 0x12
+private const val REGISTER_GPIO_B = 0x13
+
+private const val GPIO_A_OFFSET = 0
+private const val GPIO_B_OFFSET = 1000
+
+private const val MIRROR_INT_A_INT_B = 0x40
+
 /**
  * Driver for the MCP23017 16 bit I/O Expander.
  */
@@ -46,50 +90,6 @@ class MCP23017(bus: String? = null,
 
         val DEBOUNCE_DELAY = ViewConfiguration.getTapTimeout()
         const val NO_DEBOUNCE_DELAY = 0
-
-        /// Registers all are 8 bit long
-        // Direction registers
-        // I/O DIRECTION REGISTER: Input - 1 or output - 0; def 0
-        private const val REGISTER_IODIR_A = 0x00
-        private const val REGISTER_IODIR_B = 0x01
-        // INPUT POLARITY PORT REGISTER; GPIO bit will be inverted LOW/HIGH; def 0
-        private const val REGISTER_IPOL_A = 0x02
-        private const val REGISTER_IPOL_B = 0x03
-        // INTERRUPT-ON-CHANGE PINS; enable interrupts - 1 or disable interrupts - 0; def 0; see
-        // INTCON and DEFVAL; def 0
-        private const val REGISTER_GPINTEN_A = 0x04
-        private const val REGISTER_GPINTEN_B = 0x05
-        // DEFAULT VALUE REGISTER; if GPIO differs from DEFVAL interrupt is triggered; def 0
-        private const val REGISTER_DEFVAL_A = 0x06
-        private const val REGISTER_DEFVAL_B = 0x07
-        // INTERRUPT-ON-CHANGE CONTROL REGISTER; if set - 1 GPIO is compared with DEFVAL or if cleard
-        // - 0 interrupt is triggered when GPIO changed compared to its previous state; def 0
-        private const val REGISTER_INTCON_A = 0x08
-        private const val REGISTER_INTCON_B = 0x09
-        // I/O EXPANDER CONFIGURATION REGISTER; MIRROR 1 INTA and INTB are internally connected to
-        // i=one INT def not connected; INTPOL: 0 active Low (DEFAULT) 1 active high; etc; def 0
-        private const val REGISTER_IOCON = 0x0A //0x0B
-        // GPIO PULL-UP RESISTOR REGISTER only for IODIR input pins 0 disabled, 1 enabled with 100k;
-        // def 0
-        private const val REGISTER_GPPU_A = 0x0C
-        private const val REGISTER_GPPU_B = 0x0D
-        // Read only INTERRUPT FLAG REGISTER; if 1 interrupt was on that pin
-        private const val REGISTER_INTF_A = 0x0E
-        private const val REGISTER_INTF_B = 0x0F
-        // Read only INTERRUPT CAPTURED VALUE FOR PORT REGISTER; These bits reflect the logic level
-        // on the port pins at the time of interrupt due to pin change cleared on read of INTCAP or GPIO
-        private const val REGISTER_INTCAP_A = 0x10
-        private const val REGISTER_INTCAP_B = 0x11
-        // GENERAL PURPOSE I/O PORT REGISTER; The GPIO register reflects the value on the port.
-        //Reading from this register reads the port. Writing to this
-        //register modifies the Output Latch (OLAT) register
-        private const val REGISTER_GPIO_A = 0x12
-        private const val REGISTER_GPIO_B = 0x13
-
-        private const val GPIO_A_OFFSET = 0
-        private const val GPIO_B_OFFSET = 1000
-
-        private const val MIRROR_INT_A_INT_B = 0x40
     }
 
     private var currentStatesA = 0

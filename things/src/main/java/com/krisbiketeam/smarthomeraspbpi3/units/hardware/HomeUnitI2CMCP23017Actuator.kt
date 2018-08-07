@@ -1,6 +1,7 @@
 package com.krisbiketeam.smarthomeraspbpi3.units.hardware
 
 import com.krisbiketeam.data.storage.ConnectionType
+import com.krisbiketeam.data.storage.dto.HomeUnit
 import com.krisbiketeam.data.storage.dto.HomeUnitLog
 import com.krisbiketeam.smarthomeraspbpi3.driver.MCP23017
 import com.krisbiketeam.smarthomeraspbpi3.driver.MCP23017Pin.*
@@ -17,7 +18,9 @@ class HomeUnitI2CMCP23017Actuator(name: String,
                                   private val ioPin: Pin,
                                   override var device: AutoCloseable? = null) : HomeUnitI2C<Boolean>, Actuator<Boolean> {
 
-    override val homeUnit: HomeUnitLog<Boolean> = HomeUnitLog(name, location, pinName, ConnectionType.I2C, address, pinInterrupt, ioPin.address)
+    override val homeUnit: HomeUnit = HomeUnit(name, location, pinName, ConnectionType.I2C, address, pinInterrupt, ioPin.name)
+    override var unitValue: Boolean? = null
+    override var valueUpdateTime: String = ""
 
     override fun connect() {
         device = HomeUnitI2CMCP23017.getMcp23017Instance(pinName, address)
@@ -38,13 +41,13 @@ class HomeUnitI2CMCP23017Actuator(name: String,
 
     override fun setValue(value: Boolean?) {
         if (value is Boolean) {
-            homeUnit.value = value
+            unitValue = value
             (device as MCP23017).setState(ioPin,
                     if (value) PinState.HIGH else PinState.LOW)
         } else {
             Timber.w("setValue value not instance of Boolean $value")
-            homeUnit.value = null
+            unitValue = null
         }
-        homeUnit.localtime = Date().toString()
+        valueUpdateTime = Date().toString()
     }
 }

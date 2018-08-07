@@ -9,11 +9,9 @@ import android.support.v7.app.AppCompatActivity
 import android.widget.Toast
 import com.krisbiketeam.data.storage.NotSecureStorage
 
-class LoadActivity : AppCompatActivity() {
+private const val PERMISSION_REQUEST_ID = 999
 
-    companion object {
-        private const val PERMISSION_REQUEST_ID = 999
-    }
+class LoadActivity : AppCompatActivity() {
 
     private lateinit var secureStorage: NotSecureStorage
 

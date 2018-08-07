@@ -1,6 +1,7 @@
 package com.krisbiketeam.smarthomeraspbpi3.units.hardware
 
 import com.krisbiketeam.data.storage.ConnectionType
+import com.krisbiketeam.data.storage.dto.HomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.driver.TMP102
 import com.krisbiketeam.data.storage.dto.HomeUnitLog
 import com.krisbiketeam.smarthomeraspbpi3.units.HomeUnitI2C
@@ -12,18 +13,18 @@ import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.launch
 import java.util.*
 
+private val TAG = Utils.getLogTag(HomeUnitI2CTempTMP102Sensor::class.java)
+private const val REFRESH_RATE = 60000L // 60 seconds
+
 class HomeUnitI2CTempTMP102Sensor(name: String,
                                   location: String,
                                   pinName: String,
                                   softAddress: Int,
                                   override var device: AutoCloseable? = null) : HomeUnitI2C<Float>, Sensor<Float> {
-    companion object {
-        private val TAG = Utils.getLogTag(HomeUnitI2CTempTMP102Sensor::class.java)
-        private const val REFRESH_RATE = 60000L // 60 seconds
-    }
 
-
-    override val homeUnit: HomeUnitLog<Float> = HomeUnitLog(name, location, pinName, ConnectionType.I2C, softAddress)
+    override val homeUnit: HomeUnit = HomeUnit(name, location, pinName, ConnectionType.I2C, softAddress)
+    override var unitValue: Float? = null
+    override var valueUpdateTime: String = ""
 
     private var job: Job? = null
     private var homeUnitListener: Sensor.HomeUnitListener<Float>? = null
@@ -55,10 +56,10 @@ class HomeUnitI2CTempTMP102Sensor(name: String,
                 // use block automatically closes resources referenced to tmp102
                 tmp102.shutdownMode = true
                 tmp102.readOneShotTemperature {
-                    homeUnit.value = it
-                    homeUnit.localtime = Date().toString()
-                    Logger.d(TAG, "temperature:${homeUnit.value}")
-                    homeUnitListener?.onUnitChanged(homeUnit)
+                    unitValue = it
+                    valueUpdateTime = Date().toString()
+                    Logger.d(TAG, "temperature:${unitValue}")
+                    homeUnitListener?.onUnitChanged(homeUnit, unitValue, valueUpdateTime)
                     tmp102.close()
                 }
                 Thread.sleep(REFRESH_RATE)
@@ -71,11 +72,11 @@ class HomeUnitI2CTempTMP102Sensor(name: String,
         // use block automatically closes resources referenced to tmp102
         val tmp102 = TMP102(homeUnit.pinName)
         tmp102.use {
-            homeUnit.value = it.readTemperature()
-            homeUnit.localtime = Date().toString()
-            Logger.d(TAG, "temperature:${homeUnit.value}")
+            unitValue = it.readTemperature()
+            valueUpdateTime = Date().toString()
+            Logger.d(TAG, "temperature:${unitValue}")
         }
 
-        return homeUnit.value
+        return unitValue
     }
 }

@@ -27,7 +27,7 @@ class WiFiCredentialsReceiverManager(activity: Activity, networkConnectionMonito
                 val jsonString = String(it)
                 Timber.d("Data as String $jsonString")
                 val adapter = moshi.adapter(WifiCredentials::class.java)
-                var wifiCredentials: WifiCredentials? = null
+                var wifiCredentials: WifiCredentials?
                 try {
                     wifiCredentials = adapter.fromJson(jsonString)
                     Timber.d("Data as credentials $wifiCredentials")
@@ -69,12 +69,11 @@ class WiFiCredentialsReceiverManager(activity: Activity, networkConnectionMonito
             wifiConfiguration.SSID = String.format("\"%s\"", it.ssid)
             wifiConfiguration.preSharedKey = String.format("\"%s\"", it.password)
 
-            var networkId = -1
             val existingConfig = wifiManager.configuredNetworks?.firstOrNull{ wifiConfiguration.SSID == it.SSID }
             if (existingConfig != null) {
                 Timber.d("This WiFi was already added update it. Existing: $existingConfig new one: $wifiConfiguration")
                 existingConfig.preSharedKey = wifiConfiguration.preSharedKey
-                networkId = wifiManager.updateNetwork(existingConfig)
+                val networkId = wifiManager.updateNetwork(existingConfig)
                 if (networkId != -1) {
                     Timber.d("successful update wifiConfig")
                     wifiManager.enableNetwork(networkId, true)
@@ -83,7 +82,7 @@ class WiFiCredentialsReceiverManager(activity: Activity, networkConnectionMonito
                 }
             } else {
                 Timber.d("This adding new configuration $wifiConfiguration")
-                networkId = wifiManager.addNetwork(wifiConfiguration)
+                val networkId = wifiManager.addNetwork(wifiConfiguration)
                 if (networkId != -1) {
                     Timber.d("successful added wifiConfig")
                     wifiManager.enableNetwork(networkId, true)

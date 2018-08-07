@@ -7,12 +7,10 @@ import com.krisbiketeam.smarthomeraspbpi3.utils.Utils
 
 import java.io.IOException
 
+private val TAG = Utils.getLogTag(HomeUnitGpio::class.java)
+
 interface HomeUnitGpio<T> : BaseUnit<T> {
     var gpio: Gpio?
-
-    companion object {
-        private val TAG = Utils.getLogTag(HomeUnitGpio::class.java)
-    }
 
     override fun connect() {
         Logger.e(TAG, "connect on: $homeUnit")
