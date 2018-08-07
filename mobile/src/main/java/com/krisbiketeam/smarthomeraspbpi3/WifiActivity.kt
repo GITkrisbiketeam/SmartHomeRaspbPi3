@@ -11,8 +11,6 @@ import android.widget.TextView
 import com.krisbiketeam.data.auth.WifiCredentials
 import com.krisbiketeam.data.nearby.NearbyService
 import com.krisbiketeam.data.nearby.NearbyServiceProvider
-import com.krisbiketeam.data.storage.NotSecureStorage
-import com.krisbiketeam.data.storage.SecureStorage
 import kotlinx.android.synthetic.main.activity_wifi.*
 import timber.log.Timber
 

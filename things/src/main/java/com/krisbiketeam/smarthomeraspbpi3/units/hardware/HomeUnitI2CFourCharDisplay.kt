@@ -6,7 +6,6 @@ import com.google.android.things.contrib.driver.rainbowhat.RainbowHat
 import com.krisbiketeam.data.storage.ConnectionType
 import com.krisbiketeam.data.storage.dto.HomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.units.Actuator
-import com.krisbiketeam.data.storage.dto.HomeUnitLog
 import com.krisbiketeam.smarthomeraspbpi3.units.HomeUnitI2C
 import java.util.*
 

@@ -2,7 +2,6 @@ package com.krisbiketeam.smarthomeraspbpi3.units.hardware
 
 import com.krisbiketeam.data.storage.ConnectionType
 import com.krisbiketeam.data.storage.dto.HomeUnit
-import com.krisbiketeam.data.storage.dto.HomeUnitLog
 import com.krisbiketeam.smarthomeraspbpi3.driver.MCP23017
 import com.krisbiketeam.smarthomeraspbpi3.driver.MCP23017Pin.*
 import com.krisbiketeam.smarthomeraspbpi3.units.Actuator

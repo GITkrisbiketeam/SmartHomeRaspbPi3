@@ -4,7 +4,6 @@ import com.google.android.things.pio.Gpio
 import com.krisbiketeam.data.storage.ConnectionType
 import com.krisbiketeam.data.storage.dto.HomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.units.Actuator
-import com.krisbiketeam.data.storage.dto.HomeUnitLog
 import com.krisbiketeam.smarthomeraspbpi3.units.HomeUnitGpio
 import com.krisbiketeam.smarthomeraspbpi3.utils.Logger
 import com.krisbiketeam.smarthomeraspbpi3.utils.Utils

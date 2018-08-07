@@ -26,7 +26,7 @@ private const val REGISTER_GPINTEN_B = 0x05
 // DEFAULT VALUE REGISTER; if GPIO differs from DEFVAL interrupt is triggered; def 0
 private const val REGISTER_DEFVAL_A = 0x06
 private const val REGISTER_DEFVAL_B = 0x07
-// INTERRUPT-ON-CHANGE CONTROL REGISTER; if set - 1 GPIO is compared with DEFVAL or if cleard
+// INTERRUPT-ON-CHANGE CONTROL REGISTER; if set - 1 GPIO is compared with DEFVAL or if cleared
 // - 0 interrupt is triggered when GPIO changed compared to its previous state; def 0
 private const val REGISTER_INTCON_A = 0x08
 private const val REGISTER_INTCON_B = 0x09
@@ -134,7 +134,7 @@ class MCP23017(bus: String? = null,
             try {
                 connectI2c(PeripheralManager.getInstance().openI2cDevice(bus, address))
             } catch (e: IOException) {
-                Timber.e("init error connectiong I2C", e)
+                Timber.e("init error connecting I2C", e)
                 try {
                     close()
                 } catch (ignored: IOException) {

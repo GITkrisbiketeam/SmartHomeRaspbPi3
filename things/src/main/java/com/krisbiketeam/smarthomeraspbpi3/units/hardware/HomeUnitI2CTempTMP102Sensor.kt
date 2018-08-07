@@ -3,7 +3,6 @@ package com.krisbiketeam.smarthomeraspbpi3.units.hardware
 import com.krisbiketeam.data.storage.ConnectionType
 import com.krisbiketeam.data.storage.dto.HomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.driver.TMP102
-import com.krisbiketeam.data.storage.dto.HomeUnitLog
 import com.krisbiketeam.smarthomeraspbpi3.units.HomeUnitI2C
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
 import com.krisbiketeam.smarthomeraspbpi3.utils.Logger
@@ -58,7 +57,7 @@ class HomeUnitI2CTempTMP102Sensor(name: String,
                 tmp102.readOneShotTemperature {
                     unitValue = it
                     valueUpdateTime = Date().toString()
-                    Logger.d(TAG, "temperature:${unitValue}")
+                    Logger.d(TAG, "temperature:$unitValue")
                     homeUnitListener?.onUnitChanged(homeUnit, unitValue, valueUpdateTime)
                     tmp102.close()
                 }
@@ -74,7 +73,7 @@ class HomeUnitI2CTempTMP102Sensor(name: String,
         tmp102.use {
             unitValue = it.readTemperature()
             valueUpdateTime = Date().toString()
-            Logger.d(TAG, "temperature:${unitValue}")
+            Logger.d(TAG, "temperature:$unitValue")
         }
 
         return unitValue

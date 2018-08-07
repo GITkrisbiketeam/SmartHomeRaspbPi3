@@ -54,7 +54,7 @@ class WiFiCredentialsReceiverActivity : AppCompatActivity() {
             wifiConfiguration.SSID = it.ssid
             wifiConfiguration.preSharedKey = it.password
 
-            var networkId: Int
+            val networkId: Int
             val existingConfig = savedNetwork?.find { wifiConfig -> wifiConfig.SSID == it.ssid }
             if (existingConfig != null) {
                 Timber.d("This WiFi was already added update it existing: $existingConfig new one: $wifiConfiguration")

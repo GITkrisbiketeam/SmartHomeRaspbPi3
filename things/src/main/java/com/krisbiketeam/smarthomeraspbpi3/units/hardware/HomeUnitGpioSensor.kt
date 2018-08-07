@@ -4,12 +4,10 @@ import com.google.android.things.pio.Gpio
 import com.google.android.things.pio.GpioCallback
 import com.krisbiketeam.data.storage.ConnectionType
 import com.krisbiketeam.data.storage.dto.HomeUnit
-import com.krisbiketeam.data.storage.dto.HomeUnitLog
 import com.krisbiketeam.smarthomeraspbpi3.units.HomeUnitGpio
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
 import com.krisbiketeam.smarthomeraspbpi3.utils.Logger
 import com.krisbiketeam.smarthomeraspbpi3.utils.Utils
-
 import java.io.IOException
 import java.util.*
 

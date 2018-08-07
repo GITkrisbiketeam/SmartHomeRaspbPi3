@@ -27,7 +27,7 @@ class WiFiCredentialsReceiverManager(activity: Activity, networkConnectionMonito
                 val jsonString = String(it)
                 Timber.d("Data as String $jsonString")
                 val adapter = moshi.adapter(WifiCredentials::class.java)
-                var wifiCredentials: WifiCredentials?
+                val wifiCredentials: WifiCredentials?
                 try {
                     wifiCredentials = adapter.fromJson(jsonString)
                     Timber.d("Data as credentials $wifiCredentials")

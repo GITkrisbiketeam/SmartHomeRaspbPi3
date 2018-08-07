@@ -16,10 +16,6 @@ private const val CLIENT_ID = "clientId"
 
 class NearbyServiceProvider(private val context: Context) : NearbyService {
 
-    companion object {
-
-    }
-
     private val moshi = Moshi.Builder().build()
     private var dataSendResultListener: NearbyService.DataSendResultListener? = null
     private var dataReceiverListener: NearbyService.DataReceiverListener? = null

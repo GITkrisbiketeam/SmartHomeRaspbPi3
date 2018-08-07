@@ -129,7 +129,7 @@ class TMP102Test {
     }
 
     @Test
-    fun isShutdownMode_Continous() {
+    fun isShutdownMode_Continuous() {
         PowerMockito.mockStatic(Log::class.java)
         val tmp102 = TMP102(mI2c, DEF_TMP102_CONFIG)
         assertFalse(tmp102.shutdownMode)

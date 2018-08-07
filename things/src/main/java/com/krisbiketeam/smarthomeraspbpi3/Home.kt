@@ -38,7 +38,7 @@ class Home(private val homeInformationRepository: HomeInformationRepository) : S
                     hardwareUnitList[hardwareUnit]?.run {
                         Timber.d("booleanApplyFunction task: $it for this: $this")
                         if (this is Actuator) {
-                            Timber.d("booleanApplyFunction unit setValue")
+                            Timber.d("booleanApplyFunction unit setValue newVal: $newVal")
                             this.setValue(newVal)
                         }
                     }
@@ -51,8 +51,13 @@ class Home(private val homeInformationRepository: HomeInformationRepository) : S
 
     init {
 
-        initHardwareUnitList()
+        //initHardwareUnitList()
+        initStorageUnitList()
 
+
+        //saveToRepository()
+    }
+    private fun initStorageUnitList() {
         var roomName = "Kitchen"
 
         var temp = Temperature("Kitchen 1 Temp", HOME_TEMPERATURES, roomName, BoardConfig.TEMP_PRESS_SENSOR_BMP280) as StorageUnit<Any>
@@ -101,10 +106,7 @@ class Home(private val homeInformationRepository: HomeInformationRepository) : S
         room = Room(roomName, 0, listOf(light.name), listOf(lightSwitch.name), ArrayList(), ArrayList(), listOf(temp.name))
         rooms[room.name] = room
 
-
-        saveToRepository()
     }
-
     private fun initHardwareUnitList() {
         /*val motion = HomeUnitGpioSensor(BoardConfig.MOTION_1, "Raspberry Pi",
                 BoardConfig.MOTION_1_PIN,
@@ -180,6 +182,7 @@ class Home(private val homeInformationRepository: HomeInformationRepository) : S
     }
 
     fun start() {
+        Timber.e("start; hardwareUnitList.size: ${hardwareUnitList.size}")
         storageUnitsLiveData.observeForever(storageUnitsDataObserver)
         hardwareUnitList.values.forEach { unit ->
             Timber.d("onStart connect unit: ${unit.homeUnit}")
@@ -191,6 +194,7 @@ class Home(private val homeInformationRepository: HomeInformationRepository) : S
     }
 
     fun stop() {
+        Timber.e("start; hardwareUnitList.size: ${hardwareUnitList.size}")
         storageUnitsLiveData.removeObserver(storageUnitsDataObserver)
         for (unit in hardwareUnitList.values) {
             try {
@@ -212,19 +216,28 @@ class Home(private val homeInformationRepository: HomeInformationRepository) : S
                 }
             }
             is HomeUnit -> {
-                Timber.d("storageUnitsDataObserver HomeUnit: ${hardwareUnitList[value.name]}")
+                // TODO: consider this unit is already present in hardwareUnitList
+                var unit = hardwareUnitList[value.name]
+                Timber.d("storageUnitsDataObserver HomeUnit: $unit")
+                unit?.let {
+                    Timber.w("HwUnit already exist recreate it")
+                    try {
+                        // close will automatically unregister listener
+                        it.close()
+                    } catch (e: Exception) {
+                        Timber.e("Error on PeripheralIO API", e)
+                    }
+                }
                 when(value.name) {
                     BoardConfig.TEMP_SENSOR_TMP102 -> {
-                        hardwareUnitList[value.name] =
-                                HomeUnitI2CTempTMP102Sensor(
+                        unit = HomeUnitI2CTempTMP102Sensor(
                                         value.name,
                                         value.location,
                                         value.pinName,
                                         value.softAddress!!) as Sensor<Any>
                     }
                     BoardConfig.TEMP_PRESS_SENSOR_BMP280 -> {
-                        hardwareUnitList[value.name] =
-                                HomeUnitI2CTempPressBMP280Sensor(
+                        unit = HomeUnitI2CTempPressBMP280Sensor(
                                         value.name,
                                         value.location,
                                         value.pinName,
@@ -234,8 +247,7 @@ class Home(private val homeInformationRepository: HomeInformationRepository) : S
                     BoardConfig.IO_EXTENDER_MCP23017_1_IN_A6,
                     BoardConfig.IO_EXTENDER_MCP23017_1_IN_A5,
                     BoardConfig.IO_EXTENDER_MCP23017_1_IN_A0 -> {
-                        hardwareUnitList[value.name] =
-                                HomeUnitI2CMCP23017Sensor(
+                        unit = HomeUnitI2CMCP23017Sensor(
                                         value.name,
                                         value.location,
                                         value.pinName,
@@ -244,17 +256,23 @@ class Home(private val homeInformationRepository: HomeInformationRepository) : S
                                         MCP23017Pin.Pin.valueOf(value.ioPin!!),
                                         value.internalPullUp!!) as Sensor<Any>
                     }
-
                     BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B0,
                     BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B7 -> {
-                        hardwareUnitList[value.name] =
-                                HomeUnitI2CMCP23017Actuator(
+                        unit = HomeUnitI2CMCP23017Actuator(
                                         value.name,
                                         value.location,
                                         value.pinName,
                                         value.softAddress!!,
                                         value.pinInterrupt!!,
                                         MCP23017Pin.Pin.valueOf(value.ioPin!!)) as Actuator<Any>
+                    }
+                }
+                unit?.let {
+                    Timber.w("HwUnit recreated connect and eventually listen to it")
+                    hardwareUnitList[value.name] = it
+                    it.connect()
+                    if (it is Sensor) {
+                        it.registerListener(this)
                     }
                 }
             }
@@ -286,7 +304,6 @@ class Home(private val homeInformationRepository: HomeInformationRepository) : S
             homeInformationRepository.saveStorageUnit(this)
         }
     }
-
 
     fun saveToRepository() {
         rooms.values.forEach { homeInformationRepository.saveRoom(it) }

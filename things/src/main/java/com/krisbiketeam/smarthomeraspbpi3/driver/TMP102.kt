@@ -155,7 +155,7 @@ class TMP102(bus: String? = null, address: Int = DEFAULT_I2C_GND_ADDRESS) : Auto
      * fault condition exists when the measured device maintains a continuous conversion state.
      */
     enum class ShutdownMode(var value: Int) {
-        CONTINOUS_MODE(0),
+        CONTINUOUS_MODE(0),
         SHUTDOWN_MODE(1)
     }
 
@@ -240,7 +240,7 @@ class TMP102(bus: String? = null, address: Int = DEFAULT_I2C_GND_ADDRESS) : Auto
         if (shutdownMode) {
             synchronized(mBuffer) {
                 launch {
-                    // Write OneShot bit to config to wakeupd device for one shot read temp
+                    // Write OneShot bit to config to wakeup device for one shot read temp
                     mConfig = mConfig or (1 shl TMP102_ONE_SHOT_BIT_SHIFT)
                     writeSample16(TMP102_REG_CONF, mConfig)
                     // Wait 26 ms for conversion to complete

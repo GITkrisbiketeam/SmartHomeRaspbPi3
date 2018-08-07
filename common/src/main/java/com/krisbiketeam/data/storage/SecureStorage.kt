@@ -25,7 +25,7 @@ class NotSecureStorage(context: Context) : SecureStorage {
         return firebaseCredentials.email.isNotEmpty() && firebaseCredentials.password.isNotEmpty()
     }
 
-    fun SharedPreferences.firebaseCredentials():
+    private fun SharedPreferences.firebaseCredentials():
             ReadWriteProperty<Any, FirebaseCredentials> {
         return object : ReadWriteProperty<Any, FirebaseCredentials> {
             override fun getValue(thisRef: Any, property: KProperty<*>) =

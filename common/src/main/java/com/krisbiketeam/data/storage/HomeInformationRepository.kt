@@ -41,7 +41,7 @@ interface HomeInformationRepository {
     fun saveHardwareUnit(hwUnit: HomeUnit)
 
     /**
-     * get instance of @see[StorageUnitsLiveData] for listening to changes in entried in DB
+     * get instance of @see[StorageUnitsLiveData] for listening to changes in entries in DB
      */
     fun storageUnitsLiveData(): StorageUnitsLiveData
 

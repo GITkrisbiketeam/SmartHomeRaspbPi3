@@ -4,7 +4,6 @@ import com.google.android.things.contrib.driver.bmx280.Bmx280
 import com.google.android.things.contrib.driver.rainbowhat.RainbowHat
 import com.krisbiketeam.data.storage.ConnectionType
 import com.krisbiketeam.data.storage.dto.HomeUnit
-import com.krisbiketeam.data.storage.dto.HomeUnitLog
 import com.krisbiketeam.smarthomeraspbpi3.units.HomeUnitI2C
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
 import com.krisbiketeam.smarthomeraspbpi3.utils.Logger
@@ -73,7 +72,7 @@ class HomeUnitI2CTempPressBMP280Sensor(name: String,
             it.setMode(Bmx280.MODE_NORMAL)
             unitValue = TemperatureAndPressure(it.readTemperature(), it.readPressure())
             valueUpdateTime = Date().toString()
-            Logger.d(TAG, "temperature:${unitValue}")
+            Logger.d(TAG, "temperature:$unitValue")
         }
         return unitValue
     }
