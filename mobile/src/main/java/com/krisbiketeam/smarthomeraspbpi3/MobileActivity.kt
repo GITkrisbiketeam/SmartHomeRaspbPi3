@@ -30,7 +30,7 @@ class MobileActivity : AppCompatActivity() {
         setPressure(homeInformation?.pressure ?: 0f)
         Timber.d("HomeInformation changed: $homeInformation")
     }
-    private val unitsDataObserver = Observer<Any> { temperature ->
+    private val unitsDataObserver = Observer<Pair<Int, *>> { temperature ->
         Timber.d("Unit changed: $temperature")
     }
 

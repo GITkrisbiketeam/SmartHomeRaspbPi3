@@ -8,8 +8,13 @@ import com.google.firebase.database.GenericTypeIndicator
 import com.krisbiketeam.data.storage.FirebaseTables.*
 
 
-class StorageUnitsLiveData(private val databaseReference: DatabaseReference) : LiveData<Any>() {
+class StorageUnitsLiveData(private val databaseReference: DatabaseReference) : LiveData<Pair<Int,*>>() {
 
+    companion object {
+        const val NODE_ACTION_ADDED = 1
+        const val NODE_ACTION_CHANGED = 2
+        const val NODE_ACTION_DELETED = 3
+    }
     private val unitsList: List<MyChildEventListener> = listOf(
             MyChildEventListener(StorageUnit::class.java, HOME_LIGHTS),
             MyChildEventListener(StorageUnit::class.java, HOME_LIGHT_SWITCHES),
@@ -33,16 +38,18 @@ class StorageUnitsLiveData(private val databaseReference: DatabaseReference) : L
     )
 
     inner class MyChildEventListener(private val liveClass: Class<*>, val childNode: String) : ChildEventListener {
+
         override fun onChildAdded(dataSnapshot: DataSnapshot, previousChildName: String?) {
             // A new value has been added, add it to the displayed list
             val key = dataSnapshot.key
             Timber.d("onChildAdded childNode=$childNode")
-            if (liveClass == StorageUnit::class.java) {
+            //TODO will this work?? (isInstance)
+            if (liveClass.isInstance(StorageUnit::class.java)) {
                 typeIndicatorMap[childNode]?.run {
-                    value = dataSnapshot.getValue(this)
+                    value = NODE_ACTION_ADDED to dataSnapshot.getValue(this)
                 }
             } else {
-                value = dataSnapshot.getValue(liveClass)
+                value = NODE_ACTION_ADDED to dataSnapshot.getValue(liveClass)
             }
             Timber.d("onChildAdded (key=$key)(value=$value)")
         }
@@ -53,10 +60,10 @@ class StorageUnitsLiveData(private val databaseReference: DatabaseReference) : L
             val key = dataSnapshot.key
             if (liveClass == StorageUnit::class.java) {
                 typeIndicatorMap[childNode]?.run {
-                    value = dataSnapshot.getValue(this)
+                    value = NODE_ACTION_CHANGED to dataSnapshot.getValue(this)
                 }
             } else {
-                value = dataSnapshot.getValue(liveClass)
+                value = NODE_ACTION_CHANGED to dataSnapshot.getValue(liveClass)
             }
             Timber.d("onChildChanged (key=$key)(value=$value)")
         }
@@ -67,6 +74,13 @@ class StorageUnitsLiveData(private val databaseReference: DatabaseReference) : L
             // A value has changed, use the key to determine if we are displaying this
             // value and if so remove it.
             val key = dataSnapshot.key
+            if (liveClass == StorageUnit::class.java) {
+                typeIndicatorMap[childNode]?.run {
+                    value = NODE_ACTION_DELETED to dataSnapshot.getValue(this)
+                }
+            } else {
+                value = NODE_ACTION_DELETED to dataSnapshot.getValue(liveClass)
+            }
             Timber.d("onChildRemoved key: $key")
             // ...
         }
@@ -76,15 +90,17 @@ class StorageUnitsLiveData(private val databaseReference: DatabaseReference) : L
             // A value has changed position, use the key to determine if we are
             // displaying this value and if so move it.
             val key = dataSnapshot.key
+            var newVal: Any? = null
             if (liveClass == StorageUnit::class.java) {
                 typeIndicatorMap[childNode]?.run {
-                    value = dataSnapshot.getValue(this)
+                    newVal = dataSnapshot.getValue(this)
+
                 }
             } else {
-                value = dataSnapshot.getValue(liveClass)
+                newVal = dataSnapshot.getValue(liveClass)
             }
-            Timber.d("onChildMoved key: $key value: $value")
-            // ...
+            //TODO does it also cover onChildChanged ??? or are those events both called???
+            Timber.d("onChildMoved key: $key newVal: $newVal")
         }
 
         override fun onCancelled(databaseError: DatabaseError) {

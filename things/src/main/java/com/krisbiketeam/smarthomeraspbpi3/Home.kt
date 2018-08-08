@@ -3,6 +3,7 @@ package com.krisbiketeam.smarthomeraspbpi3
 import android.arch.lifecycle.Observer
 import com.krisbiketeam.data.storage.FirebaseTables.*
 import com.krisbiketeam.data.storage.HomeInformationRepository
+import com.krisbiketeam.data.storage.StorageUnitsLiveData
 import com.krisbiketeam.data.storage.dto.*
 import com.krisbiketeam.smarthomeraspbpi3.driver.MCP23017Pin
 import com.krisbiketeam.smarthomeraspbpi3.units.Actuator
@@ -21,10 +22,9 @@ class Home(private val homeInformationRepository: HomeInformationRepository) : S
 
     private val hardwareUnitList: MutableMap<String, BaseUnit<Any>> = HashMap()
 
-    private var booleanApplyFunction: StorageUnit<in Boolean>.(Any?) -> Unit = {
-        Timber.d("booleanApplyFunction it: $it this: $this")
-        if (it is Boolean) {
-            val newVal = it
+    private var booleanApplyFunction: StorageUnit<in Boolean>.(Any?) -> Unit = { newVal: Any? ->
+        Timber.d("booleanApplyFunction newVal: $newVal this: $this")
+        if (newVal is Boolean) {
             this.unitsTasks.forEach {
                 it.storageUnitName?.let { storageUnit ->
                     storageUnitUnitList[storageUnit]?.run {
@@ -52,11 +52,12 @@ class Home(private val homeInformationRepository: HomeInformationRepository) : S
     init {
 
         //initHardwareUnitList()
-        initStorageUnitList()
+        //initStorageUnitList()
 
 
         //saveToRepository()
     }
+
     private fun initStorageUnitList() {
         var roomName = "Kitchen"
 
@@ -107,6 +108,7 @@ class Home(private val homeInformationRepository: HomeInformationRepository) : S
         rooms[room.name] = room
 
     }
+
     private fun initHardwareUnitList() {
         /*val motion = HomeUnitGpioSensor(BoardConfig.MOTION_1, "Raspberry Pi",
                 BoardConfig.MOTION_1_PIN,
@@ -184,70 +186,93 @@ class Home(private val homeInformationRepository: HomeInformationRepository) : S
     fun start() {
         Timber.e("start; hardwareUnitList.size: ${hardwareUnitList.size}")
         storageUnitsLiveData.observeForever(storageUnitsDataObserver)
-        hardwareUnitList.values.forEach { unit ->
-            Timber.d("onStart connect unit: ${unit.homeUnit}")
-            unit.connect()
-            if (unit is Sensor) {
-                unit.registerListener(this)
-            }
-        }
+        hardwareUnitList.values.forEach(this::hwUnitStart)
     }
 
     fun stop() {
         Timber.e("start; hardwareUnitList.size: ${hardwareUnitList.size}")
         storageUnitsLiveData.removeObserver(storageUnitsDataObserver)
-        for (unit in hardwareUnitList.values) {
-            try {
-                // close will automatically unregister listener
-                unit.close()
-            } catch (e: Exception) {
-                Timber.e("Error on PeripheralIO API", e)
-            }
+        hardwareUnitList.values.forEach(this::hwUnitStop)
+    }
+
+    fun hwUnitStart(unit: BaseUnit<Any>) {
+        Timber.v("hwUnitStart connect unit: ${unit.homeUnit}")
+        unit.connect()
+        if (unit is Sensor) {
+            unit.registerListener(this)
         }
     }
 
-    private val storageUnitsDataObserver = Observer<Any> { value ->
-        Timber.d("storageUnitsDataObserver changed: $value")
-        when (value) {
-            is StorageUnit<*> -> {
-                Timber.d("storageUnitsDataObserver StorageUnit: ${storageUnitUnitList[value.name]}")
-                storageUnitUnitList[value.name]?.run {
-                    applyFunction.invoke(this, value.value)
-                }
-            }
-            is HomeUnit -> {
-                // TODO: consider this unit is already present in hardwareUnitList
-                var unit = hardwareUnitList[value.name]
-                Timber.d("storageUnitsDataObserver HomeUnit: $unit")
-                unit?.let {
-                    Timber.w("HwUnit already exist recreate it")
-                    try {
-                        // close will automatically unregister listener
-                        it.close()
-                    } catch (e: Exception) {
-                        Timber.e("Error on PeripheralIO API", e)
+    fun hwUnitStop(unit: BaseUnit<Any>) {
+        Timber.v("hwUnitStop close unit: ${unit.homeUnit}")
+        try {
+            // close will automatically unregister listener
+            unit.close()
+        } catch (e: Exception) {
+            Timber.e("Error on PeripheralIO API", e)
+        }
+    }
+
+    private val storageUnitsDataObserver = Observer<Pair<Int,*>> { pair ->
+        Timber.d("storageUnitsDataObserver changed: $pair")
+        pair?.let{ (action, value) ->
+            when (action) {
+                StorageUnitsLiveData.NODE_ACTION_CHANGED -> when (value) {
+                    is StorageUnit<*> -> {
+                        Timber.d("storageUnitsDataObserver StorageUnit NODE_ACTION_CHANGED: ${storageUnitUnitList[value.name]}")
+                        storageUnitUnitList[value.name]?.run {
+                            applyFunction(value.value)
+                        }
+                    }
+                    is HomeUnit -> {
+                    }
+                    else -> {
+                        Timber.e("storageUnitsDataObserver NODE_ACTION_CHANGED unsupported value: $value")
                     }
                 }
-                when(value.name) {
-                    BoardConfig.TEMP_SENSOR_TMP102 -> {
-                        unit = HomeUnitI2CTempTMP102Sensor(
+                StorageUnitsLiveData.NODE_ACTION_ADDED -> when (value) {
+                    is StorageUnit<*> -> {
+                        val storageUnit = storageUnitUnitList[value.name]
+                        Timber.d("storageUnitsDataObserver OLD StorageUnit $storageUnit ; NEW StorageUnit: $value")
+                        val newVal = value as StorageUnit<Any>
+                        storageUnitTypeIndicatorMap[newVal.firebaseTableName]?.isInstance(Boolean::class.java).let {
+                            newVal.applyFunction = booleanApplyFunction
+                        }
+                        storageUnitUnitList[newVal.name] = newVal
+                    }
+                    is Room -> {
+                        val room = rooms[value.name]
+                        Timber.d("storageUnitsDataObserver OLD Room $room ; NEW Room: $value")
+                        rooms[value.name] = value
+                    }
+                    is HomeUnit -> {
+                        // TODO: consider this unit is already present in hardwareUnitList
+                        var unit = hardwareUnitList[value.name]
+                        Timber.d("storageUnitsDataObserver HomeUnit NODE_ACTION_ADDED: $unit")
+                        unit?.let {
+                            Timber.w("HwUnit already exist recreate it")
+                            hwUnitStop(it)
+                        }
+                        when (value.name) {
+                            BoardConfig.TEMP_SENSOR_TMP102 -> {
+                                unit = HomeUnitI2CTempTMP102Sensor(
                                         value.name,
                                         value.location,
                                         value.pinName,
                                         value.softAddress!!) as Sensor<Any>
-                    }
-                    BoardConfig.TEMP_PRESS_SENSOR_BMP280 -> {
-                        unit = HomeUnitI2CTempPressBMP280Sensor(
+                            }
+                            BoardConfig.TEMP_PRESS_SENSOR_BMP280 -> {
+                                unit = HomeUnitI2CTempPressBMP280Sensor(
                                         value.name,
                                         value.location,
                                         value.pinName,
                                         value.softAddress!!) as Sensor<Any>
-                    }
-                    BoardConfig.IO_EXTENDER_MCP23017_1_IN_A7,
-                    BoardConfig.IO_EXTENDER_MCP23017_1_IN_A6,
-                    BoardConfig.IO_EXTENDER_MCP23017_1_IN_A5,
-                    BoardConfig.IO_EXTENDER_MCP23017_1_IN_A0 -> {
-                        unit = HomeUnitI2CMCP23017Sensor(
+                            }
+                            BoardConfig.IO_EXTENDER_MCP23017_1_IN_A7,
+                            BoardConfig.IO_EXTENDER_MCP23017_1_IN_A6,
+                            BoardConfig.IO_EXTENDER_MCP23017_1_IN_A5,
+                            BoardConfig.IO_EXTENDER_MCP23017_1_IN_A0 -> {
+                                unit = HomeUnitI2CMCP23017Sensor(
                                         value.name,
                                         value.location,
                                         value.pinName,
@@ -255,25 +280,47 @@ class Home(private val homeInformationRepository: HomeInformationRepository) : S
                                         value.pinInterrupt!!,
                                         MCP23017Pin.Pin.valueOf(value.ioPin!!),
                                         value.internalPullUp!!) as Sensor<Any>
-                    }
-                    BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B0,
-                    BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B7 -> {
-                        unit = HomeUnitI2CMCP23017Actuator(
+                            }
+                            BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B0,
+                            BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B7 -> {
+                                unit = HomeUnitI2CMCP23017Actuator(
                                         value.name,
                                         value.location,
                                         value.pinName,
                                         value.softAddress!!,
                                         value.pinInterrupt!!,
                                         MCP23017Pin.Pin.valueOf(value.ioPin!!)) as Actuator<Any>
+                            }
+                        }
+                        unit?.let {
+                            Timber.w("HwUnit recreated connect and eventually listen to it")
+                            hardwareUnitList[value.name] = it
+                            hwUnitStart(it)
+                        }
+                    }
+                    else -> {
+                        Timber.e("storageUnitsDataObserver NODE_ACTION_ADDED unsupported value: $value")
                     }
                 }
-                unit?.let {
-                    Timber.w("HwUnit recreated connect and eventually listen to it")
-                    hardwareUnitList[value.name] = it
-                    it.connect()
-                    if (it is Sensor) {
-                        it.registerListener(this)
+                StorageUnitsLiveData.NODE_ACTION_DELETED -> when (value) {
+                    is StorageUnit<*> -> {
+                        val result = storageUnitUnitList.remove(value.name)
+                        Timber.d("storageUnitsDataObserver StorageUnit NODE_ACTION_DELETED: $result")
                     }
+                    is Room -> {
+                        val result = rooms.remove(value.name)
+                        Timber.d("storageUnitsDataObserver Room NODE_ACTION_DELETED: $result")
+                    }
+                    is HomeUnit -> {
+                        val result = hardwareUnitList.remove(value.name)
+                        Timber.d("storageUnitsDataObserver HomeUnit NODE_ACTION_DELETED: $result")
+                    }
+                    else -> {
+                        Timber.e("storageUnitsDataObserver NODE_ACTION_ADDED unsupported value: $value")
+                    }
+                }
+                else -> {
+                    Timber.e("storageUnitsDataObserver unsupported action: $action")
                 }
             }
         }

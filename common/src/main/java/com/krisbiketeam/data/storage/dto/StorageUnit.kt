@@ -1,6 +1,7 @@
 package com.krisbiketeam.data.storage.dto
 
 import com.google.firebase.database.Exclude
+import com.krisbiketeam.data.storage.FirebaseTables.*
 
 typealias LightType = Boolean
 typealias Light = StorageUnit<LightType>
@@ -17,7 +18,17 @@ typealias Pressure = StorageUnit<PressureType>
 typealias BlindType = Int
 typealias Blind = StorageUnit<BlindType>
 
-data class StorageUnit<T>(var name: String = "",
+val storageUnitTypeIndicatorMap: HashMap<String, Class<*>> = hashMapOf(
+        HOME_LIGHTS to LightType::class.java,
+        HOME_LIGHT_SWITCHES to LightSwitchType::class.java,
+        HOME_REED_SWITCHES to ReedSwitchType::class.java,
+        HOME_MOTIONS to MotionType::class.java,
+        HOME_TEMPERATURES to TemperatureType::class.java,
+        HOME_PRESSURES to PressureType::class.java,
+        HOME_BLINDS to BlindType::class.java
+)
+
+data class StorageUnit<T>(var name: String = "", // Name should be unique for all units
                           var firebaseTableName: String = "",
                           var room: String = "",
                           var hardwareUnitName: String = "",
@@ -27,5 +38,5 @@ data class StorageUnit<T>(var name: String = "",
     @Exclude
     @set:Exclude
     @get:Exclude
-    var applyFunction: StorageUnit<T>.(Any?) -> Unit = { Unit }
+    var applyFunction: StorageUnit<T>.(Any?) -> Unit = { newVal: Any? -> Unit}
 }

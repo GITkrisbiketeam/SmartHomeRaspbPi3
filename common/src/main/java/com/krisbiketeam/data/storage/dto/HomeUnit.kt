@@ -5,7 +5,7 @@ import com.krisbiketeam.data.storage.ConnectionType
 
 @IgnoreExtraProperties
 data class HomeUnit(
-        // HomeUnitLog type name ex. "BMP280" "Light"
+        // HomeUnitLog type name ex. "BMP280" "Light", Name should be unique for all units
         var name: String = "",
         // Location of the sensor, ex. kitchen
         var location: String = "",

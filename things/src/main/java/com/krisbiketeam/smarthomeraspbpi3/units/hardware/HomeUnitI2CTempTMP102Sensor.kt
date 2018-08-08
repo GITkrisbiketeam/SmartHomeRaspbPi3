@@ -38,7 +38,7 @@ class HomeUnitI2CTempTMP102Sensor(name: String,
         Logger.d(TAG, "registerListener")
         homeUnitListener = listener
         job?.cancel()
-        listener.let { startJob() }
+        startJob()
     }
 
     override fun unregisterListener() {
