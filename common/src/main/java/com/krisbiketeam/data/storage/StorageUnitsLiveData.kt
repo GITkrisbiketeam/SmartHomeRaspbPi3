@@ -43,8 +43,7 @@ class StorageUnitsLiveData(private val databaseReference: DatabaseReference) : L
             // A new value has been added, add it to the displayed list
             val key = dataSnapshot.key
             Timber.d("onChildAdded childNode=$childNode")
-            //TODO will this work?? (isInstance)
-            if (liveClass.isInstance(StorageUnit::class.java)) {
+            if (liveClass == StorageUnit::class.java) {
                 typeIndicatorMap[childNode]?.run {
                     value = NODE_ACTION_ADDED to dataSnapshot.getValue(this)
                 }

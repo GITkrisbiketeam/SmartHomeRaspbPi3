@@ -233,7 +233,7 @@ class Home(private val homeInformationRepository: HomeInformationRepository) : S
                 StorageUnitsLiveData.NODE_ACTION_ADDED -> when (value) {
                     is StorageUnit<*> -> {
                         val storageUnit = storageUnitUnitList[value.name]
-                        Timber.d("storageUnitsDataObserver OLD StorageUnit $storageUnit ; NEW StorageUnit: $value")
+                        Timber.d("storageUnitsDataObserver NODE_ACTION_ADDED OLD StorageUnit $storageUnit ; NEW StorageUnit: $value")
                         val newVal = value as StorageUnit<Any>
                         storageUnitTypeIndicatorMap[newVal.firebaseTableName]?.isInstance(Boolean::class.java).let {
                             newVal.applyFunction = booleanApplyFunction
@@ -242,7 +242,7 @@ class Home(private val homeInformationRepository: HomeInformationRepository) : S
                     }
                     is Room -> {
                         val room = rooms[value.name]
-                        Timber.d("storageUnitsDataObserver OLD Room $room ; NEW Room: $value")
+                        Timber.d("storageUnitsDataObserver NODE_ACTION_ADDED OLD Room $room ; NEW Room: $value")
                         rooms[value.name] = value
                     }
                     is HomeUnit -> {
@@ -313,6 +313,7 @@ class Home(private val homeInformationRepository: HomeInformationRepository) : S
                     }
                     is HomeUnit -> {
                         val result = hardwareUnitList.remove(value.name)
+                        result?.let(this::hwUnitStop)
                         Timber.d("storageUnitsDataObserver HomeUnit NODE_ACTION_DELETED: $result")
                     }
                     else -> {
