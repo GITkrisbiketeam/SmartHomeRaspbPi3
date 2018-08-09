@@ -38,5 +38,5 @@ data class StorageUnit<T>(var name: String = "", // Name should be unique for al
     @Exclude
     @set:Exclude
     @get:Exclude
-    var applyFunction: StorageUnit<T>.(Any?) -> Unit = { newVal: Any? -> Unit}
+    var applyFunction: StorageUnit<T>.(Any?) -> Unit = { _: Any? -> Unit}
 }

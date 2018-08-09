@@ -10,6 +10,8 @@ buildscript {
         classpath "com.android.tools.build:gradle:$gradlePluginVersion"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
         classpath "com.google.gms:google-services:$googleServicesClassVersion"
+        classpath "android.arch.navigation:navigation-safe-args-gradle-plugin:$navigationVersion"
+
         //classpath ('com.google.firebase:firebase-plugins:1.1.0') {
         //    exclude group: 'com.google.guava', module: 'guava-jdk5'
         //}

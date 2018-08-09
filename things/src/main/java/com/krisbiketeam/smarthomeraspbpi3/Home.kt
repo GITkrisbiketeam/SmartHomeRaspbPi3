@@ -224,8 +224,7 @@ class Home(private val homeInformationRepository: HomeInformationRepository) : S
                             applyFunction(value.value)
                         }
                     }
-                    is HomeUnit -> {
-                    }
+                    is HomeUnit -> {}
                     else -> {
                         Timber.e("storageUnitsDataObserver NODE_ACTION_CHANGED unsupported value: $value")
                     }
@@ -259,14 +258,14 @@ class Home(private val homeInformationRepository: HomeInformationRepository) : S
                                         value.name,
                                         value.location,
                                         value.pinName,
-                                        value.softAddress!!) as Sensor<Any>
+                                        value.softAddress!!) as BaseUnit<Any>
                             }
                             BoardConfig.TEMP_PRESS_SENSOR_BMP280 -> {
                                 unit = HomeUnitI2CTempPressBMP280Sensor(
                                         value.name,
                                         value.location,
                                         value.pinName,
-                                        value.softAddress!!) as Sensor<Any>
+                                        value.softAddress!!) as BaseUnit<Any>
                             }
                             BoardConfig.IO_EXTENDER_MCP23017_1_IN_A7,
                             BoardConfig.IO_EXTENDER_MCP23017_1_IN_A6,
@@ -279,7 +278,7 @@ class Home(private val homeInformationRepository: HomeInformationRepository) : S
                                         value.softAddress!!,
                                         value.pinInterrupt!!,
                                         MCP23017Pin.Pin.valueOf(value.ioPin!!),
-                                        value.internalPullUp!!) as Sensor<Any>
+                                        value.internalPullUp!!) as BaseUnit<Any>
                             }
                             BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B0,
                             BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B7 -> {
@@ -289,7 +288,7 @@ class Home(private val homeInformationRepository: HomeInformationRepository) : S
                                         value.pinName,
                                         value.softAddress!!,
                                         value.pinInterrupt!!,
-                                        MCP23017Pin.Pin.valueOf(value.ioPin!!)) as Actuator<Any>
+                                        MCP23017Pin.Pin.valueOf(value.ioPin!!)) as BaseUnit<Any>
                             }
                         }
                         unit?.let {
@@ -326,12 +325,12 @@ class Home(private val homeInformationRepository: HomeInformationRepository) : S
         }
     }
 
-    override fun onUnitChanged(hwHomeUnit: HomeUnit, unitValue: Any?, updateTime: String) {
-        Timber.d("onUnitChanged unit: $hwHomeUnit; unitValue: $unitValue; updateTime: $updateTime")
-        homeInformationRepository.logUnitEvent(HomeUnitLog(hwHomeUnit, unitValue, updateTime))
+    override fun onUnitChanged(homeUnit: HomeUnit, unitValue: Any?, updateTime: String) {
+        Timber.d("onUnitChanged unit: $homeUnit; unitValue: $unitValue; updateTime: $updateTime")
+        homeInformationRepository.logUnitEvent(HomeUnitLog(homeUnit, unitValue, updateTime))
 
         storageUnitUnitList.values.find {
-            it.hardwareUnitName == hwHomeUnit.name
+            it.hardwareUnitName == homeUnit.name
         }?.apply {
             // We need to handel differently values of non Basic Types
             if (unitValue is TemperatureAndPressure) {

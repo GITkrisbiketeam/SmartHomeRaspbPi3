@@ -54,10 +54,11 @@ class LoadActivity : AppCompatActivity() {
     }
 
     private fun loadNextActivity() {
-        when {
+        callActivity(HomeActivity::class.java)
+        /*when {
             secureStorage.isAuthenticated() -> callActivity(MobileActivity::class.java)
             else -> callActivity(LoginActivity::class.java)
-        }
+        }*/
     }
 
     private fun callActivity(clazz: Class<*>) {

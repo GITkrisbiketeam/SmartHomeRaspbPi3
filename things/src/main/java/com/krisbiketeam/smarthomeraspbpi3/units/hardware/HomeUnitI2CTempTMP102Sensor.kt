@@ -9,6 +9,7 @@ import com.krisbiketeam.smarthomeraspbpi3.utils.Logger
 import com.krisbiketeam.smarthomeraspbpi3.utils.Utils
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.Job
+import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.launch
 import java.util.*
 
@@ -38,7 +39,14 @@ class HomeUnitI2CTempTMP102Sensor(name: String,
         Logger.d(TAG, "registerListener")
         homeUnitListener = listener
         job?.cancel()
-        startJob()
+        job = launch(CommonPool) {
+            // We could also check for true as suspending delay() method is cancellable
+            while (isActive) {
+                // Cancel will not stop non suspending oneShotReadValue function
+                oneShotReadValue()
+                delay(REFRESH_RATE)
+            }
+        }
     }
 
     override fun unregisterListener() {
@@ -47,22 +55,17 @@ class HomeUnitI2CTempTMP102Sensor(name: String,
         homeUnitListener = null
     }
 
-    private fun startJob() {
-        job = launch(CommonPool) {
-            while (true) {
-                val tmp102 = TMP102(homeUnit.pinName)
-                // We do not want to block I2C buss so open device to only display some data and then immediately close it.
-                // use block automatically closes resources referenced to tmp102
-                tmp102.shutdownMode = true
-                tmp102.readOneShotTemperature {
-                    unitValue = it
-                    valueUpdateTime = Date().toString()
-                    Logger.d(TAG, "temperature:$unitValue")
-                    homeUnitListener?.onUnitChanged(homeUnit, unitValue, valueUpdateTime)
-                    tmp102.close()
-                }
-                Thread.sleep(REFRESH_RATE)
-            }
+    private fun oneShotReadValue() {
+        val tmp102 = TMP102(homeUnit.pinName)
+        // We do not want to block I2C buss so open device to only display some data and then immediately close it.
+        // use block automatically closes resources referenced to tmp102
+        tmp102.shutdownMode = true
+        tmp102.readOneShotTemperature {
+            unitValue = it
+            valueUpdateTime = Date().toString()
+            Logger.d(TAG, "temperature:$unitValue")
+            homeUnitListener?.onUnitChanged(homeUnit, unitValue, valueUpdateTime)
+            tmp102.close()
         }
     }
 

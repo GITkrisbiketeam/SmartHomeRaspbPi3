@@ -24,12 +24,15 @@ class MobileActivity : AppCompatActivity() {
     private lateinit var storageUnitsLiveData: StorageUnitsLiveData
 
     // Mobile Activity
+    // Obsolete code START
     private val lightDataObserver = Observer<HomeInformation> { homeInformation ->
         setToggle(homeInformation?.light ?: false)
         setTemperature(homeInformation?.temperature ?: 0f)
         setPressure(homeInformation?.pressure ?: 0f)
         Timber.d("HomeInformation changed: $homeInformation")
     }
+    // Obsolete code END
+
     private val unitsDataObserver = Observer<Pair<Int, *>> { temperature ->
         Timber.d("Unit changed: $temperature")
     }
@@ -63,6 +66,9 @@ class MobileActivity : AppCompatActivity() {
         buttonLogin.setOnClickListener {
             callActivity(LoginActivity::class.java)
         }
+        buttonAddStorageHomeUnit.setOnClickListener{
+
+        }
 
         //val home = Home()
         //home.saveToRepository(homeInformationRepository)
@@ -71,13 +77,17 @@ class MobileActivity : AppCompatActivity() {
 
     private fun observeLightsData() {
         Timber.d("Observing lights data")
+        // Obsolete code
         lightsLiveData.observe(this, lightDataObserver)
+
         storageUnitsLiveData.observe(this, unitsDataObserver)
     }
 
     private fun stopObserveLightsData() {
         Timber.d("Stop Observing lights data")
+        // Obsolete code
         lightsLiveData.removeObserver { lightDataObserver }
+
         storageUnitsLiveData.removeObserver(unitsDataObserver)
     }
 
@@ -99,6 +109,7 @@ class MobileActivity : AppCompatActivity() {
         lightToggle.isActivated = false
     }
 
+    // Obsolete code START
     private fun setToggle(state: Boolean) {
         Timber.d("Changing the toggle to $state")
         lightToggle.isChecked = state
@@ -111,6 +122,7 @@ class MobileActivity : AppCompatActivity() {
     private fun setTemperature(temperature: Float) {
         temperatureText.text = String.format(Locale.UK, "Current pressure: %.2f", temperature)
     }
+    // Obsolete code END
 
     private fun callActivity(clazz: Class<*>) {
         val intent = Intent(this, clazz)
