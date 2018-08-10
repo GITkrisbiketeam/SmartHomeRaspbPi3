@@ -18,10 +18,11 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/add_storage_home_unit_fragment"
-        android:title="Add Storage"/>
-    <item
         android:id="@+id/room_list_fragment"
         android:title="Room List"/>
+    <item
+        android:id="@+id/add_storage_home_unit_fragment"
+        android:title="Add Storage"/>
+
 
 </menu>

@@ -75,7 +75,6 @@ class LoginActivity : AppCompatActivity() {
             focusView?.requestFocus()
         } else {
             showProgress(true)
-            Timber.w("login emailStr: $emailStr passwordStr: $passwordStr")
 
             authentication.addLoginResultListener(loginResultListener)
             authentication.login(FirebaseCredentials(emailStr, passwordStr))

@@ -1,6 +1,5 @@
 package com.krisbiketeam.smarthomeraspbpi3.viewmodels
 
-
 import android.arch.lifecycle.ViewModel
 import android.databinding.ObservableArrayList
 import android.databinding.ObservableField

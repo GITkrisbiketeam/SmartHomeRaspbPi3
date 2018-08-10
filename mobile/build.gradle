@@ -6,7 +6,7 @@ apply plugin: 'androidx.navigation.safeargs'
 
 android {
     buildToolsVersion buildToolsVersion
-    compileSdkVersion 28
+    compileSdkVersion compileWithSDK
     defaultConfig {
         applicationId "com.krisbiketeam.smarthomeraspbpi3"
         minSdkVersion minSdkVersionApp

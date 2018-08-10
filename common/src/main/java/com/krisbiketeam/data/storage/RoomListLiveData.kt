@@ -16,7 +16,7 @@ class RoomListLiveData(private val databaseReference: DatabaseReference) : LiveD
             val key = dataSnapshot.key
             val rooms: ArrayList<Room> = ArrayList()
             for(room: DataSnapshot in dataSnapshot.children){
-                val room = dataSnapshot.getValue(Room::class.java)
+                val room = room.getValue(Room::class.java)
                 Timber.d("onDataChange (key=$key)(room=$room)")
                 room?.let {
                     rooms.add(room)

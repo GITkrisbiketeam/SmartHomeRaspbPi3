@@ -18,13 +18,7 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    app:startDestination="@+id/add_storage_home_unit_fragment">
-
-    <fragment
-        android:id="@+id/add_storage_home_unit_fragment"
-        android:name="com.krisbiketeam.smarthomeraspbpi3.ui.AddStorageHomeUnitFragment"
-        android:label="add_storage_home_unit_title"
-        tools:layout="@layout/fragment_add_storage_home_unit" />
+    app:startDestination="@+id/room_list_fragment">
 
     <fragment
         android:id="@+id/room_list_fragment"
@@ -50,5 +44,11 @@
             android:name="plantId"
             app:argType="string" />
     </fragment>-->
+
+    <fragment
+        android:id="@+id/add_storage_home_unit_fragment"
+        android:name="com.krisbiketeam.smarthomeraspbpi3.ui.AddStorageHomeUnitFragment"
+        android:label="add_storage_home_unit_title"
+        tools:layout="@layout/fragment_add_storage_home_unit" />
 
 </navigation>
