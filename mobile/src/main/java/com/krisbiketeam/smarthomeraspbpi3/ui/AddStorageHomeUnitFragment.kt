@@ -1,6 +1,5 @@
-package com.krisbiketeam.smarthomeraspbpi3
+package com.krisbiketeam.smarthomeraspbpi3.ui
 
-import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.databinding.DataBindingUtil
 import android.os.Bundle
@@ -8,6 +7,7 @@ import android.support.v4.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.AddStorageHomeUnitViewModel
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentAddStorageHomeUnitBinding
 
@@ -38,7 +38,7 @@ class AddStorageHomeUnitFragment : Fragment() {
 
         setHasOptionsMenu(true)
 
-        return null//binding.root
+        return binding.root
     }
 
     /*override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {

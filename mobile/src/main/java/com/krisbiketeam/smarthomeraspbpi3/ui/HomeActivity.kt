@@ -1,14 +1,14 @@
-package com.krisbiketeam.smarthomeraspbpi3
+package com.krisbiketeam.smarthomeraspbpi3.ui
 
 import android.databinding.DataBindingUtil
 import android.os.Bundle
-import android.renderscript.ScriptGroup
 import android.support.v4.view.GravityCompat
 import android.support.v4.widget.DrawerLayout
 import android.support.v7.app.AppCompatActivity
 import androidx.navigation.Navigation
 import androidx.navigation.ui.NavigationUI
 import androidx.navigation.ui.setupWithNavController
+import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.databinding.ActivityHomeBinding
 
 class HomeActivity  : AppCompatActivity() {
@@ -21,7 +21,7 @@ class HomeActivity  : AppCompatActivity() {
                 R.layout.activity_home)
         drawerLayout = binding.drawerLayout
 
-        val navController = Navigation.findNavController(this, R.id.garden_nav_fragment)
+        val navController = Navigation.findNavController(this, R.id.home_nav_fragment)
 
         // Set up ActionBar
         setSupportActionBar(binding.toolbar)
@@ -33,7 +33,7 @@ class HomeActivity  : AppCompatActivity() {
 
     override fun onSupportNavigateUp(): Boolean {
         return NavigationUI.navigateUp(drawerLayout,
-                Navigation.findNavController(this, R.id.garden_nav_fragment))
+                Navigation.findNavController(this, R.id.home_nav_fragment))
     }
 
     override fun onBackPressed() {

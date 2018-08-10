@@ -46,12 +46,17 @@ interface HomeInformationRepository {
     fun storageUnitsLiveData(): StorageUnitsLiveData
 
     /**
+     * get instance of @see[RoomListLiveData] for listening to changes in Room entries in DB
+     */
+    fun roomsLiveData(): RoomListLiveData
+
+    /**
      * Clear all Logs entries from DB
      */
     fun clearLog()
 }
 
-class FirebaseHomeInformationRepository : HomeInformationRepository {
+object FirebaseHomeInformationRepository : HomeInformationRepository {
     // Obsolete Code Start
     private val referenceOldHome = FirebaseDatabase.getInstance().reference.child(OLD_HOME_INFORMATION_BASE)
     private val lightLiveData = HomeInformationLiveData(referenceOldHome)
@@ -63,6 +68,8 @@ class FirebaseHomeInformationRepository : HomeInformationRepository {
     private val referenceLog = FirebaseDatabase.getInstance().reference.child(LOG_INFORMATION_BASE)
 
     private val storageUnitsLiveData: StorageUnitsLiveData = StorageUnitsLiveData(referenceHome)
+
+    private val roomsLiveData: RoomListLiveData = RoomListLiveData(referenceHome)
 
     init {
         FirebaseDatabase.getInstance().reference.keepSynced(true)
@@ -107,11 +114,18 @@ class FirebaseHomeInformationRepository : HomeInformationRepository {
         referenceHome.child(HOME_HW_UNITS).child(hwUnit.name).setValue(hwUnit)
     }
 
-    override fun storageUnitsLiveData(): StorageUnitsLiveData {
-        return storageUnitsLiveData
-    }
 
     override fun clearLog() {
         referenceLog.removeValue()
     }
+
+    override fun storageUnitsLiveData(): StorageUnitsLiveData {
+        return storageUnitsLiveData
+    }
+
+    override fun roomsLiveData(): RoomListLiveData {
+        return roomsLiveData
+    }
+
+
 }

@@ -9,7 +9,7 @@ ext {
 
     // ClassPath
     gradlePluginVersion = '3.2.0-beta05'
-    googleServicesClassVersion = '3.2.1'
+    googleServicesClassVersion = '4.0.1'
 
     // Google
     playServicesVersion = '15.0.1'

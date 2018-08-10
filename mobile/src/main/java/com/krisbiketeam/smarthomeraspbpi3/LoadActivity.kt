@@ -8,6 +8,7 @@ import android.support.v4.app.ActivityCompat
 import android.support.v7.app.AppCompatActivity
 import android.widget.Toast
 import com.krisbiketeam.data.storage.NotSecureStorage
+import com.krisbiketeam.smarthomeraspbpi3.ui.HomeActivity
 
 private const val PERMISSION_REQUEST_ID = 999
 
@@ -54,11 +55,11 @@ class LoadActivity : AppCompatActivity() {
     }
 
     private fun loadNextActivity() {
-        callActivity(HomeActivity::class.java)
-        /*when {
+        //callActivity(HomeActivity::class.java)
+        when {
             secureStorage.isAuthenticated() -> callActivity(MobileActivity::class.java)
             else -> callActivity(LoginActivity::class.java)
-        }*/
+        }
     }
 
     private fun callActivity(clazz: Class<*>) {

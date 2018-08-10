@@ -19,7 +19,6 @@ class MobileActivity : AppCompatActivity() {
 
     private lateinit var authentication: Authentication
     private lateinit var lightsLiveData: LiveData<HomeInformation>
-    private lateinit var homeInformationRepository: HomeInformationRepository
     private lateinit var secureStorage: SecureStorage
     private lateinit var storageUnitsLiveData: StorageUnitsLiveData
 
@@ -42,22 +41,21 @@ class MobileActivity : AppCompatActivity() {
         setContentView(R.layout.activity_mobile)
 
         secureStorage = NotSecureStorage(this)
-        homeInformationRepository = FirebaseHomeInformationRepository()
         authentication = FirebaseAuthentication()
-        lightsLiveData = homeInformationRepository.lightLiveData()
-        storageUnitsLiveData = homeInformationRepository.storageUnitsLiveData()
+        lightsLiveData = FirebaseHomeInformationRepository.lightLiveData()
+        storageUnitsLiveData = FirebaseHomeInformationRepository.storageUnitsLiveData()
 
         lightToggle.setOnCheckedChangeListener { _, state: Boolean ->
-            homeInformationRepository.saveLightState(state)
+            FirebaseHomeInformationRepository.saveLightState(state)
         }
 
         sendText.setOnClickListener {
-            homeInformationRepository.saveMessage(messageEdit.text.toString())
+            FirebaseHomeInformationRepository.saveMessage(messageEdit.text.toString())
             messageEdit.text.clear()
         }
 
         buttonClearLog.setOnClickListener {
-            homeInformationRepository.clearLog()
+            FirebaseHomeInformationRepository.clearLog()
         }
 
         buttonWifi.setOnClickListener {

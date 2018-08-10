@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <!--
   ~ Copyright 2018 Google LLC
   ~
@@ -14,10 +15,13 @@
   ~ limitations under the License.
   -->
 
-<resources>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <style name="AppTheme" parent="BaseAppTheme">
-        <!--<item name="android:windowTranslucentStatus">true</item>-->
-    </style>
+    <item
+        android:id="@+id/action_save"
+        android:icon="@drawable/ic_launcher_foreground"
+        android:title="save"
+        app:showAsAction="always" />
 
-</resources>
+</menu>

@@ -44,6 +44,8 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun attemptLogin() {
+        //secureStorage.firebaseCredentials = FirebaseCredentials(ssid.text.toString(), password.text.toString())
+
         ssid.error = null
         password.error = null
 
@@ -73,6 +75,8 @@ class LoginActivity : AppCompatActivity() {
             focusView?.requestFocus()
         } else {
             showProgress(true)
+            Timber.w("login emailStr: $emailStr passwordStr: $passwordStr")
+
             authentication.addLoginResultListener(loginResultListener)
             authentication.login(FirebaseCredentials(emailStr, passwordStr))
         }

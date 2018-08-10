@@ -18,10 +18,10 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/garden_fragment"
-        android:title="my_garden_title"/>
+        android:id="@+id/add_storage_home_unit_fragment"
+        android:title="Add Storage"/>
     <item
-        android:id="@+id/plant_list_fragment"
-        android:title="plant_list_title"/>
+        android:id="@+id/room_list_fragment"
+        android:title="Room List"/>
 
 </menu>
