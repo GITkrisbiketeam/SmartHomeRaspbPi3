@@ -1,4 +1,4 @@
-package com.google.samples.apps.sunflower.viewmodels
+package com.krisbiketeam.smarthomeraspbpi3.viewmodels
 
 import android.arch.lifecycle.MediatorLiveData
 import android.arch.lifecycle.MutableLiveData
@@ -29,7 +29,7 @@ class RoomListViewModel internal constructor(
         roomList.addSource(livePlantList, roomList::setValue)
     }
 
-    fun getPlants() = roomList
+    fun getRooms() = roomList
 
     fun setGrowZoneNumber(num: Int) {
         growZoneNumber.value = num

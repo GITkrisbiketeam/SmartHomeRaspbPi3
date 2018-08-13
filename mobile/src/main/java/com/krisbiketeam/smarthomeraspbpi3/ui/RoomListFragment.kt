@@ -11,7 +11,7 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import com.google.samples.apps.sunflower.viewmodels.RoomListViewModel
+import com.krisbiketeam.smarthomeraspbpi3.viewmodels.RoomListViewModel
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.adapters.RoomAdapter
 import com.krisbiketeam.smarthomeraspbpi3.utilities.InjectorUtils
@@ -54,7 +54,7 @@ class RoomListFragment : Fragment() {
     }
 
     private fun subscribeUi(adapter: RoomAdapter) {
-        viewModel.getPlants().observe(viewLifecycleOwner, Observer { rooms ->
+        viewModel.getRooms().observe(viewLifecycleOwner, Observer { rooms ->
             rooms?.let{adapter.submitList(rooms)}
         })
     }

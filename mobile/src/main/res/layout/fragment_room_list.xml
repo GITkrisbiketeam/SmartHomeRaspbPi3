@@ -26,6 +26,6 @@
         android:paddingLeft="@dimen/margin_normal"
         android:paddingRight="@dimen/margin_normal"
         app:layoutManager="android.support.v7.widget.LinearLayoutManager"
-        tools:context="com.google.samples.apps.sunflower.GardenActivity"
-        tools:listitem="@layout/list_item_room" />
+        tools:context="com.krisbiketeam.smarthomeraspbpi3.ui.HomeActivity"
+        tools:listitem="@layout/fragment_room_list_item" />
 </layout>

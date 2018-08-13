@@ -1,13 +1,7 @@
 package com.krisbiketeam.smarthomeraspbpi3.utilities
 
-/*
-import com.google.samples.apps.sunflower.data.AppDatabase
-import com.google.samples.apps.sunflower.data.GardenPlantingRepository
-import com.google.samples.apps.sunflower.data.PlantRepository
-import com.google.samples.apps.sunflower.viewmodels.GardenPlantingListViewModelFactory
-import com.google.samples.apps.sunflower.viewmodels.PlantDetailViewModelFactory
-*/
-import com.google.samples.apps.sunflower.viewmodels.RoomListViewModelFactory
+import com.krisbiketeam.smarthomeraspbpi3.viewmodels.RoomDetailViewModelFactory
+import com.krisbiketeam.smarthomeraspbpi3.viewmodels.RoomListViewModelFactory
 import com.krisbiketeam.data.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.data.storage.HomeInformationRepository
 
@@ -16,7 +10,7 @@ import com.krisbiketeam.data.storage.HomeInformationRepository
  */
 object InjectorUtils {
 
-    private fun getPlantRepository(): HomeInformationRepository {
+    private fun getHomeRepository(): HomeInformationRepository {
         return FirebaseHomeInformationRepository
     }
 
@@ -33,15 +27,12 @@ object InjectorUtils {
     }*/
 
     fun provideRoomListViewModelFactory(): RoomListViewModelFactory {
-        val repository = getPlantRepository()
-        return RoomListViewModelFactory(repository)
+        return RoomListViewModelFactory(getHomeRepository())
     }
 
-    /*fun providePlantDetailViewModelFactory(
-        context: Context,
-        plantId: String
-    ): PlantDetailViewModelFactory {
-        return PlantDetailViewModelFactory(getPlantRepository(context),
-                getGardenPlantingRepository(context), plantId)
-    }*/
+    fun provideRoomDetailViewModelFactory(
+            roomName: String
+    ): RoomDetailViewModelFactory {
+        return RoomDetailViewModelFactory(getHomeRepository(), roomName)
+    }
 }

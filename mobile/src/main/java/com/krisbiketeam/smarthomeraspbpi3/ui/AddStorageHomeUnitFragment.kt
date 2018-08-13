@@ -28,11 +28,11 @@ class AddStorageHomeUnitFragment : Fragment() {
 
         }
 
-        /*addStorageHomeUnitViewModel.name.observe(this, Observer { plant ->
-            shareText = if (plant == null) {
+        /*addStorageHomeUnitViewModel.name.observe(this, Observer { room ->
+            shareText = if (room == null) {
                 ""
             } else {
-                getString(R.string.share_text_plant, plant.name)
+                getString(R.string.share_text_plant, room.name)
             }
         })*/
 
@@ -42,7 +42,7 @@ class AddStorageHomeUnitFragment : Fragment() {
     }
 
     /*override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
-        inflater?.inflate(R.menu.menu_plant_detail, menu)
+        inflater?.inflate(R.menu.menu_room_detail, menu)
         super.onCreateOptionsMenu(menu, inflater)
     }
 

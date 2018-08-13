@@ -6,26 +6,26 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.navigation.findNavController
-import com.krisbiketeam.data.storage.dto.Room
+import com.krisbiketeam.data.storage.dto.StorageUnit
 import timber.log.Timber
-import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentRoomListItemBinding
+import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentRoomDetailListItemBinding
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomListFragmentDirections
 
 /**
  * Adapter for the [RecyclerView] in [RoomListFragment].
  */
-class RoomAdapter : ListAdapter<Room, RoomAdapter.ViewHolder>(RoomDiffCallback()) {
+class StorageUnitAdapter : ListAdapter<StorageUnit<out Any>, StorageUnitAdapter.ViewHolder>(StorageUnitDiffCallback()) {
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val roomName = getItem(position)
+        val unitName = getItem(position)
         holder.apply {
-            bind(createOnClickListener(roomName.name), roomName)
-            itemView.tag = roomName
+            bind(createOnClickListener(unitName.name), unitName)
+            itemView.tag = unitName
         }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        return ViewHolder(FragmentRoomListItemBinding.inflate(
+        return ViewHolder(FragmentRoomDetailListItemBinding.inflate(
                 LayoutInflater.from(parent.context), parent, false))
     }
 
@@ -38,13 +38,13 @@ class RoomAdapter : ListAdapter<Room, RoomAdapter.ViewHolder>(RoomDiffCallback()
     }
 
     class ViewHolder(
-        private val binding: FragmentRoomListItemBinding
+        private val binding: FragmentRoomDetailListItemBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(listener: View.OnClickListener, item: Room) {
+        fun bind(listener: View.OnClickListener, item: StorageUnit<out Any>) {
             binding.apply {
                 clickListener = listener
-                room = item
+                this.storageUnit = item
                 executePendingBindings()
             }
         }

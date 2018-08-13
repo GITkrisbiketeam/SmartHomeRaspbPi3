@@ -47,9 +47,24 @@ interface HomeInformationRepository {
     fun storageUnitsLiveData(): StorageUnitsLiveData
 
     /**
+     * get instance of @see[StorageUnitsLiveData] for listening to changes in entries in DB
+     */
+    fun storageUnitsLiveData(roomName: String): StorageUnitsListLiveData
+
+    /**
+     * get instance of @see[HwUnitsLiveData] for listening to changes in Room entries in DB
+     */
+    fun hwUnitsLiveData(): HwUnitsLiveData
+
+    /**
      * get instance of @see[RoomListLiveData] for listening to changes in Room entries in DB
      */
     fun roomsLiveData(): RoomListLiveData
+
+    /**
+     * get instance of @see[RoomLiveData] for listening to changes in specific Room entry in DB
+     */
+    fun roomLiveData(roomName: String): RoomLiveData
 
     /**
      * Clear all Logs entries from DB
@@ -70,6 +85,8 @@ object FirebaseHomeInformationRepository : HomeInformationRepository {
 
     private val storageUnitsLiveData: StorageUnitsLiveData
 
+    private val hwUnitsLiveData: HwUnitsLiveData
+
     private val roomsLiveData: RoomListLiveData
 
     init {
@@ -85,6 +102,7 @@ object FirebaseHomeInformationRepository : HomeInformationRepository {
         referenceLog = FirebaseDatabase.getInstance().reference.child(LOG_INFORMATION_BASE)
 
         storageUnitsLiveData = StorageUnitsLiveData(referenceHome)
+        hwUnitsLiveData = HwUnitsLiveData(referenceHome)
         roomsLiveData = RoomListLiveData(referenceHome)
 
         // Keep tracking changes even if there are not active listeners
@@ -139,9 +157,20 @@ object FirebaseHomeInformationRepository : HomeInformationRepository {
         return storageUnitsLiveData
     }
 
+    override fun storageUnitsLiveData(roomName: String): StorageUnitsListLiveData {
+        return StorageUnitsListLiveData(referenceHome, roomName)
+    }
+
+    override fun hwUnitsLiveData(): HwUnitsLiveData {
+        return hwUnitsLiveData
+    }
+
     override fun roomsLiveData(): RoomListLiveData {
         return roomsLiveData
     }
 
+    override fun roomLiveData(roomName: String): RoomLiveData {
+        return RoomLiveData(referenceHome, roomName)
+    }
 
 }

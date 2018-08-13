@@ -36,7 +36,6 @@ private const val FIREBASE_RAINBOW_LED = 1
 class ThingsActivity : AppCompatActivity() {
     private lateinit var authentication: Authentication
     private lateinit var lightsLiveData: LiveData<HomeInformation>
-    private lateinit var homeInformationRepository: HomeInformationRepository
     private lateinit var secureStorage: SecureStorage
     private lateinit var networkConnectionMonitor: NetworkConnectionMonitor
 
@@ -134,11 +133,10 @@ class ThingsActivity : AppCompatActivity() {
             startFirebaseCredentialsReceiver()
         }
 
-        homeInformationRepository = FirebaseHomeInformationRepository()
         authentication = FirebaseAuthentication()
-        lightsLiveData = homeInformationRepository.lightLiveData()
+        lightsLiveData = FirebaseHomeInformationRepository.lightLiveData()
 
-        home = Home(homeInformationRepository)
+        home = Home()
         //home.saveToRepository()
 
         try {
@@ -265,7 +263,7 @@ class ThingsActivity : AppCompatActivity() {
                 when (event?.repeatCount) {
                     0 -> {
                         Timber.d("onKeyDown keyCode: $keyCode ; keEvent: $event")
-                        homeInformationRepository.logUnitEvent(HomeUnitLog(
+                        FirebaseHomeInformationRepository.logUnitEvent(HomeUnitLog(
                                 BoardConfig.BUTTON_A,
                                 "Raspberry Pi",
                                 BoardConfig.BUTTON_A_PIN,
@@ -288,7 +286,7 @@ class ThingsActivity : AppCompatActivity() {
                 when (event?.repeatCount) {
                     0 -> {
                         Timber.d("onKeyDown keyCode: $keyCode ; keEvent: $event")
-                        homeInformationRepository.logUnitEvent(HomeUnitLog(
+                        FirebaseHomeInformationRepository.logUnitEvent(HomeUnitLog(
                                 BoardConfig.BUTTON_B,
                                 "Raspberry Pi",
                                 BoardConfig.BUTTON_B_PIN,
@@ -305,7 +303,7 @@ class ThingsActivity : AppCompatActivity() {
                 when (event?.repeatCount) {
                     0 -> {
                         Timber.d("onKeyDown keyCode: $keyCode ; keEvent: $event")
-                        homeInformationRepository.logUnitEvent(HomeUnitLog(
+                        FirebaseHomeInformationRepository.logUnitEvent(HomeUnitLog(
                                 BoardConfig.BUTTON_C,
                                 "Raspberry Pi",
                                 BoardConfig.BUTTON_C_PIN,
@@ -326,7 +324,7 @@ class ThingsActivity : AppCompatActivity() {
         Timber.d("onKeyUp keyCode: $keyCode ; keEvent: $event")
         when (keyCode) {
             KEYCODE_A -> {
-                homeInformationRepository.logUnitEvent(HomeUnitLog(
+                FirebaseHomeInformationRepository.logUnitEvent(HomeUnitLog(
                         BoardConfig.BUTTON_A,
                         "Raspberry Pi",
                         BoardConfig.BUTTON_A_PIN,
@@ -335,7 +333,7 @@ class ThingsActivity : AppCompatActivity() {
                 ledA.setValue(false)
             }
             KEYCODE_B -> {
-                homeInformationRepository.logUnitEvent(HomeUnitLog(
+                FirebaseHomeInformationRepository.logUnitEvent(HomeUnitLog(
                         BoardConfig.BUTTON_B,
                         "Raspberry Pi",
                         BoardConfig.BUTTON_B_PIN,
@@ -344,7 +342,7 @@ class ThingsActivity : AppCompatActivity() {
                 ledB.setValue(false)
             }
             KEYCODE_C -> {
-                homeInformationRepository.logUnitEvent(HomeUnitLog(
+                FirebaseHomeInformationRepository.logUnitEvent(HomeUnitLog(
                         BoardConfig.BUTTON_C,
                         "Raspberry Pi",
                         BoardConfig.BUTTON_C_PIN,

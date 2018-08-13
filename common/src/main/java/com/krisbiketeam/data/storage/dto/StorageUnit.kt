@@ -28,6 +28,15 @@ val storageUnitTypeIndicatorMap: HashMap<String, Class<*>> = hashMapOf(
         HOME_BLINDS to BlindType::class.java
 )
 
+val HOME_STORAGE_UNITS: List<String> = listOf(
+        HOME_LIGHTS,
+        HOME_LIGHT_SWITCHES,
+        HOME_REED_SWITCHES,
+        HOME_MOTIONS,
+        HOME_TEMPERATURES,
+        HOME_PRESSURES,
+        HOME_BLINDS)
+
 data class StorageUnit<T>(var name: String = "", // Name should be unique for all units
                           var firebaseTableName: String = "",
                           var room: String = "",

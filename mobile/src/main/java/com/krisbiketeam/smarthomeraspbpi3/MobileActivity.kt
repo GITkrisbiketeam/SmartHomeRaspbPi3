@@ -10,6 +10,7 @@ import com.krisbiketeam.data.auth.FirebaseAuthentication
 import com.krisbiketeam.data.storage.*
 import com.krisbiketeam.data.storage.obsolete.HomeInformation
 import com.krisbiketeam.data.storage.StorageUnitsLiveData
+import com.krisbiketeam.data.storage.dto.StorageUnit
 import kotlinx.android.synthetic.main.activity_mobile.*
 import timber.log.Timber
 import java.util.*
@@ -32,7 +33,7 @@ class MobileActivity : AppCompatActivity() {
     }
     // Obsolete code END
 
-    private val unitsDataObserver = Observer<Pair<Int, *>> { temperature ->
+    private val unitsDataObserver = Observer<Pair<ChildEventType, StorageUnit<out Any>>> { temperature ->
         Timber.d("Unit changed: $temperature")
     }
 
