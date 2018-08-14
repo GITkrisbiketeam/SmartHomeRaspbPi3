@@ -6,7 +6,7 @@ import android.arch.lifecycle.ViewModelProvider
 import com.krisbiketeam.data.storage.HomeInformationRepository
 
 /**
- * Factory for creating a [RoomListViewModel] with a constructor that takes a [PlantRepository].
+ * Factory for creating a [RoomListViewModel] with a constructor that takes a [HomeInformationRepository].
  */
 class RoomListViewModelFactory(
     private val repository: HomeInformationRepository

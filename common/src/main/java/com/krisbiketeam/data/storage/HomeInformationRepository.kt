@@ -49,7 +49,7 @@ interface HomeInformationRepository {
     /**
      * get instance of @see[StorageUnitsLiveData] for listening to changes in entries in DB
      */
-    fun storageUnitsLiveData(roomName: String): StorageUnitsListLiveData
+    fun storageUnitsLiveData(roomName: String): StorageUnitsLiveData
 
     /**
      * get instance of @see[HwUnitsLiveData] for listening to changes in Room entries in DB
@@ -157,8 +157,8 @@ object FirebaseHomeInformationRepository : HomeInformationRepository {
         return storageUnitsLiveData
     }
 
-    override fun storageUnitsLiveData(roomName: String): StorageUnitsListLiveData {
-        return StorageUnitsListLiveData(referenceHome, roomName)
+    override fun storageUnitsLiveData(roomName: String): StorageUnitsLiveData {
+        return StorageUnitsLiveData(referenceHome, roomName)
     }
 
     override fun hwUnitsLiveData(): HwUnitsLiveData {

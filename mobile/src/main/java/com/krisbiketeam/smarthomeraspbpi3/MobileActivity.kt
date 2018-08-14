@@ -33,7 +33,7 @@ class MobileActivity : AppCompatActivity() {
     }
     // Obsolete code END
 
-    private val unitsDataObserver = Observer<Pair<ChildEventType, StorageUnit<out Any>>> { temperature ->
+    private val unitsDataObserver = Observer<Pair<ChildEventType, StorageUnit<Any>>> { temperature ->
         Timber.d("Unit changed: $temperature")
     }
 

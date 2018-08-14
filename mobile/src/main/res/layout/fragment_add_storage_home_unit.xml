@@ -1,6 +1,7 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android">
 
     <data>
+
         <variable
             name="viewModel"
             type="com.krisbiketeam.smarthomeraspbpi3.viewmodels.AddStorageHomeUnitViewModel" />
@@ -20,12 +21,14 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Name:"
-            android:textColor="@color/colorPrimaryDark"/>
+            android:textColor="@color/colorPrimaryDark" />
+
         <EditText
             android:id="@+id/storage_unit_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="title_hint"
+            android:inputType="text"
             android:maxLines="1"
             android:text="@={viewModel.name}"
             android:textAppearance="@style/TextAppearance.AppCompat.Title" />
@@ -34,13 +37,15 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Name:"
-            android:textColor="@color/colorPrimaryDark"/>
+            android:textColor="@color/colorPrimaryDark" />
+
         <EditText
             android:id="@+id/add_task_description"
             android:layout_width="match_parent"
             android:layout_height="350dp"
             android:gravity="top"
             android:hint="description_hint"
+            android:inputType="text"
             android:text="@={viewModel.firebaseTableName}" />
 
     </LinearLayout>

@@ -6,6 +6,7 @@ import android.arch.lifecycle.Transformations
 import android.arch.lifecycle.ViewModel
 import com.krisbiketeam.data.storage.HomeInformationRepository
 import com.krisbiketeam.data.storage.dto.Room
+import com.krisbiketeam.smarthomeraspbpi3.ui.RoomListFragment
 
 /**
  * The ViewModel for [RoomListFragment].

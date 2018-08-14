@@ -7,10 +7,11 @@ import timber.log.Timber
 import com.google.firebase.database.GenericTypeIndicator
 import com.krisbiketeam.data.storage.FirebaseTables.*
 
+//TODO: We should somehow only register for units from given roomName if present
+class StorageUnitsLiveData(private val databaseReference: DatabaseReference, private val roomName: String? = null) :
+        LiveData<Pair<ChildEventType, StorageUnit<Any>>>() {
 
-class StorageUnitsLiveData(private val databaseReference: DatabaseReference) : LiveData<Pair<ChildEventType,StorageUnit<out Any>>>() {
-
-    private val unitsList: List<MyChildEventListener> = HOME_STORAGE_UNITS.map { MyChildEventListener(it)}
+    private val unitsList: List<MyChildEventListener> = HOME_STORAGE_UNITS.map { MyChildEventListener(it) }
 
     private val typeIndicatorMap: HashMap<String, GenericTypeIndicator<out StorageUnit<out Any>>> = hashMapOf(
             HOME_LIGHTS to object : GenericTypeIndicator<StorageUnit<LightType>>() {},
@@ -31,7 +32,12 @@ class StorageUnitsLiveData(private val databaseReference: DatabaseReference) : L
                 val unit = dataSnapshot.getValue(this)
                 Timber.d("onChildAdded (key=$key)(unit=$unit)")
                 unit?.let {
-                    value = ChildEventType.NODE_ACTION_ADDED to unit
+                    Timber.d("onChildAdded (roomName=$roomName)(unit.room=${it.room})")
+                    if (roomName == null || roomName == it.room) {
+                        // We need to create new Storage unit as the one returned from GenericTypeIndicator is covariant
+                        //value = ChildEventType.NODE_ACTION_ADDED to StorageUnit(it.name, it.firebaseTableName, it.room, it.hardwareUnitName, it.value, it.unitsTasks)//StorageUnit<Any>(it)
+                        value = ChildEventType.NODE_ACTION_ADDED to it.makeInvariant()
+                    }
                 }
             }
         }
@@ -44,7 +50,11 @@ class StorageUnitsLiveData(private val databaseReference: DatabaseReference) : L
                 val unit = dataSnapshot.getValue(this)
                 Timber.d("onChildChanged (key=$key)(unit=$unit)")
                 unit?.let {
-                    value = ChildEventType.NODE_ACTION_CHANGED to unit
+                    Timber.d("onChildChanged (roomName=$roomName)(unit.room=${it.room})")
+                    if (roomName == null || roomName == it.room) {
+                        //value = ChildEventType.NODE_ACTION_CHANGED to StorageUnit(it.name, it.firebaseTableName, it.room, it.hardwareUnitName, it.value, it.unitsTasks)
+                        value = ChildEventType.NODE_ACTION_CHANGED to it.makeInvariant()
+                    }
                 }
             }
         }
@@ -59,7 +69,11 @@ class StorageUnitsLiveData(private val databaseReference: DatabaseReference) : L
                 val unit = dataSnapshot.getValue(this)
                 Timber.d("onChildRemoved (key=$key)(unit=$unit)")
                 unit?.let {
-                    value = ChildEventType.NODE_ACTION_DELETED to unit
+                    Timber.d("onChildRemoved (roomName=$roomName)(unit.room=${it.room})")
+                    if (roomName == null || roomName == it.room) {
+                        //value = ChildEventType.NODE_ACTION_DELETED to StorageUnit(it.name, it.firebaseTableName, it.room, it.hardwareUnitName, it.value, it.unitsTasks)
+                        value = ChildEventType.NODE_ACTION_DELETED to it.makeInvariant()
+                    }
                 }
             }
         }
@@ -78,7 +92,6 @@ class StorageUnitsLiveData(private val databaseReference: DatabaseReference) : L
 
         override fun onCancelled(databaseError: DatabaseError) {
             Timber.e("onCancelled:", databaseError)
-
         }
     }
 

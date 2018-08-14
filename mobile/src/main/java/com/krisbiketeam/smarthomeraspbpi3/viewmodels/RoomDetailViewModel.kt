@@ -2,9 +2,10 @@ package com.krisbiketeam.smarthomeraspbpi3.viewmodels
 
 import android.arch.lifecycle.*
 import com.krisbiketeam.data.storage.HomeInformationRepository
-import com.krisbiketeam.data.storage.StorageUnitsListLiveData
+import com.krisbiketeam.data.storage.StorageUnitsLiveData
 import com.krisbiketeam.data.storage.dto.Room
-import com.krisbiketeam.data.storage.dto.StorageUnit
+import com.krisbiketeam.smarthomeraspbpi3.ui.RoomDetailFragment
+
 
 /**
  * The ViewModel used in [RoomDetailFragment].
@@ -16,11 +17,12 @@ class RoomDetailViewModel(
 
     var isEditMode: MutableLiveData<Boolean> = MutableLiveData()
     val room: LiveData<Room>
-    val storageUnits = MediatorLiveData<List<StorageUnit<out Any>>>()
+    val storageUnits: StorageUnitsLiveData
+
 
     init {
         room = homeRepository.roomLiveData(roomName)
-        storageUnits.addSource(homeRepository.storageUnitsLiveData(roomName), storageUnits::setValue)
+        storageUnits = homeRepository.storageUnitsLiveData(roomName)
         isEditMode.value = false
     }
 }

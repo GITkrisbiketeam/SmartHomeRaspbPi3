@@ -13,7 +13,7 @@ import android.view.View
 import android.view.ViewGroup
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.RoomListViewModel
 import com.krisbiketeam.smarthomeraspbpi3.R
-import com.krisbiketeam.smarthomeraspbpi3.adapters.RoomAdapter
+import com.krisbiketeam.smarthomeraspbpi3.adapters.RoomListAdapter
 import com.krisbiketeam.smarthomeraspbpi3.utilities.InjectorUtils
 
 class RoomListFragment : Fragment() {
@@ -31,7 +31,7 @@ class RoomListFragment : Fragment() {
         val factory = InjectorUtils.provideRoomListViewModelFactory()
         viewModel = ViewModelProviders.of(this, factory).get(RoomListViewModel::class.java)
 
-        val adapter = RoomAdapter()
+        val adapter = RoomListAdapter()
         view.findViewById<RecyclerView>(R.id.room_list).adapter = adapter
         subscribeUi(adapter)
 
@@ -53,7 +53,7 @@ class RoomListFragment : Fragment() {
         }
     }
 
-    private fun subscribeUi(adapter: RoomAdapter) {
+    private fun subscribeUi(adapter: RoomListAdapter) {
         viewModel.getRooms().observe(viewLifecycleOwner, Observer { rooms ->
             rooms?.let{adapter.submitList(rooms)}
         })

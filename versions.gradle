@@ -15,7 +15,7 @@ ext {
     playServicesVersion = '15.0.1'
     firebaseCoreVersion = '16.0.1'
     firebaseDatabaseVersion = '16.0.1'
-    firebaseAuthVersion = '16.0.2'
+    firebaseAuthVersion = '16.0.3'
     supportLibraryVersion = '28.0.0-rc01'
     contraintLayoutVersion = '1.1.2'
     androidArchComponentsVersion = '1.1.1'

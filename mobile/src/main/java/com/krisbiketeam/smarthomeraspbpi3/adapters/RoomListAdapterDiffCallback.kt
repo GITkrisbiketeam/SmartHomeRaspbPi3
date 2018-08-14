@@ -17,15 +17,15 @@
 package com.krisbiketeam.smarthomeraspbpi3.adapters
 
 import android.support.v7.util.DiffUtil
-import com.krisbiketeam.data.storage.dto.StorageUnit
+import com.krisbiketeam.data.storage.dto.Room
 
-class StorageUnitDiffCallback : DiffUtil.ItemCallback<StorageUnit<out Any>>() {
+class RoomListAdapterDiffCallback : DiffUtil.ItemCallback<Room>() {
 
-    override fun areItemsTheSame(oldItem: StorageUnit<out Any>, newItem: StorageUnit<out Any>): Boolean {
+    override fun areItemsTheSame(oldItem: Room, newItem: Room): Boolean {
         return oldItem.name == newItem.name
     }
 
-    override fun areContentsTheSame(oldItem: StorageUnit<out Any>, newItem: StorageUnit<out Any>): Boolean {
+    override fun areContentsTheSame(oldItem: Room, newItem: Room): Boolean {
         return oldItem == newItem
     }
 }

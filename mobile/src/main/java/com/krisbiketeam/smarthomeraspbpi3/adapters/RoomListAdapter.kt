@@ -10,11 +10,12 @@ import com.krisbiketeam.data.storage.dto.Room
 import timber.log.Timber
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentRoomListItemBinding
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomListFragmentDirections
+import com.krisbiketeam.smarthomeraspbpi3.ui.RoomListFragment
 
 /**
  * Adapter for the [RecyclerView] in [RoomListFragment].
  */
-class RoomAdapter : ListAdapter<Room, RoomAdapter.ViewHolder>(RoomDiffCallback()) {
+class RoomListAdapter : ListAdapter<Room, RoomListAdapter.ViewHolder>(RoomListAdapterDiffCallback()) {
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val roomName = getItem(position)

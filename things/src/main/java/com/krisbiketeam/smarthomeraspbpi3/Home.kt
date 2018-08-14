@@ -11,13 +11,13 @@ import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
 import com.krisbiketeam.smarthomeraspbpi3.units.hardware.*
 import timber.log.Timber
 
-class Home() : Sensor.HomeUnitListener<Any> {
+class Home : Sensor.HomeUnitListener<Any> {
     private var storageUnitsLiveData = FirebaseHomeInformationRepository.storageUnitsLiveData()
 
     private var hwUnitsLiveData = FirebaseHomeInformationRepository.hwUnitsLiveData()
 
 
-    private val storageUnitUnitList: MutableMap<String, StorageUnit<Any>> = HashMap()
+    private val storageUnitList: MutableMap<String, StorageUnit<Any>> = HashMap()
 
     private val hardwareUnitList: MutableMap<String, BaseUnit<Any>> = HashMap()
 
@@ -26,7 +26,7 @@ class Home() : Sensor.HomeUnitListener<Any> {
         if (newVal is Boolean) {
             this.unitsTasks.forEach {
                 it.storageUnitName?.let { storageUnit ->
-                    storageUnitUnitList[storageUnit]?.run {
+                    storageUnitList[storageUnit]?.run {
                         Timber.d("booleanApplyFunction task: $it for this: $this")
                         this.value = newVal
                         Timber.d("booleanApplyFunction run on: $it from : $this")
@@ -71,7 +71,7 @@ class Home() : Sensor.HomeUnitListener<Any> {
         hardwareUnitList.values.forEach(this::hwUnitStop)
     }
 
-    fun hwUnitStart(unit: BaseUnit<Any>) {
+    private fun hwUnitStart(unit: BaseUnit<Any>) {
         Timber.v("hwUnitStart connect unit: ${unit.homeUnit}")
         unit.connect()
         if (unit is Sensor) {
@@ -79,7 +79,7 @@ class Home() : Sensor.HomeUnitListener<Any> {
         }
     }
 
-    fun hwUnitStop(unit: BaseUnit<Any>) {
+    private fun hwUnitStop(unit: BaseUnit<Any>) {
         Timber.v("hwUnitStop close unit: ${unit.homeUnit}")
         try {
             // close will automatically unregister listener
@@ -89,28 +89,28 @@ class Home() : Sensor.HomeUnitListener<Any> {
         }
     }
 
-    private val storageUnitsDataObserver = Observer<Pair<ChildEventType,StorageUnit<out Any>>> { pair ->
+    private val storageUnitsDataObserver = Observer<Pair<ChildEventType,StorageUnit<Any>>> { pair ->
         Timber.d("storageUnitsDataObserver changed: $pair")
-        pair?.let { (action, value) ->
+        pair?.let { (action, storageUnit) ->
             when (action) {
                 ChildEventType.NODE_ACTION_CHANGED -> {
-                    Timber.d("storageUnitsDataObserver NODE_ACTION_CHANGED: ${storageUnitUnitList[value.name]}")
-                    storageUnitUnitList[value.name]?.run {
-                        applyFunction(value.value)
+                    Timber.d("storageUnitsDataObserver NODE_ACTION_CHANGED: ${storageUnitList[storageUnit.name]}")
+                    storageUnitList[storageUnit.name]?.run {
+                        applyFunction(storageUnit.value)
                     }
                 }
                 ChildEventType.NODE_ACTION_ADDED -> {
-                    val storageUnit = storageUnitUnitList[value.name]
-                    Timber.d("storageUnitsDataObserver OLD $storageUnit ; NEW  $value")
-                    val newVal = value as StorageUnit<Any>
+                    val storageUnit = storageUnitList[storageUnit.name]
+                    Timber.d("storageUnitsDataObserver OLD $storageUnit ; NEW  $storageUnit")
+                    val newVal = storageUnit as StorageUnit<Any>
                     storageUnitTypeIndicatorMap[newVal.firebaseTableName]?.isInstance(Boolean::class.java)
                             .let {
                                 newVal.applyFunction = booleanApplyFunction
                             }
-                    storageUnitUnitList[newVal.name] = newVal
+                    storageUnitList[newVal.name] = newVal
                 }
                 ChildEventType.NODE_ACTION_DELETED -> {
-                    val result = storageUnitUnitList.remove(value.name)
+                    val result = storageUnitList.remove(storageUnit.name)
                     Timber.d("storageUnitsDataObserver NODE_ACTION_DELETED: $result")
                 }
                 else -> {
@@ -196,7 +196,7 @@ class Home() : Sensor.HomeUnitListener<Any> {
         Timber.d("onUnitChanged unit: $homeUnit; unitValue: $unitValue; updateTime: $updateTime")
         FirebaseHomeInformationRepository.logUnitEvent(HomeUnitLog(homeUnit, unitValue, updateTime))
 
-        storageUnitUnitList.values.find {
+        storageUnitList.values.find {
             it.hardwareUnitName == homeUnit.name
         }?.apply {
             // We need to handel differently values of non Basic Types
@@ -219,7 +219,7 @@ class Home() : Sensor.HomeUnitListener<Any> {
     }
 
     fun saveToRepository() {
-        storageUnitUnitList.values.forEach { FirebaseHomeInformationRepository.saveStorageUnit(it) }
+        storageUnitList.values.forEach { FirebaseHomeInformationRepository.saveStorageUnit(it) }
         hardwareUnitList.values.forEach { FirebaseHomeInformationRepository.saveHardwareUnit(it.homeUnit) }
     }
 
@@ -242,12 +242,12 @@ class Home() : Sensor.HomeUnitListener<Any> {
 
         val motion = Motion("Kitchen 1 Motion Sensor", HOME_MOTIONS, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_IN_A0) as StorageUnit<Any>
 
-        storageUnitUnitList[temp.name] = temp
-        storageUnitUnitList[pressure.name] = pressure
-        storageUnitUnitList[light.name] = light
-        storageUnitUnitList[lightSwitch.name] = lightSwitch
-        storageUnitUnitList[reedSwitch.name] = reedSwitch
-        storageUnitUnitList[motion.name] = motion
+        storageUnitList[temp.name] = temp
+        storageUnitList[pressure.name] = pressure
+        storageUnitList[light.name] = light
+        storageUnitList[lightSwitch.name] = lightSwitch
+        storageUnitList[reedSwitch.name] = reedSwitch
+        storageUnitList[motion.name] = motion
 
         // Second room
         roomName = "Bathroom"
@@ -262,9 +262,9 @@ class Home() : Sensor.HomeUnitListener<Any> {
         lightSwitch.unitsTasks.add(UnitTask(storageUnitName = light.name))
         lightSwitch.applyFunction = booleanApplyFunction
 
-        storageUnitUnitList[temp.name] = temp
-        storageUnitUnitList[light.name] = light
-        storageUnitUnitList[lightSwitch.name] = lightSwitch
+        storageUnitList[temp.name] = temp
+        storageUnitList[light.name] = light
+        storageUnitList[lightSwitch.name] = lightSwitch
     }
 
     private fun initHardwareUnitList() {

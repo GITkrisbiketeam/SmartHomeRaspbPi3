@@ -64,6 +64,20 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/storage_unit_item_image"
             tools:text="Storage Unit"/>
+        <TextView
+            android:id="@+id/storage_unit_item_value"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/margin_normal"
+            android:layout_marginEnd="@dimen/margin_small"
+            android:layout_marginStart="@dimen/margin_small"
+            android:layout_marginTop="@dimen/margin_small"
+            android:textAppearance="?attr/textAppearanceListItem"
+            android:text="@{String.valueOf(storageUnit.value)}"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/storage_unit_item_title"
+            tools:text="Value"/>
 
     </android.support.constraint.ConstraintLayout>
 </layout>

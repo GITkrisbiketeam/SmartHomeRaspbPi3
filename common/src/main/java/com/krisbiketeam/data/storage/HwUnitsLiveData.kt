@@ -1,11 +1,13 @@
 package com.krisbiketeam.data.storage
 
 import android.arch.lifecycle.LiveData
-import com.google.firebase.database.*
-import com.krisbiketeam.data.storage.dto.*
+import com.google.firebase.database.ChildEventListener
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.DatabaseReference
+import com.krisbiketeam.data.storage.FirebaseTables.HOME_HW_UNITS
+import com.krisbiketeam.data.storage.dto.HomeUnit
 import timber.log.Timber
-import com.google.firebase.database.GenericTypeIndicator
-import com.krisbiketeam.data.storage.FirebaseTables.*
 
 
 class HwUnitsLiveData(private val databaseReference: DatabaseReference) : LiveData<Pair<ChildEventType,HomeUnit>>() {

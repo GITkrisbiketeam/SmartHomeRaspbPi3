@@ -43,9 +43,26 @@ data class StorageUnit<T>(var name: String = "", // Name should be unique for al
                           var hardwareUnitName: String = "",
                           var value: T? = null,
                           val unitsTasks: MutableList<UnitTask> = ArrayList()) {
+    constructor(storageUnit: StorageUnit<T>) : this(
+            storageUnit.name,
+            storageUnit.firebaseTableName,
+            storageUnit.room,
+            storageUnit.hardwareUnitName,
+            storageUnit.value,
+            storageUnit.unitsTasks)
 
     @Exclude
     @set:Exclude
     @get:Exclude
     var applyFunction: StorageUnit<T>.(Any?) -> Unit = { _: Any? -> Unit}
+
+    fun makeInvariant(): StorageUnit<Any>{
+        return StorageUnit<Any>(
+                name,
+                firebaseTableName,
+                room,
+                hardwareUnitName,
+                value,
+                unitsTasks)
+    }
 }
