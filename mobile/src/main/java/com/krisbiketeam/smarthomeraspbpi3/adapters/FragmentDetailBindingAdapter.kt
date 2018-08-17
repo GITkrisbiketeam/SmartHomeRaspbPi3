@@ -18,7 +18,6 @@ package com.krisbiketeam.smarthomeraspbpi3.adapters
 
 import android.databinding.BindingAdapter
 import android.support.design.widget.FloatingActionButton
-import android.widget.TextView
 
 
 /*@BindingAdapter("imageFromUrl")

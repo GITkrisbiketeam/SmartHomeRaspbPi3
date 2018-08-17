@@ -14,7 +14,7 @@ import kotlinx.coroutines.experimental.launch
 import java.util.*
 
 private val TAG = Utils.getLogTag(HomeUnitI2CTempTMP102Sensor::class.java)
-private const val REFRESH_RATE = 60000L // 60 seconds
+private const val REFRESH_RATE = 300000L // 5 min
 
 class HomeUnitI2CTempTMP102Sensor(name: String,
                                   location: String,

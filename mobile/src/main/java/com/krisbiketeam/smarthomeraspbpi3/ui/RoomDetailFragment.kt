@@ -50,9 +50,7 @@ class RoomDetailFragment : Fragment() {
         })
 
         roomDetailViewModel.isEditMode.observe(this, Observer { isEditMode ->
-            activity?.let {
-                it.invalidateOptionsMenu()
-            }
+            activity?.invalidateOptionsMenu()
         })
 
         setHasOptionsMenu(true)

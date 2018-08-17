@@ -24,18 +24,18 @@ class Home : Sensor.HomeUnitListener<Any> {
     private var booleanApplyFunction: StorageUnit<in Boolean>.(Any?) -> Unit = { newVal: Any? ->
         Timber.d("booleanApplyFunction newVal: $newVal this: $this")
         if (newVal is Boolean) {
-            this.unitsTasks.forEach {
-                it.storageUnitName?.let { storageUnit ->
-                    storageUnitList[storageUnit]?.run {
-                        Timber.d("booleanApplyFunction task: $it for this: $this")
+            this.unitsTasks.forEach { task ->
+                task.storageUnitName?.let { taskStorageUnitName ->
+                    storageUnitList[taskStorageUnitName]?.run {
+                        Timber.d("booleanApplyFunction task: $task for storageUnit: $this")
                         this.value = newVal
-                        Timber.d("booleanApplyFunction run on: $it from : $this")
+                        this.applyFunction(newVal)
                         FirebaseHomeInformationRepository.saveStorageUnit(this)
                     }
                 }
-                it.hardwareUnitName?.let { hardwareUnit ->
+                task.hardwareUnitName?.let { hardwareUnit ->
                     hardwareUnitList[hardwareUnit]?.run {
-                        Timber.d("booleanApplyFunction task: $it for this: $this")
+                        Timber.d("booleanApplyFunction task: $task for this: $this")
                         if (this is Actuator) {
                             Timber.d("booleanApplyFunction unit setValue newVal: $newVal")
                             this.setValue(newVal)
@@ -89,25 +89,27 @@ class Home : Sensor.HomeUnitListener<Any> {
         }
     }
 
-    private val storageUnitsDataObserver = Observer<Pair<ChildEventType,StorageUnit<Any>>> { pair ->
+    private val storageUnitsDataObserver = Observer<Pair<ChildEventType, StorageUnit<Any>>> { pair ->
         Timber.d("storageUnitsDataObserver changed: $pair")
         pair?.let { (action, storageUnit) ->
             when (action) {
                 ChildEventType.NODE_ACTION_CHANGED -> {
                     Timber.d("storageUnitsDataObserver NODE_ACTION_CHANGED: ${storageUnitList[storageUnit.name]}")
                     storageUnitList[storageUnit.name]?.run {
-                        applyFunction(storageUnit.value)
+                        if (storageUnit.value != this.value) {
+                            this.value = storageUnit.value
+                            applyFunction(storageUnit.value)
+                        }
                     }
                 }
                 ChildEventType.NODE_ACTION_ADDED -> {
-                    val storageUnit = storageUnitList[storageUnit.name]
-                    Timber.d("storageUnitsDataObserver OLD $storageUnit ; NEW  $storageUnit")
-                    val newVal = storageUnit as StorageUnit<Any>
-                    storageUnitTypeIndicatorMap[newVal.firebaseTableName]?.isInstance(Boolean::class.java)
+                    val existingUnit = storageUnitList[storageUnit.name]
+                    Timber.d("storageUnitsDataObserver EXISTING $existingUnit ; NEW  $storageUnit")
+                    storageUnitTypeIndicatorMap[storageUnit.firebaseTableName]?.isInstance(Boolean::class.java)
                             .let {
-                                newVal.applyFunction = booleanApplyFunction
+                                storageUnit.applyFunction = booleanApplyFunction
                             }
-                    storageUnitList[newVal.name] = newVal
+                    storageUnitList[storageUnit.name] = storageUnit
                 }
                 ChildEventType.NODE_ACTION_DELETED -> {
                     val result = storageUnitList.remove(storageUnit.name)
@@ -196,25 +198,28 @@ class Home : Sensor.HomeUnitListener<Any> {
         Timber.d("onUnitChanged unit: $homeUnit; unitValue: $unitValue; updateTime: $updateTime")
         FirebaseHomeInformationRepository.logUnitEvent(HomeUnitLog(homeUnit, unitValue, updateTime))
 
-        storageUnitList.values.find {
+        storageUnitList.values.filter {
             it.hardwareUnitName == homeUnit.name
-        }?.apply {
-            // We need to handel differently values of non Basic Types
-            if (unitValue is TemperatureAndPressure) {
-                Timber.d("Received TemperatureAndPressure $value")
-                // obsolete code start
-                FirebaseHomeInformationRepository.saveTemperature(unitValue.temperature)
-                FirebaseHomeInformationRepository.savePressure(unitValue.pressure)
-                // obsolete code end
-                if (firebaseTableName == HOME_TEMPERATURES) {
-                    value = unitValue.temperature
-                } else if (firebaseTableName == HOME_PRESSURES) {
-                    value = unitValue.pressure
+        }.forEach {
+            it.apply {
+                // We need to handel differently values of non Basic Types
+                if (unitValue is TemperatureAndPressure) {
+                    Timber.d("Received TemperatureAndPressure $value")
+                    // obsolete code start
+                    FirebaseHomeInformationRepository.saveTemperature(unitValue.temperature)
+                    FirebaseHomeInformationRepository.savePressure(unitValue.pressure)
+                    // obsolete code end
+                    if (firebaseTableName == HOME_TEMPERATURES) {
+                        value = unitValue.temperature
+                    } else if (firebaseTableName == HOME_PRESSURES) {
+                        value = unitValue.pressure
+                    }
+                } else {
+                    value = unitValue
                 }
-            } else {
-                value = unitValue
+                applyFunction(this.value)
+                FirebaseHomeInformationRepository.saveStorageUnit(this)
             }
-            FirebaseHomeInformationRepository.saveStorageUnit(this)
         }
     }
 

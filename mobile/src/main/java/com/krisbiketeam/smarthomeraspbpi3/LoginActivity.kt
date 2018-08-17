@@ -43,6 +43,32 @@ class LoginActivity : AppCompatActivity() {
         wifi_connect_button.setOnClickListener { attemptLogin() }
     }
 
+    private val loginResultListener = object : Authentication.LoginResultListener {
+        override fun success() {
+            Timber.d("Firebase Login sucessfull")
+            nearByService.sendData(FirebaseCredentials(ssid.text.toString(), password.text.toString()))
+        }
+
+        override fun failed(exception: Exception) {
+            Timber.d("Firebase Login fail")
+            onError(exception)
+        }
+    }
+
+    private val dataSendResultListener = object : NearbyService.DataSendResultListener {
+        override fun onSuccess() {
+            Timber.d("Near credentials transfer sucess")
+            secureStorage.firebaseCredentials = FirebaseCredentials(ssid.text.toString(), password.text.toString())
+            toMainActivity()
+        }
+
+        override fun onFailure(exception: Exception) {
+            Timber.d("Near credentials transfer fail")
+            onError(exception)
+        }
+
+    }
+
     private fun attemptLogin() {
         //secureStorage.firebaseCredentials = FirebaseCredentials(ssid.text.toString(), password.text.toString())
 
@@ -111,28 +137,6 @@ class LoginActivity : AppCompatActivity() {
                         login_progress.visibility = if (show) View.VISIBLE else View.GONE
                     }
                 })
-    }
-
-    private val dataSendResultListener = object : NearbyService.DataSendResultListener {
-        override fun onSuccess() {
-            secureStorage.firebaseCredentials = FirebaseCredentials(ssid.text.toString(), password.text.toString())
-            toMainActivity()
-        }
-
-        override fun onFailure(exception: Exception) {
-            onError(exception)
-        }
-
-    }
-
-    private val loginResultListener = object : Authentication.LoginResultListener {
-        override fun success() {
-            nearByService.sendData(FirebaseCredentials(ssid.text.toString(), password.text.toString()))
-        }
-
-        override fun failed(exception: Exception) {
-            onError(exception)
-        }
     }
 
     private fun onError(exception: Exception) {

@@ -139,7 +139,7 @@ class NearbyServiceProvider(private val context: Context) : NearbyService {
                     Timber.d("startAdvertising:onResult: SUCCESS")
                 }
                 .addOnFailureListener {
-                    Timber.w("Advertising failed! ${it.stackTrace}")
+                    Timber.w("Advertising failed! $it")
                 }
     }
 
@@ -160,6 +160,7 @@ class NearbyServiceProvider(private val context: Context) : NearbyService {
     }
 
     override fun sendData(data: Any) {
+        Timber.d("sendData data: $data")
 
         when (data) {
             is WifiCredentials -> {
@@ -180,6 +181,7 @@ class NearbyServiceProvider(private val context: Context) : NearbyService {
     }
 
     override fun dataReceivedListener(dataReceiverListener: NearbyService.DataReceiverListener) {
+        Timber.d("dataReceivedListener")
         this.dataReceiverListener = dataReceiverListener
         startAdvertising()
     }

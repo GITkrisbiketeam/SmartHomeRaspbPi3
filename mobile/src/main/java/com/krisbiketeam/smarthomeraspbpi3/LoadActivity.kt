@@ -56,6 +56,7 @@ class LoadActivity : AppCompatActivity() {
 
     private fun loadNextActivity() {
         callActivity(HomeActivity::class.java)
+        //callActivity(MobileActivity::class.java)
         /*when {
             secureStorage.isAuthenticated() -> callActivity(MobileActivity::class.java)
             else -> callActivity(LoginActivity::class.java)

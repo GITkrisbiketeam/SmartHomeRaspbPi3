@@ -3,7 +3,6 @@ package com.krisbiketeam.smarthomeraspbpi3.ui
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.Observer
 import android.content.Context
-import android.content.Intent
 import android.graphics.Color
 import android.net.wifi.WifiManager
 import android.os.Bundle
@@ -22,7 +21,7 @@ import com.krisbiketeam.data.storage.obsolete.HomeInformation
 import com.krisbiketeam.smarthomeraspbpi3.BoardConfig
 import com.krisbiketeam.smarthomeraspbpi3.Home
 import com.krisbiketeam.smarthomeraspbpi3.R
-import com.krisbiketeam.smarthomeraspbpi3.ui.setup.FirebaseCredentialsReceiverActivity
+import com.krisbiketeam.smarthomeraspbpi3.ui.setup.FirebaseCredentialsReceiverManager
 import com.krisbiketeam.smarthomeraspbpi3.ui.setup.WiFiCredentialsReceiverManager
 import com.krisbiketeam.smarthomeraspbpi3.units.hardware.HomeUnitGpioActuator
 import com.krisbiketeam.smarthomeraspbpi3.units.hardware.HomeUnitI2CFourCharDisplay
@@ -49,6 +48,7 @@ class ThingsActivity : AppCompatActivity() {
     private var buttonCInputDriver: ButtonInputDriver? = null
 
     private var wiFiCredentialsReceiverManager: WiFiCredentialsReceiverManager? = null
+    private var firebaseCredentialsReceiverManager: FirebaseCredentialsReceiverManager? = null
 
     private val mRainbowLeds = IntArray(RainbowHat.LEDSTRIP_LENGTH)
 
@@ -121,7 +121,7 @@ class ThingsActivity : AppCompatActivity() {
                 val enabled = wifiManager.setWifiEnabled(true)
                 Timber.d("Wifi enabled? $enabled")
             }
-            Timber.d("Not connected to WiFi, starting WiFiCredentialsReceiverActivity")
+            Timber.d("Not connected to WiFi, starting WiFiCredentialsReceiver")
 
             startWiFiCredentialsReceiver()
         } else {
@@ -129,7 +129,7 @@ class ThingsActivity : AppCompatActivity() {
         }
 
         if (!secureStorage.isAuthenticated()) {
-            Timber.d("Not authenticated, starting FirebaseCredentialsReceiverActivity")
+            Timber.d("Not authenticated, starting FirebaseCredentialsReceiver")
             startFirebaseCredentialsReceiver()
         }
 
@@ -158,29 +158,25 @@ class ThingsActivity : AppCompatActivity() {
     }
 
     private fun startWiFiCredentialsReceiver() {
-        //val intent = Intent(this, WiFiCredentialsReceiverActivity::class.java)
-        //startActivity(intent)
-        //finish()
-
-        if (wiFiCredentialsReceiverManager == null) {
+       if (wiFiCredentialsReceiverManager == null) {
             wiFiCredentialsReceiverManager = WiFiCredentialsReceiverManager(this, networkConnectionMonitor)
         }
         wiFiCredentialsReceiverManager?.start()
     }
 
     private fun startFirebaseCredentialsReceiver() {
-        val intent = Intent(this, FirebaseCredentialsReceiverActivity::class.java)
-        startActivity(intent)
-        //finish()
+        if (firebaseCredentialsReceiverManager == null) {
+            firebaseCredentialsReceiverManager = FirebaseCredentialsReceiverManager(this, {
+                loginFirebase()
+            })
+        }
+        firebaseCredentialsReceiverManager?.start()
     }
 
     override fun onStart() {
         Timber.d("onStart")
         super.onStart()
-        if (secureStorage.isAuthenticated()) {
-            authentication.addLoginResultListener(loginResultListener)
-            authentication.login(secureStorage.firebaseCredentials)
-        }
+        loginFirebase()
 
         // lightLiveData is registered after successful login
 
@@ -297,6 +293,12 @@ class ThingsActivity : AppCompatActivity() {
                         event.startTracking()
                         return true
                     }
+                    50 -> {
+                        Timber.d("onKeyDown very long press")
+                        startFirebaseCredentialsReceiver()
+                        ledB.setValue(false)
+                        return true
+                    }
                 }
             }
             KEYCODE_C -> {
@@ -352,6 +354,13 @@ class ThingsActivity : AppCompatActivity() {
             }
         }
         return super.onKeyUp(keyCode, event)
+    }
+
+    private fun loginFirebase() {
+        if (secureStorage.isAuthenticated()) {
+            authentication.addLoginResultListener(loginResultListener)
+            authentication.login(secureStorage.firebaseCredentials)
+        }
     }
 
     private fun observeLightsData() {
