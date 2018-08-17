@@ -24,5 +24,9 @@
         android:id="@+id/add_storage_home_unit_fragment"
         android:title="Add Storage"/>
 
+    <item
+        android:id="@+id/settings_fragment"
+        android:title="Settings"/>
+
 
 </menu>

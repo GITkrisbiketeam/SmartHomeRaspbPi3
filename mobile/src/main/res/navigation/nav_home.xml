@@ -32,7 +32,7 @@
             app:enterAnim="@anim/slide_in_right"
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
-            app:popExitAnim="@anim/slide_out_right" />-->
+            app:popExitAnim="@anim/slide_out_right" />
     </fragment>
 
     <fragment
@@ -51,4 +51,24 @@
         android:label="add_storage_home_unit_title"
         tools:layout="@layout/fragment_add_storage_home_unit" />
 
+    <fragment
+        android:id="@+id/settings_fragment"
+        android:name="com.krisbiketeam.smarthomeraspbpi3.ui.SettingsFragment"
+        android:label="settings_title"
+        tools:layout="@layout/fragment_settings">
+
+        <action
+            android:id="@+id/action_settings_fragment_to_wifi_settings_fragment"
+            app:destination="@id/wifi_settings_fragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/wifi_settings_fragment"
+        android:name="com.krisbiketeam.smarthomeraspbpi3.ui.WifiSettingsFragment"
+        android:label="wifi_settings_title"
+        tools:layout="@layout/fragment_settings_wifi" />
 </navigation>

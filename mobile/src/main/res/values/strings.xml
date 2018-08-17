@@ -22,7 +22,7 @@
     <string name="button_login_text">Login</string>
     <string name="button_clear_log_text">Clear Log</string>
     <string name="add_storage_home_unit">Add Home Unit</string>
-
+    <string name="settings_wifi_fragment_key">wifi_screen_key</string>
 
 
 </resources>

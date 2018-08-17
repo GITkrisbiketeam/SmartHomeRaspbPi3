@@ -166,9 +166,9 @@ class ThingsActivity : AppCompatActivity() {
 
     private fun startFirebaseCredentialsReceiver() {
         if (firebaseCredentialsReceiverManager == null) {
-            firebaseCredentialsReceiverManager = FirebaseCredentialsReceiverManager(this, {
+            firebaseCredentialsReceiverManager = FirebaseCredentialsReceiverManager(this) {
                 loginFirebase()
-            })
+            }
         }
         firebaseCredentialsReceiverManager?.start()
     }

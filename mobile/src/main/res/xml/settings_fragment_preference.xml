@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <Preference
+        android:key="@string/settings_wifi_fragment_key"
+        android:title="Setup remote device WiFI"
+        android:persistent="false"
+        android:fragment="com.krisbiketeam.smarthomeraspbpi3.ui.WifiSettingsFragment">
+    </Preference>
+</PreferenceScreen>

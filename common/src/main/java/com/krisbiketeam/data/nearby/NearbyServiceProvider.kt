@@ -14,6 +14,7 @@ private const val NICK_NAME = "SmartHome Raspberry Pi3"
 private const val SERVICE_ID = "com.krisbiketeam.smarthomeraspbpi3"
 private const val CLIENT_ID = "clientId"
 
+//TODO: Add Stop/Pause/Resume
 class NearbyServiceProvider(private val context: Context) : NearbyService {
 
     private val moshi = Moshi.Builder().build()
