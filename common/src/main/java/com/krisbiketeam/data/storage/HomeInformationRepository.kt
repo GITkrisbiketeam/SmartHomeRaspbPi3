@@ -90,7 +90,7 @@ object FirebaseHomeInformationRepository : HomeInformationRepository {
     private val roomsLiveData: RoomListLiveData
 
     init {
-        // Enable offline this caauses some huge delays :(
+        // Enable offline this causes some huge delays :(
         //FirebaseDatabase.getInstance().setPersistenceEnabled(true)
 
         // Obsolete Code Start

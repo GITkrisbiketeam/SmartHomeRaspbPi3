@@ -1,10 +1,12 @@
 package com.krisbiketeam.smarthomeraspbpi3.ui
 
-import android.animation.Animator
-import android.animation.AnimatorListenerAdapter
+import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.databinding.DataBindingUtil
+import android.databinding.OnRebindCallback
+import android.databinding.ViewDataBinding
 import android.os.Bundle
+import android.support.transition.TransitionManager
 import android.support.v4.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -13,29 +15,19 @@ import android.view.inputmethod.EditorInfo
 import android.widget.TextView
 import androidx.navigation.Navigation
 import com.krisbiketeam.data.auth.WifiCredentials
-import com.krisbiketeam.data.nearby.NearbyService
 import com.krisbiketeam.data.nearby.NearbyServiceProvider
+import com.krisbiketeam.data.nearby.WifiSettingsState
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentSettingsWifiBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.WifiSettingsViewModel
+import com.krisbiketeam.smarthomeraspbpi3.viewmodels.WifiSettingsViewModelFactory
 import timber.log.Timber
+
 
 //TODO: Add nearByService Stop/Pause on Lifecycle Pause/Stop
 class WifiSettingsFragment : Fragment() {
-    private lateinit var nearByService: NearbyService
     private lateinit var binding: FragmentSettingsWifiBinding
-
-    private val dataSendResultListener = object : NearbyService.DataSendResultListener {
-        override fun onSuccess() {
-            //secureStorage.saveFirebaseCredentials(FirebaseCredentials(ssid.text.toString(), password.text.toString()))
-            toMainActivity()
-        }
-
-        override fun onFailure(exception: Exception) {
-            onError(exception)
-        }
-
-    }
+    private lateinit var wifiSettingsViewModel: WifiSettingsViewModel
 
     override fun onCreateView(
             inflater: LayoutInflater,
@@ -43,10 +35,9 @@ class WifiSettingsFragment : Fragment() {
             savedInstanceState: Bundle?
     ): View? {
 
-        nearByService = NearbyServiceProvider(context!!)
-        nearByService.dataSendResultListener(dataSendResultListener)
-
-        val wifiSettingsViewModel = ViewModelProviders.of(this)
+        //TODO: move to InjectorUtils or better use DI with Dagger
+        val factory = WifiSettingsViewModelFactory(NearbyServiceProvider(context!!))
+        wifiSettingsViewModel = ViewModelProviders.of(this, factory)
                 .get(WifiSettingsViewModel::class.java)
 
         binding = DataBindingUtil.inflate<FragmentSettingsWifiBinding>(
@@ -62,8 +53,44 @@ class WifiSettingsFragment : Fragment() {
             })
 
             wifiConnectButton.setOnClickListener { attemptRemoteConnect() }
+
+            addOnRebindCallback(object : OnRebindCallback<ViewDataBinding>() {
+                override fun onPreBind(binding: ViewDataBinding?): Boolean {
+                    Timber.d("onPreBind")
+                    TransitionManager.beginDelayedTransition(
+                            binding!!.root as ViewGroup)
+                    return super.onPreBind(binding)
+                }
+            })
+
             setLifecycleOwner(this@WifiSettingsFragment)
         }
+
+        wifiSettingsViewModel.state.observe(this, Observer { pair ->
+            pair?.let { (state, data) ->
+
+                when (state) {
+                    WifiSettingsState.ERROR -> {
+                        if (data is Exception) {
+                            Timber.e(data, "Request failed")
+                        }
+                        binding.password.error = getString(R.string.error_incorrect_password)
+                        binding.password.requestFocus()
+                    }
+
+                    WifiSettingsState.INIT -> {
+                    }
+                    WifiSettingsState.CONNECTING -> {
+                    }
+                    WifiSettingsState.DONE -> {
+                        activity?.let {
+                            Navigation.findNavController(it, R.id.home_nav_fragment).navigateUp()
+                        }
+                    }
+                }
+            }
+        })
+
 
         return binding.root
     }
@@ -97,8 +124,7 @@ class WifiSettingsFragment : Fragment() {
         if (cancel) {
             focusView?.requestFocus()
         } else {
-            showProgress(true)
-            nearByService.sendData(WifiCredentials(ssidStr, passwordStr))
+            wifiSettingsViewModel.sendData(WifiCredentials(ssidStr, passwordStr))
         }
     }
 
@@ -109,43 +135,4 @@ class WifiSettingsFragment : Fragment() {
     private fun isPasswordValid(password: String): Boolean {
         return password.isNotEmpty() && password.length > 8
     }
-
-    private fun showProgress(show: Boolean) {
-        val shortAnimTime = resources.getInteger(android.R.integer.config_shortAnimTime).toLong()
-
-        binding.wifiLoginForm.visibility = if (show) View.GONE else View.VISIBLE
-        binding.wifiLoginForm.animate()
-                .setDuration(shortAnimTime)
-                .alpha((if (show) 0 else 1).toFloat())
-                .setListener(object : AnimatorListenerAdapter() {
-                    override fun onAnimationEnd(animation: Animator) {
-                        binding.wifiLoginForm.visibility = if (show) View.GONE else View.VISIBLE
-                    }
-                })
-
-        binding.wifiProgress.visibility = if (show) View.VISIBLE else View.GONE
-        binding.wifiProgress.animate()
-                .setDuration(shortAnimTime)
-                .alpha((if (show) 1 else 0).toFloat())
-                .setListener(object : AnimatorListenerAdapter() {
-                    override fun onAnimationEnd(animation: Animator) {
-                        binding.wifiProgress.visibility = if (show) View.VISIBLE else View.GONE
-                    }
-                })
-    }
-
-    private fun onError(exception: Exception) {
-        Timber.e(exception, "Request failed")
-        binding.password.error = getString(R.string.error_incorrect_password)
-        binding.password.requestFocus()
-        showProgress(false)
-    }
-
-
-    private fun toMainActivity() {
-        activity?.let {
-            Navigation.findNavController(it, R.id.home_nav_fragment).navigateUp()
-        }
-    }
-
 }

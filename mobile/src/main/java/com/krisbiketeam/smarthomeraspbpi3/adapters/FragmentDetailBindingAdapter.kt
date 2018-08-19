@@ -18,6 +18,10 @@ package com.krisbiketeam.smarthomeraspbpi3.adapters
 
 import android.databinding.BindingAdapter
 import android.support.design.widget.FloatingActionButton
+import android.view.View
+import android.widget.ProgressBar
+import com.krisbiketeam.data.nearby.WifiSettingsState
+import timber.log.Timber
 
 
 /*@BindingAdapter("imageFromUrl")
@@ -33,6 +37,23 @@ fun imageFromUrl(view: ImageView, imageUrl: String?) {
 @BindingAdapter("showIf")
 fun showIf(view: FloatingActionButton, isShow: Boolean?) {
     if (isShow == null || isShow) view.show() else view.hide()
+}
+
+@BindingAdapter("stateBasedVisibility")
+fun stateBasedVisibility(view: View, pair: Pair<WifiSettingsState, Any>?) {
+    Timber.d("stateBasedVisibility pair: $pair; view: $view")
+    pair?.let {
+        when (it.first) {
+            WifiSettingsState.CONNECTING -> {
+                view.visibility = if (view is ProgressBar) View.VISIBLE else View.GONE
+            }
+            WifiSettingsState.INIT,
+            WifiSettingsState.ERROR,
+            WifiSettingsState.DONE -> {
+                view.visibility = if (view is ProgressBar) View.GONE else View.VISIBLE
+            }
+        }
+    }
 }
 
 /*

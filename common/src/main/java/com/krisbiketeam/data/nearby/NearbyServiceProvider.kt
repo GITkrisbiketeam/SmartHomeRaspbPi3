@@ -16,7 +16,6 @@ private const val CLIENT_ID = "clientId"
 
 //TODO: Add Stop/Pause/Resume
 class NearbyServiceProvider(private val context: Context) : NearbyService {
-
     private val moshi = Moshi.Builder().build()
     private var dataSendResultListener: NearbyService.DataSendResultListener? = null
     private var dataReceiverListener: NearbyService.DataReceiverListener? = null
@@ -101,6 +100,34 @@ class NearbyServiceProvider(private val context: Context) : NearbyService {
                     dataSendResultListener = null
                 }
             }
+        }
+    }
+
+    override fun stop() {
+        Timber.d("stop")
+        pause()
+        dataSendResultListener = null
+        dataReceiverListener = null
+        dataToBeSent = null
+    }
+
+    override fun pause() {
+        Timber.d("pause")
+        Nearby.getConnectionsClient(context).stopAdvertising()
+        Nearby.getConnectionsClient(context).stopDiscovery()
+        Nearby.getConnectionsClient(context).stopAllEndpoints()
+    }
+
+    override fun resume() {
+        dataSendResultListener?.let {
+            dataToBeSent?.let{
+                Timber.d("resume")
+                startDiscovery()
+            }
+        }
+        dataReceiverListener?.let{
+            Timber.d("resume")
+            startAdvertising()
         }
     }
 

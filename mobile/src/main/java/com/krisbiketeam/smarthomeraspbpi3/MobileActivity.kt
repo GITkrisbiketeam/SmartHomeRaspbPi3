@@ -96,7 +96,7 @@ class MobileActivity : AppCompatActivity() {
             secureStorage.isAuthenticated() -> {
                 authentication.login(secureStorage.firebaseCredentials)
             }
-            else -> throw Exception("You should have credentials!")
+            else -> Timber.d("You should have credentials!")
         }
         lightToggle.isActivated = true
         observeLightsData()

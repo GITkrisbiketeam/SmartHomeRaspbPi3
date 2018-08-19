@@ -6,6 +6,9 @@ interface NearbyService {
     fun dataSendResultListener(dataSendResultListener: DataSendResultListener)
     fun dataReceivedListener(dataReceiverListener: DataReceiverListener)
     fun isActive(): Boolean
+    fun stop()
+    fun pause()
+    fun resume()
 
     interface DataSendResultListener {
         fun onSuccess()

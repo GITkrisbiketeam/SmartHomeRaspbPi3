@@ -45,8 +45,9 @@ class LoginActivity : AppCompatActivity() {
 
     private val loginResultListener = object : Authentication.LoginResultListener {
         override fun success() {
-            Timber.d("Firebase Login sucessfull")
+            Timber.d("Firebase Login successful")
             nearByService.sendData(FirebaseCredentials(ssid.text.toString(), password.text.toString()))
+            secureStorage.firebaseCredentials = FirebaseCredentials(ssid.text.toString(), password.text.toString())
         }
 
         override fun failed(exception: Exception) {
@@ -57,8 +58,7 @@ class LoginActivity : AppCompatActivity() {
 
     private val dataSendResultListener = object : NearbyService.DataSendResultListener {
         override fun onSuccess() {
-            Timber.d("Near credentials transfer sucess")
-            secureStorage.firebaseCredentials = FirebaseCredentials(ssid.text.toString(), password.text.toString())
+            Timber.d("Near credentials transfer success")
             toMainActivity()
         }
 
