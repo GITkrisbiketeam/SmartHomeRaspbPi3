@@ -1,7 +1,6 @@
 package com.krisbiketeam.smarthomeraspbpi3.ui
 
 import android.arch.lifecycle.Observer
-import android.arch.lifecycle.ViewModelProviders
 import android.databinding.DataBindingUtil
 import android.os.Bundle
 import android.support.v4.app.Fragment
@@ -11,8 +10,10 @@ import com.krisbiketeam.data.storage.dto.StorageUnit
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.adapters.StorageUnitListAdapter
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentRoomDetailBinding
-import com.krisbiketeam.smarthomeraspbpi3.utilities.InjectorUtils
+import com.krisbiketeam.smarthomeraspbpi3.di.Params.ROOM_NAME
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.RoomDetailViewModel
+import org.koin.android.architecture.ext.getViewModel
+import org.koin.android.ext.android.setProperty
 import timber.log.Timber
 
 /**
@@ -27,11 +28,9 @@ class RoomDetailFragment : Fragment() {
             container: ViewGroup?,
             savedInstanceState: Bundle?
     ): View? {
-        val roomName = RoomDetailFragmentArgs.fromBundle(arguments).roomName
-
-        val factory = InjectorUtils.provideRoomDetailViewModelFactory(roomName)
-        roomDetailViewModel = ViewModelProviders.of(this, factory)
-                .get(RoomDetailViewModel::class.java)
+        // set ROOM_NAME property fo Koin injection
+        setProperty(ROOM_NAME, RoomDetailFragmentArgs.fromBundle(arguments).roomName)
+        roomDetailViewModel = getViewModel()
 
         val binding: FragmentRoomDetailBinding = DataBindingUtil.inflate<FragmentRoomDetailBinding>(
                 inflater, R.layout.fragment_room_detail, container, false).apply {

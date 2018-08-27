@@ -10,18 +10,17 @@ import android.view.inputmethod.EditorInfo
 import android.widget.TextView
 import com.krisbiketeam.data.auth.WifiCredentials
 import com.krisbiketeam.data.nearby.NearbyService
-import com.krisbiketeam.data.nearby.NearbyServiceProvider
 import kotlinx.android.synthetic.main.activity_wifi.*
+import org.koin.android.ext.android.inject
 import timber.log.Timber
 
 class WifiActivity : AppCompatActivity() {
-    private lateinit var nearByService: NearbyService
+    private val nearByService: NearbyService by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_wifi)
 
-        nearByService = NearbyServiceProvider(this)
         nearByService.dataSendResultListener(dataSendResultListener)
 
         password.setOnEditorActionListener(TextView.OnEditorActionListener { _, id, _ ->

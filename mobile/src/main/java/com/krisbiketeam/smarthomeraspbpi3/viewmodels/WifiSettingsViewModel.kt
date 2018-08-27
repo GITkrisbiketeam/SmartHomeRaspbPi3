@@ -17,6 +17,10 @@ class WifiSettingsViewModel(nearbyService: NearbyService) : ViewModel() {
     var password: MutableLiveData<String> = MutableLiveData()
     val state: NearbyServiceLiveData = NearbyServiceLiveData(nearbyService)
 
+    init{
+        Timber.d("init")
+    }
+
     fun sendData(data: Any) {
         Timber.d("sendData")
         state.value = Pair(WifiSettingsState.CONNECTING, data)

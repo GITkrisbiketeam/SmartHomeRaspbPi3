@@ -7,19 +7,19 @@ import android.os.Bundle
 import android.support.v4.app.ActivityCompat
 import android.support.v7.app.AppCompatActivity
 import android.widget.Toast
-import com.krisbiketeam.data.storage.NotSecureStorage
+import com.krisbiketeam.data.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.ui.HomeActivity
+import org.koin.android.ext.android.inject
 
 private const val PERMISSION_REQUEST_ID = 999
 
 class LoadActivity : AppCompatActivity() {
 
-    private lateinit var secureStorage: NotSecureStorage
+    private val secureStorage: SecureStorage by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        secureStorage = NotSecureStorage(this)
         requestPermissions()
     }
 

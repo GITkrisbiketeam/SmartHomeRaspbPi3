@@ -1,7 +1,6 @@
 package com.krisbiketeam.smarthomeraspbpi3.ui
 
 import android.arch.lifecycle.Observer
-import android.arch.lifecycle.ViewModelProviders
 import android.databinding.DataBindingUtil
 import android.databinding.OnRebindCallback
 import android.databinding.ViewDataBinding
@@ -15,30 +14,22 @@ import android.view.inputmethod.EditorInfo
 import android.widget.TextView
 import androidx.navigation.Navigation
 import com.krisbiketeam.data.auth.WifiCredentials
-import com.krisbiketeam.data.nearby.NearbyServiceProvider
 import com.krisbiketeam.data.nearby.WifiSettingsState
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentSettingsWifiBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.WifiSettingsViewModel
-import com.krisbiketeam.smarthomeraspbpi3.viewmodels.WifiSettingsViewModelFactory
+import org.koin.android.architecture.ext.viewModel
 import timber.log.Timber
 
-
-//TODO: Add nearByService Stop/Pause on Lifecycle Pause/Stop
 class WifiSettingsFragment : Fragment() {
     private lateinit var binding: FragmentSettingsWifiBinding
-    private lateinit var wifiSettingsViewModel: WifiSettingsViewModel
+    private val wifiSettingsViewModel by viewModel<WifiSettingsViewModel>()
 
     override fun onCreateView(
             inflater: LayoutInflater,
             container: ViewGroup?,
             savedInstanceState: Bundle?
     ): View? {
-
-        //TODO: move to InjectorUtils or better use DI with Dagger
-        val factory = WifiSettingsViewModelFactory(NearbyServiceProvider(context!!))
-        wifiSettingsViewModel = ViewModelProviders.of(this, factory)
-                .get(WifiSettingsViewModel::class.java)
 
         binding = DataBindingUtil.inflate<FragmentSettingsWifiBinding>(
                 inflater, R.layout.fragment_settings_wifi, container, false).apply {
@@ -115,10 +106,6 @@ class WifiSettingsFragment : Fragment() {
             binding.ssid.error = getString(R.string.error_field_required)
             focusView = binding.ssid
             cancel = true
-        } else if (!isSsidValid(ssidStr)) {
-            binding.ssid.error = getString(R.string.error_invalid_email)
-            focusView = binding.ssid
-            cancel = true
         }
 
         if (cancel) {
@@ -126,10 +113,6 @@ class WifiSettingsFragment : Fragment() {
         } else {
             wifiSettingsViewModel.sendData(WifiCredentials(ssidStr, passwordStr))
         }
-    }
-
-    private fun isSsidValid(email: String): Boolean {
-        return true//email.contains("@")
     }
 
     private fun isPasswordValid(password: String): Boolean {

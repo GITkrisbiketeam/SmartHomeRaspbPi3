@@ -6,21 +6,24 @@ import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import com.krisbiketeam.data.auth.Authentication
-import com.krisbiketeam.data.auth.FirebaseAuthentication
-import com.krisbiketeam.data.storage.*
-import com.krisbiketeam.data.storage.obsolete.HomeInformation
+import com.krisbiketeam.data.storage.ChildEventType
+import com.krisbiketeam.data.storage.FirebaseHomeInformationRepository
+import com.krisbiketeam.data.storage.SecureStorage
 import com.krisbiketeam.data.storage.StorageUnitsLiveData
 import com.krisbiketeam.data.storage.dto.StorageUnit
+import com.krisbiketeam.data.storage.obsolete.HomeInformation
 import kotlinx.android.synthetic.main.activity_mobile.*
+import org.koin.android.ext.android.inject
 import timber.log.Timber
 import java.util.*
 
 
 class MobileActivity : AppCompatActivity() {
 
-    private lateinit var authentication: Authentication
+    private val authentication: Authentication by inject()
+    private val secureStorage: SecureStorage by inject()
+
     private lateinit var lightsLiveData: LiveData<HomeInformation>
-    private lateinit var secureStorage: SecureStorage
     private lateinit var storageUnitsLiveData: StorageUnitsLiveData
 
     // Mobile Activity
@@ -41,8 +44,6 @@ class MobileActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_mobile)
 
-        secureStorage = NotSecureStorage(this)
-        authentication = FirebaseAuthentication()
         lightsLiveData = FirebaseHomeInformationRepository.lightLiveData()
         storageUnitsLiveData = FirebaseHomeInformationRepository.storageUnitsLiveData()
 

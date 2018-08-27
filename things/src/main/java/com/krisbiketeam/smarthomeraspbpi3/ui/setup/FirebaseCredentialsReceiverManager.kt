@@ -13,8 +13,17 @@ import timber.log.Timber
 class FirebaseCredentialsReceiverManager(activity: Activity, gotCredentials: () -> Unit) {
 
     private val moshi = Moshi.Builder().build()
-    private lateinit var nearbyService: NearbyService
-    private lateinit var secureStorage: SecureStorage
+    private var nearbyService: NearbyService
+    private var secureStorage: SecureStorage
+
+    init {
+        Timber.d("onCreate")
+
+        secureStorage = NotSecureStorage(activity)
+
+        //TODO: we need to distinguish nearby connection for WiFi credentials and Firebase credentials
+        nearbyService = NearbyServiceProvider(activity)
+    }
 
     private val dataReceiverListener = object : NearbyService.DataReceiverListener {
         override fun onDataReceived(data: ByteArray?) {
@@ -30,15 +39,6 @@ class FirebaseCredentialsReceiverManager(activity: Activity, gotCredentials: () 
                 }
             }
         }
-    }
-
-    init {
-        Timber.d("onCreate")
-
-        secureStorage = NotSecureStorage(activity)
-
-        //TODO: we need to distinguish nearby connection for WiFi credentials and Firebase credentials
-        nearbyService = NearbyServiceProvider(activity)
     }
 
     fun start() {

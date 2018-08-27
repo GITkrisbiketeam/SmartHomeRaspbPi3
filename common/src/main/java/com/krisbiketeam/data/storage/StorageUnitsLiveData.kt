@@ -34,7 +34,7 @@ class StorageUnitsLiveData(private val databaseReference: DatabaseReference, pri
                 unit?.let {
                     Timber.d("onChildAdded (roomName=$roomName)(unit.room=${it.room})")
                     if (roomName == null || roomName == it.room) {
-                        // We need to create new Storage unit as the one returned from GenericTypeIndicator is covariant
+                        // We need to create new SecureStorage unit as the one returned from GenericTypeIndicator is covariant
                         //value = ChildEventType.NODE_ACTION_ADDED to StorageUnit(it.name, it.firebaseTableName, it.room, it.hardwareUnitName, it.value, it.unitsTasks)//StorageUnit<Any>(it)
                         value = ChildEventType.NODE_ACTION_ADDED to it.makeInvariant()
                     }

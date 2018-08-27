@@ -15,7 +15,6 @@ import com.krisbiketeam.data.storage.dto.StorageUnit
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.adapters.StorageUnitListAdapter
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentRoomDetailBinding
-import com.krisbiketeam.smarthomeraspbpi3.utilities.InjectorUtils
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.RoomDetailViewModel
 import timber.log.Timber
 

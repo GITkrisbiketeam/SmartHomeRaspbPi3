@@ -10,26 +10,22 @@ import android.view.inputmethod.EditorInfo
 import android.widget.TextView
 import com.krisbiketeam.data.auth.Authentication
 import com.krisbiketeam.data.auth.FirebaseCredentials
-import com.krisbiketeam.data.auth.FirebaseAuthentication
 import com.krisbiketeam.data.nearby.NearbyService
-import com.krisbiketeam.data.nearby.NearbyServiceProvider
-import com.krisbiketeam.data.storage.NotSecureStorage
 import com.krisbiketeam.data.storage.SecureStorage
 import kotlinx.android.synthetic.main.activity_login.*
+import org.koin.android.ext.android.inject
 import timber.log.Timber
 
 class LoginActivity : AppCompatActivity() {
-    private lateinit var authentication: Authentication
-    private lateinit var secureStorage: SecureStorage
-    private lateinit var nearByService: NearbyService
+    private val authentication: Authentication by inject()
+    private val secureStorage: SecureStorage by inject()
+
+    private val nearByService: NearbyService by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
-        authentication = FirebaseAuthentication()
-        secureStorage = NotSecureStorage(this)
-        nearByService = NearbyServiceProvider(this)
         nearByService.dataSendResultListener(dataSendResultListener)
 
         password.setOnEditorActionListener(TextView.OnEditorActionListener { _, id, _ ->

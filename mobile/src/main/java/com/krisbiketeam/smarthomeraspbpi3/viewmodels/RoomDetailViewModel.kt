@@ -5,6 +5,7 @@ import com.krisbiketeam.data.storage.HomeInformationRepository
 import com.krisbiketeam.data.storage.StorageUnitsLiveData
 import com.krisbiketeam.data.storage.dto.Room
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomDetailFragment
+import timber.log.Timber
 
 
 /**
@@ -21,6 +22,8 @@ class RoomDetailViewModel(
 
 
     init {
+        Timber.d("init")
+
         room = homeRepository.roomLiveData(roomName)
         storageUnits = homeRepository.storageUnitsLiveData(roomName)
         isEditMode.value = false

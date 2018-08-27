@@ -7,6 +7,7 @@ import android.arch.lifecycle.ViewModel
 import com.krisbiketeam.data.storage.HomeInformationRepository
 import com.krisbiketeam.data.storage.dto.Room
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomListFragment
+import timber.log.Timber
 
 /**
  * The ViewModel for [RoomListFragment].
@@ -22,6 +23,8 @@ class RoomListViewModel internal constructor(
     private val roomList = MediatorLiveData<List<Room>>()
 
     init {
+        Timber.d("init")
+
         growZoneNumber.value = NO_GROW_ZONE
 
         val livePlantList = Transformations.switchMap(growZoneNumber) {

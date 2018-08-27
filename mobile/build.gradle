@@ -55,6 +55,8 @@ dependencies {
     implementation "android.arch.navigation:navigation-ui-ktx:$navigationVersion"
     implementation "androidx.core:core-ktx:$ktxVersion"
 
+    implementation 'org.koin:koin-android-architecture:0.9.3'
+
     implementation "com.jakewharton.timber:timber:$timberVersion"
 
     testImplementation "junit:junit:$junitVersion"
