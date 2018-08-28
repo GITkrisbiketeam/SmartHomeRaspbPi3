@@ -15,11 +15,14 @@ private const val SERVICE_ID = "com.krisbiketeam.smarthomeraspbpi3"
 private const val CLIENT_ID = "clientId"
 
 //TODO: Add Stop/Pause/Resume
-class NearbyServiceProvider(private val context: Context) : NearbyService {
-    private val moshi = Moshi.Builder().build()
+class NearbyServiceProvider(private val context: Context, private val moshi: Moshi) : NearbyService {
     private var dataSendResultListener: NearbyService.DataSendResultListener? = null
     private var dataReceiverListener: NearbyService.DataReceiverListener? = null
     private var dataToBeSent: String? = null
+
+    init {
+        Timber.d("init")
+    }
 
     private val endpointDiscoveryCallback = object : EndpointDiscoveryCallback() {
         override fun onEndpointFound(endpointId: String, info: DiscoveredEndpointInfo) {

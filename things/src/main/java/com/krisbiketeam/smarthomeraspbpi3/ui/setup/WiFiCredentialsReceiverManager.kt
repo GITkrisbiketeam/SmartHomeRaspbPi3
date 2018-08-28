@@ -51,7 +51,7 @@ class WiFiCredentialsReceiverManager(activity: Activity, networkConnectionMonito
             Timber.d("init we are already connected")
         }
 
-        nearbyService = NearbyServiceProvider(activity)
+        nearbyService = NearbyServiceProvider(activity, moshi)
     }
 
     fun start() {

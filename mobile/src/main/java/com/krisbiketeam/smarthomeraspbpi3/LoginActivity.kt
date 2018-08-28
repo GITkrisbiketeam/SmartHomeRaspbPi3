@@ -66,7 +66,7 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun attemptLogin() {
-        //secureStorage.firebaseCredentials = FirebaseCredentials(ssid.text.toString(), password.text.toString())
+        //secureStorage.firebaseCredentials = FirebaseCredentials(email.text.toString(), password.text.toString())
 
         ssid.error = null
         password.error = null

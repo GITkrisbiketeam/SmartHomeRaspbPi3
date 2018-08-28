@@ -64,6 +64,14 @@
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
             app:popExitAnim="@anim/slide_out_right" />
+
+        <action
+            android:id="@+id/action_settings_fragment_to_login_settings_fragment"
+            app:destination="@id/login_settings_fragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
     </fragment>
 
     <fragment
@@ -71,4 +79,10 @@
         android:name="com.krisbiketeam.smarthomeraspbpi3.ui.WifiSettingsFragment"
         android:label="wifi_settings_title"
         tools:layout="@layout/fragment_settings_wifi" />
+
+    <fragment
+        android:id="@+id/login_settings_fragment"
+        android:name="com.krisbiketeam.smarthomeraspbpi3.ui.LoginSettingsFragment"
+        android:label="login_settings_title"
+        tools:layout="@layout/fragment_settings_login" />
 </navigation>

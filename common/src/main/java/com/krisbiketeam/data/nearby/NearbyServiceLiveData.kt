@@ -5,59 +5,65 @@ import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.Observer
 import timber.log.Timber
 
-enum class WifiSettingsState {
+enum class NearbySettingsState {
     INIT,
     CONNECTING,
     ERROR,
     DONE
 }
 
-class NearbyServiceLiveData(private val nearbyService: NearbyService) : LiveData<Pair<WifiSettingsState, Any>>() {
-    private var state: WifiSettingsState = WifiSettingsState.INIT
+class NearbyServiceLiveData(private val nearbyService: NearbyService) : LiveData<Pair<NearbySettingsState, Any>>() {
+    private var state: NearbySettingsState = NearbySettingsState.INIT
+    private var data: Any = Unit
+
+    init {
+        Timber.d("init")
+    }
 
     private val dataSendResultListener = object : NearbyService.DataSendResultListener {
         override fun onSuccess() {
-            value = Pair(WifiSettingsState.DONE, "")
+            value = Pair(NearbySettingsState.DONE, Unit)
         }
 
         override fun onFailure(exception: Exception) {
-            value = Pair(WifiSettingsState.ERROR, exception)
+            value = Pair(NearbySettingsState.ERROR, exception)
         }
     }
 
-    override fun observe(owner: LifecycleOwner, observer: Observer<Pair<WifiSettingsState, Any>>) {
+    override fun observe(owner: LifecycleOwner, observer: Observer<Pair<NearbySettingsState, Any>>) {
         nearbyService.dataSendResultListener(dataSendResultListener)
         super.observe(owner, observer)
     }
 
-    override fun observeForever(observer: Observer<Pair<WifiSettingsState, Any>>) {
+    override fun observeForever(observer: Observer<Pair<NearbySettingsState, Any>>) {
         nearbyService.dataSendResultListener(dataSendResultListener)
         super.observeForever(observer)
     }
 
-    override fun getValue(): Pair<WifiSettingsState, Any>? {
-        return Pair(state, "")
+    override fun getValue(): Pair<NearbySettingsState, Any>? {
+        return Pair(state, data)
     }
 
-    public override fun setValue(pair: Pair<WifiSettingsState, Any>?) {
+    public override fun setValue(pair: Pair<NearbySettingsState, Any>?) {
         Timber.d("setValue pair: $pair")
         pair?.let {
-            val (newState, data) = it
+            val (newState, newData) = it
             state = newState
+            data = newData
             Timber.d("setValue state: $state")
-            when (state) {
-                WifiSettingsState.CONNECTING -> nearbyService.sendData(data)
+            when (newState) {
+                NearbySettingsState.CONNECTING -> nearbyService.sendData(newData)
             }
         }
-        super.setValue(value)
+        super.setValue(pair)
     }
 
     override fun onActive() {
-        nearbyService.pause()
+        nearbyService.resume()
     }
 
     override fun onInactive() {
-        nearbyService.resume()
+        nearbyService.pause()
     }
 
     fun onCleared() {

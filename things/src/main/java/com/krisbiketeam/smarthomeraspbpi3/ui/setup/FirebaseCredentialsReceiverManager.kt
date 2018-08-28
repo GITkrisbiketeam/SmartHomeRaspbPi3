@@ -22,7 +22,7 @@ class FirebaseCredentialsReceiverManager(activity: Activity, gotCredentials: () 
         secureStorage = NotSecureStorage(activity)
 
         //TODO: we need to distinguish nearby connection for WiFi credentials and Firebase credentials
-        nearbyService = NearbyServiceProvider(activity)
+        nearbyService = NearbyServiceProvider(activity, moshi)
     }
 
     private val dataReceiverListener = object : NearbyService.DataReceiverListener {

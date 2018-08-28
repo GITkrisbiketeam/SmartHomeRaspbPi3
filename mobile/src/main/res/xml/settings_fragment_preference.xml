@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <Preference
+        android:fragment="com.krisbiketeam.smarthomeraspbpi3.ui.WifiSettingsFragment"
         android:key="@string/settings_wifi_fragment_key"
-        android:title="Setup remote device WiFI"
         android:persistent="false"
-        android:fragment="com.krisbiketeam.smarthomeraspbpi3.ui.WifiSettingsFragment">
-    </Preference>
+        android:title="Setup remote device WiFI"></Preference>
+    <Preference
+        android:fragment="com.krisbiketeam.smarthomeraspbpi3.ui.LoginSettingsFragment"
+        android:key="@string/settings_login_fragment_key"
+        android:persistent="false"
+        android:title="Login to Firebase"></Preference>
 </PreferenceScreen>

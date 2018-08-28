@@ -102,7 +102,7 @@ class WifiActivity : AppCompatActivity() {
 
     private val dataSendResultListener = object : NearbyService.DataSendResultListener {
         override fun onSuccess() {
-            //secureStorage.saveFirebaseCredentials(FirebaseCredentials(ssid.text.toString(), password.text.toString()))
+            //secureStorage.saveFirebaseCredentials(FirebaseCredentials(email.text.toString(), password.text.toString()))
             toMainActivity()
         }
 

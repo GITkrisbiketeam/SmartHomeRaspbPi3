@@ -30,6 +30,8 @@ android {
     dataBinding {
         enabled = true
     }
+
+    useLibrary 'android.test.mock'
 }
 
 dependencies {
@@ -55,11 +57,17 @@ dependencies {
     implementation "android.arch.navigation:navigation-ui-ktx:$navigationVersion"
     implementation "androidx.core:core-ktx:$ktxVersion"
 
-    implementation 'org.koin:koin-android-architecture:0.9.3'
+    implementation "org.koin:koin-android-architecture:$koin_version"
 
     implementation "com.jakewharton.timber:timber:$timberVersion"
 
+    implementation "com.squareup.moshi:moshi:$moshiVersion"
+
     testImplementation "junit:junit:$junitVersion"
+
+    testImplementation "org.koin:koin-test:$koin_version"
+    testImplementation "org.mockito:mockito-core:$mockito_version"
+    testImplementation "android.arch.core:core-testing:$androidArchComponentsVersion"
 
     androidTestImplementation "com.android.support.test:runner:$testRunnerVersion"
     androidTestImplementation "com.android.support.test.espresso:espresso-core:$espressoVersion"

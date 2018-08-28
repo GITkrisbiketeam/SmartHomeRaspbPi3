@@ -13,17 +13,23 @@ import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.widget.TextView
 import androidx.navigation.Navigation
-import com.krisbiketeam.data.auth.WifiCredentials
+import com.krisbiketeam.data.auth.AuthenticationState
+import com.krisbiketeam.data.auth.FirebaseCredentials
 import com.krisbiketeam.data.nearby.NearbySettingsState
+import com.krisbiketeam.data.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.R
-import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentSettingsWifiBinding
-import com.krisbiketeam.smarthomeraspbpi3.viewmodels.WifiSettingsViewModel
+import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentSettingsLoginBinding
+import com.krisbiketeam.smarthomeraspbpi3.viewmodels.LoginSettingsViewModel
 import org.koin.android.architecture.ext.viewModel
+import org.koin.android.ext.android.inject
 import timber.log.Timber
 
-class WifiSettingsFragment : Fragment() {
-    private lateinit var binding: FragmentSettingsWifiBinding
-    private val wifiSettingsViewModel by viewModel<WifiSettingsViewModel>()
+class LoginSettingsFragment : Fragment() {
+    private lateinit var binding: FragmentSettingsLoginBinding
+    private val loginSettingsViewModel by viewModel<LoginSettingsViewModel>()
+
+    private val secureStorage: SecureStorage by inject()
+
 
     override fun onCreateView(
             inflater: LayoutInflater,
@@ -31,19 +37,19 @@ class WifiSettingsFragment : Fragment() {
             savedInstanceState: Bundle?
     ): View? {
 
-        binding = DataBindingUtil.inflate<FragmentSettingsWifiBinding>(
-                inflater, R.layout.fragment_settings_wifi, container, false).apply {
-            viewModel = wifiSettingsViewModel
+        binding = DataBindingUtil.inflate<FragmentSettingsLoginBinding>(
+                inflater, R.layout.fragment_settings_login, container, false).apply {
+            viewModel = loginSettingsViewModel
 
             password.setOnEditorActionListener(TextView.OnEditorActionListener { _, id, _ ->
                 if (id == EditorInfo.IME_ACTION_DONE || id == EditorInfo.IME_NULL) {
-                    attemptRemoteConnect()
+                    attemptLogin()
                     return@OnEditorActionListener true
                 }
                 false
             })
 
-            wifiConnectButton.setOnClickListener { attemptRemoteConnect() }
+            loginConnectButton.setOnClickListener { attemptLogin() }
 
             addOnRebindCallback(object : OnRebindCallback<ViewDataBinding>() {
                 override fun onPreBind(binding: ViewDataBinding?): Boolean {
@@ -54,10 +60,10 @@ class WifiSettingsFragment : Fragment() {
                 }
             })
 
-            setLifecycleOwner(this@WifiSettingsFragment)
+            setLifecycleOwner(this@LoginSettingsFragment)
         }
 
-        wifiSettingsViewModel.nearByState.observe(this, Observer { pair ->
+        loginSettingsViewModel.nearByState.observe(this, Observer { pair ->
             pair?.let { (state, data) ->
 
                 when (state) {
@@ -82,15 +88,46 @@ class WifiSettingsFragment : Fragment() {
             }
         })
 
+        loginSettingsViewModel.authentication.observe(this, Observer { pair ->
+            pair?.let { (state, data) ->
+
+                when (state) {
+                    AuthenticationState.ERROR -> {
+                        binding.password.error = getString(R.string.error_incorrect_password)
+                        binding.password.requestFocus()
+                    }
+
+                    AuthenticationState.INIT -> {
+                    }
+                    AuthenticationState.CONNECTING -> {
+                    }
+                    AuthenticationState.DONE -> {
+                        if (data is FirebaseCredentials) {
+                            secureStorage.firebaseCredentials = data
+                            if (loginSettingsViewModel.remoteLogin.value == true) {
+                                loginSettingsViewModel.sendData(data)
+                            } else {
+                                activity?.let {
+                                    Navigation.findNavController(it, R.id.home_nav_fragment)
+                                            .navigateUp()
+                                }
+                            }
+                        } else {
+                            Timber.e("DONE data is not FirebaseCredentials")
+                        }
+                    }
+                }
+            }
+        })
 
         return binding.root
     }
 
-    private fun attemptRemoteConnect() {
-        binding.ssid.error = null
+    private fun attemptLogin() {
+        binding.email.error = null
         binding.password.error = null
 
-        val ssidStr = binding.ssid.text.toString()
+        val emailStr = binding.email.text.toString()
         val passwordStr = binding.password.text.toString()
 
         var cancel = false
@@ -102,20 +139,28 @@ class WifiSettingsFragment : Fragment() {
             cancel = true
         }
 
-        if (ssidStr.isEmpty()) {
-            binding.ssid.error = getString(R.string.error_field_required)
-            focusView = binding.ssid
+        if (emailStr.isEmpty()) {
+            binding.email.error = getString(R.string.error_field_required)
+            focusView = binding.email
+            cancel = true
+        } else if (!isEmailValid(emailStr)) {
+            binding.email.error = getString(R.string.error_invalid_email)
+            focusView = binding.email
             cancel = true
         }
 
         if (cancel) {
             focusView?.requestFocus()
         } else {
-            wifiSettingsViewModel.sendData(WifiCredentials(ssidStr, passwordStr))
+            loginSettingsViewModel.login(FirebaseCredentials(emailStr, passwordStr))
         }
     }
 
     private fun isPasswordValid(password: String): Boolean {
         return password.isNotEmpty() && password.length > 8
+    }
+
+    private fun isEmailValid(email: String): Boolean {
+        return email.contains("@")
     }
 }

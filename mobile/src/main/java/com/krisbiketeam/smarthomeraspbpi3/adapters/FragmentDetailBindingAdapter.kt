@@ -20,7 +20,7 @@ import android.databinding.BindingAdapter
 import android.support.design.widget.FloatingActionButton
 import android.view.View
 import android.widget.ProgressBar
-import com.krisbiketeam.data.nearby.WifiSettingsState
+import com.krisbiketeam.data.nearby.NearbySettingsState
 import timber.log.Timber
 
 
@@ -40,16 +40,16 @@ fun showIf(view: FloatingActionButton, isShow: Boolean?) {
 }
 
 @BindingAdapter("stateBasedVisibility")
-fun stateBasedVisibility(view: View, pair: Pair<WifiSettingsState, Any>?) {
+fun stateBasedVisibility(view: View, pair: Pair<NearbySettingsState, Any>?) {
     Timber.d("stateBasedVisibility pair: $pair; view: $view")
     pair?.let {
         when (it.first) {
-            WifiSettingsState.CONNECTING -> {
+            NearbySettingsState.CONNECTING -> {
                 view.visibility = if (view is ProgressBar) View.VISIBLE else View.GONE
             }
-            WifiSettingsState.INIT,
-            WifiSettingsState.ERROR,
-            WifiSettingsState.DONE -> {
+            NearbySettingsState.INIT,
+            NearbySettingsState.ERROR,
+            NearbySettingsState.DONE -> {
                 view.visibility = if (view is ProgressBar) View.GONE else View.VISIBLE
             }
         }

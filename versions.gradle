@@ -28,11 +28,15 @@ ext {
 
 
     // Tooling
-    timberVersion = "4.6.1"
+    timberVersion = '4.6.1'
     moshiVersion = '1.5.0'
+
+    // Koin DI
+    koin_version = "0.9.3"
 
     // Testing
     junitVersion = '4.12'
     testRunnerVersion = '1.0.1'
     espressoVersion = '3.0.1'
+    mockito_version = '2.8.9'
 }
