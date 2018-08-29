@@ -3,17 +3,11 @@ package com.krisbiketeam.data.nearby
 import android.arch.lifecycle.LifecycleOwner
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.Observer
+import com.krisbiketeam.data.MyLiveDataState
 import timber.log.Timber
 
-enum class NearbySettingsState {
-    INIT,
-    CONNECTING,
-    ERROR,
-    DONE
-}
-
-class NearbyServiceLiveData(private val nearbyService: NearbyService) : LiveData<Pair<NearbySettingsState, Any>>() {
-    private var state: NearbySettingsState = NearbySettingsState.INIT
+class NearbyServiceLiveData(private val nearbyService: NearbyService) : LiveData<Pair<MyLiveDataState, Any>>() {
+    private var state: MyLiveDataState = MyLiveDataState.INIT
     private var data: Any = Unit
 
     init {
@@ -22,29 +16,29 @@ class NearbyServiceLiveData(private val nearbyService: NearbyService) : LiveData
 
     private val dataSendResultListener = object : NearbyService.DataSendResultListener {
         override fun onSuccess() {
-            value = Pair(NearbySettingsState.DONE, Unit)
+            value = Pair(MyLiveDataState.DONE, Unit)
         }
 
         override fun onFailure(exception: Exception) {
-            value = Pair(NearbySettingsState.ERROR, exception)
+            value = Pair(MyLiveDataState.ERROR, exception)
         }
     }
 
-    override fun observe(owner: LifecycleOwner, observer: Observer<Pair<NearbySettingsState, Any>>) {
+    override fun observe(owner: LifecycleOwner, observer: Observer<Pair<MyLiveDataState, Any>>) {
         nearbyService.dataSendResultListener(dataSendResultListener)
         super.observe(owner, observer)
     }
 
-    override fun observeForever(observer: Observer<Pair<NearbySettingsState, Any>>) {
+    override fun observeForever(observer: Observer<Pair<MyLiveDataState, Any>>) {
         nearbyService.dataSendResultListener(dataSendResultListener)
         super.observeForever(observer)
     }
 
-    override fun getValue(): Pair<NearbySettingsState, Any>? {
+    override fun getValue(): Pair<MyLiveDataState, Any>? {
         return Pair(state, data)
     }
 
-    public override fun setValue(pair: Pair<NearbySettingsState, Any>?) {
+    public override fun setValue(pair: Pair<MyLiveDataState, Any>?) {
         Timber.d("setValue pair: $pair")
         pair?.let {
             val (newState, newData) = it
@@ -52,7 +46,8 @@ class NearbyServiceLiveData(private val nearbyService: NearbyService) : LiveData
             data = newData
             Timber.d("setValue state: $state")
             when (newState) {
-                NearbySettingsState.CONNECTING -> nearbyService.sendData(newData)
+                MyLiveDataState.CONNECTING -> nearbyService.sendData(newData)
+                else -> Unit // Do noting
             }
         }
         super.setValue(pair)

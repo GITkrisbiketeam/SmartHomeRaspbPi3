@@ -3,18 +3,12 @@ package com.krisbiketeam.data.auth
 import android.arch.lifecycle.LifecycleOwner
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.Observer
+import com.krisbiketeam.data.MyLiveDataState
 import timber.log.Timber
 
-enum class AuthenticationState {
-    INIT,
-    CONNECTING,
-    ERROR,
-    DONE
-}
-
-class AuthenticationLiveData(private val authentication: Authentication) : LiveData<Pair<AuthenticationState, FirebaseCredentials?>>() {
-    private var state: AuthenticationState = AuthenticationState.INIT
-    private var data: FirebaseCredentials? = null
+class AuthenticationLiveData(private val authentication: Authentication) : LiveData<Pair<MyLiveDataState, Any>>() {
+    private var state: MyLiveDataState = MyLiveDataState.INIT
+    private var data: Any = Unit
 
     init {
         Timber.d("init")
@@ -22,52 +16,51 @@ class AuthenticationLiveData(private val authentication: Authentication) : LiveD
 
     private val loginResultListener = object : Authentication.LoginResultListener {
         override fun success() {
-            value = Pair(AuthenticationState.DONE, data)
+            value = Pair(MyLiveDataState.DONE, data)
         }
 
         override fun failed(exception: Exception) {
-            Timber.e(exception, "Request failed")
-            value = Pair(AuthenticationState.ERROR, null)
+            value = Pair(MyLiveDataState.ERROR, exception)
         }
     }
 
-    override fun observe(owner: LifecycleOwner, observer: Observer<Pair<AuthenticationState, FirebaseCredentials?>>) {
+    override fun observe(owner: LifecycleOwner, observer: Observer<Pair<MyLiveDataState, Any>>) {
         authentication.addLoginResultListener(loginResultListener)
         super.observe(owner, observer)
     }
 
-    override fun observeForever(observer: Observer<Pair<AuthenticationState, FirebaseCredentials?>>) {
+    override fun observeForever(observer: Observer<Pair<MyLiveDataState, Any>>) {
         authentication.addLoginResultListener(loginResultListener)
         super.observeForever(observer)
     }
 
-    override fun getValue(): Pair<AuthenticationState, FirebaseCredentials?> {
+    override fun getValue(): Pair<MyLiveDataState, Any> {
         return Pair(state, data)
     }
 
-    override fun postValue(pair: Pair<AuthenticationState, FirebaseCredentials?>?) {
+    override fun postValue(pair: Pair<MyLiveDataState, Any>?) {
         Timber.d("postValue")
         setValueInternal(pair)
 
         super.postValue(pair)
     }
 
-    public override fun setValue(pair: Pair<AuthenticationState, FirebaseCredentials?>?) {
+    public override fun setValue(pair: Pair<MyLiveDataState, Any>?) {
         Timber.d("setValue")
         setValueInternal(pair)
         super.setValue(pair)
     }
 
-    private fun setValueInternal(pair: Pair<AuthenticationState, FirebaseCredentials?>?) {
+    private fun setValueInternal(pair: Pair<MyLiveDataState, Any>?) {
         Timber.d("setValueInternal pair: $pair")
         pair?.let {
             val (newState, newData) = it
             state = newState
             data = newData
-            Timber.d("setValueInternal state: $state, data: $data")
-            newData?.let {
+            if (newData is FirebaseCredentials) {
                 when (newState) {
-                    AuthenticationState.CONNECTING -> authentication.login(newData)
+                    MyLiveDataState.CONNECTING -> authentication.login(newData)
+                    else -> Unit // Do noting
                 }
             }
         }

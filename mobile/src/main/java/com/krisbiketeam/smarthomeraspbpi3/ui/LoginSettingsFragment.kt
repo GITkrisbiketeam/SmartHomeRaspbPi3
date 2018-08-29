@@ -13,9 +13,8 @@ import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.widget.TextView
 import androidx.navigation.Navigation
-import com.krisbiketeam.data.auth.AuthenticationState
+import com.krisbiketeam.data.MyLiveDataState
 import com.krisbiketeam.data.auth.FirebaseCredentials
-import com.krisbiketeam.data.nearby.NearbySettingsState
 import com.krisbiketeam.data.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentSettingsLoginBinding
@@ -63,57 +62,22 @@ class LoginSettingsFragment : Fragment() {
             setLifecycleOwner(this@LoginSettingsFragment)
         }
 
-        loginSettingsViewModel.nearByState.observe(this, Observer { pair ->
+        loginSettingsViewModel.loginState.observe(viewLifecycleOwner, Observer { pair ->
             pair?.let { (state, data) ->
-
+                Timber.d("loginState changed state: $state data: $data")
                 when (state) {
-                    NearbySettingsState.ERROR -> {
-                        if (data is Exception) {
-                            Timber.e(data, "Request failed")
-                        }
+                    MyLiveDataState.ERROR -> {
                         binding.password.error = getString(R.string.error_incorrect_password)
                         binding.password.requestFocus()
                     }
-
-                    NearbySettingsState.INIT -> {
-                    }
-                    NearbySettingsState.CONNECTING -> {
-                    }
-                    NearbySettingsState.DONE -> {
-                        activity?.let {
-                            Navigation.findNavController(it, R.id.home_nav_fragment).navigateUp()
-                        }
-                    }
-                }
-            }
-        })
-
-        loginSettingsViewModel.authentication.observe(this, Observer { pair ->
-            pair?.let { (state, data) ->
-
-                when (state) {
-                    AuthenticationState.ERROR -> {
-                        binding.password.error = getString(R.string.error_incorrect_password)
-                        binding.password.requestFocus()
-                    }
-
-                    AuthenticationState.INIT -> {
-                    }
-                    AuthenticationState.CONNECTING -> {
-                    }
-                    AuthenticationState.DONE -> {
+                    MyLiveDataState.INIT -> Unit
+                    MyLiveDataState.CONNECTING -> Unit
+                    MyLiveDataState.DONE -> {
                         if (data is FirebaseCredentials) {
                             secureStorage.firebaseCredentials = data
-                            if (loginSettingsViewModel.remoteLogin.value == true) {
-                                loginSettingsViewModel.sendData(data)
-                            } else {
-                                activity?.let {
-                                    Navigation.findNavController(it, R.id.home_nav_fragment)
-                                            .navigateUp()
-                                }
-                            }
-                        } else {
-                            Timber.e("DONE data is not FirebaseCredentials")
+                        }
+                        activity?.let {
+                            Navigation.findNavController(it, R.id.home_nav_fragment).navigateUp()
                         }
                     }
                 }

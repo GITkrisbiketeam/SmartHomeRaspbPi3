@@ -13,8 +13,8 @@ import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.widget.TextView
 import androidx.navigation.Navigation
+import com.krisbiketeam.data.MyLiveDataState
 import com.krisbiketeam.data.auth.WifiCredentials
-import com.krisbiketeam.data.nearby.NearbySettingsState
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentSettingsWifiBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.WifiSettingsViewModel
@@ -57,11 +57,11 @@ class WifiSettingsFragment : Fragment() {
             setLifecycleOwner(this@WifiSettingsFragment)
         }
 
-        wifiSettingsViewModel.nearByState.observe(this, Observer { pair ->
+        wifiSettingsViewModel.nearByState.observe(viewLifecycleOwner, Observer { pair ->
             pair?.let { (state, data) ->
 
                 when (state) {
-                    NearbySettingsState.ERROR -> {
+                    MyLiveDataState.ERROR -> {
                         if (data is Exception) {
                             Timber.e(data, "Request failed")
                         }
@@ -69,11 +69,11 @@ class WifiSettingsFragment : Fragment() {
                         binding.password.requestFocus()
                     }
 
-                    NearbySettingsState.INIT -> {
+                    MyLiveDataState.INIT -> {
                     }
-                    NearbySettingsState.CONNECTING -> {
+                    MyLiveDataState.CONNECTING -> {
                     }
-                    NearbySettingsState.DONE -> {
+                    MyLiveDataState.DONE -> {
                         activity?.let {
                             Navigation.findNavController(it, R.id.home_nav_fragment).navigateUp()
                         }

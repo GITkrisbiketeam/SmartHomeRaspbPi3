@@ -7,9 +7,12 @@ import android.os.Bundle
 import android.support.v4.app.ActivityCompat
 import android.support.v7.app.AppCompatActivity
 import android.widget.Toast
+import com.google.android.gms.common.ConnectionResult
+import com.google.android.gms.common.GoogleApiAvailability
 import com.krisbiketeam.data.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.ui.HomeActivity
 import org.koin.android.ext.android.inject
+import timber.log.Timber
 
 private const val PERMISSION_REQUEST_ID = 999
 
@@ -19,8 +22,18 @@ class LoadActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        requestPermissions()
+        val status = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(this)
+        Timber.d("PlayServicesAvailable status: $status")
+        if(status != ConnectionResult.SUCCESS){
+            Timber.d("Missing or outdated Play Services Version")
+            Toast.makeText(this, "You need to install or update Play Services!", Toast.LENGTH_SHORT).show()
+            GoogleApiAvailability.getInstance().makeGooglePlayServicesAvailable(this).addOnCompleteListener {
+                Timber.d("Play Services updated")
+                requestPermissions()
+            }
+        } else {
+            requestPermissions()
+        }
     }
 
     override fun onRequestPermissionsResult(requestCode: Int,
@@ -57,10 +70,6 @@ class LoadActivity : AppCompatActivity() {
     private fun loadNextActivity() {
         callActivity(HomeActivity::class.java)
         //callActivity(MobileActivity::class.java)
-        /*when {
-            secureStorage.isAuthenticated() -> callActivity(MobileActivity::class.java)
-            else -> callActivity(LoginActivity::class.java)
-        }*/
     }
 
     private fun callActivity(clazz: Class<*>) {

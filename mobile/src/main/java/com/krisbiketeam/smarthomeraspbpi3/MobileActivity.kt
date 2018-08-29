@@ -61,10 +61,8 @@ class MobileActivity : AppCompatActivity() {
         }
 
         buttonWifi.setOnClickListener {
-            callActivity(WifiActivity::class.java)
         }
         buttonLogin.setOnClickListener {
-            callActivity(LoginActivity::class.java)
         }
         buttonAddStorageHomeUnit.setOnClickListener{
 

@@ -9,6 +9,8 @@ import com.krisbiketeam.data.storage.dto.Room
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomListFragment
 import timber.log.Timber
 
+private const val NO_GROW_ZONE = -1
+
 /**
  * The ViewModel for [RoomListFragment].
  */
@@ -16,7 +18,6 @@ class RoomListViewModel internal constructor(
     private val homeRepository: HomeInformationRepository
 ) : ViewModel() {
 
-    private val NO_GROW_ZONE = -1
     private val growZoneNumber = MutableLiveData<Int>()
 
     //TODO: why MediatorLiveData ??? there is only one LiveData attached to it

@@ -26,5 +26,11 @@
     <string name="settings_wifi_fragment_key">wifi_screen_key</string>
     <string name="settings_login_fragment_key">login_screen_key</string>
 
+    <string name="default_notification_channel_id" translatable="false">fcm_default_channel</string>
+    <!--
+        This is the name that users will see when interacting with this channel.
+        It should describe the category of notifications that will be sent through this channel
+     -->
+    <string name="default_notification_channel_name" translatable="true">RSPi3</string>
 
 </resources>

@@ -51,6 +51,7 @@ dependencies {
     implementation "com.google.firebase:firebase-core:$firebaseCoreVersion"
     implementation "com.google.firebase:firebase-database:$firebaseDatabaseVersion"
     implementation "com.google.firebase:firebase-auth:$firebaseAuthVersion"
+    implementation "com.google.firebase:firebase-messaging:$firebaseMessaging"
 
     implementation "android.arch.lifecycle:extensions:$androidArchComponentsVersion"
     implementation "android.arch.navigation:navigation-fragment-ktx:$navigationVersion"

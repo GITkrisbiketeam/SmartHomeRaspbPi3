@@ -2,8 +2,8 @@ package com.krisbiketeam.smarthomeraspbpi3.viewmodels
 
 import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.ViewModel
+import com.krisbiketeam.data.MyLiveDataState
 import com.krisbiketeam.data.nearby.NearbyServiceLiveData
-import com.krisbiketeam.data.nearby.NearbySettingsState
 import com.krisbiketeam.smarthomeraspbpi3.ui.WifiSettingsFragment
 import timber.log.Timber
 
@@ -21,7 +21,7 @@ class WifiSettingsViewModel(val nearByState: NearbyServiceLiveData) : ViewModel(
 
     fun sendData(data: Any) {
         Timber.d("sendData")
-        nearByState.value = Pair(NearbySettingsState.CONNECTING, data)
+        nearByState.value = Pair(MyLiveDataState.CONNECTING, data)
     }
 
     override fun onCleared() {

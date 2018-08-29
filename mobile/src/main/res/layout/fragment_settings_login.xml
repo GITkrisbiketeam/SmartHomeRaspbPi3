@@ -24,13 +24,13 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:layout_marginBottom="8dp"
-            app:stateBasedVisibility="@{viewModel.nearByState}" />
+            app:stateBasedVisibility="@{viewModel.loginState}" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            app:stateBasedVisibility="@{viewModel.nearByState}" >
+            app:stateBasedVisibility="@{viewModel.loginState}" >
 
             <android.support.design.widget.TextInputLayout
                 android:layout_width="match_parent"

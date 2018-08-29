@@ -3,6 +3,7 @@ package com.krisbiketeam.smarthomeraspbpi3.viewmodels
 import android.arch.core.executor.testing.InstantTaskExecutorRule
 import android.arch.lifecycle.Observer
 import com.krisbiketeam.data.MyLiveDataState
+import com.krisbiketeam.data.auth.FirebaseCredentials
 import com.krisbiketeam.data.auth.WifiCredentials
 import com.krisbiketeam.smarthomeraspbpi3.di.testModule
 import org.junit.*
@@ -13,9 +14,9 @@ import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.MockitoAnnotations
 
-class WifiSettingsViewModelTest : KoinTest {
+class LoginSettingsViewModelTest : KoinTest {
 
-    private val viewModel: WifiSettingsViewModel by inject()
+    private val viewModel: LoginSettingsViewModel by inject()
 
     @Mock
     lateinit var stateObserver: Observer<Pair<MyLiveDataState, Any>>
@@ -36,15 +37,16 @@ class WifiSettingsViewModelTest : KoinTest {
 
     @Test
     fun initStateCorrect() {
-        Assert.assertEquals(viewModel.nearByState.value, Pair(MyLiveDataState.INIT, Unit))
+        Assert.assertEquals(viewModel.loginState.value, Pair(MyLiveDataState.INIT, Unit))
     }
 
     @Test
     fun sendDataByNearbyService() {
-        viewModel.nearByState.observeForever(stateObserver)
-        viewModel.sendData(WifiCredentials("ssid", "password"))
+        viewModel.loginState.observeForever(stateObserver)
+        //TODO: there is MediatorLiveData that should be somehow handled
+        viewModel.login(FirebaseCredentials("email", "password"))
 
         Mockito.verify(stateObserver)
-                .onChanged(Pair(MyLiveDataState.CONNECTING, WifiCredentials("ssid", "password")))
+                .onChanged(Pair(MyLiveDataState.CONNECTING, WifiCredentials("email", "password")))
     }
 }

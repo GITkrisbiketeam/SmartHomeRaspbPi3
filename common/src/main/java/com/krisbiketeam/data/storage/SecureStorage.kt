@@ -30,8 +30,8 @@ class NotSecureStorage(context: Context) : SecureStorage {
         return object : ReadWriteProperty<Any, FirebaseCredentials> {
             override fun getValue(thisRef: Any, property: KProperty<*>) =
                     FirebaseCredentials(
-                            getString(EMAIL_KEY, ""),
-                            getString(PASSWORD_KEY, ""))
+                            getString(EMAIL_KEY, "") ?: "",
+                            getString(PASSWORD_KEY, "") ?: "")
 
             override fun setValue(thisRef: Any, property: KProperty<*>, value: FirebaseCredentials) {
                 edit().putString(EMAIL_KEY, value.email).apply()
