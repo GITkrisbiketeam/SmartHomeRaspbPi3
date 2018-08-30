@@ -122,8 +122,8 @@ class NearbyServiceProvider(private val context: Context, private val moshi: Mos
     }
 
     override fun resume() {
-        dataSendResultListener?.let {
-            dataToBeSent?.let{
+        dataSendResultListener?.run {
+            dataToBeSent?.run{
                 Timber.d("resume")
                 startDiscovery()
             }

@@ -1,4 +1,4 @@
-package com.krisbiketeam.data.storage.FirebaseTables
+package com.krisbiketeam.data.storage.firebaseTables
 
 const val OLD_HOME_INFORMATION_BASE = "old_home"
 const val OLD_HOME_INFORMATION_MESSAGE = "message"
@@ -11,6 +11,8 @@ const val LOG_INFORMATION_BASE = "log"
 
 const val HOME_INFORMATION_BASE = "home"
 
+const val USER_INFORMATION_BASE = "users"
+
 const val HOME_ROOMS = "rooms"
 const val HOME_LIGHTS = "lights"
 const val HOME_LIGHT_SWITCHES = "light_switches"
@@ -21,3 +23,7 @@ const val HOME_PRESSURES = "pressures"
 const val HOME_BLINDS = "blinds"
 
 const val HOME_HW_UNITS = "hw_units"
+
+const val USER_NAME= "name"
+const val USER_EMAIL = "email"
+const val USER_NOTIFICATION_TOKENS = "notificationTokens"

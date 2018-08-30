@@ -1,7 +1,7 @@
 package com.krisbiketeam.data.storage.dto
 
 import com.google.firebase.database.Exclude
-import com.krisbiketeam.data.storage.FirebaseTables.*
+import com.krisbiketeam.data.storage.firebaseTables.*
 
 typealias LightType = Boolean
 typealias Light = StorageUnit<LightType>

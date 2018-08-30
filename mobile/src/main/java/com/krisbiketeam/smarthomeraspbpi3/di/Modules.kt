@@ -10,10 +10,7 @@ import com.krisbiketeam.data.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.data.storage.NotSecureStorage
 import com.krisbiketeam.data.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.di.Params.ROOM_NAME
-import com.krisbiketeam.smarthomeraspbpi3.viewmodels.LoginSettingsViewModel
-import com.krisbiketeam.smarthomeraspbpi3.viewmodels.RoomDetailViewModel
-import com.krisbiketeam.smarthomeraspbpi3.viewmodels.RoomListViewModel
-import com.krisbiketeam.smarthomeraspbpi3.viewmodels.WifiSettingsViewModel
+import com.krisbiketeam.smarthomeraspbpi3.viewmodels.*
 import com.squareup.moshi.Moshi
 import org.koin.android.architecture.ext.viewModel
 import org.koin.android.ext.koin.androidApplication
@@ -24,6 +21,7 @@ val myModule = applicationContext {
     viewModel { RoomDetailViewModel(FirebaseHomeInformationRepository, getProperty(ROOM_NAME)) }
     viewModel { WifiSettingsViewModel(get()) }
     viewModel { LoginSettingsViewModel(get(), get()) }
+    viewModel { NavigationViewModel(get()) }
 
     bean { NotSecureStorage(androidApplication()) as SecureStorage }
     bean { FirebaseAuthentication() as Authentication }

@@ -19,14 +19,14 @@
 
     <item
         android:id="@+id/room_list_fragment"
-        android:title="Room List"/>
+        android:title="@string/menu_navigation_room_list"/>
     <item
         android:id="@+id/add_storage_home_unit_fragment"
-        android:title="Add Storage"/>
+        android:title="@string/menu_navigation_add_storage"/>
 
     <item
         android:id="@+id/settings_fragment"
-        android:title="Settings"/>
+        android:title="@string/menu_navigation_settings"/>
 
 
 </menu>

@@ -2,18 +2,15 @@ package com.krisbiketeam.smarthomeraspbpi3.units
 
 import com.google.android.things.pio.Gpio
 import com.google.android.things.pio.PeripheralManager
-import com.krisbiketeam.smarthomeraspbpi3.utils.Logger
-import com.krisbiketeam.smarthomeraspbpi3.utils.Utils
+import timber.log.Timber
 
 import java.io.IOException
-
-private val TAG = Utils.getLogTag(HomeUnitGpio::class.java)
 
 interface HomeUnitGpio<T> : BaseUnit<T> {
     var gpio: Gpio?
 
     override fun connect() {
-        Logger.e(TAG, "connect on: $homeUnit")
+        Timber.e("connect on: $homeUnit")
         if (gpio == null) {
             val peripheralManager = PeripheralManager.getInstance()
             try {
@@ -25,11 +22,11 @@ interface HomeUnitGpio<T> : BaseUnit<T> {
     }
 
     override fun close() {
-        Logger.e(TAG, "close on: $homeUnit")
+        Timber.e("close on: $homeUnit")
         try {
             gpio?.close()
         } catch (e: IOException) {
-            Logger.e(TAG, "Error closing PeripheralIO API on: $homeUnit", e)
+            Timber.e("Error closing PeripheralIO API on: $homeUnit", e)
         } finally {
             gpio = null
         }

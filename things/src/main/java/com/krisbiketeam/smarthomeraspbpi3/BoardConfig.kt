@@ -6,7 +6,7 @@ import com.krisbiketeam.smarthomeraspbpi3.driver.MCP23017Pin
 import com.krisbiketeam.smarthomeraspbpi3.driver.TMP102
 
 object BoardConfig {
-    const val I2C = "I2C1"
+    private const val I2C = "I2C1"
 
     const val LED_A = "Led A"
     const val LED_A_PIN = "BCM6"
@@ -39,7 +39,7 @@ object BoardConfig {
     const val TEMP_PRESS_SENSOR_BMP280_PIN = I2C
     const val TEMP_PRESS_SENSOR_BMP280_ADDR = Bmx280.DEFAULT_I2C_ADDRESS
 
-    const val IO_EXTENDER_MCP23017 = "16-bit IO Extender"
+    private const val IO_EXTENDER_MCP23017 = "16-bit IO Extender"
 
     const val IO_EXTENDER_MCP23017_1_PIN = I2C
     const val IO_EXTENDER_MCP23017_1_ADDR = MCP23017.DEFAULT_I2C_000_ADDRESS

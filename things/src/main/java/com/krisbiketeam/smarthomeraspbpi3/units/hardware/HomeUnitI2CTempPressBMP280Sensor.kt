@@ -6,14 +6,12 @@ import com.krisbiketeam.data.storage.ConnectionType
 import com.krisbiketeam.data.storage.dto.HomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.units.HomeUnitI2C
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
-import com.krisbiketeam.smarthomeraspbpi3.utils.Logger
-import com.krisbiketeam.smarthomeraspbpi3.utils.Utils
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.launch
+import timber.log.Timber
 import java.util.*
 
-private val TAG = Utils.getLogTag(HomeUnitI2CTempPressBMP280Sensor::class.java)
 private const val REFRESH_RATE = 300000L // 5 min
 
 data class TemperatureAndPressure(val temperature: Float, val pressure: Float)
@@ -38,14 +36,14 @@ class HomeUnitI2CTempPressBMP280Sensor(name: String,
 
 
     override fun registerListener(listener: Sensor.HomeUnitListener<TemperatureAndPressure>) {
-        Logger.d(TAG, "registerListener")
+        Timber.d("registerListener")
         homeUnitListener = listener
         job?.cancel()
         startJob()
     }
 
     override fun unregisterListener() {
-        Logger.d(TAG, "unregisterListener")
+        Timber.d("unregisterListener")
         job?.cancel()
         homeUnitListener = null
     }
@@ -72,7 +70,7 @@ class HomeUnitI2CTempPressBMP280Sensor(name: String,
             it.setMode(Bmx280.MODE_NORMAL)
             unitValue = TemperatureAndPressure(it.readTemperature(), it.readPressure())
             valueUpdateTime = Date().toString()
-            Logger.d(TAG, "temperature:$unitValue")
+            Timber.d("temperature:$unitValue")
         }
         return unitValue
     }

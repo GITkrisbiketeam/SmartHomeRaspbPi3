@@ -5,12 +5,9 @@ import com.krisbiketeam.data.storage.ConnectionType
 import com.krisbiketeam.data.storage.dto.HomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.units.Actuator
 import com.krisbiketeam.smarthomeraspbpi3.units.HomeUnitGpio
-import com.krisbiketeam.smarthomeraspbpi3.utils.Logger
-import com.krisbiketeam.smarthomeraspbpi3.utils.Utils
+import timber.log.Timber
 import java.io.IOException
 import java.util.*
-
-private val TAG = Utils.getLogTag(HomeUnitGpioActuator::class.java)
 
 class HomeUnitGpioActuator(name: String,
                            location: String,
@@ -28,10 +25,10 @@ class HomeUnitGpioActuator(name: String,
             try {
                 gpio?.value = value
             } catch (e: IOException) {
-                Logger.e(TAG, "Error updating GPIO value on $homeUnit", e)
+                Timber.e("Error updating GPIO value on $homeUnit", e)
             }
         } else {
-            Logger.w(TAG, "setValue value not instance of Boolean $value")
+            Timber.w("setValue value not instance of Boolean $value")
             unitValue = null
         }
         valueUpdateTime = Date().toString()
@@ -45,7 +42,7 @@ class HomeUnitGpioActuator(name: String,
                 setDirection(Gpio.DIRECTION_OUT_INITIALLY_LOW)
                 setActiveType(activeType)
             } catch (e: IOException) {
-                Logger.e(TAG, "Error initializing PeripheralIO API on: $homeUnit", e)
+                Timber.e("Error initializing PeripheralIO API on: $homeUnit", e)
             }
         }
     }

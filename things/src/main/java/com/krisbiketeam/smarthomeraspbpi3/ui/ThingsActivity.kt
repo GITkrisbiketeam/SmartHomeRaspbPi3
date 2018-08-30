@@ -25,7 +25,7 @@ import com.krisbiketeam.smarthomeraspbpi3.ui.setup.FirebaseCredentialsReceiverMa
 import com.krisbiketeam.smarthomeraspbpi3.ui.setup.WiFiCredentialsReceiverManager
 import com.krisbiketeam.smarthomeraspbpi3.units.hardware.HomeUnitGpioActuator
 import com.krisbiketeam.smarthomeraspbpi3.units.hardware.HomeUnitI2CFourCharDisplay
-import com.krisbiketeam.smarthomeraspbpi3.utils.Logger
+import com.krisbiketeam.smarthomeraspbpi3.utils.ConsoleLoggerTree
 import timber.log.Timber
 import java.io.IOException
 
@@ -102,7 +102,7 @@ class ThingsActivity : AppCompatActivity() {
         Timber.d("onCreate")
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
-        Logger.getInstance().setLogConsole(this)
+        ConsoleLoggerTree.setLogConsole(this)
 
         lightTheRainbow(false)
 

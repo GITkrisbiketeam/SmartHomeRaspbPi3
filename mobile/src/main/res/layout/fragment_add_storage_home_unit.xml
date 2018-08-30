@@ -20,14 +20,14 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Name:"
+            android:text="@string/add_storage_text_name"
             android:textColor="@color/colorPrimaryDark" />
 
         <EditText
             android:id="@+id/storage_unit_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="title_hint"
+            android:hint="@string/add_storage_text_title_hint"
             android:inputType="text"
             android:maxLines="1"
             android:text="@={viewModel.name}"
@@ -36,7 +36,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Name:"
+            android:text="@string/add_storage_text_description"
             android:textColor="@color/colorPrimaryDark" />
 
         <EditText
@@ -44,7 +44,7 @@
             android:layout_width="match_parent"
             android:layout_height="350dp"
             android:gravity="top"
-            android:hint="description_hint"
+            android:hint="@string/add_storage_text_description_hint"
             android:inputType="text"
             android:text="@={viewModel.firebaseTableName}" />
 

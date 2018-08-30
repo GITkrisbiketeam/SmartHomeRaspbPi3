@@ -20,6 +20,7 @@ import java.io.IOException
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.mockito.Matchers.anyInt
+import org.mockito.junit.MockitoRule
 
 @RunWith(PowerMockRunner::class)
 @PrepareForTest(Log::class, ViewConfiguration::class)
@@ -29,7 +30,7 @@ class MCP23017Test {
     private lateinit var mI2c: I2cDevice
 
     @Rule
-    var mMockitoRule = MockitoJUnit.rule()
+    var mMockitoRule: MockitoRule = MockitoJUnit.rule()
 
     @Before
     @Throws(Exception::class)

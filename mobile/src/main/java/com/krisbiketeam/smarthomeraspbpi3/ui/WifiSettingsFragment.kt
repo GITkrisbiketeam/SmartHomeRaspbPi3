@@ -22,8 +22,9 @@ import org.koin.android.architecture.ext.viewModel
 import timber.log.Timber
 
 class WifiSettingsFragment : Fragment() {
-    private lateinit var binding: FragmentSettingsWifiBinding
     private val wifiSettingsViewModel by viewModel<WifiSettingsViewModel>()
+
+    private lateinit var binding: FragmentSettingsWifiBinding
 
     override fun onCreateView(
             inflater: LayoutInflater,

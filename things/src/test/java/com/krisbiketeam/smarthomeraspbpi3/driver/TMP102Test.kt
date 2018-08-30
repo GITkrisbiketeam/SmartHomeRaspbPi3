@@ -11,6 +11,7 @@ import org.mockito.Matchers.eq
 import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.junit.MockitoJUnit
+import org.mockito.junit.MockitoRule
 import org.powermock.api.mockito.PowerMockito
 import org.powermock.core.classloader.annotations.PrepareForTest
 import org.powermock.modules.junit4.PowerMockRunner
@@ -25,7 +26,7 @@ class TMP102Test {
     private lateinit var mI2c: I2cDevice
 
     @Rule
-    var mMockitoRule = MockitoJUnit.rule()
+    var mMockitoRule: MockitoRule = MockitoJUnit.rule()
 
 
     @Test

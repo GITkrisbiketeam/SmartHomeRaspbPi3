@@ -21,6 +21,6 @@
     <item android:id="@+id/filter_zone"
         android:icon="@drawable/ic_launcher_foreground"
         app:showAsAction="always"
-        android:title="menu_filter_by_grow_zone"/>
+        android:title="@string/menu_filter_by_grow_zone"/>
 
 </menu>

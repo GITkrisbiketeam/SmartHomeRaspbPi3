@@ -133,23 +133,4 @@ class RoomDetailFragment : Fragment() {
             else -> super.onOptionsItemSelected(item)
         }
     }
-
-    companion object {
-
-        /**
-         * The fragment argument representing the item ID that this fragment
-         * represents.
-         */
-        const val ARG_ITEM_ID = "item_id"
-
-        /**
-         * Create a new instance of RoomDetailFragment, initialized with a room Name.
-         */
-        fun newInstance(roomName: String): RoomDetailFragment {
-
-            // Supply room ID as an argument.
-            val bundle = Bundle().apply { putString(ARG_ITEM_ID, roomName) }
-            return RoomDetailFragment().apply { arguments = bundle }
-        }
-    }
 }

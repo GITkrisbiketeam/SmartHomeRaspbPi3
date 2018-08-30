@@ -5,7 +5,7 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.ValueEventListener
-import com.krisbiketeam.data.storage.FirebaseTables.HOME_ROOMS
+import com.krisbiketeam.data.storage.firebaseTables.HOME_ROOMS
 import com.krisbiketeam.data.storage.dto.Room
 import timber.log.Timber
 

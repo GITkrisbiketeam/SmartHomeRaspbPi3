@@ -2,7 +2,7 @@ package com.krisbiketeam.smarthomeraspbpi3
 
 import android.arch.lifecycle.Observer
 import com.krisbiketeam.data.storage.*
-import com.krisbiketeam.data.storage.FirebaseTables.*
+import com.krisbiketeam.data.storage.firebaseTables.*
 import com.krisbiketeam.data.storage.dto.*
 import com.krisbiketeam.smarthomeraspbpi3.driver.MCP23017Pin
 import com.krisbiketeam.smarthomeraspbpi3.units.Actuator
@@ -233,7 +233,7 @@ class Home : Sensor.HomeUnitListener<Any> {
 
         var temp = Temperature("Kitchen 1 Temp", HOME_TEMPERATURES, roomName, BoardConfig.TEMP_PRESS_SENSOR_BMP280) as StorageUnit<Any>
 
-        var pressure = Pressure("Kitchen 1 Press", HOME_PRESSURES, roomName, BoardConfig.TEMP_PRESS_SENSOR_BMP280) as StorageUnit<Any>
+        val pressure = Pressure("Kitchen 1 Press", HOME_PRESSURES, roomName, BoardConfig.TEMP_PRESS_SENSOR_BMP280) as StorageUnit<Any>
 
         var light = Light("Kitchen 1 Light", HOME_LIGHTS, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B0) as StorageUnit<Any>
         light.unitsTasks.add(UnitTask(hardwareUnitName = light.hardwareUnitName))
@@ -243,7 +243,7 @@ class Home : Sensor.HomeUnitListener<Any> {
         lightSwitch.unitsTasks.add(UnitTask(storageUnitName = light.name))
         lightSwitch.applyFunction = booleanApplyFunction
 
-        var reedSwitch = ReedSwitch("Kitchen 1 Reed Switch", HOME_REED_SWITCHES, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_IN_A6) as StorageUnit<Any>
+        val reedSwitch = ReedSwitch("Kitchen 1 Reed Switch", HOME_REED_SWITCHES, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_IN_A6) as StorageUnit<Any>
 
         val motion = Motion("Kitchen 1 Motion Sensor", HOME_MOTIONS, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_IN_A0) as StorageUnit<Any>
 

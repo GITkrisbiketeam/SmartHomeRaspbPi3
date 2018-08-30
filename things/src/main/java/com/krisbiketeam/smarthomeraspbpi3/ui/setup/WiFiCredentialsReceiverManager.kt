@@ -23,15 +23,16 @@ class WiFiCredentialsReceiverManager(activity: Activity, networkConnectionMonito
     private val dataReceiverListener = object : NearbyService.DataReceiverListener {
         override fun onDataReceived(data: ByteArray?) {
             Timber.d("Received data: $data")
-            data?.let {
-                val jsonString = String(it)
+            data?.run {
+                val jsonString = String(data)
                 Timber.d("Data as String $jsonString")
                 val adapter = moshi.adapter(WifiCredentials::class.java)
                 val wifiCredentials: WifiCredentials?
                 try {
                     wifiCredentials = adapter.fromJson(jsonString)
                     Timber.d("Data as credentials $wifiCredentials")
-                    wifiCredentials?.let { addWiFi(it) }
+                    wifiCredentials?.run {
+                        addWiFi(wifiCredentials) }
                 } catch (e: IOException) {
                     Timber.d("Received Data could not be cast to WiFiCredentials")
                 }
@@ -63,11 +64,11 @@ class WiFiCredentialsReceiverManager(activity: Activity, networkConnectionMonito
     }
 
     private fun addWiFi(wifiCredentials: WifiCredentials) {
-        wifiCredentials.let {
+        with(wifiCredentials) {
             // only WPA is supported right now
             val wifiConfiguration = WifiConfiguration()
-            wifiConfiguration.SSID = String.format("\"%s\"", it.ssid)
-            wifiConfiguration.preSharedKey = String.format("\"%s\"", it.password)
+            wifiConfiguration.SSID = String.format("\"%s\"", ssid)
+            wifiConfiguration.preSharedKey = String.format("\"%s\"", password)
 
             val existingConfig = wifiManager.configuredNetworks?.firstOrNull{ wifiConfiguration.SSID == it.SSID }
             if (existingConfig != null) {

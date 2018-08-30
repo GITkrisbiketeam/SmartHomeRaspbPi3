@@ -1,5 +1,6 @@
 package com.krisbiketeam.data.storage
 
+import android.arch.lifecycle.LiveData
 import android.content.Context
 import android.content.SharedPreferences
 import com.krisbiketeam.data.auth.FirebaseCredentials
@@ -13,13 +14,33 @@ private const val PASSWORD_KEY = "securePasswordKey"
 interface SecureStorage {
     fun isAuthenticated(): Boolean
     var firebaseCredentials: FirebaseCredentials
+    val firebaseCredentialsLiveData: LiveData<FirebaseCredentials>
 }
 
 // Todo: implement a encrypted secure storage since this is not secure
 class NotSecureStorage(context: Context) : SecureStorage {
+    private val sharedPrefs = context.getSharedPreferences(SHARED_FILE, Context.MODE_PRIVATE)
 
-    override var firebaseCredentials: FirebaseCredentials by
-            context.getSharedPreferences(SHARED_FILE, Context.MODE_PRIVATE).firebaseCredentials()
+    override var firebaseCredentials: FirebaseCredentials by sharedPrefs.firebaseCredentials()
+
+    override val firebaseCredentialsLiveData: LiveData<FirebaseCredentials> =
+            object : LiveData<FirebaseCredentials>() {
+                private val preferenceChangeListener =
+                        SharedPreferences.OnSharedPreferenceChangeListener { _, _ ->
+                            value = firebaseCredentials
+                        }
+
+                override fun onActive() {
+                    super.onActive()
+                    value = firebaseCredentials
+                    sharedPrefs.registerOnSharedPreferenceChangeListener(preferenceChangeListener)
+                }
+
+                override fun onInactive() {
+                    sharedPrefs.unregisterOnSharedPreferenceChangeListener(preferenceChangeListener)
+                    super.onInactive()
+                }
+            }
 
     override fun isAuthenticated(): Boolean {
         return firebaseCredentials.email.isNotEmpty() && firebaseCredentials.password.isNotEmpty()
@@ -40,3 +61,6 @@ class NotSecureStorage(context: Context) : SecureStorage {
         }
     }
 }
+
+
+

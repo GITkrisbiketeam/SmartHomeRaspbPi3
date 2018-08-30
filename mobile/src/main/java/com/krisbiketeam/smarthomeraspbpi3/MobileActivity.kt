@@ -2,7 +2,6 @@ package com.krisbiketeam.smarthomeraspbpi3
 
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.Observer
-import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import com.krisbiketeam.data.auth.Authentication
@@ -65,7 +64,6 @@ class MobileActivity : AppCompatActivity() {
         buttonLogin.setOnClickListener {
         }
         buttonAddStorageHomeUnit.setOnClickListener{
-
         }
 
         //val home = Home()
@@ -121,10 +119,4 @@ class MobileActivity : AppCompatActivity() {
         temperatureText.text = String.format(Locale.UK, "Current pressure: %.2f", temperature)
     }
     // Obsolete code END
-
-    private fun callActivity(clazz: Class<*>) {
-        val intent = Intent(this, clazz)
-        startActivity(intent)
-        finish()
-    }
 }

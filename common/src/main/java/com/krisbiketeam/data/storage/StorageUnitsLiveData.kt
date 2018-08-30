@@ -5,7 +5,7 @@ import com.google.firebase.database.*
 import com.krisbiketeam.data.storage.dto.*
 import timber.log.Timber
 import com.google.firebase.database.GenericTypeIndicator
-import com.krisbiketeam.data.storage.FirebaseTables.*
+import com.krisbiketeam.data.storage.firebaseTables.*
 
 //TODO: We should somehow only register for units from given roomName if present
 class StorageUnitsLiveData(private val databaseReference: DatabaseReference, private val roomName: String? = null) :

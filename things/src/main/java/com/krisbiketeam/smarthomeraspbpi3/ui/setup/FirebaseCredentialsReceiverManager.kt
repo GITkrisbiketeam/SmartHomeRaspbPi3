@@ -28,12 +28,12 @@ class FirebaseCredentialsReceiverManager(activity: Activity, gotCredentials: () 
     private val dataReceiverListener = object : NearbyService.DataReceiverListener {
         override fun onDataReceived(data: ByteArray?) {
             Timber.d("Received data: $data")
-            data?.let { val jsonString = String(data)
+            data?.run { val jsonString = String(data)
                 Timber.d("Data as String $jsonString")
                 val adapter = moshi.adapter(FirebaseCredentials::class.java)
                 val credentials = adapter.fromJson(jsonString)
                 Timber.d("Data as credentials $credentials")
-                credentials?.let {
+                credentials?.run {
                     secureStorage.firebaseCredentials = credentials
                     gotCredentials()
                 }

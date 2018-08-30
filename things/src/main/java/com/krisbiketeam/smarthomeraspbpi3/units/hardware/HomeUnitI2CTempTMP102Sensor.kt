@@ -5,15 +5,13 @@ import com.krisbiketeam.data.storage.dto.HomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.driver.TMP102
 import com.krisbiketeam.smarthomeraspbpi3.units.HomeUnitI2C
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
-import com.krisbiketeam.smarthomeraspbpi3.utils.Logger
-import com.krisbiketeam.smarthomeraspbpi3.utils.Utils
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.launch
+import timber.log.Timber
 import java.util.*
 
-private val TAG = Utils.getLogTag(HomeUnitI2CTempTMP102Sensor::class.java)
 private const val REFRESH_RATE = 300000L // 5 min
 
 class HomeUnitI2CTempTMP102Sensor(name: String,
@@ -36,7 +34,7 @@ class HomeUnitI2CTempTMP102Sensor(name: String,
 
 
     override fun registerListener(listener: Sensor.HomeUnitListener<Float>) {
-        Logger.d(TAG, "registerListener")
+        Timber.d("registerListener")
         homeUnitListener = listener
         job?.cancel()
         job = launch(CommonPool) {
@@ -50,7 +48,7 @@ class HomeUnitI2CTempTMP102Sensor(name: String,
     }
 
     override fun unregisterListener() {
-        Logger.d(TAG, "unregisterListener")
+        Timber.d("unregisterListener")
         job?.cancel()
         homeUnitListener = null
     }
@@ -63,7 +61,7 @@ class HomeUnitI2CTempTMP102Sensor(name: String,
         tmp102.readOneShotTemperature {
             unitValue = it
             valueUpdateTime = Date().toString()
-            Logger.d(TAG, "temperature:$unitValue")
+            Timber.d("temperature:$unitValue")
             homeUnitListener?.onUnitChanged(homeUnit, unitValue, valueUpdateTime)
             tmp102.close()
         }
@@ -76,7 +74,7 @@ class HomeUnitI2CTempTMP102Sensor(name: String,
         tmp102.use {
             unitValue = it.readTemperature()
             valueUpdateTime = Date().toString()
-            Logger.d(TAG, "temperature:$unitValue")
+            Timber.d("temperature:$unitValue")
         }
 
         return unitValue

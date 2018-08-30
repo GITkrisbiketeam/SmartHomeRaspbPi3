@@ -4,10 +4,10 @@
         android:fragment="com.krisbiketeam.smarthomeraspbpi3.ui.WifiSettingsFragment"
         android:key="@string/settings_wifi_fragment_key"
         android:persistent="false"
-        android:title="Setup remote device WiFI"></Preference>
+        android:title="Setup remote device WiFI" />
     <Preference
         android:fragment="com.krisbiketeam.smarthomeraspbpi3.ui.LoginSettingsFragment"
         android:key="@string/settings_login_fragment_key"
         android:persistent="false"
-        android:title="Login to Firebase"></Preference>
+        android:title="Login to Firebase" />
 </PreferenceScreen>

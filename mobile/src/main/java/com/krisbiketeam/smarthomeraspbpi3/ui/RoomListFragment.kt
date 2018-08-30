@@ -8,11 +8,11 @@ import android.view.*
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.adapters.RoomListAdapter
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.RoomListViewModel
-import org.koin.android.ext.android.inject
+import org.koin.android.architecture.ext.viewModel
 
 class RoomListFragment : Fragment() {
 
-    private val viewModel: RoomListViewModel by inject()
+    private val viewModel by viewModel<RoomListViewModel>()
 
     override fun onCreateView(
         inflater: LayoutInflater,

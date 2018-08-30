@@ -41,7 +41,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="@string/prompt_email"
-                    android:inputType="text"
+                    android:inputType="textEmailAddress"
                     android:maxLines="1"
                     android:singleLine="true"
                     android:text="@={viewModel.email}" />
@@ -72,7 +72,7 @@
                 android:id="@+id/remote_login_checkBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Remote Device Login"
+                android:text="@string/remote_device_login_checkbox_text"
                 android:checked="@={viewModel.remoteLogin}"/>
 
             <Button

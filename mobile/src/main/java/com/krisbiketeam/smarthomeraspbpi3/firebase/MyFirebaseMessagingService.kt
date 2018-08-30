@@ -8,15 +8,47 @@ import android.content.Intent
 import android.media.RingtoneManager
 import android.os.Build
 import android.support.v4.app.NotificationCompat
+import com.google.firebase.iid.FirebaseInstanceId
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import com.krisbiketeam.data.storage.FirebaseHomeInformationRepository
+import com.krisbiketeam.data.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.LoadActivity
 import com.krisbiketeam.smarthomeraspbpi3.R
+import org.koin.android.ext.android.inject
 import timber.log.Timber
-import java.lang.Exception
 
+fun getFirebaseAppToken(tokenReceived: (String?) -> Unit) {
+    // Get token
+    FirebaseInstanceId.getInstance().instanceId.addOnCompleteListener { task ->
+        if (!task.isSuccessful) {
+            Timber.w("getInstanceId failed", task.exception)
+            tokenReceived(null)
+        }
+
+        // Get new Instance ID token
+        val token = task.result.token
+        Timber.d("getInstanceId token: $token")
+        tokenReceived(token)
+    }
+}
+
+/**
+ * Persist token to third-party servers.
+ *
+ * Modify this method to associate the user's FCM InstanceID token with any server-side account
+ * maintained by your application.
+ *
+ * @param token The new token.
+ */
+fun sendRegistrationToServer(email: String, token: String) {
+    Timber.d("sendRegistrationToServer email: $email, token: $token")
+    FirebaseHomeInformationRepository.addUserNotiToken(email, token)
+}
 
 class MyFirebaseMessagingService : FirebaseMessagingService() {
+    private val secureStorage: SecureStorage by inject()
+
     /**
      * Called when message is received.
      *
@@ -69,9 +101,11 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         // If you want to send messages to this application instance or
         // manage this apps subscriptions on the server side, send the
         // Instance ID token to your app server.
-        token?.let(this::sendRegistrationToServer)
-
-        super.onNewToken(token)
+        token?.let {
+            secureStorage.firebaseCredentials.email.let { email ->
+                if (email.isNotEmpty()) sendRegistrationToServer(email, token)
+            }
+        }
     }
 
 
@@ -109,18 +143,6 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
      */
     private fun handleNow() {
         Timber.d("Short lived task is done.")
-    }
-
-    /**
-     * Persist token to third-party servers.
-     *
-     * Modify this method to associate the user's FCM InstanceID token with any server-side account
-     * maintained by your application.
-     *
-     * @param token The new token.
-     */
-    private fun sendRegistrationToServer(token: String) {
-        // TODO: Implement this method to send token to your app server.
     }
 
     /**

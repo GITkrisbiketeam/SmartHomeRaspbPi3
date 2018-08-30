@@ -34,10 +34,10 @@ class StorageUnitListAdapter : RecyclerView.Adapter<StorageUnitListAdapter.ViewH
     }
 
     private fun createOnClickListener(item: StorageUnit<Any>): View.OnClickListener {
-        return View.OnClickListener {
+        return View.OnClickListener { view ->
             Timber.d("onClick item: $item")
-            if(item.unitsTasks.find {it.hardwareUnitName != null } != null){
-                when(item.value){
+            if (item.unitsTasks.find { it.hardwareUnitName != null } != null) {
+                when (item.value) {
                     is Boolean -> {
                         item.value = (item.value as Boolean).not()
                         FirebaseHomeInformationRepository.saveStorageUnit(item)
@@ -50,10 +50,10 @@ class StorageUnitListAdapter : RecyclerView.Adapter<StorageUnitListAdapter.ViewH
         }
     }
 
-    fun getItemIdx(unit: StorageUnit<Any>): Int{
+    fun getItemIdx(unit: StorageUnit<Any>): Int {
         var idx = -1
         storageUnits.forEachIndexed { index, storageUnit ->
-            if(storageUnit.name == unit.name) {
+            if (storageUnit.name == unit.name) {
                 idx = index
                 return@forEachIndexed
             }
@@ -62,7 +62,7 @@ class StorageUnitListAdapter : RecyclerView.Adapter<StorageUnitListAdapter.ViewH
     }
 
     class ViewHolder(
-        private val binding: FragmentRoomDetailListItemBinding
+            private val binding: FragmentRoomDetailListItemBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(listener: View.OnClickListener, item: StorageUnit<Any>) {

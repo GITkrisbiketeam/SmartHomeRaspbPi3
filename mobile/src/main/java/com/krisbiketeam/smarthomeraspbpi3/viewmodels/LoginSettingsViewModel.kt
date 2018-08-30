@@ -7,6 +7,9 @@ import com.krisbiketeam.data.MyLiveDataState
 import com.krisbiketeam.data.auth.AuthenticationLiveData
 import com.krisbiketeam.data.auth.FirebaseCredentials
 import com.krisbiketeam.data.nearby.NearbyServiceLiveData
+import com.krisbiketeam.data.storage.FirebaseHomeInformationRepository
+import com.krisbiketeam.smarthomeraspbpi3.firebase.getFirebaseAppToken
+import com.krisbiketeam.smarthomeraspbpi3.firebase.sendRegistrationToServer
 import com.krisbiketeam.smarthomeraspbpi3.ui.WifiSettingsFragment
 import timber.log.Timber
 
@@ -24,22 +27,32 @@ class LoginSettingsViewModel(private val authentication: AuthenticationLiveData,
         Timber.d("init")
         remoteLogin.value = false
         loginState.value = Pair(MyLiveDataState.INIT, Unit)
-        loginState.addSource(authentication, {
-            Timber.d("authenticationLivedata changed: $it")
-            it?.let { (state, data) ->
+        loginState.addSource(authentication) { pair ->
+            Timber.d("authenticationLivedata changed: $pair")
+            pair?.let { (state, data) ->
                 Timber.d("authenticationLivedata remoteLogin.value: ${remoteLogin.value}")
-                if (state == MyLiveDataState.DONE && remoteLogin.value == true) {
-                    // initialize Nearby FirebaseCredentials transfer
-                    nearByState.value = Pair(MyLiveDataState.CONNECTING, data)
-                } else {
-                    loginState.value = it
+                var updateValue = true
+                if (state == MyLiveDataState.DONE && data is FirebaseCredentials) {
+                    FirebaseHomeInformationRepository.writeNewUser(data.email.substringBefore("@"), data.email)
+                    getFirebaseAppToken { token ->
+                        Timber.d("getFirebaseAppToken token: $token")
+                        token?.let {
+                            sendRegistrationToServer(data.email, token)
+                            if (remoteLogin.value == true) {
+                                updateValue = false
+                                // initialize Nearby FirebaseCredentials transfer
+                                nearByState.value = Pair(MyLiveDataState.CONNECTING, data)
+                            }
+                        }
+                    }
                 }
+                if (updateValue) loginState.value = pair
             }
-        })
-        loginState.addSource(nearByState, {
+        }
+        loginState.addSource(nearByState) {
             Timber.d("nearByState changed: $it")
             loginState.value = it
-        })
+        }
 
     }
 

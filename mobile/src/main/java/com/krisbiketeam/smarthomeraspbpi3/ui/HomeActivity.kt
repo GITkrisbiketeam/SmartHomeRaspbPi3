@@ -10,9 +10,14 @@ import androidx.navigation.ui.NavigationUI
 import androidx.navigation.ui.setupWithNavController
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.databinding.ActivityHomeBinding
+import com.krisbiketeam.smarthomeraspbpi3.databinding.NavHeaderBinding
+import com.krisbiketeam.smarthomeraspbpi3.viewmodels.NavigationViewModel
+import org.koin.android.architecture.ext.viewModel
 
 class HomeActivity  : AppCompatActivity() {
     private lateinit var drawerLayout: DrawerLayout
+
+    private val navigationViewModel by viewModel<NavigationViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -20,6 +25,13 @@ class HomeActivity  : AppCompatActivity() {
         val binding: ActivityHomeBinding = DataBindingUtil.setContentView(this,
                 R.layout.activity_home)
         drawerLayout = binding.drawerLayout
+
+        DataBindingUtil.inflate<NavHeaderBinding>(
+                layoutInflater, R.layout.nav_header, binding.navigationView, false).apply {
+            binding.navigationView.addHeaderView(root)
+            viewModel = navigationViewModel
+            setLifecycleOwner(this@HomeActivity)
+        }
 
         val navController = Navigation.findNavController(this, R.id.home_nav_fragment)
 

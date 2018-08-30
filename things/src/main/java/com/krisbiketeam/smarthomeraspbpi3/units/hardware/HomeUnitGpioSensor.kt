@@ -6,12 +6,9 @@ import com.krisbiketeam.data.storage.ConnectionType
 import com.krisbiketeam.data.storage.dto.HomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.units.HomeUnitGpio
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
-import com.krisbiketeam.smarthomeraspbpi3.utils.Logger
-import com.krisbiketeam.smarthomeraspbpi3.utils.Utils
+import timber.log.Timber
 import java.io.IOException
 import java.util.*
-
-private val TAG = Utils.getLogTag(HomeUnitGpioSensor::class.java)
 
 open class HomeUnitGpioSensor(name: String,
                               location: String,
@@ -28,7 +25,7 @@ open class HomeUnitGpioSensor(name: String,
     open val mGpioCallback = object : GpioCallback {
         override fun onGpioEdge(gpio: Gpio): Boolean {
             readValue(gpio)
-            Logger.v(TAG, "onGpioEdge gpio.readValue(): $homeUnit.value on: $homeUnit")
+            Timber.v("onGpioEdge gpio.readValue(): $homeUnit.value on: $homeUnit")
             homeUnitListener?.onUnitChanged(homeUnit, unitValue, valueUpdateTime)
 
             // Continue listening for more interrupts
@@ -36,7 +33,7 @@ open class HomeUnitGpioSensor(name: String,
         }
 
         override fun onGpioError(gpio: Gpio?, error: Int) {
-            Logger.w(TAG, gpio.toString() + ": Error event $error on: $homeUnit")
+            Timber.w(gpio.toString() + ": Error event $error on: $homeUnit")
         }
     }
 
@@ -49,7 +46,7 @@ open class HomeUnitGpioSensor(name: String,
                 setEdgeTriggerType(Gpio.EDGE_BOTH)
                 setActiveType(activeType)
             } catch (e: IOException) {
-                Logger.e(TAG, "Error initializing PeripheralIO API on: $homeUnit", e)
+                Timber.e("Error initializing PeripheralIO API on: $homeUnit", e)
             }
         }
     }
@@ -60,17 +57,17 @@ open class HomeUnitGpioSensor(name: String,
     }
 
     override fun registerListener(listener: Sensor.HomeUnitListener<Boolean>) {
-        Logger.d(TAG, "registerListener")
+        Timber.d( "registerListener")
         homeUnitListener = listener
         try {
             gpio?.registerGpioCallback(mGpioCallback)
         } catch (e: IOException) {
-            Logger.e(TAG, "Error registerListener PeripheralIO API on: $homeUnit", e)
+            Timber.e( "Error registerListener PeripheralIO API on: $homeUnit", e)
         }
     }
 
     override fun unregisterListener() {
-        Logger.d(TAG, "unregisterListener")
+        Timber.d( "unregisterListener")
         gpio?.unregisterGpioCallback(mGpioCallback)
         homeUnitListener = null
     }
@@ -84,7 +81,7 @@ open class HomeUnitGpioSensor(name: String,
         unitValue = try {
             gpio?.value
         } catch (e: IOException) {
-            Logger.e(TAG, "Error getting Value PeripheralIO API on: $homeUnit", e)
+            Timber.e( "Error getting Value PeripheralIO API on: $homeUnit", e)
             // Set null value on error
             null
         }

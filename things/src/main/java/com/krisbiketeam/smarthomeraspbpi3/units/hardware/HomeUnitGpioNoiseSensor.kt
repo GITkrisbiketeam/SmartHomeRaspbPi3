@@ -5,11 +5,8 @@ import android.support.annotation.VisibleForTesting
 import android.view.ViewConfiguration
 import com.google.android.things.pio.Gpio
 import com.google.android.things.pio.GpioCallback
-import com.krisbiketeam.smarthomeraspbpi3.utils.Logger
-import com.krisbiketeam.smarthomeraspbpi3.utils.Utils
+import timber.log.Timber
 import java.util.*
-
-private val TAG = Utils.getLogTag(HomeUnitGpioNoiseSensor::class.java)
 
 class HomeUnitGpioNoiseSensor(name: String,
                               location: String,
@@ -42,7 +39,7 @@ class HomeUnitGpioNoiseSensor(name: String,
     override val mGpioCallback = object : GpioCallback {
         override fun onGpioEdge(gpio: Gpio): Boolean {
             val value = readValue(gpio)
-            Logger.v(TAG, "onGpioEdge gpio.readValue(): $value on: $homeUnit")
+            Timber.v("onGpioEdge gpio.readValue(): $value on: $homeUnit")
 
             if (debounceDelay == 0L) {
                 // Trigger event immediately
@@ -59,7 +56,7 @@ class HomeUnitGpioNoiseSensor(name: String,
         }
 
         override fun onGpioError(gpio: Gpio?, error: Int) {
-            Logger.w(TAG, gpio.toString() + ": Error event $error on: $homeUnit")
+            Timber.w(gpio.toString() + ": Error event $error on: $homeUnit")
         }
     }
 
@@ -75,9 +72,9 @@ class HomeUnitGpioNoiseSensor(name: String,
     internal fun performSensorEvent(event: Boolean?) {
         unitValue = event
         valueUpdateTime = Date().toString()
-        Logger.d(TAG, "performSensorEvent event: $event on: $homeUnit")
+        Timber.d("performSensorEvent event: $event on: $homeUnit")
         homeUnitListener?.onUnitChanged(homeUnit, unitValue, valueUpdateTime)
-                ?: Logger.w(TAG, "listener not registered on: $homeUnit")
+                ?: Timber.w("listener not registered on: $homeUnit")
 
     }
 
