@@ -28,7 +28,7 @@ interface HomeInformationRepository {
 
     fun writeNewUser(name: String, email: String)
 
-    fun addUserNotiToken(userId: String, token: String)
+    fun addUserNotiToken(email: String, token: String)
 
     /**
      *  Saves/updates given @see[Room] in DB

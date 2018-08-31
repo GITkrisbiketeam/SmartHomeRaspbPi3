@@ -30,19 +30,22 @@ class LoginSettingsViewModel(private val authentication: AuthenticationLiveData,
         loginState.addSource(authentication) { pair ->
             Timber.d("authenticationLivedata changed: $pair")
             pair?.let { (state, data) ->
-                Timber.d("authenticationLivedata remoteLogin.value: ${remoteLogin.value}")
+                Timber.d("authenticationLivedata remoteLogin.value: ${remoteLogin.value} data: $data state: $state")
                 var updateValue = true
                 if (state == MyLiveDataState.DONE && data is FirebaseCredentials) {
                     FirebaseHomeInformationRepository.writeNewUser(data.email.substringBefore("@"), data.email)
+                    updateValue = false
                     getFirebaseAppToken { token ->
                         Timber.d("getFirebaseAppToken token: $token")
-                        token?.let {
-                            sendRegistrationToServer(data.email, token)
-                            if (remoteLogin.value == true) {
-                                updateValue = false
-                                // initialize Nearby FirebaseCredentials transfer
-                                nearByState.value = Pair(MyLiveDataState.CONNECTING, data)
-                            }
+                        if (token?.let {
+                                    sendRegistrationToServer(data.email, token)
+                                    if (remoteLogin.value == true) {
+                                        // initialize Nearby FirebaseCredentials transfer
+                                        nearByState.value = Pair(MyLiveDataState.CONNECTING, data)
+                                        false
+                                    } else true
+                                } != false) {
+                            loginState.value = pair
                         }
                     }
                 }

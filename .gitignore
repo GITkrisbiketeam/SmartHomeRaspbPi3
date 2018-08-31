@@ -71,4 +71,4 @@ fastlane/readme.md
 
 # Firebase
 functions/node_modules
-functions/*.json
+functions/package-lock.json

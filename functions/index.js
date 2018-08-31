@@ -19,69 +19,81 @@ admin.initializeApp();
  * Users save their device notification tokens to `/users/{followedUid}/notificationTokens/{notificationToken}`.
  */
 exports.sendLogNotification = functions.database.ref('/log/{logUid}')
-    .onWrite(async (change, context) => {
-      const logUid = context.params.logUid;
-      console.log('We have a new log UID:', logUid);
+    .onWrite((change, context) => {
+        const logUid = context.params.logUid;
+        console.log('We have a new log UID:', logUid);
 
-      // Get the list of users.
-      const getUsersPromise = admin.database().ref(`/users`).once('value');
+        // Get the list of users.
+        const getUsersPromise = admin.database().ref(`/users`).once('value');
 
-      // Get the follower profile.
-      const getLogPromise = admin.database().ref(`/log/${logUid}`).once('value');
+        // Get the follower profile.
+        const getLogPromise = admin.database().ref(`/log/${logUid}`).once('value');
 
-      // The snapshot to the users.
-      let usersSnapshot;
+        // The snapshot to the users.
+        let usersSnapshot;
 
-      // The array containing all the user's tokens.
-      let tokens;
+        // The array containing all the user's tokens.
+        let tokens
+        // The Map containing all the tokens -> userId map.
+        let tokensMap = new Map()
 
-      const results = await Promise.all([getUsersPromise, getLogPromise]);
-      usersSnapshot = results[0];
-      const unitLog = results[1];
+        return Promise.all([getUsersPromise, getLogPromise]).then(results => {
+            usersSnapshot = results[0];
+            const unitLog = results[1];
 
-      // Check if there are any users.
-      if (!usersSnapshot.hasChildren()) {
-        return console.log('There are no users.');
-      }
-      console.log('There are', usersSnapshot.numChildren(), 'users.');
-      console.log('Fetched unitLog ', unitLog);
+            // Check if there are any users.
+            if (!usersSnapshot.hasChildren()) {
+                return console.log('There are no users.');
+            }
+            console.log('There are', usersSnapshot.numChildren(), 'users.');
+            console.log('Fetched unitLog ', unitLog.val());
 
-      usersSnapshot.forEach(function(user) {
-              console.log('User from snapshot: ', user);
-              var userKey = user.key
-              // Listing all users as an array.
-              var userTokens = Object.keys(usersSnapshot.child(userKey).child(notificationTokens));
-              console.log('User tokens: ', userTokens);
-              tokens.push(...userTokens)
+            usersSnapshot.forEach((user) => {
+                var userKey = user.key
+                console.log('User userKey: ', userKey);
+                console.log('User : ', user.val());
+                //console.log('User user: ', usersSnapshot.child(userKey).val());
+                // Listing all users as an array.
+                //var userTokens = Object.keys(usersSnapshot.child(userKey).child("notificationTokens").val());
+                var userTokens = Object.keys(user.child("notificationTokens").val());
+                userTokens.forEach((token) => {
+                    tokensMap.set(token, userKey)
+                })
             });
 
-      console.log('Fetched tokens ', tokens);
+            console.log('Fetched tokensMap count', tokensMap.size);
+            // Check if there are any device tokens.
+            if (tokensMap.size <= 0) {
+                return console.log('There are no notification tokens to send to.');
+            }
 
-      // Notification details.
-      const payload = {
-        notification: {
-          title: 'New Event!',
-          body: `Event from ${unitLog.name} on ${unitLog.localtime}.`,
-          icon: null
-        }
-      };
-
-      // Send notifications to all tokens.
-      const response = await admin.messaging().sendToDevice(tokens, payload);
-      // For each message check if there was an error.
-      const tokensToRemove = [];
-      response.results.forEach((result, index) => {
-        const error = result.error;
-        if (error) {
-          console.error('Failure sending notification to', tokens[index], error);
-          // Cleanup the tokens who are not registered anymore.
-          if (error.code === 'messaging/invalid-registration-token' ||
-              error.code === 'messaging/registration-token-not-registered') {
-            //tokensToRemove.push(tokensSnapshot.ref.child(tokens[index]).remove());
-          }
-        }
-      });
-      return Promise.all(tokensToRemove);
+            // Notification details.
+            const payload = {
+                notification: {
+                    title: 'New Event!',
+                    body: `Event from ${unitLog.child("name").val()}; Value: ${unitLog.child("value").val()}; on ${unitLog.child("localtime").val()}.`
+                }
+            };
+            tokens = [...tokensMap.keys()]
+            // Send notifications to all tokens.
+            return admin.messaging().sendToDevice(tokens, payload);
+        }).then((response) => {
+            // For each message check if there was an error.
+            const tokensToRemove = [];
+            response.results.forEach((result, index) => {
+                const error = result.error;
+                if (error) {
+                    console.error('Failure sending notification to', tokens[index], error);
+                    // Cleanup the tokens who are not registered anymore.
+                    if (error.code === 'messaging/invalid-registration-token' ||
+                        error.code === 'messaging/registration-token-not-registered') {
+                        //tokensToRemove.push(tokensSnapshot.ref.child(tokens[index]).remove());
+                        tokensToRemove.push(usersSnapshot.ref.child(tokensMap.get(tokens[index])).child("notificationTokens").child(tokens[index]).remove());
+                    }
+                }
+            });
+            return Promise.all(tokensToRemove);
+        });
     });
 
 /**
@@ -91,7 +103,7 @@ exports.sendLogNotification = functions.database.ref('/log/{logUid}')
  * Users save their device notification tokens to `/users/{followedUid}/notificationTokens/{notificationToken}`.
  */
 exports.sendFollowerNotification = functions.database.ref('/followers/{followedUid}/{followerUid}')
-    .onWrite(async (change, context) => {
+    .onWrite((change, context) => {
       const followerUid = context.params.followerUid;
       const followedUid = context.params.followedUid;
       // If un-follow we exit the function.
@@ -113,42 +125,44 @@ exports.sendFollowerNotification = functions.database.ref('/followers/{followedU
       // The array containing all the user's tokens.
       let tokens;
 
-      const results = await Promise.all([getDeviceTokensPromise, getFollowerProfilePromise]);
-      tokensSnapshot = results[0];
-      const follower = results[1];
+      return Promise.all([getDeviceTokensPromise, getFollowerProfilePromise]).then(results => {
+        tokensSnapshot = results[0];
+        const follower = results[1];
 
-      // Check if there are any device tokens.
-      if (!tokensSnapshot.hasChildren()) {
-        return console.log('There are no notification tokens to send to.');
-      }
-      console.log('There are', tokensSnapshot.numChildren(), 'tokens to send notifications to.');
-      console.log('Fetched follower profile', follower);
-
-      // Notification details.
-      const payload = {
-        notification: {
-          title: 'You have a new follower!',
-          body: `${follower.displayName} is now following you.`,
-          icon: follower.photoURL
+        // Check if there are any device tokens.
+        if (!tokensSnapshot.hasChildren()) {
+          return console.log('There are no notification tokens to send to.');
         }
-      };
+        console.log('There are', tokensSnapshot.numChildren(), 'tokens to send notifications to.');
+        console.log('Fetched follower profile', follower);
 
-      // Listing all tokens as an array.
-      tokens = Object.keys(tokensSnapshot.val());
-      // Send notifications to all tokens.
-      const response = await admin.messaging().sendToDevice(tokens, payload);
-      // For each message check if there was an error.
-      const tokensToRemove = [];
-      response.results.forEach((result, index) => {
-        const error = result.error;
-        if (error) {
-          console.error('Failure sending notification to', tokens[index], error);
-          // Cleanup the tokens who are not registered anymore.
-          if (error.code === 'messaging/invalid-registration-token' ||
-              error.code === 'messaging/registration-token-not-registered') {
-            tokensToRemove.push(tokensSnapshot.ref.child(tokens[index]).remove());
+        // Notification details.
+        const payload = {
+          notification: {
+            title: 'You have a new follower!',
+            body: `${follower.displayName} is now following you.`,
+            icon: follower.photoURL
           }
-        }
+        };
+
+        // Listing all tokens as an array.
+        tokens = Object.keys(tokensSnapshot.val());
+        // Send notifications to all tokens.
+        return admin.messaging().sendToDevice(tokens, payload);
+      }).then((response) => {
+        // For each message check if there was an error.
+        const tokensToRemove = [];
+        response.results.forEach((result, index) => {
+          const error = result.error;
+          if (error) {
+            console.error('Failure sending notification to', tokens[index], error);
+            // Cleanup the tokens who are not registered anymore.
+            if (error.code === 'messaging/invalid-registration-token' ||
+                error.code === 'messaging/registration-token-not-registered') {
+              tokensToRemove.push(tokensSnapshot.ref.child(tokens[index]).remove());
+            }
+          }
+        });
+        return Promise.all(tokensToRemove);
       });
-      return Promise.all(tokensToRemove);
     });

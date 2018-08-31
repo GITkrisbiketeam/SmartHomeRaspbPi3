@@ -47,7 +47,7 @@
     <string name="add_storage_text_name">Name:</string>
     <string name="add_storage_text_title_hint">Name</string>
     <string name="add_storage_text_description_hint">Your description</string>
-    <string name="add_storage_text_description">Descritpion:</string>
+    <string name="add_storage_text_description">Description:</string>
     <string name="add_storage_text_unit_type_spinner_prompt">Unit Types:</string>
     <string name="add_storage_text_unit_type_title">Select Unit Type:</string>
     <string name="add_storage_text_room_spinner_prompt">Rooms:</string>
