@@ -18,7 +18,7 @@ typealias Pressure = StorageUnit<PressureType>
 typealias BlindType = Int
 typealias Blind = StorageUnit<BlindType>
 
-val storageUnitTypeIndicatorMap: HashMap<String, Class<*>> = hashMapOf(
+val storageUnitTypeIndicatorMap: HashMap<String, Class<out Any>> = hashMapOf(
         HOME_LIGHTS to LightType::class.java,
         HOME_LIGHT_SWITCHES to LightSwitchType::class.java,
         HOME_REED_SWITCHES to ReedSwitchType::class.java,

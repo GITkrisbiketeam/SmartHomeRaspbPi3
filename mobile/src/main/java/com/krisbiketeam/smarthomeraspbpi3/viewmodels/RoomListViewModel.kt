@@ -14,9 +14,7 @@ private const val NO_GROW_ZONE = -1
 /**
  * The ViewModel for [RoomListFragment].
  */
-class RoomListViewModel internal constructor(
-    private val homeRepository: HomeInformationRepository
-) : ViewModel() {
+class RoomListViewModel(homeRepository: HomeInformationRepository) : ViewModel() {
 
     private val growZoneNumber = MutableLiveData<Int>()
 

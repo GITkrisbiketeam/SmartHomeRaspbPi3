@@ -1,72 +1,57 @@
 package com.krisbiketeam.smarthomeraspbpi3.ui
 
-import android.arch.lifecycle.ViewModelProviders
+import android.arch.lifecycle.Observer
 import android.databinding.DataBindingUtil
 import android.os.Bundle
 import android.support.v4.app.Fragment
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
+import com.krisbiketeam.data.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.R
-import com.krisbiketeam.smarthomeraspbpi3.viewmodels.AddStorageHomeUnitViewModel
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentAddStorageHomeUnitBinding
+import com.krisbiketeam.smarthomeraspbpi3.viewmodels.AddStorageHomeUnitViewModel
+import org.koin.android.architecture.ext.viewModel
+import timber.log.Timber
 
 class AddStorageHomeUnitFragment : Fragment() {
+    private val addStorageHomeUnitViewModel by viewModel<AddStorageHomeUnitViewModel>()
 
     override fun onCreateView(
             inflater: LayoutInflater,
             container: ViewGroup?,
             savedInstanceState: Bundle?
     ): View? {
-        val addStorageHomeUnitViewModel = ViewModelProviders.of(this)
-                .get(AddStorageHomeUnitViewModel::class.java)
 
         val binding = DataBindingUtil.inflate<FragmentAddStorageHomeUnitBinding>(
                 inflater, R.layout.fragment_add_storage_home_unit, container, false).apply {
             viewModel = addStorageHomeUnitViewModel
             setLifecycleOwner(this@AddStorageHomeUnitFragment)
-
         }
 
-        /*addStorageHomeUnitViewModel.name.observe(this, Observer { room ->
-            shareText = if (room == null) {
-                ""
-            } else {
-                getString(R.string.share_text_plant, room.name)
+        addStorageHomeUnitViewModel.firebaseTableName.observe(viewLifecycleOwner, Observer { tableName ->
+            Timber.d("firebaseTableName changed: $tableName")
+            tableName?.let{
+                addStorageHomeUnitViewModel.storageUnitListLiveData = FirebaseHomeInformationRepository.storageUnitListLiveData(tableName)
             }
-        })*/
+        })
 
         setHasOptionsMenu(true)
 
         return binding.root
     }
 
-    /*override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
+    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
         inflater?.inflate(R.menu.menu_room_detail, menu)
         super.onCreateOptionsMenu(menu, inflater)
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         return when (item?.itemId) {
-            *//*R.id.action_share -> {
-                val shareIntent = ShareCompat.IntentBuilder.from(activity)
-                        .setText(shareText)
-                        .setType("text/plain")
-                        .createChooserIntent()
-                        .apply {
-                            // https://android-developers.googleblog.com/2012/02/share-with-intents.html
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                                // If we're on Lollipop, we can open the intent as a document
-                                addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT or Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
-                            } else {
-                                // Else, we will use the old CLEAR_WHEN_TASK_RESET flag
-                                addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET)
-                            }
-                        }
-                startActivity(shareIntent)
+            R.id.action_save -> {
+                Timber.d("action_save: ${addStorageHomeUnitViewModel.storageUnitListLiveData?.value.toString()}")
+
                 return true
-            }*//*
+            }
             else -> super.onOptionsItemSelected(item)
         }
-    }*/
+    }
 }

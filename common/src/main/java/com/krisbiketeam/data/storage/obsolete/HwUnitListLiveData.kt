@@ -1,30 +1,30 @@
-package com.krisbiketeam.data.storage
+package com.krisbiketeam.data.storage.obsolete
 
 import android.arch.lifecycle.LiveData
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.ValueEventListener
-import com.krisbiketeam.data.storage.firebaseTables.HOME_ROOMS
-import com.krisbiketeam.data.storage.dto.Room
+import com.krisbiketeam.data.storage.dto.HomeUnit
+import com.krisbiketeam.data.storage.firebaseTables.HOME_HW_UNITS
 import timber.log.Timber
 
 
-class RoomListLiveData(private val databaseReference: DatabaseReference) : LiveData<List<Room>>() {
+class HwUnitListLiveData(private val databaseReference: DatabaseReference) : LiveData<List<HomeUnit>>() {
 
-    private val roomsListener: ValueEventListener = object: ValueEventListener {
+    private val hwUnitsListener: ValueEventListener = object: ValueEventListener {
         override fun onDataChange(dataSnapshot: DataSnapshot) {
             // A new value has been added, add it to the displayed list
             val key = dataSnapshot.key
-            val rooms: ArrayList<Room> = ArrayList()
+            val hwUnits: ArrayList<HomeUnit> = ArrayList()
             for(r: DataSnapshot in dataSnapshot.children){
-                val room = r.getValue(Room::class.java)
-                Timber.d("onDataChange (key=$key)(room=$room)")
-                room?.let {
-                    rooms.add(room)
+                val hwUnit = r.getValue(HomeUnit::class.java)
+                Timber.d("onDataChange (key=$key)(hwUnit=$hwUnit)")
+                hwUnit?.let {
+                    hwUnits.add(hwUnit)
                 }
             }
-            value = rooms
+            value = hwUnits
         }
 
         override fun onCancelled(databaseError: DatabaseError) {
@@ -34,11 +34,11 @@ class RoomListLiveData(private val databaseReference: DatabaseReference) : LiveD
 
     override fun onActive() {
         Timber.d("onActive")
-        databaseReference.child(HOME_ROOMS).addValueEventListener(roomsListener)
+        databaseReference.child(HOME_HW_UNITS).addValueEventListener(hwUnitsListener)
     }
 
     override fun onInactive() {
         Timber.d("onInactive")
-        databaseReference.child(HOME_ROOMS).removeEventListener(roomsListener)
+        databaseReference.child(HOME_HW_UNITS).removeEventListener(hwUnitsListener)
     }
 }

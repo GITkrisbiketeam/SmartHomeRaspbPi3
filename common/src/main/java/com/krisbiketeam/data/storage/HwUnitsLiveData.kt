@@ -64,10 +64,12 @@ class HwUnitsLiveData(private val databaseReference: DatabaseReference) : LiveDa
     }
 
     override fun onActive() {
+        Timber.d("onActive")
         databaseReference.child(HOME_HW_UNITS).addChildEventListener(eventListener)
     }
 
     override fun onInactive() {
+        Timber.d("onInactive")
         databaseReference.child(HOME_HW_UNITS).removeEventListener(eventListener)
     }
 }

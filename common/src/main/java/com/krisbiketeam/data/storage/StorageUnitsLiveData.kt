@@ -96,10 +96,12 @@ class StorageUnitsLiveData(private val databaseReference: DatabaseReference, pri
     }
 
     override fun onActive() {
+        Timber.d("onActive")
         unitsList.forEach { databaseReference.child(it.childNode).addChildEventListener(it) }
     }
 
     override fun onInactive() {
+        Timber.d("onInactive")
         unitsList.forEach { databaseReference.child(it.childNode).removeEventListener(it) }
     }
 }

@@ -17,8 +17,12 @@
 package com.krisbiketeam.smarthomeraspbpi3.adapters
 
 import android.databinding.BindingAdapter
+import android.databinding.InverseBindingAdapter
+import android.databinding.InverseBindingListener
 import android.support.design.widget.FloatingActionButton
+import android.support.v7.widget.AppCompatSpinner
 import android.view.View
+import android.widget.AdapterView
 import android.widget.ProgressBar
 import com.krisbiketeam.data.MyLiveDataState
 import timber.log.Timber
@@ -56,6 +60,25 @@ fun stateBasedVisibility(view: View, pair: Pair<MyLiveDataState, Any>?) {
     }
 }
 
+@BindingAdapter("selectedValue", "selectedValueAttrChanged", requireAll=false)
+fun bindSpinnerData(spinner: AppCompatSpinner, newSelectedValue: String?, newTextAttrChanged: InverseBindingListener) {
+    Timber.d("selectedValue BindingAdapter newSelectedValue: $newSelectedValue")
+    spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+        override fun onNothingSelected(parent: AdapterView<*>?) {
+
+        }
+
+        override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+            newTextAttrChanged.onChange()
+        }
+    }
+}
+
+@InverseBindingAdapter(attribute = "selectedValue", event = "selectedValueAttrChanged")
+fun captureSelectedValue(spinner: AppCompatSpinner): String {
+    Timber.d("selectedValue InverseBindingAdapter")
+    return spinner.selectedItem as String
+}
 /*
 @BindingAdapter("wateringText")
 fun wateringText(textView: TextView, wateringInterval: Int) {

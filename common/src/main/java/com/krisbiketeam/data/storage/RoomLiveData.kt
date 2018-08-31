@@ -29,10 +29,12 @@ class RoomLiveData(private val databaseReference: DatabaseReference, private val
     }
 
     override fun onActive() {
+        Timber.d("onActive")
         databaseReference.child(HOME_ROOMS).child(roomName).addValueEventListener(roomListener)
     }
 
     override fun onInactive() {
+        Timber.d("onInactive")
         databaseReference.child(HOME_ROOMS).child(roomName).removeEventListener(roomListener)
     }
 }

@@ -7,6 +7,7 @@ import com.krisbiketeam.data.storage.firebaseTables.*
 import com.krisbiketeam.data.storage.obsolete.HomeInformation
 import com.krisbiketeam.data.storage.obsolete.HomeInformationLiveData
 import com.krisbiketeam.data.storage.dto.*
+import com.krisbiketeam.data.storage.obsolete.HwUnitListLiveData
 
 
 interface HomeInformationRepository {
@@ -49,6 +50,11 @@ interface HomeInformationRepository {
     fun storageUnitsLiveData(): StorageUnitsLiveData
 
     /**
+     * get instance of @see[StorageUnitListLiveData] for listening to changes in entries in DB
+     */
+    fun storageUnitListLiveData(storageType: String): StorageUnitListLiveData
+
+    /**
      * get instance of @see[StorageUnitsLiveData] for listening to changes in entries in DB
      */
     fun storageUnitsLiveData(roomName: String): StorageUnitsLiveData
@@ -57,6 +63,11 @@ interface HomeInformationRepository {
      * get instance of @see[HwUnitsLiveData] for listening to changes in Room entries in DB
      */
     fun hwUnitsLiveData(): HwUnitsLiveData
+
+    /**
+     * get instance of @see[HwUnitListLiveData] for listening to changes in Room entries in DB
+     */
+    fun hwUnitListLiveData(): HwUnitListLiveData
 
     /**
      * get instance of @see[RoomListLiveData] for listening to changes in Room entries in DB
@@ -92,6 +103,8 @@ object FirebaseHomeInformationRepository : HomeInformationRepository {
     private val hwUnitsLiveData = HwUnitsLiveData(referenceHome)
 
     private val roomsLiveData = RoomListLiveData(referenceHome)
+
+    private val hwUnitListLiveData = HwUnitListLiveData(referenceHome)
 
     init {
         // Enable offline this causes some huge delays :(
@@ -163,6 +176,10 @@ object FirebaseHomeInformationRepository : HomeInformationRepository {
         return hwUnitsLiveData
     }
 
+    override fun hwUnitListLiveData(): HwUnitListLiveData {
+        return hwUnitListLiveData
+    }
+
     override fun roomsLiveData(): RoomListLiveData {
         return roomsLiveData
     }
@@ -170,5 +187,10 @@ object FirebaseHomeInformationRepository : HomeInformationRepository {
     override fun roomLiveData(roomName: String): RoomLiveData {
         return RoomLiveData(referenceHome, roomName)
     }
+
+    override fun storageUnitListLiveData(storageType: String): StorageUnitListLiveData {
+        return StorageUnitListLiveData(referenceHome,storageType)
+    }
+
 
 }

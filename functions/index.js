@@ -23,41 +23,49 @@ exports.sendLogNotification = functions.database.ref('/log/{logUid}')
       const logUid = context.params.logUid;
       console.log('We have a new log UID:', logUid);
 
-      // Get the list of device notification tokens.
-      const getDeviceTokensPromise = admin.database()
-          .ref(`/users/${followedUid}/notificationTokens`).once('value');
+      // Get the list of users.
+      const getUsersPromise = admin.database().ref(`/users`).once('value');
 
       // Get the follower profile.
-      const getFollowerProfilePromise = admin.auth().getUser(followerUid);
+      const getLogPromise = admin.database().ref(`/log/${logUid}`).once('value');
 
-      // The snapshot to the user's tokens.
-      let tokensSnapshot;
+      // The snapshot to the users.
+      let usersSnapshot;
 
       // The array containing all the user's tokens.
       let tokens;
 
-      const results = await Promise.all([getDeviceTokensPromise, getFollowerProfilePromise]);
-      tokensSnapshot = results[0];
-      const follower = results[1];
+      const results = await Promise.all([getUsersPromise, getLogPromise]);
+      usersSnapshot = results[0];
+      const unitLog = results[1];
 
-      // Check if there are any device tokens.
-      if (!tokensSnapshot.hasChildren()) {
-        return console.log('There are no notification tokens to send to.');
+      // Check if there are any users.
+      if (!usersSnapshot.hasChildren()) {
+        return console.log('There are no users.');
       }
-      console.log('There are', tokensSnapshot.numChildren(), 'tokens to send notifications to.');
-      console.log('Fetched follower profile', follower);
+      console.log('There are', usersSnapshot.numChildren(), 'users.');
+      console.log('Fetched unitLog ', unitLog);
+
+      usersSnapshot.forEach(function(user) {
+              console.log('User from snapshot: ', user);
+              var userKey = user.key
+              // Listing all users as an array.
+              var userTokens = Object.keys(usersSnapshot.child(userKey).child(notificationTokens));
+              console.log('User tokens: ', userTokens);
+              tokens.push(...userTokens)
+            });
+
+      console.log('Fetched tokens ', tokens);
 
       // Notification details.
       const payload = {
         notification: {
-          title: 'You have a new follower!',
-          body: `${follower.displayName} is now following you.`,
-          icon: follower.photoURL
+          title: 'New Event!',
+          body: `Event from ${unitLog.name} on ${unitLog.localtime}.`,
+          icon: null
         }
       };
 
-      // Listing all tokens as an array.
-      tokens = Object.keys(tokensSnapshot.val());
       // Send notifications to all tokens.
       const response = await admin.messaging().sendToDevice(tokens, payload);
       // For each message check if there was an error.
@@ -69,7 +77,7 @@ exports.sendLogNotification = functions.database.ref('/log/{logUid}')
           // Cleanup the tokens who are not registered anymore.
           if (error.code === 'messaging/invalid-registration-token' ||
               error.code === 'messaging/registration-token-not-registered') {
-            tokensToRemove.push(tokensSnapshot.ref.child(tokens[index]).remove());
+            //tokensToRemove.push(tokensSnapshot.ref.child(tokens[index]).remove());
           }
         }
       });
