@@ -5,7 +5,6 @@ import android.databinding.DataBindingUtil
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.view.*
-import com.krisbiketeam.data.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentAddStorageHomeUnitBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.AddStorageHomeUnitViewModel
@@ -27,11 +26,11 @@ class AddStorageHomeUnitFragment : Fragment() {
             setLifecycleOwner(this@AddStorageHomeUnitFragment)
         }
 
-        addStorageHomeUnitViewModel.firebaseTableName.observe(viewLifecycleOwner, Observer { tableName ->
-            Timber.d("firebaseTableName changed: $tableName")
-            tableName?.let{
-                addStorageHomeUnitViewModel.storageUnitListLiveData = FirebaseHomeInformationRepository.storageUnitListLiveData(tableName)
-            }
+        addStorageHomeUnitViewModel.storageUnitType.observe(viewLifecycleOwner, Observer { tableName ->
+            Timber.d("storageUnitType changed: $tableName")
+        })
+        addStorageHomeUnitViewModel.storageUnitListLiveData.observe(viewLifecycleOwner, Observer { tableName ->
+            Timber.d("storageUnitListLiveData changed: $tableName")
         })
 
         setHasOptionsMenu(true)
@@ -40,15 +39,22 @@ class AddStorageHomeUnitFragment : Fragment() {
     }
 
     override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
-        inflater?.inflate(R.menu.menu_room_detail, menu)
+        inflater?.inflate(R.menu.menu_add_storage_home_unit, menu)
         super.onCreateOptionsMenu(menu, inflater)
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         return when (item?.itemId) {
             R.id.action_save -> {
-                Timber.d("action_save: ${addStorageHomeUnitViewModel.storageUnitListLiveData?.value.toString()}")
+                Timber.d("action_save: ${addStorageHomeUnitViewModel.storageUnitListLiveData.value.toString()}")
+                Timber.d("action_save: ${addStorageHomeUnitViewModel.name.value.toString()}")
+                if (addStorageHomeUnitViewModel.storageUnitListLiveData.value?.
+                                contains(addStorageHomeUnitViewModel.name.value) == true) {
 
+                    //This name is already used
+                    Timber.d("This name is already used")
+
+                }
                 return true
             }
             else -> super.onOptionsItemSelected(item)

@@ -1,4 +1,4 @@
-package com.krisbiketeam.data.storage.obsolete
+package com.krisbiketeam.data.storage
 
 import android.arch.lifecycle.LiveData
 import com.google.firebase.database.DataSnapshot
@@ -19,7 +19,7 @@ class HwUnitListLiveData(private val databaseReference: DatabaseReference) : Liv
             val hwUnits: ArrayList<HomeUnit> = ArrayList()
             for(r: DataSnapshot in dataSnapshot.children){
                 val hwUnit = r.getValue(HomeUnit::class.java)
-                Timber.d("onDataChange (key=$key)(hwUnit=$hwUnit)")
+                //Timber.d("onDataChange (key=$key)(hwUnit=$hwUnit)")
                 hwUnit?.let {
                     hwUnits.add(hwUnit)
                 }

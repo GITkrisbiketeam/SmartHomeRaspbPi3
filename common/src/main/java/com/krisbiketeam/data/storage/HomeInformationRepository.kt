@@ -7,12 +7,12 @@ import com.krisbiketeam.data.storage.firebaseTables.*
 import com.krisbiketeam.data.storage.obsolete.HomeInformation
 import com.krisbiketeam.data.storage.obsolete.HomeInformationLiveData
 import com.krisbiketeam.data.storage.dto.*
-import com.krisbiketeam.data.storage.obsolete.HwUnitListLiveData
 
 
 interface HomeInformationRepository {
     //Obsolete Code Start
     fun saveMessage(message: String)
+
     fun saveLightState(isOn: Boolean)
     fun saveButtonState(isPressed: Boolean)
     fun saveTemperature(temperature: Float)
@@ -34,10 +34,11 @@ interface HomeInformationRepository {
      *  Saves/updates given @see[Room] in DB
      */
     fun saveRoom(room: Room)
+
     /**
      *  Saves/updates given @see[StorageUnit] in DB
      */
-    fun <T>saveStorageUnit(storageUnit: StorageUnit<T>)
+    fun <T> saveStorageUnit(storageUnit: StorageUnit<T>)
 
     /**
      *  Saves/updates given @see[HomeUnitLog] as a hardware module list in DB
@@ -87,16 +88,19 @@ interface HomeInformationRepository {
 
 object FirebaseHomeInformationRepository : HomeInformationRepository {
     // Obsolete Code Start
-    private val referenceOldHome: DatabaseReference = FirebaseDatabase.getInstance().reference.child(OLD_HOME_INFORMATION_BASE)
+    private val referenceOldHome: DatabaseReference = FirebaseDatabase.getInstance()
+            .reference.child(OLD_HOME_INFORMATION_BASE)
     private val lightLiveData = HomeInformationLiveData(referenceOldHome)
     // Obsolete Code End
 
     // Reference for all home related "Units"
-    private val referenceHome = FirebaseDatabase.getInstance().reference.child(HOME_INFORMATION_BASE)
+    private val referenceHome = FirebaseDatabase.getInstance()
+            .reference.child(HOME_INFORMATION_BASE)
     // Reference for all log related events
     private val referenceLog = FirebaseDatabase.getInstance().reference.child(LOG_INFORMATION_BASE)
     // Reference for all users
-    private val referenceUsers = FirebaseDatabase.getInstance().reference.child(USER_INFORMATION_BASE)
+    private val referenceUsers = FirebaseDatabase.getInstance()
+            .reference.child(USER_INFORMATION_BASE)
 
     private val storageUnitsLiveData = StorageUnitsLiveData(referenceHome)
 
@@ -118,18 +122,23 @@ object FirebaseHomeInformationRepository : HomeInformationRepository {
     override fun saveMessage(message: String) {
         referenceOldHome.child(OLD_HOME_INFORMATION_MESSAGE).setValue(message)
     }
+
     override fun saveLightState(isOn: Boolean) {
         referenceOldHome.child(OLD_HOME_INFORMATION_LIGHT).setValue(isOn)
     }
+
     override fun saveButtonState(isPressed: Boolean) {
         referenceOldHome.child(OLD_HOME_INFORMATION_BUTTON).setValue(isPressed)
     }
+
     override fun saveTemperature(temperature: Float) {
         referenceOldHome.child(OLD_HOME_INFORMATION_TEMPERATURE).setValue(temperature)
     }
+
     override fun savePressure(pressure: Float) {
         referenceOldHome.child(OLD_HOME_INFORMATION_PRESSURE).setValue(pressure)
     }
+
     override fun lightLiveData(): LiveData<HomeInformation> {
         return lightLiveData
     }
@@ -141,10 +150,13 @@ object FirebaseHomeInformationRepository : HomeInformationRepository {
     }
 
     override fun writeNewUser(name: String, email: String) {
-        referenceUsers.child(email.hashCode().toString()).updateChildren(mapOf(Pair(USER_NAME, name), Pair(USER_EMAIL, email)))
+        referenceUsers.child(email.hashCode().toString())
+                .updateChildren(mapOf(Pair(USER_NAME, name), Pair(USER_EMAIL, email)))
     }
+
     override fun addUserNotiToken(email: String, token: String) {
-        referenceUsers.child(email.hashCode().toString()).child(USER_NOTIFICATION_TOKENS).child(token).setValue(true)
+        referenceUsers.child(email.hashCode().toString()).child(USER_NOTIFICATION_TOKENS)
+                .child(token).setValue(true)
     }
 
     override fun saveRoom(room: Room) {
@@ -152,7 +164,8 @@ object FirebaseHomeInformationRepository : HomeInformationRepository {
     }
 
     override fun <T> saveStorageUnit(storageUnit: StorageUnit<T>) {
-        referenceHome.child(storageUnit.firebaseTableName).child(storageUnit.name).setValue(storageUnit)
+        referenceHome.child(storageUnit.firebaseTableName).child(storageUnit.name)
+                .setValue(storageUnit)
     }
 
     override fun saveHardwareUnit(hwUnit: HomeUnit) {
@@ -189,7 +202,7 @@ object FirebaseHomeInformationRepository : HomeInformationRepository {
     }
 
     override fun storageUnitListLiveData(storageType: String): StorageUnitListLiveData {
-        return StorageUnitListLiveData(referenceHome,storageType)
+        return StorageUnitListLiveData(referenceHome, storageType)
     }
 
 

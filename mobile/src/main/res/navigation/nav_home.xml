@@ -23,7 +23,7 @@
     <fragment
         android:id="@+id/room_list_fragment"
         android:name="com.krisbiketeam.smarthomeraspbpi3.ui.RoomListFragment"
-        android:label="room_list_title"
+        android:label="@string/room_list_title"
         tools:layout="@layout/fragment_room_list">
 
         <action
@@ -38,7 +38,7 @@
     <fragment
         android:id="@+id/room_detail_fragment"
         android:name="com.krisbiketeam.smarthomeraspbpi3.ui.RoomDetailFragment"
-        android:label="room_details_title"
+        android:label="@string/room_details_title"
         tools:layout="@layout/fragment_room_detail">
         <argument
             android:name="roomName"
@@ -48,13 +48,13 @@
     <fragment
         android:id="@+id/add_storage_home_unit_fragment"
         android:name="com.krisbiketeam.smarthomeraspbpi3.ui.AddStorageHomeUnitFragment"
-        android:label="add_storage_home_unit_title"
+        android:label="@string/add_storage_home_unit_title"
         tools:layout="@layout/fragment_add_storage_home_unit" />
 
     <fragment
         android:id="@+id/settings_fragment"
         android:name="com.krisbiketeam.smarthomeraspbpi3.ui.SettingsFragment"
-        android:label="settings_title"
+        android:label="@string/settings_title"
         tools:layout="@layout/fragment_settings">
 
         <action
@@ -77,12 +77,12 @@
     <fragment
         android:id="@+id/wifi_settings_fragment"
         android:name="com.krisbiketeam.smarthomeraspbpi3.ui.WifiSettingsFragment"
-        android:label="wifi_settings_title"
+        android:label="@string/wifi_settings_title"
         tools:layout="@layout/fragment_settings_wifi" />
 
     <fragment
         android:id="@+id/login_settings_fragment"
         android:name="com.krisbiketeam.smarthomeraspbpi3.ui.LoginSettingsFragment"
-        android:label="login_settings_title"
+        android:label="@string/login_settings_title"
         tools:layout="@layout/fragment_settings_login" />
 </navigation>
