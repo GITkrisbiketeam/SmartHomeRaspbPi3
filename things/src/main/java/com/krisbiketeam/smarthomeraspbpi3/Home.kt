@@ -31,6 +31,10 @@ class Home : Sensor.HomeUnitListener<Any> {
                         this.value = newVal
                         this.applyFunction(newVal)
                         FirebaseHomeInformationRepository.saveStorageUnit(this)
+                        if (firebaseNotify == true){
+                            Timber.d("storageUnitsDataObserver notify with FCM Message")
+                            FirebaseHomeInformationRepository.notifyStorageUnitEvent(this)
+                        }
                     }
                 }
                 task.hardwareUnitName?.let { hardwareUnit ->
@@ -94,12 +98,19 @@ class Home : Sensor.HomeUnitListener<Any> {
         pair?.let { (action, storageUnit) ->
             when (action) {
                 ChildEventType.NODE_ACTION_CHANGED -> {
-                    Timber.d("storageUnitsDataObserver NODE_ACTION_CHANGED: ${storageUnitList[storageUnit.name]}")
+                    Timber.d("storageUnitsDataObserver NODE_ACTION_CHANGED NEW:  $storageUnit")
                     storageUnitList[storageUnit.name]?.run {
-                        if (storageUnit.value != this.value) {
-                            this.value = storageUnit.value
-                            applyFunction(storageUnit.value)
+                        Timber.d("storageUnitsDataObserver NODE_ACTION_CHANGED EXISTING: $this}")
+                        // set previous apply function to new storageUnit
+                        storageUnit.applyFunction = applyFunction
+                        if (storageUnit.value != value) {
+                            storageUnit.applyFunction(storageUnit.value)
+                            if (storageUnit.firebaseNotify == true){
+                                Timber.d("storageUnitsDataObserver notify with FCM Message")
+                                FirebaseHomeInformationRepository.notifyStorageUnitEvent(storageUnit)
+                            }
                         }
+                        storageUnitList[storageUnit.name] = storageUnit
                     }
                 }
                 ChildEventType.NODE_ACTION_ADDED -> {
@@ -219,6 +230,10 @@ class Home : Sensor.HomeUnitListener<Any> {
                 }
                 applyFunction(this.value)
                 FirebaseHomeInformationRepository.saveStorageUnit(this)
+                if (firebaseNotify == true){
+                    Timber.d("onUnitChanged notify with FCM Message")
+                    FirebaseHomeInformationRepository.notifyStorageUnitEvent(this)
+                }
             }
         }
     }
@@ -245,7 +260,7 @@ class Home : Sensor.HomeUnitListener<Any> {
 
         val reedSwitch = ReedSwitch("Kitchen 1 Reed Switch", HOME_REED_SWITCHES, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_IN_A6) as StorageUnit<Any>
 
-        val motion = Motion("Kitchen 1 Motion Sensor", HOME_MOTIONS, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_IN_A0) as StorageUnit<Any>
+        val motion = Motion("Kitchen 1 Motion Sensor", HOME_MOTIONS, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_IN_A0, firebaseNotify = true) as StorageUnit<Any>
 
         storageUnitList[temp.name] = temp
         storageUnitList[pressure.name] = pressure
@@ -259,7 +274,7 @@ class Home : Sensor.HomeUnitListener<Any> {
 
         temp = Temperature("Bathroom 1 Temp", HOME_TEMPERATURES, roomName, BoardConfig.TEMP_SENSOR_TMP102) as StorageUnit<Any>
 
-        light = Light("Bathroom 1 Light", HOME_LIGHTS, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B7) as StorageUnit<Any>
+        light = Light("Bathroom 1 Light", HOME_LIGHTS, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B7, firebaseNotify = true) as StorageUnit<Any>
         light.unitsTasks.add(UnitTask(hardwareUnitName = light.hardwareUnitName))
         light.applyFunction = booleanApplyFunction
 

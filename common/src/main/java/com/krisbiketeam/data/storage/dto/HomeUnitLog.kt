@@ -20,7 +20,6 @@ data class HomeUnitLog<T>(
         var pinInterrupt: String? = null,
         var ioPin: String? = null,
         val internalPullUp: Boolean? = null,
-        val firebaseNotify: Boolean? = null,
         // Current value this unit holds
         var value: T? = null,
         var localtime: String = Date().toString(),
@@ -34,8 +33,6 @@ data class HomeUnitLog<T>(
             hwHomeUnit.pinInterrupt,
             hwHomeUnit.ioPin,
             hwHomeUnit.internalPullUp,
-            //TODO: decide should this be also included in HomeUnit
-            false,
             value,
             localtime)
 }

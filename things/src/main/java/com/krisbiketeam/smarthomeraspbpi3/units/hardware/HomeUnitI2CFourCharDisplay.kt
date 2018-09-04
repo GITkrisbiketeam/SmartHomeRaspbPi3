@@ -30,12 +30,11 @@ class HomeUnitI2CFourCharDisplay(name: String,
             setBrightness(Ht16k33.HT16K33_BRIGHTNESS_MAX)
         }
         unitValue = value
-        when {
-            value?.isNotEmpty()!! -> {
-                display.display(value)
-                display.setEnabled(true)
-            }
-            else -> display.setEnabled(false)
+        if (value?.isNotEmpty() == true) {
+            display.display(value)
+            display.setEnabled(true)
+        } else {
+            display.setEnabled(false)
         }
         valueUpdateTime = Date().toString()
         display.close()

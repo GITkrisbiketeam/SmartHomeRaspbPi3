@@ -9,6 +9,8 @@ const val OLD_HOME_INFORMATION_TEMPERATURE = "temperature"
 
 const val LOG_INFORMATION_BASE = "log"
 
+const val NOTIFICATION_INFORMATION_BASE = "notification"
+
 const val HOME_INFORMATION_BASE = "home"
 
 const val USER_INFORMATION_BASE = "users"
