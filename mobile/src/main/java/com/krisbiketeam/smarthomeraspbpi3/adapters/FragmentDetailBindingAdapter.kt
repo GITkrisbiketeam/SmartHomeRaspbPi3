@@ -73,6 +73,14 @@ fun bindSpinnerData(spinner: AppCompatSpinner, newSelectedValue: String?, newTex
             newTextAttrChanged.onChange()
         }
     }
+    if (newSelectedValue != null) {
+        for (i in 0..spinner.adapter.count) {
+            if (spinner.adapter.getItem(i) == newSelectedValue) {
+                spinner.setSelection(i, true)
+                break
+            }
+        }
+    }
 }
 
 @InverseBindingAdapter(attribute = "selectedValue", event = "selectedValueAttrChanged")
