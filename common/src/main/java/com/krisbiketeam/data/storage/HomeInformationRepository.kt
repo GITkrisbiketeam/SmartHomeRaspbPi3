@@ -31,6 +31,11 @@ interface HomeInformationRepository {
     fun addUserNotiToken(email: String, token: String)
 
     /**
+     *  Adds given @see[StorageUnit] to the log @see[NOTIFICATION_INFORMATION_BASE] list in DB
+     */
+    fun notifyStorageUnitEvent(storageUnit: StorageUnit<out Any>)
+
+    /**
      *  Saves/updates given @see[Room] in DB
      */
     fun saveRoom(room: Room)
@@ -101,6 +106,9 @@ object FirebaseHomeInformationRepository : HomeInformationRepository {
     // Reference for all users
     private val referenceUsers = FirebaseDatabase.getInstance()
             .reference.child(USER_INFORMATION_BASE)
+    // Reference for all notifications
+    private val referenceNotifications = FirebaseDatabase.getInstance()
+            .reference.child(NOTIFICATION_INFORMATION_BASE)
 
     private val storageUnitsLiveData = StorageUnitsLiveData(referenceHome)
 
@@ -147,6 +155,10 @@ object FirebaseHomeInformationRepository : HomeInformationRepository {
 
     override fun logUnitEvent(homeUnit: HomeUnitLog<out Any>) {
         referenceLog.push().setValue(homeUnit)
+    }
+
+    override fun notifyStorageUnitEvent(storageUnit: StorageUnit<out Any>) {
+        referenceNotifications.push().setValue(storageUnit.makeNotification())
     }
 
     override fun writeNewUser(name: String, email: String) {

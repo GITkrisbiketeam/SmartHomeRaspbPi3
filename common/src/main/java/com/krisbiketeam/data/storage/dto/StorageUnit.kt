@@ -42,6 +42,7 @@ data class StorageUnit<T>(var name: String = "", // Name should be unique for al
                           var room: String = "",
                           var hardwareUnitName: String = "",
                           var value: T? = null,
+                          val firebaseNotify: Boolean? = null,
                           val unitsTasks: MutableList<UnitTask> = ArrayList()) {
     constructor(storageUnit: StorageUnit<T>) : this(
             storageUnit.name,
@@ -49,6 +50,7 @@ data class StorageUnit<T>(var name: String = "", // Name should be unique for al
             storageUnit.room,
             storageUnit.hardwareUnitName,
             storageUnit.value,
+            storageUnit.firebaseNotify,
             storageUnit.unitsTasks)
 
     @Exclude
@@ -63,6 +65,15 @@ data class StorageUnit<T>(var name: String = "", // Name should be unique for al
                 room,
                 hardwareUnitName,
                 value,
+                firebaseNotify,
                 unitsTasks)
+    }
+    fun makeNotification(): StorageUnit<Any>{
+        return StorageUnit<Any>(
+                name,
+                firebaseTableName,
+                room,
+                hardwareUnitName,
+                value)
     }
 }
