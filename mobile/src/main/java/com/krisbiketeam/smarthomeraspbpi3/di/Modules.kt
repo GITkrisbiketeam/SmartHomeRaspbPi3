@@ -10,6 +10,8 @@ import com.krisbiketeam.data.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.data.storage.NotSecureStorage
 import com.krisbiketeam.data.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.di.Params.ROOM_NAME
+import com.krisbiketeam.smarthomeraspbpi3.di.Params.STORAGE_UNIT_NAME
+import com.krisbiketeam.smarthomeraspbpi3.di.Params.STORAGE_UNIT_TYPE
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.*
 import com.squareup.moshi.Moshi
 import org.koin.android.architecture.ext.viewModel
@@ -19,6 +21,7 @@ import org.koin.dsl.module.applicationContext
 val myModule = applicationContext {
     viewModel { RoomListViewModel(FirebaseHomeInformationRepository) }
     viewModel { RoomDetailViewModel(FirebaseHomeInformationRepository, getProperty(ROOM_NAME)) }
+    viewModel { StorageUnitDetailViewModel(FirebaseHomeInformationRepository, getProperty(ROOM_NAME), getProperty(STORAGE_UNIT_NAME), getProperty(STORAGE_UNIT_TYPE)) }
     viewModel { WifiSettingsViewModel(get()) }
     viewModel { LoginSettingsViewModel(get(), get()) }
     viewModel { NavigationViewModel(get()) }
@@ -36,4 +39,6 @@ val myModule = applicationContext {
 
 object Params {
     const val ROOM_NAME = "room_name"
+    const val STORAGE_UNIT_NAME = "storage_unit_name"
+    const val STORAGE_UNIT_TYPE = "storage_unit_type"
 }

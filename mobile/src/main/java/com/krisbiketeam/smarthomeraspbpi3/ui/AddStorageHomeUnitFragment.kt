@@ -27,7 +27,7 @@ class AddStorageHomeUnitFragment : Fragment() {
         }
 
         addStorageHomeUnitViewModel.storageUnitType.observe(viewLifecycleOwner, Observer { tableName ->
-            Timber.d("storageUnitType changed: $tableName")
+            Timber.d("unitType changed: $tableName")
         })
         addStorageHomeUnitViewModel.storageUnitListLiveData.observe(viewLifecycleOwner, Observer { tableName ->
             Timber.d("storageUnitListLiveData changed: $tableName")

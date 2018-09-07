@@ -65,10 +65,11 @@ fun bindSpinnerData(spinner: AppCompatSpinner, newSelectedValue: String?, newTex
     Timber.d("selectedValue BindingAdapter newSelectedValue: $newSelectedValue")
     spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
         override fun onNothingSelected(parent: AdapterView<*>?) {
-
+            Timber.d("selectedValue onNothingSelected")
         }
 
         override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+            Timber.d("selectedValue onItemSelected : $position")
             newTextAttrChanged.onChange()
         }
     }
@@ -76,7 +77,7 @@ fun bindSpinnerData(spinner: AppCompatSpinner, newSelectedValue: String?, newTex
 
 @InverseBindingAdapter(attribute = "selectedValue", event = "selectedValueAttrChanged")
 fun captureSelectedValue(spinner: AppCompatSpinner): String {
-    Timber.d("selectedValue InverseBindingAdapter")
+    Timber.d("selectedValue InverseBindingAdapter ${spinner.selectedItem as String}")
     return spinner.selectedItem as String
 }
 /*

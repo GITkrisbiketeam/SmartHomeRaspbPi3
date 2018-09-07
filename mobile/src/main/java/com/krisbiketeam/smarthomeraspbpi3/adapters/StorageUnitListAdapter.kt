@@ -4,11 +4,13 @@ import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.navigation.findNavController
 import com.krisbiketeam.data.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.data.storage.dto.StorageUnit
-import timber.log.Timber
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentRoomDetailListItemBinding
+import com.krisbiketeam.smarthomeraspbpi3.ui.RoomDetailFragmentDirections
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomListFragment
+import timber.log.Timber
 
 /**
  * Adapter for the [RecyclerView] in [RoomListFragment].
@@ -41,12 +43,12 @@ class StorageUnitListAdapter : RecyclerView.Adapter<StorageUnitListAdapter.ViewH
                     is Boolean -> {
                         item.value = (item.value as Boolean).not()
                         FirebaseHomeInformationRepository.saveStorageUnit(item)
+                        return@OnClickListener
                     }
                 }
             }
-
-            /*val direction = RoomListFragmentDirections.ActionRoomListFragmentToRoomDetailFragment(name)
-            it.findNavController().navigate(direction)*/
+            val direction = RoomDetailFragmentDirections.ActionRoomDetailFragmentToStorageUnitDetailFragment(item.room, item.name, item.firebaseTableName)
+            view.findNavController().navigate(direction)
         }
     }
 
@@ -68,7 +70,7 @@ class StorageUnitListAdapter : RecyclerView.Adapter<StorageUnitListAdapter.ViewH
         fun bind(listener: View.OnClickListener, item: StorageUnit<Any>) {
             binding.apply {
                 clickListener = listener
-                this.storageUnit = item
+                storageUnit = item
                 executePendingBindings()
             }
         }

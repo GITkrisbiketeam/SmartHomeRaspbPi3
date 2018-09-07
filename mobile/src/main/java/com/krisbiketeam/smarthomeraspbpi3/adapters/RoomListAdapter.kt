@@ -31,10 +31,10 @@ class RoomListAdapter : ListAdapter<Room, RoomListAdapter.ViewHolder>(RoomListAd
     }
 
     private fun createOnClickListener(name: String): View.OnClickListener {
-        return View.OnClickListener {
+        return View.OnClickListener {view ->
             Timber.d("onClick")
             val direction = RoomListFragmentDirections.ActionRoomListFragmentToRoomDetailFragment(name)
-            it.findNavController().navigate(direction)
+            view.findNavController().navigate(direction)
         }
     }
 

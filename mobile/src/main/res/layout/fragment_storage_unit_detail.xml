@@ -4,16 +4,18 @@
 
     <data>
 
+        <import type="android.view.View" />
+
         <variable
             name="viewModel"
-            type="com.krisbiketeam.smarthomeraspbpi3.viewmodels.AddStorageHomeUnitViewModel" />
+            type="com.krisbiketeam.smarthomeraspbpi3.viewmodels.StorageUnitDetailViewModel" />
     </data>
 
     <android.support.design.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fitsSystemWindows="true"
-        tools:context="com.krisbiketeam.smarthomeraspbpi3.ui.AddStorageHomeUnitFragment"
+        tools:context="com.krisbiketeam.smarthomeraspbpi3.ui.StorageUnitDetailFragment"
         tools:ignore="MergeRootFrame">
 
         <android.support.design.widget.AppBarLayout
@@ -64,13 +66,13 @@
             <android.support.constraint.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:paddingBottom="@dimen/activity_vertical_margin"
                 android:paddingLeft="@dimen/activity_horizontal_margin"
+                android:paddingTop="@dimen/activity_vertical_margin"
                 android:paddingRight="@dimen/activity_horizontal_margin"
-                android:paddingTop="@dimen/activity_vertical_margin">
+                android:paddingBottom="@dimen/activity_vertical_margin">
 
                 <TextView
-                    android:id="@+id/unit_type_spinner_title"
+                    android:id="@+id/unit_type_title"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/add_storage_text_unit_type_title"
@@ -79,21 +81,37 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
-                <android.support.v7.widget.AppCompatSpinner
-                    android:id="@+id/unit_type_spinner"
+                <FrameLayout
+                    android:id="@+id/unit_type_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/margin_small"
-                    android:entries="@{viewModel.storageUnitTypeList}"
-                    android:prompt="@string/add_storage_text_unit_type_spinner_prompt"
-                    android:spinnerMode="dialog"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/unit_type_spinner_title"
-                    app:selectedValue="@={viewModel.storageUnitType}" />
+                    app:layout_constraintTop_toBottomOf="@id/unit_type_title">
+
+                    <android.support.v7.widget.AppCompatSpinner
+                        android:id="@+id/unit_type_spinner"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_small"
+                        android:entries="@{viewModel.typeList}"
+                        android:prompt="@string/add_storage_text_unit_type_spinner_prompt"
+                        android:spinnerMode="dialog"
+                        android:visibility="@{safeUnbox(viewModel.isEditMode) ? View.VISIBLE : View.INVISIBLE}"
+                        app:selectedValue="@={viewModel.type}" />
+
+                    <TextView
+                        android:id="@+id/unit_type_spinner_text"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:text="@{viewModel.type}"
+                        android:gravity="center_vertical"
+                        android:textColor="@color/colorPrimaryDark"
+                        android:visibility="@{safeUnbox(viewModel.isEditMode) ? View.INVISIBLE : View.VISIBLE}" />
+                </FrameLayout>
 
                 <TextView
-                    android:id="@+id/room_spinner_title"
+                    android:id="@+id/room_name_title"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/margin_normal"
@@ -101,69 +119,76 @@
                     android:textColor="@color/colorPrimaryDark"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/unit_type_spinner" />
+                    app:layout_constraintTop_toBottomOf="@id/unit_type_layout" />
 
-                <android.support.v7.widget.AppCompatSpinner
-                    android:id="@+id/room_spinner"
+                <FrameLayout
+                    android:id="@+id/room_name_layout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/room_name_title">
+
+                    <android.support.v7.widget.AppCompatSpinner
+                        android:id="@+id/room_name_spinner"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_small"
+                        android:entries="@{viewModel.roomNameList}"
+                        android:prompt="@string/add_storage_text_room_spinner_prompt"
+                        android:spinnerMode="dialog"
+                        android:visibility="@{safeUnbox(viewModel.isEditMode) ? View.VISIBLE : View.INVISIBLE}"
+                        app:selectedValue="@={viewModel.room}" />
+
+                    <TextView
+                        android:id="@+id/room_name_text"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:text="@{viewModel.room}"
+                        android:gravity="center_vertical"
+                        android:textColor="@color/colorPrimaryDark"
+                        android:visibility="@{safeUnbox(viewModel.isEditMode) ? View.INVISIBLE : View.VISIBLE}" />
+                </FrameLayout>
+
+                <TextView
+                    android:id="@+id/storage_unit_value"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/margin_small"
-                    android:entries="@{viewModel.roomNameList}"
-                    android:prompt="@string/add_storage_text_room_spinner_prompt"
-                    android:spinnerMode="dialog"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/room_spinner_title"
-                    app:selectedValue="@={viewModel.room}" />
-
-                <TextView
-                    android:id="@+id/hw_unit_spinner_title"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/margin_normal"
-                    android:text="@string/add_storage_text_hw_unit_title"
+                    android:text="@{@string/add_storage_text_value + viewModel.value.toString()}"
                     android:textColor="@color/colorPrimaryDark"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/room_spinner" />
+                    app:layout_constraintTop_toBottomOf="@id/room_name_layout" />
 
-                <android.support.v7.widget.AppCompatSpinner
-                    android:id="@+id/hw_unit_spinner"
+                <FrameLayout
+                    android:id="@+id/storage_unit_name_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/margin_small"
-                    android:entries="@{viewModel.hardwareUnitNameList}"
-                    android:prompt="@string/add_storage_text_hw_unit_spinner_prompt"
-                    android:spinnerMode="dialog"
+                    android:visibility="@{safeUnbox(viewModel.isEditMode) ? View.VISIBLE : View.GONE}"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/hw_unit_spinner_title"
-                    app:selectedValue="@={viewModel.hardwareUnitName}" />
+                    app:layout_constraintTop_toBottomOf="@id/unit_task_list">
 
-                <TextView
-                    android:id="@+id/storage_unit_name_title"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/margin_normal"
-                    android:text="@string/add_storage_text_name"
-                    android:textColor="@color/colorPrimaryDark"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/hw_unit_spinner" />
+                    <TextView
+                        android:id="@+id/storage_unit_name_title"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_small"
+                        android:text="@string/add_storage_text_value"
+                        android:textColor="@color/colorPrimaryDark" />
 
-                <EditText
-                    android:id="@+id/storage_unit_name"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/margin_small"
-                    android:hint="@string/add_storage_text_title_hint"
-                    android:inputType="text"
-                    android:maxLines="1"
-                    android:text="@={viewModel.name}"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Title"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/storage_unit_name_title" />
+                    <EditText
+                        android:id="@+id/storage_unit_name"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_small"
+                        android:hint="@string/add_storage_text_title_hint"
+                        android:inputType="text"
+                        android:maxLines="1"
+                        android:text="@={viewModel.name}"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Title" />
+                </FrameLayout>
 
                 <android.support.v7.widget.RecyclerView
                     android:id="@+id/unit_task_list"
@@ -174,9 +199,11 @@
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/storage_unit_name"
-                    tools:context="com.krisbiketeam.smarthomeraspbpi3.ui.HomeActivity"
+                    app:layout_constraintTop_toBottomOf="@id/storage_unit_value"
                     tools:listitem="@layout/fragment_room_detail_list_item" />
+
+
+
 
             </android.support.constraint.ConstraintLayout>
 
