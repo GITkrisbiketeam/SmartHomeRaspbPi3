@@ -2,7 +2,7 @@ package com.krisbiketeam.smarthomeraspbpi3.viewmodels
 
 import android.arch.lifecycle.*
 import com.krisbiketeam.data.storage.HomeInformationRepository
-import com.krisbiketeam.data.storage.StorageUnitsLiveData
+import com.krisbiketeam.data.storage.livedata.StorageUnitsLiveData
 import com.krisbiketeam.data.storage.dto.Room
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomDetailFragment
 import timber.log.Timber

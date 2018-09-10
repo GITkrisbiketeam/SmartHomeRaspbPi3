@@ -8,7 +8,7 @@ import com.krisbiketeam.data.auth.Authentication
 import com.krisbiketeam.data.storage.ChildEventType
 import com.krisbiketeam.data.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.data.storage.SecureStorage
-import com.krisbiketeam.data.storage.StorageUnitsLiveData
+import com.krisbiketeam.data.storage.livedata.StorageUnitsLiveData
 import com.krisbiketeam.data.storage.dto.StorageUnit
 import com.krisbiketeam.data.storage.obsolete.HomeInformation
 import kotlinx.android.synthetic.main.activity_mobile.*

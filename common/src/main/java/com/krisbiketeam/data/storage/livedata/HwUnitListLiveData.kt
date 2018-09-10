@@ -1,4 +1,4 @@
-package com.krisbiketeam.data.storage
+package com.krisbiketeam.data.storage.livedata
 
 import android.arch.lifecycle.LiveData
 import com.google.firebase.database.DataSnapshot

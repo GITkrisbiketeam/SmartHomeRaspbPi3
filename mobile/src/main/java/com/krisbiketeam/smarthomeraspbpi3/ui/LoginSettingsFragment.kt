@@ -53,8 +53,10 @@ class LoginSettingsFragment : Fragment() {
             addOnRebindCallback(object : OnRebindCallback<ViewDataBinding>() {
                 override fun onPreBind(binding: ViewDataBinding?): Boolean {
                     Timber.d("onPreBind")
-                    TransitionManager.beginDelayedTransition(
-                            binding!!.root as ViewGroup)
+                    binding?.let{
+                        TransitionManager.beginDelayedTransition(
+                                binding.root as ViewGroup)
+                    }
                     return super.onPreBind(binding)
                 }
             })

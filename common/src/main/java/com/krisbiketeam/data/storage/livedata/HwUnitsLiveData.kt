@@ -1,10 +1,11 @@
-package com.krisbiketeam.data.storage
+package com.krisbiketeam.data.storage.livedata
 
 import android.arch.lifecycle.LiveData
 import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
+import com.krisbiketeam.data.storage.ChildEventType
 import com.krisbiketeam.data.storage.firebaseTables.HOME_HW_UNITS
 import com.krisbiketeam.data.storage.dto.HomeUnit
 import timber.log.Timber

@@ -72,6 +72,8 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="fragment_storage_unit_detail_title">StorageUnit Details</string>
     <string name="fragment_logs_title">Logs</string>
-    <string name="add_storage_text_value">Value:</string>
+    <string name="add_storage_text_value">Value: </string>
+    <string name="fragment_unit_task_title">Unit Task Details</string>
+    <string name="add_storage_text_task_list_title">Unit Task List:</string>
 
 </resources>

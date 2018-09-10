@@ -44,11 +44,11 @@ class RoomDetailFragment : Fragment() {
             subscribeUi(adapter)
         }
 
-        roomDetailViewModel.room.observe(this, Observer { room ->
+        roomDetailViewModel.room.observe(viewLifecycleOwner, Observer { room ->
 
         })
 
-        roomDetailViewModel.isEditMode.observe(this, Observer { isEditMode ->
+        roomDetailViewModel.isEditMode.observe(viewLifecycleOwner, Observer { isEditMode ->
             activity?.invalidateOptionsMenu()
         })
 

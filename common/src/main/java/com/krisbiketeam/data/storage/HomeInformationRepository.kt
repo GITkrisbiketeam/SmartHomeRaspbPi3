@@ -7,6 +7,7 @@ import com.krisbiketeam.data.storage.firebaseTables.*
 import com.krisbiketeam.data.storage.obsolete.HomeInformation
 import com.krisbiketeam.data.storage.obsolete.HomeInformationLiveData
 import com.krisbiketeam.data.storage.dto.*
+import com.krisbiketeam.data.storage.livedata.*
 
 
 interface HomeInformationRepository {
@@ -61,6 +62,11 @@ interface HomeInformationRepository {
     fun storageUnitListLiveData(storageType: String): StorageUnitListLiveData
 
     /**
+     * get instance of @see[StorageUnitLiveData] for listening to changes in given StorageUnit in DB
+     */
+    fun storageUnitLiveData(storageType: String, storageName:String): StorageUnitLiveData
+
+    /**
      * get instance of @see[StorageUnitsLiveData] for listening to changes in entries in DB
      */
     fun storageUnitsLiveData(roomName: String): StorageUnitsLiveData
@@ -84,6 +90,11 @@ interface HomeInformationRepository {
      * get instance of @see[RoomLiveData] for listening to changes in specific Room entry in DB
      */
     fun roomLiveData(roomName: String): RoomLiveData
+
+    /**
+     * get instance of @see[UnitTaskListLiveData] for listening to changes in specific StorageUnit UnitTask List entry in DB
+     */
+    fun unitTaskListLiveData(storageType: String, storageName:String): UnitTaskListLiveData
 
     /**
      * Clear all Logs entries from DB
@@ -217,5 +228,12 @@ object FirebaseHomeInformationRepository : HomeInformationRepository {
         return StorageUnitListLiveData(referenceHome, storageType)
     }
 
+    override fun storageUnitLiveData(storageType: String, storageName:String): StorageUnitLiveData {
+        return StorageUnitLiveData(referenceHome, storageType, storageName)
+    }
+
+    override fun unitTaskListLiveData(storageType: String, storageName:String): UnitTaskListLiveData {
+        return UnitTaskListLiveData(referenceHome, storageType, storageName)
+    }
 
 }

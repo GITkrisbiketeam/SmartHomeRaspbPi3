@@ -251,11 +251,11 @@ class Home : Sensor.HomeUnitListener<Any> {
         val pressure = Pressure("Kitchen 1 Press", HOME_PRESSURES, roomName, BoardConfig.TEMP_PRESS_SENSOR_BMP280) as StorageUnit<Any>
 
         var light = Light("Kitchen 1 Light", HOME_LIGHTS, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B0) as StorageUnit<Any>
-        light.unitsTasks.add(UnitTask(hardwareUnitName = light.hardwareUnitName))
+        light.unitsTasks.add(UnitTask(name = "Turn on HW light", hardwareUnitName = light.hardwareUnitName))
         light.applyFunction = booleanApplyFunction
 
         var lightSwitch = LightSwitch("Kitchen 1 Light Switch", HOME_LIGHT_SWITCHES, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_IN_A7) as StorageUnit<Any>
-        lightSwitch.unitsTasks.add(UnitTask(storageUnitName = light.name))
+        lightSwitch.unitsTasks.add(UnitTask(name = "Turn on light", storageUnitName = light.name))
         lightSwitch.applyFunction = booleanApplyFunction
 
         val reedSwitch = ReedSwitch("Kitchen 1 Reed Switch", HOME_REED_SWITCHES, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_IN_A6) as StorageUnit<Any>
@@ -275,11 +275,11 @@ class Home : Sensor.HomeUnitListener<Any> {
         temp = Temperature("Bathroom 1 Temp", HOME_TEMPERATURES, roomName, BoardConfig.TEMP_SENSOR_TMP102) as StorageUnit<Any>
 
         light = Light("Bathroom 1 Light", HOME_LIGHTS, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B7, firebaseNotify = true) as StorageUnit<Any>
-        light.unitsTasks.add(UnitTask(hardwareUnitName = light.hardwareUnitName))
+        light.unitsTasks.add(UnitTask(name = "Turn on HW light", hardwareUnitName = light.hardwareUnitName))
         light.applyFunction = booleanApplyFunction
 
         lightSwitch = LightSwitch("Bathroom 1 Light Switch", HOME_LIGHT_SWITCHES, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_IN_A5) as StorageUnit<Any>
-        lightSwitch.unitsTasks.add(UnitTask(storageUnitName = light.name))
+        lightSwitch.unitsTasks.add(UnitTask(name = "Turn on light", storageUnitName = light.name))
         lightSwitch.applyFunction = booleanApplyFunction
 
         storageUnitList[temp.name] = temp

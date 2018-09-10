@@ -1,4 +1,4 @@
-package com.krisbiketeam.data.storage
+package com.krisbiketeam.data.storage.livedata
 
 import android.arch.lifecycle.LiveData
 import com.google.firebase.database.*
@@ -8,8 +8,8 @@ import timber.log.Timber
 
 
 class StorageUnitListLiveData(private val databaseReference: DatabaseReference, private val firebaseTable: String) : LiveData<List<StorageUnit<Any>>>() {
-    val clazz = storageUnitTypeIndicatorMap[firebaseTable]
-    val typeIndicator  = object : GenericTypeIndicator<StorageUnit<Any>>() {}
+    private val clazz = storageUnitTypeIndicatorMap[firebaseTable]
+    private val typeIndicator  = object : GenericTypeIndicator<StorageUnit<Any>>() {}
 
     private val storageUnitListener: ValueEventListener = object: ValueEventListener {
         override fun onDataChange(dataSnapshot: DataSnapshot) {

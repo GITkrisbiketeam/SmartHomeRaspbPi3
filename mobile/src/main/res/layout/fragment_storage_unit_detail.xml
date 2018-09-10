@@ -76,7 +76,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/add_storage_text_unit_type_title"
-                    android:textColor="@color/colorPrimaryDark"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Title"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
@@ -85,6 +85,7 @@
                     android:id="@+id/unit_type_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_small"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/unit_type_title">
@@ -93,7 +94,6 @@
                         android:id="@+id/unit_type_spinner"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/margin_small"
                         android:entries="@{viewModel.typeList}"
                         android:prompt="@string/add_storage_text_unit_type_spinner_prompt"
                         android:spinnerMode="dialog"
@@ -104,9 +104,9 @@
                         android:id="@+id/unit_type_spinner_text"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:text="@{viewModel.type}"
                         android:gravity="center_vertical"
-                        android:textColor="@color/colorPrimaryDark"
+                        android:text="@{viewModel.type}"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Small"
                         android:visibility="@{safeUnbox(viewModel.isEditMode) ? View.INVISIBLE : View.VISIBLE}" />
                 </FrameLayout>
 
@@ -116,7 +116,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/margin_normal"
                     android:text="@string/add_storage_text_room_title"
-                    android:textColor="@color/colorPrimaryDark"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Title"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/unit_type_layout" />
@@ -125,6 +125,7 @@
                     android:id="@+id/room_name_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_small"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/room_name_title">
@@ -133,7 +134,6 @@
                         android:id="@+id/room_name_spinner"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/margin_small"
                         android:entries="@{viewModel.roomNameList}"
                         android:prompt="@string/add_storage_text_room_spinner_prompt"
                         android:spinnerMode="dialog"
@@ -144,65 +144,91 @@
                         android:id="@+id/room_name_text"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:text="@{viewModel.room}"
                         android:gravity="center_vertical"
-                        android:textColor="@color/colorPrimaryDark"
+                        android:text="@{viewModel.room}"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Small"
                         android:visibility="@{safeUnbox(viewModel.isEditMode) ? View.INVISIBLE : View.VISIBLE}" />
                 </FrameLayout>
 
-                <TextView
-                    android:id="@+id/storage_unit_value"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/margin_small"
-                    android:text="@{@string/add_storage_text_value + viewModel.value.toString()}"
-                    android:textColor="@color/colorPrimaryDark"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/room_name_layout" />
-
                 <FrameLayout
-                    android:id="@+id/storage_unit_name_layout"
+                    android:id="@+id/storage_unit_name_value_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:visibility="@{safeUnbox(viewModel.isEditMode) ? View.VISIBLE : View.GONE}"
+                    android:layout_marginTop="@dimen/margin_normal"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/unit_task_list">
+                    app:layout_constraintTop_toBottomOf="@id/room_name_layout">
 
-                    <TextView
-                        android:id="@+id/storage_unit_name_title"
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:visibility="@{safeUnbox(viewModel.isEditMode) ? View.INVISIBLE : View.VISIBLE}">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/add_storage_text_value"
+                            android:textAppearance="@style/TextAppearance.AppCompat.Title" />
+
+                        <TextView
+                            android:id="@+id/storage_unit_value"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@{viewModel.value.toString()}"
+                            android:textAppearance="@style/TextAppearance.AppCompat.Title" />
+                    </LinearLayout>
+
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/margin_small"
-                        android:text="@string/add_storage_text_value"
-                        android:textColor="@color/colorPrimaryDark" />
+                        android:orientation="vertical"
+                        android:visibility="@{safeUnbox(viewModel.isEditMode) ? View.VISIBLE : View.INVISIBLE}">
 
-                    <EditText
-                        android:id="@+id/storage_unit_name"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/margin_small"
-                        android:hint="@string/add_storage_text_title_hint"
-                        android:inputType="text"
-                        android:maxLines="1"
-                        android:text="@={viewModel.name}"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Title" />
+                        <TextView
+                            android:id="@+id/storage_unit_name_title"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/add_storage_text_name"
+                            android:textAppearance="@style/TextAppearance.AppCompat.Title" />
+
+                        <EditText
+                            android:id="@+id/storage_unit_name"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/margin_small"
+                            android:hint="@string/add_storage_text_title_hint"
+                            android:inputType="text"
+                            android:maxLines="1"
+                            android:text="@={viewModel.name}"
+                            android:textAppearance="@style/TextAppearance.AppCompat.Title" />
+                    </LinearLayout>
                 </FrameLayout>
+
+                <TextView
+                    android:id="@+id/unit_task_list_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_normal"
+                    android:text="@string/add_storage_text_task_list_title"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Title"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/storage_unit_name_value_layout" />
 
                 <android.support.v7.widget.RecyclerView
                     android:id="@+id/unit_task_list"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
+                    android:layout_marginTop="@dimen/margin_small"
+                    android:adapter="@{viewModel.unitTaskListAdapter}"
                     android:clipToPadding="false"
                     app:layoutManager="android.support.v7.widget.LinearLayoutManager"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/storage_unit_value"
-                    tools:listitem="@layout/fragment_room_detail_list_item" />
-
-
+                    app:layout_constraintTop_toBottomOf="@id/unit_task_list_title"
+                    tools:listitem="@layout/fragment_storage_unit_detail_unit_list_item" />
 
 
             </android.support.constraint.ConstraintLayout>

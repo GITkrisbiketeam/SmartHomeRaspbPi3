@@ -3,10 +3,12 @@ package com.krisbiketeam.smarthomeraspbpi3.ui
 import android.arch.lifecycle.Observer
 import android.databinding.DataBindingUtil
 import android.os.Bundle
+import android.support.transition.Fade
+import android.support.transition.TransitionManager
 import android.support.v4.app.Fragment
 import android.view.*
+import androidx.navigation.fragment.findNavController
 import com.krisbiketeam.smarthomeraspbpi3.R
-import com.krisbiketeam.smarthomeraspbpi3.adapters.StorageUnitListAdapter
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentStorageUnitDetailBinding
 import com.krisbiketeam.smarthomeraspbpi3.di.Params
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.StorageUnitDetailViewModel
@@ -32,60 +34,29 @@ class StorageUnitDetailFragment : Fragment() {
                 inflater, R.layout.fragment_storage_unit_detail, container, false).apply {
             viewModel = storageUnitDetailViewModel
             setLifecycleOwner(this@StorageUnitDetailFragment)
-            val adapter = StorageUnitListAdapter()
-            unitTaskList.adapter = adapter
-            subscribeUi(adapter)
         }
 
-        storageUnitDetailViewModel.value.observe(this, Observer { value ->
-
-        })
-
-        storageUnitDetailViewModel.isEditMode.observe(this, Observer { isEditMode ->
+        storageUnitDetailViewModel.isEditMode.observe(viewLifecycleOwner, Observer { isEditMode ->
+            // in Edit Mode we need to listen for storageUnitNameList, as there is no reference in xml layout to trigger its observer, but can we find some better way
+            if (isEditMode == true) {
+                storageUnitDetailViewModel.storageUnitNameList.observe(viewLifecycleOwner, Observer {  })
+            } else {
+                storageUnitDetailViewModel.storageUnitNameList.removeObservers(viewLifecycleOwner)
+            }
             activity?.invalidateOptionsMenu()
+            // Animate Layout edit mode change
+            TransitionManager.beginDelayedTransition(binding.root as ViewGroup, Fade())
+        })
+        storageUnitDetailViewModel.unitTaskList.observe(viewLifecycleOwner, Observer { taskList ->
+            taskList?.let {
+                // Update UnitTask list
+                storageUnitDetailViewModel.unitTaskListAdapter.submitList(it)
+            }
         })
 
         setHasOptionsMenu(true)
 
         return binding.root
-    }
-
-    private fun subscribeUi(adapter: StorageUnitListAdapter) {
-        /*storageUnitDetailViewModel.storageUnits.observe(viewLifecycleOwner, Observer<Pair<ChildEventType, StorageUnit<Any>>> { pair ->
-            pair?.let { (action, unit) ->
-                Timber.d("subscribeUi action: $action; unit: $unit")
-                when (action) {
-                    ChildEventType.NODE_ACTION_CHANGED -> {
-                        val idx = adapter.getItemIdx(unit)
-                        Timber.d("subscribeUi NODE_ACTION_CHANGED: idx: $idx")
-                        if (idx >= 0) {
-                            adapter.storageUnits[idx] = unit
-                            adapter.notifyItemChanged(idx)
-                            Timber.d("subscribeUi NODE_ACTION_CHANGED: unit updated")
-                        }
-                    }
-                    ChildEventType.NODE_ACTION_ADDED -> {
-                        Timber.d("storageUnitsDataObserver NODE_ACTION_ADDED")
-                        adapter.storageUnits.add(unit)
-                        adapter.notifyItemInserted(adapter.itemCount - 1)
-                    }
-                    ChildEventType.NODE_ACTION_DELETED -> {
-                        val idx = adapter.getItemIdx(unit)
-                        Timber.d("storageUnitsDataObserver NODE_ACTION_DELETED idx: $idx")
-                        if (idx >= 0) {
-                            val result = adapter.storageUnits.removeAt(idx)
-                            result.let {
-                                adapter.notifyItemRemoved(idx)
-                                Timber.d("storageUnitsDataObserver NODE_ACTION_DELETED: $result")
-                            }
-                        }
-                    }
-                    else -> {
-                        Timber.e("storageUnitsDataObserver unsupported action: $action")
-                    }
-                }
-            }
-        })*/
     }
 
     override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
@@ -117,6 +88,17 @@ class StorageUnitDetailFragment : Fragment() {
                 return true
             }
             R.id.action_save -> {
+                Timber.d("action_save: ${storageUnitDetailViewModel.storageUnitNameList.value.toString()}")
+                Timber.d("action_save: ${storageUnitDetailViewModel.name.value.toString()}")
+                if (storageUnitDetailViewModel.storageUnitNameList.value?.contains(storageUnitDetailViewModel.name.value) == true) {
+
+                    //This name is already used
+                    Timber.d("This name is already used")
+
+                } else {
+                    // navigate back Up from this Fragment
+                    findNavController().navigateUp()
+                }
                 return true
             }
             R.id.action_discard -> {

@@ -13,8 +13,8 @@
                       <LayoutPositions>
                         <option name="myPosition">
                           <Point>
-                            <option name="x" value="189" />
-                            <option name="y" value="322" />
+                            <option name="x" value="-53" />
+                            <option name="y" value="349" />
                           </Point>
                         </option>
                       </LayoutPositions>
@@ -25,8 +25,8 @@
                       <LayoutPositions>
                         <option name="myPosition">
                           <Point>
-                            <option name="x" value="1015" />
-                            <option name="y" value="389" />
+                            <option name="x" value="847" />
+                            <option name="y" value="626" />
                           </Point>
                         </option>
                       </LayoutPositions>
@@ -91,8 +91,8 @@
                       <LayoutPositions>
                         <option name="myPosition">
                           <Point>
-                            <option name="x" value="625" />
-                            <option name="y" value="381" />
+                            <option name="x" value="265" />
+                            <option name="y" value="618" />
                           </Point>
                         </option>
                         <option name="myPositions">
@@ -121,6 +121,27 @@
                             <option name="y" value="12" />
                           </Point>
                         </option>
+                        <option name="myPositions">
+                          <map>
+                            <entry key="action_storage_unit_detail_fragment_to_unitTaskFragment">
+                              <value>
+                                <LayoutPositions />
+                              </value>
+                            </entry>
+                          </map>
+                        </option>
+                      </LayoutPositions>
+                    </value>
+                  </entry>
+                  <entry key="unit_task_fragment">
+                    <value>
+                      <LayoutPositions>
+                        <option name="myPosition">
+                          <Point>
+                            <option name="x" value="869" />
+                            <option name="y" value="14" />
+                          </Point>
+                        </option>
                       </LayoutPositions>
                     </value>
                   </entry>
@@ -129,8 +150,8 @@
                       <LayoutPositions>
                         <option name="myPosition">
                           <Point>
-                            <option name="x" value="985" />
-                            <option name="y" value="37" />
+                            <option name="x" value="587" />
+                            <option name="y" value="449" />
                           </Point>
                         </option>
                       </LayoutPositions>

@@ -9,8 +9,8 @@
             name="clickListener"
             type="android.view.View.OnClickListener"/>
         <variable
-            name="room"
-            type="com.krisbiketeam.data.storage.dto.Room"/>
+            name="unitTask"
+            type="com.krisbiketeam.data.storage.dto.UnitTask"/>
     </data>
 
     <android.support.constraint.ConstraintLayout
@@ -19,37 +19,20 @@
         android:background="?attr/selectableItemBackground"
         android:onClick="@{clickListener}">
 
-        <ImageView
-            android:id="@+id/room_item_image"
-            android:layout_width="0dp"
-            android:layout_height="@dimen/plant_item_image_height"
-            android:layout_marginTop="@dimen/margin_normal"
-            android:layout_marginBottom="@dimen/margin_small"
-            android:layout_marginEnd="@dimen/margin_small"
-            android:layout_marginStart="@dimen/margin_small"
-            android:contentDescription="@string/room_list_item_image"
-            android:scaleType="centerCrop"
-            android:src="@drawable/ic_launcher_foreground"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"/>
-            <!--app:imageFromUrl="@{roomName.imageUrl}"-->
-
-
         <TextView
-            android:id="@+id/room_item_title"
+            android:id="@+id/unit_task_item_title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/margin_normal"
             android:layout_marginEnd="@dimen/margin_small"
             android:layout_marginStart="@dimen/margin_small"
             android:layout_marginTop="@dimen/margin_small"
-            android:text="@{room.name}"
+            android:text="@{unitTask.name}"
             android:textAppearance="?attr/textAppearanceListItem"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/room_item_image"
-            tools:text="Room"/>
+            app:layout_constraintBottom_toBottomOf="parent"
+            tools:text="Unit Task"/>
 
     </android.support.constraint.ConstraintLayout>
 </layout>
