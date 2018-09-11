@@ -13,8 +13,20 @@
                       <LayoutPositions>
                         <option name="myPosition">
                           <Point>
-                            <option name="x" value="-53" />
-                            <option name="y" value="349" />
+                            <option name="x" value="421" />
+                            <option name="y" value="648" />
+                          </Point>
+                        </option>
+                      </LayoutPositions>
+                    </value>
+                  </entry>
+                  <entry key="hw_unit_list_fragment">
+                    <value>
+                      <LayoutPositions>
+                        <option name="myPosition">
+                          <Point>
+                            <option name="x" value="959" />
+                            <option name="y" value="230" />
                           </Point>
                         </option>
                       </LayoutPositions>
@@ -25,8 +37,8 @@
                       <LayoutPositions>
                         <option name="myPosition">
                           <Point>
-                            <option name="x" value="847" />
-                            <option name="y" value="626" />
+                            <option name="x" value="996" />
+                            <option name="y" value="844" />
                           </Point>
                         </option>
                       </LayoutPositions>
@@ -37,8 +49,8 @@
                       <LayoutPositions>
                         <option name="myPosition">
                           <Point>
-                            <option name="x" value="12" />
-                            <option name="y" value="12" />
+                            <option name="x" value="434" />
+                            <option name="y" value="334" />
                           </Point>
                         </option>
                       </LayoutPositions>
@@ -91,8 +103,8 @@
                       <LayoutPositions>
                         <option name="myPosition">
                           <Point>
-                            <option name="x" value="265" />
-                            <option name="y" value="618" />
+                            <option name="x" value="708" />
+                            <option name="y" value="607" />
                           </Point>
                         </option>
                         <option name="myPositions">
@@ -123,6 +135,11 @@
                         </option>
                         <option name="myPositions">
                           <map>
+                            <entry key="action_storage_unit_detail_fragment_to_hwUnitListFragment">
+                              <value>
+                                <LayoutPositions />
+                              </value>
+                            </entry>
                             <entry key="action_storage_unit_detail_fragment_to_unitTaskFragment">
                               <value>
                                 <LayoutPositions />
@@ -138,8 +155,8 @@
                       <LayoutPositions>
                         <option name="myPosition">
                           <Point>
-                            <option name="x" value="869" />
-                            <option name="y" value="14" />
+                            <option name="x" value="952" />
+                            <option name="y" value="-69" />
                           </Point>
                         </option>
                       </LayoutPositions>
@@ -150,8 +167,8 @@
                       <LayoutPositions>
                         <option name="myPosition">
                           <Point>
-                            <option name="x" value="587" />
-                            <option name="y" value="449" />
+                            <option name="x" value="995" />
+                            <option name="y" value="518" />
                           </Point>
                         </option>
                       </LayoutPositions>

@@ -5,6 +5,9 @@
     <data>
 
         <import type="android.view.View" />
+        <import type="java.lang.String" />
+        <import type="androidx.navigation.Navigation" />
+        <import type="com.krisbiketeam.smarthomeraspbpi3.ui.StorageUnitDetailFragmentDirections" />
 
         <variable
             name="viewModel"
@@ -150,6 +153,47 @@
                         android:visibility="@{safeUnbox(viewModel.isEditMode) ? View.INVISIBLE : View.VISIBLE}" />
                 </FrameLayout>
 
+                <TextView
+                    android:id="@+id/hw_unit_name_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_normal"
+                    android:text="@string/add_storage_text_hw_unit_title"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Title"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/room_name_layout" />
+
+                <FrameLayout
+                    android:id="@+id/hw_unit_name_layout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_small"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/hw_unit_name_title">
+
+                    <Button
+                        android:id="@+id/hw_unit_name_button"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@{viewModel.hardwareUnitName.length() == 0 ? @string/menu_room_detail_edit : viewModel.hardwareUnitName}"
+                        android:visibility="@{safeUnbox(viewModel.isEditMode) ? View.VISIBLE : View.INVISIBLE}"
+                        android:onClick="@{(view) -> Navigation.findNavController(view).navigate(StorageUnitDetailFragmentDirections.actionStorageUnitDetailFragmentToHwUnitListFragment())}"/>
+
+                    <TextView
+                        android:id="@+id/hw_unit_name_text"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_small"
+                        android:text="@{viewModel.hardwareUnitName}"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Small"
+                        android:visibility="@{safeUnbox(viewModel.isEditMode) ? View.INVISIBLE : View.VISIBLE}" />
+
+
+                </FrameLayout>
+
+
                 <FrameLayout
                     android:id="@+id/storage_unit_name_value_layout"
                     android:layout_width="match_parent"
@@ -157,7 +201,7 @@
                     android:layout_marginTop="@dimen/margin_normal"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/room_name_layout">
+                    app:layout_constraintTop_toBottomOf="@id/hw_unit_name_layout">
 
                     <LinearLayout
                         android:layout_width="match_parent"

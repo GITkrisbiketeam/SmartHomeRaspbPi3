@@ -14,9 +14,9 @@ import timber.log.Timber
  */
 class StorageUnitDetailViewModel(
         homeRepository: HomeInformationRepository,
-        roomName: String?,
-        unitName: String?,
-        unitType: String?
+        roomName: String,
+        unitName: String,
+        unitType: String
 ) : ViewModel() {
 
     var isEditMode: MutableLiveData<Boolean> = MutableLiveData()
@@ -31,19 +31,19 @@ class StorageUnitDetailViewModel(
     var room: MutableLiveData<String> = MutableLiveData()
     val roomNameList: LiveData<List<String>>    // RoomListLiveData
 
-    var hardwareUnitName: MutableLiveData<String> = MutableLiveData()
-    val hardwareUnitNameList: LiveData<List<String>>    //HwUnitListLiveData
+    var hardwareUnitName: LiveData<String>
 
     val unitTaskList: LiveData<List<UnitTask>>
 
     val unitTaskListAdapter: UnitTaskListAdapter
 
+    // used for checking if given storageUnit name is not already used
     var storageUnitNameList: LiveData<List<String>>     // StorageUnitListLiveData
 
     init {
         Timber.d("init unitName: $unitName unitType: $unitType roomName: $roomName")
 
-        isEditMode.value = unitName == null || unitType == null
+        isEditMode.value = unitName.isEmpty() || unitType.isEmpty()
 
         name.value = unitName
         type.value = unitType
@@ -56,7 +56,7 @@ class StorageUnitDetailViewModel(
             if (edit) {
                 null
             } else {
-                if (unitType != null && unitName != null) {
+                if (unitType.isNotEmpty() && unitName.isNotBlank()) {
                     Transformations.map(homeRepository.storageUnitLiveData(unitType, unitName)) { storageUnit ->
                         storageUnit.value
                     }
@@ -67,12 +67,31 @@ class StorageUnitDetailViewModel(
         }
 
         // Decide how to handle this list
-        unitTaskList = if (unitType != null && unitName != null) {
+        unitTaskList = if (unitType.isNotEmpty() && unitName.isNotEmpty()) {
             homeRepository.unitTaskListLiveData(unitType, unitName)
         } else {
             MutableLiveData<List<UnitTask>>().also {
                 it.value = emptyList()
             }
+        }
+
+        hardwareUnitName = if (unitType.isNotEmpty() && unitName.isNotEmpty()) {
+            Timber.d("init hardwareUnitName is not empty")
+            Transformations.map(homeRepository.storageUnitLiveData(unitType, unitName)) { storageUnit ->
+                storageUnit.hardwareUnitName
+            }
+        } else {
+            MutableLiveData<String>().also {
+                Timber.d("init hardwareUnitName is empty")
+                Transformations.map(isEditMode) { edit ->
+                    if (edit) {
+                        it.value = ""
+                    } else {
+                        it.value = ""
+                    }
+                }
+            }
+
         }
 
         // LiveDatas for editing mode
@@ -88,18 +107,8 @@ class StorageUnitDetailViewModel(
                 }
             }
         }
-        hardwareUnitNameList = Transformations.switchMap(isEditMode) { edit ->
-            Timber.d("init isEditMode hardwareUnitNameList edit: $edit")
-            if (edit) {
-                Transformations.map(homeRepository.hwUnitListLiveData()) { list ->
-                    list.map { it.name }
-                }
-            } else {
-                MutableLiveData<List<String>>().also {
-                    it.value = emptyList()
-                }
-            }
-        }
+
+        // used for checking if given storageUnit name is not already used
         storageUnitNameList = Transformations.switchMap(isEditMode) { edit ->
             Timber.d("init isEditMode storageUnitNameList edit: $edit")
             if (edit) {

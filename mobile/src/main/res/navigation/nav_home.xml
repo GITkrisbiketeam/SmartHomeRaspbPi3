@@ -57,6 +57,13 @@
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
             app:popExitAnim="@anim/slide_out_right" />
+        <action
+            android:id="@+id/action_storage_unit_detail_fragment_to_hwUnitListFragment"
+            app:destination="@id/hw_unit_list_fragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
 
     </fragment>
 
@@ -65,6 +72,12 @@
         android:name="com.krisbiketeam.smarthomeraspbpi3.UnitTaskFragment"
         android:label="@string/fragment_unit_task_title"
         tools:layout="@layout/fragment_unit_task" />
+
+    <fragment
+        android:id="@+id/hw_unit_list_fragment"
+        android:name="com.krisbiketeam.smarthomeraspbpi3.HwUnitListFragment"
+        android:label="fragment_hw_unit_list"
+        tools:layout="@layout/fragment_hw_unit_list" />
 
 
     <fragment
