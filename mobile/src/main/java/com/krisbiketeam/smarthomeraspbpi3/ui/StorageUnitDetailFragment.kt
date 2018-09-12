@@ -60,7 +60,7 @@ class StorageUnitDetailFragment : Fragment() {
     }
 
     override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
-        inflater?.inflate(R.menu.menu_storage_unit_details_add_edit, menu)
+        inflater?.inflate(R.menu.menu_storage_unit_details, menu)
         super.onCreateOptionsMenu(menu, inflater)
     }
 

@@ -22,7 +22,7 @@ fun getFirebaseAppToken(tokenReceived: (String?) -> Unit) {
     // Get token
     FirebaseInstanceId.getInstance().instanceId.addOnCompleteListener { task ->
         if (!task.isSuccessful) {
-            Timber.w("getInstanceId failed", task.exception)
+            Timber.w(task.exception, "getInstanceId failed")
             tokenReceived(null)
         }
 
@@ -70,7 +70,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
         // Check if message contains a data payload.
         if (remoteMessage?.data?.size != 0) {
-            Timber.d("Message data payload: " + remoteMessage?.data)
+            Timber.d("Message data payload: ${remoteMessage?.data}")
 
             if (/* Check if data needs to be processed by long running job */ true) {
                 // For long-running tasks (10 seconds or more) use Firebase Job Dispatcher.
@@ -84,7 +84,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
         // Check if message contains a notification payload.
         remoteMessage?.notification?.let {
-            Timber.d("Message Notification Body: " + it.body)
+            Timber.d("Message Notification Body: ${it.body}")
         }
 
         // Also if you intend on generating your own notifications as a result of a received FCM

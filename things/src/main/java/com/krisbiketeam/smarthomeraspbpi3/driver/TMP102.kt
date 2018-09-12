@@ -192,11 +192,11 @@ class TMP102(bus: String? = null, address: Int = DEFAULT_I2C_GND_ADDRESS) : Auto
                 mConfig = readSample16(TMP102_REG_CONF) ?: 0
                 Timber.d("connect mConfig: $mConfig")
             } catch (e: IOException) {
-                Timber.e("Error connecting device", e)
+                Timber.e(e,"Error connecting device")
                 try {
                     close()
                 } catch (e: IOException) {
-                    Timber.e("Error closing device", e)
+                    Timber.e(e,"Error closing device")
                 }
             }
         }
@@ -273,7 +273,7 @@ class TMP102(bus: String? = null, address: Int = DEFAULT_I2C_GND_ADDRESS) : Auto
             try {
                 mDevice?.readRegBuffer(address, mBuffer, 2) ?: return null
             } catch (e: IOException) {
-                Timber.e("Error reading RegBuffer", e)
+                Timber.e(e,"Error reading RegBuffer")
                 return null
             }
             // msb[7:0] lsb[7:0]
@@ -294,7 +294,7 @@ class TMP102(bus: String? = null, address: Int = DEFAULT_I2C_GND_ADDRESS) : Auto
             try {
                 mDevice?.writeRegBuffer(address, mBuffer, 2)
             } catch (e: IOException) {
-                Timber.e("Error writing RegBuffer", e)
+                Timber.e(e,"Error writing RegBuffer")
             }
         }
     }

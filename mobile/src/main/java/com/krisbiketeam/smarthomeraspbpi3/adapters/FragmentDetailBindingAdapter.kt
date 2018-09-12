@@ -1,5 +1,7 @@
 package com.krisbiketeam.smarthomeraspbpi3.adapters
 
+import android.R
+import android.database.DataSetObserver
 import android.databinding.BindingAdapter
 import android.databinding.InverseBindingAdapter
 import android.databinding.InverseBindingListener
@@ -7,6 +9,7 @@ import android.support.design.widget.FloatingActionButton
 import android.support.v7.widget.AppCompatSpinner
 import android.view.View
 import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import android.widget.ProgressBar
 import com.krisbiketeam.data.MyLiveDataState
 import timber.log.Timber
@@ -44,24 +47,46 @@ fun stateBasedVisibility(view: View, pair: Pair<MyLiveDataState, Any>?) {
     }
 }
 
+@BindingAdapter("entries")
+fun bindEntriesData(spinner: AppCompatSpinner, entries: List<Any>?) {
+    // This is for dynamic entries list, like form ViewModel LiveData
+    Timber.d("bindEntriesData entries: $entries tag: ${spinner.tag}")
+    if (entries != null) {
+        ArrayAdapter(spinner.context, R.layout.simple_spinner_item, entries).apply {
+            setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            spinner.adapter = this
+            val pos = getPosition(spinner.tag)
+            Timber.d("bindEntriesData pos: $pos")
+            if (pos in 0 until spinner.count) {
+                spinner.setSelection(pos)
+            }
+        }
+    }
+}
+
 @BindingAdapter("selectedValue", "selectedValueAttrChanged", requireAll=false)
 fun bindSpinnerData(spinner: AppCompatSpinner, newSelectedValue: String?, newTextAttrChanged: InverseBindingListener) {
     Timber.d("selectedValue BindingAdapter newSelectedValue: $newSelectedValue")
-    spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-        override fun onNothingSelected(parent: AdapterView<*>?) {
-            Timber.d("selectedValue onNothingSelected")
-        }
+    spinner.apply {
+        onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+                Timber.d("selectedValue $newSelectedValue onNothingSelected")
+            }
 
-        override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-            Timber.d("selectedValue onItemSelected : $position")
-            newTextAttrChanged.onChange()
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                Timber.d("selectedValue $newSelectedValue onItemSelected : $position")
+                newTextAttrChanged.onChange()
+            }
         }
-    }
-    if (newSelectedValue != null) {
-        for (i in 0 until spinner.adapter.count) {
-            if (spinner.adapter.getItem(i) == newSelectedValue) {
-                spinner.setSelection(i, true)
-                break
+        tag = newSelectedValue
+        // This is for static entries list
+        if (newSelectedValue != null) {
+            Timber.d("selectedValue $newSelectedValue count : ${adapter.count}")
+            for (i in 0 until adapter.count) {
+                if (adapter.getItem(i) == newSelectedValue) {
+                    setSelection(i, true)
+                    break
+                }
             }
         }
     }

@@ -3,37 +3,37 @@ package com.krisbiketeam.smarthomeraspbpi3.units.hardware
 import com.google.android.things.pio.Gpio
 import com.google.android.things.pio.GpioCallback
 import com.krisbiketeam.data.storage.ConnectionType
-import com.krisbiketeam.data.storage.dto.HomeUnit
-import com.krisbiketeam.smarthomeraspbpi3.units.HomeUnitGpio
+import com.krisbiketeam.data.storage.dto.HwUnit
+import com.krisbiketeam.smarthomeraspbpi3.units.HwUnitGpio
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
 import timber.log.Timber
 import java.io.IOException
 import java.util.*
 
-open class HomeUnitGpioSensor(name: String,
-                              location: String,
-                              pinName: String,
-                              private val activeType: Int = Gpio.ACTIVE_HIGH,
-                              override var gpio: Gpio? = null) : HomeUnitGpio<Boolean>, Sensor<Boolean> {
+open class HwUnitGpioSensor(name: String,
+                            location: String,
+                            pinName: String,
+                            private val activeType: Int = Gpio.ACTIVE_HIGH,
+                            override var gpio: Gpio? = null) : HwUnitGpio<Boolean>, Sensor<Boolean> {
 
-    override val homeUnit: HomeUnit = HomeUnit(name, location, pinName, ConnectionType.GPIO)
+    override val hwUnit: HwUnit = HwUnit(name, location, pinName, ConnectionType.GPIO)
     override var unitValue: Boolean? = null
     override var valueUpdateTime: String = ""
 
-    var homeUnitListener: Sensor.HomeUnitListener<Boolean>? = null
+    var hwUnitListener: Sensor.HwUnitListener<Boolean>? = null
 
     open val mGpioCallback = object : GpioCallback {
         override fun onGpioEdge(gpio: Gpio): Boolean {
             readValue(gpio)
-            Timber.v("onGpioEdge gpio.readValue(): $homeUnit.value on: $homeUnit")
-            homeUnitListener?.onUnitChanged(homeUnit, unitValue, valueUpdateTime)
+            Timber.v("onGpioEdge gpio.readValue(): $hwUnit.value on: $hwUnit")
+            hwUnitListener?.onUnitChanged(hwUnit, unitValue, valueUpdateTime)
 
             // Continue listening for more interrupts
             return true
         }
 
         override fun onGpioError(gpio: Gpio?, error: Int) {
-            Timber.w(gpio.toString() + ": Error event $error on: $homeUnit")
+            Timber.w("${gpio.toString()} : Error event $error on: $hwUnit")
         }
     }
 
@@ -46,7 +46,7 @@ open class HomeUnitGpioSensor(name: String,
                 setEdgeTriggerType(Gpio.EDGE_BOTH)
                 setActiveType(activeType)
             } catch (e: IOException) {
-                Timber.e("Error initializing PeripheralIO API on: $homeUnit", e)
+                Timber.e(e,"Error initializing PeripheralIO API on: $hwUnit")
             }
         }
     }
@@ -56,20 +56,20 @@ open class HomeUnitGpioSensor(name: String,
         super.close()
     }
 
-    override fun registerListener(listener: Sensor.HomeUnitListener<Boolean>) {
+    override fun registerListener(listener: Sensor.HwUnitListener<Boolean>) {
         Timber.d( "registerListener")
-        homeUnitListener = listener
+        hwUnitListener = listener
         try {
             gpio?.registerGpioCallback(mGpioCallback)
         } catch (e: IOException) {
-            Timber.e( "Error registerListener PeripheralIO API on: $homeUnit", e)
+            Timber.e(e,"Error registerListener PeripheralIO API on: $hwUnit")
         }
     }
 
     override fun unregisterListener() {
         Timber.d( "unregisterListener")
         gpio?.unregisterGpioCallback(mGpioCallback)
-        homeUnitListener = null
+        hwUnitListener = null
     }
 
 
@@ -81,7 +81,7 @@ open class HomeUnitGpioSensor(name: String,
         unitValue = try {
             gpio?.value
         } catch (e: IOException) {
-            Timber.e( "Error getting Value PeripheralIO API on: $homeUnit", e)
+            Timber.e(e,"Error getting Value PeripheralIO API on: $hwUnit")
             // Set null value on error
             null
         }

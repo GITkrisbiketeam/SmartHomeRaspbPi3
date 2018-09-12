@@ -1,20 +1,79 @@
 package com.krisbiketeam.data.storage.dto
 
-import com.google.firebase.database.IgnoreExtraProperties
-import com.krisbiketeam.data.storage.ConnectionType
+import com.google.firebase.database.Exclude
+import com.krisbiketeam.data.storage.firebaseTables.*
 
-@IgnoreExtraProperties
-data class HomeUnit(
-        // HomeUnitLog type name ex. "BMP280" "Light", Name should be unique for all units
-        var name: String = "",
-        // Location of the sensor, ex. kitchen
-        var location: String = "",
-        // Board Pin name this homeUnit is connected to
-        var pinName: String = "",
-        // HomeUnitLog Connection type see {@link ConnectionType} ex. ConnectionType.I2C
-        var connectionType: ConnectionType? = null,
-        // HomeUnitLog address for multiple units connected to one input ex I2c
-        var softAddress: Int? = null,
-        var pinInterrupt: String? = null,
-        var ioPin: String? = null,
-        val internalPullUp: Boolean? = null)
+typealias LightType = Boolean
+typealias Light = StorageUnit<LightType>
+typealias LightSwitchType = Boolean
+typealias LightSwitch = StorageUnit<LightSwitchType>
+typealias ReedSwitchType = Boolean
+typealias ReedSwitch = StorageUnit<ReedSwitchType>
+typealias MotionType = Boolean
+typealias Motion = StorageUnit<MotionType>
+typealias TemperatureType = Float
+typealias Temperature = StorageUnit<TemperatureType>
+typealias PressureType = Float
+typealias Pressure = StorageUnit<PressureType>
+typealias BlindType = Int
+typealias Blind = StorageUnit<BlindType>
+
+val storageUnitTypeIndicatorMap: HashMap<String, Class<out Any>> = hashMapOf(
+        HOME_LIGHTS to LightType::class.java,
+        HOME_LIGHT_SWITCHES to LightSwitchType::class.java,
+        HOME_REED_SWITCHES to ReedSwitchType::class.java,
+        HOME_MOTIONS to MotionType::class.java,
+        HOME_TEMPERATURES to TemperatureType::class.java,
+        HOME_PRESSURES to PressureType::class.java,
+        HOME_BLINDS to BlindType::class.java
+)
+
+val HOME_STORAGE_UNITS: List<String> = listOf(
+        HOME_LIGHTS,
+        HOME_LIGHT_SWITCHES,
+        HOME_REED_SWITCHES,
+        HOME_MOTIONS,
+        HOME_TEMPERATURES,
+        HOME_PRESSURES,
+        HOME_BLINDS)
+
+data class StorageUnit<T>(var name: String = "", // Name should be unique for all units
+                          var firebaseTableName: String = "",
+                          var room: String = "",
+                          var hardwareUnitName: String = "",
+                          var value: T? = null,
+                          val firebaseNotify: Boolean? = null,
+                          val unitsTasks: MutableList<UnitTask> = ArrayList()) {
+    constructor(storageUnit: StorageUnit<T>) : this(
+            storageUnit.name,
+            storageUnit.firebaseTableName,
+            storageUnit.room,
+            storageUnit.hardwareUnitName,
+            storageUnit.value,
+            storageUnit.firebaseNotify,
+            storageUnit.unitsTasks)
+
+    @Exclude
+    @set:Exclude
+    @get:Exclude
+    var applyFunction: StorageUnit<T>.(Any?) -> Unit = { _: Any? -> Unit}
+
+    fun makeInvariant(): StorageUnit<Any>{
+        return StorageUnit<Any>(
+                name,
+                firebaseTableName,
+                room,
+                hardwareUnitName,
+                value,
+                firebaseNotify,
+                unitsTasks)
+    }
+    fun makeNotification(): StorageUnit<Any>{
+        return StorageUnit<Any>(
+                name,
+                firebaseTableName,
+                room,
+                hardwareUnitName,
+                value)
+    }
+}

@@ -4,7 +4,7 @@ import android.support.annotation.VisibleForTesting
 import com.krisbiketeam.smarthomeraspbpi3.driver.MCP23017
 import java.util.*
 
-object HomeUnitI2CMCP23017 {
+object HwUnitI2CMCP23017 {
 
     private var mcpMap = HashMap<Int, MCP23017>()
     @VisibleForTesting

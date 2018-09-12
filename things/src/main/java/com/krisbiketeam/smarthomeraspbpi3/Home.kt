@@ -11,7 +11,7 @@ import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
 import com.krisbiketeam.smarthomeraspbpi3.units.hardware.*
 import timber.log.Timber
 
-class Home : Sensor.HomeUnitListener<Any> {
+class Home : Sensor.HwUnitListener<Any> {
     private var storageUnitsLiveData = FirebaseHomeInformationRepository.storageUnitsLiveData()
 
     private var hwUnitsLiveData = FirebaseHomeInformationRepository.hwUnitsLiveData()
@@ -76,7 +76,7 @@ class Home : Sensor.HomeUnitListener<Any> {
     }
 
     private fun hwUnitStart(unit: BaseUnit<Any>) {
-        Timber.v("hwUnitStart connect unit: ${unit.homeUnit}")
+        Timber.v("hwUnitStart connect unit: ${unit.hwUnit}")
         unit.connect()
         if (unit is Sensor) {
             unit.registerListener(this)
@@ -84,12 +84,12 @@ class Home : Sensor.HomeUnitListener<Any> {
     }
 
     private fun hwUnitStop(unit: BaseUnit<Any>) {
-        Timber.v("hwUnitStop close unit: ${unit.homeUnit}")
+        Timber.v("hwUnitStop close unit: ${unit.hwUnit}")
         try {
             // close will automatically unregister listener
             unit.close()
         } catch (e: Exception) {
-            Timber.e("Error on PeripheralIO API", e)
+            Timber.e(e,"Error on PeripheralIO API")
         }
     }
 
@@ -133,7 +133,7 @@ class Home : Sensor.HomeUnitListener<Any> {
         }
     }
 
-    private val hwUnitsDataObserver = Observer<Pair<ChildEventType, HomeUnit>> { pair ->
+    private val hwUnitsDataObserver = Observer<Pair<ChildEventType, HwUnit>> { pair ->
         Timber.d("hwUnitsDataObserver changed: $pair")
         pair?.let { (action, value) ->
             when (action) {
@@ -143,21 +143,21 @@ class Home : Sensor.HomeUnitListener<Any> {
                 ChildEventType.NODE_ACTION_ADDED -> {
                     // TODO: consider this unit is already present in hardwareUnitList
                     var unit = hardwareUnitList[value.name]
-                    Timber.d("hwUnitsDataObserver HomeUnit NODE_ACTION_ADDED: $unit")
+                    Timber.d("hwUnitsDataObserver HwUnit NODE_ACTION_ADDED: $unit")
                     unit?.let {
                         Timber.w("HwUnit already exist recreate it")
                         hwUnitStop(it)
                     }
                     when (value.name) {
                         BoardConfig.TEMP_SENSOR_TMP102 -> {
-                            unit = HomeUnitI2CTempTMP102Sensor(
+                            unit = HwUnitI2CTempTMP102Sensor(
                                     value.name,
                                     value.location,
                                     value.pinName,
                                     value.softAddress!!) as BaseUnit<Any>
                         }
                         BoardConfig.TEMP_PRESS_SENSOR_BMP280 -> {
-                            unit = HomeUnitI2CTempPressBMP280Sensor(
+                            unit = HwUnitI2CTempPressBMP280Sensor(
                                     value.name,
                                     value.location,
                                     value.pinName,
@@ -167,7 +167,7 @@ class Home : Sensor.HomeUnitListener<Any> {
                         BoardConfig.IO_EXTENDER_MCP23017_1_IN_A6,
                         BoardConfig.IO_EXTENDER_MCP23017_1_IN_A5,
                         BoardConfig.IO_EXTENDER_MCP23017_1_IN_A0 -> {
-                            unit = HomeUnitI2CMCP23017Sensor(
+                            unit = HwUnitI2CMCP23017Sensor(
                                     value.name,
                                     value.location,
                                     value.pinName,
@@ -178,7 +178,7 @@ class Home : Sensor.HomeUnitListener<Any> {
                         }
                         BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B0,
                         BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B7 -> {
-                            unit = HomeUnitI2CMCP23017Actuator(
+                            unit = HwUnitI2CMCP23017Actuator(
                                     value.name,
                                     value.location,
                                     value.pinName,
@@ -195,7 +195,7 @@ class Home : Sensor.HomeUnitListener<Any> {
                 }
                 ChildEventType.NODE_ACTION_DELETED -> {
                     val result = hardwareUnitList.remove(value.name)
-                    Timber.d("hwUnitsDataObserver HomeUnit NODE_ACTION_DELETED: $result")
+                    Timber.d("hwUnitsDataObserver HwUnit NODE_ACTION_DELETED: $result")
 
                 }
                 else -> {
@@ -205,12 +205,12 @@ class Home : Sensor.HomeUnitListener<Any> {
         }
     }
 
-    override fun onUnitChanged(homeUnit: HomeUnit, unitValue: Any?, updateTime: String) {
-        Timber.d("onUnitChanged unit: $homeUnit; unitValue: $unitValue; updateTime: $updateTime")
-        FirebaseHomeInformationRepository.logUnitEvent(HomeUnitLog(homeUnit, unitValue, updateTime))
+    override fun onUnitChanged(hwUnit: HwUnit, unitValue: Any?, updateTime: String) {
+        Timber.d("onUnitChanged unit: $hwUnit; unitValue: $unitValue; updateTime: $updateTime")
+        FirebaseHomeInformationRepository.logUnitEvent(HwUnitLog(hwUnit, unitValue, updateTime))
 
         storageUnitList.values.filter {
-            it.hardwareUnitName == homeUnit.name
+            it.hardwareUnitName == hwUnit.name
         }.forEach {
             it.apply {
                 // We need to handel differently values of non Basic Types
@@ -240,7 +240,7 @@ class Home : Sensor.HomeUnitListener<Any> {
 
     fun saveToRepository() {
         storageUnitList.values.forEach { FirebaseHomeInformationRepository.saveStorageUnit(it) }
-        hardwareUnitList.values.forEach { FirebaseHomeInformationRepository.saveHardwareUnit(it.homeUnit) }
+        hardwareUnitList.values.forEach { FirebaseHomeInformationRepository.saveHardwareUnit(it.hwUnit) }
     }
 
     private fun initStorageUnitList() {
@@ -288,28 +288,28 @@ class Home : Sensor.HomeUnitListener<Any> {
     }
 
     private fun initHardwareUnitList() {
-        /*val motion = HomeUnitGpioSensor(BoardConfig.MOTION_1, "Raspberry Pi",
+        /*val motion = HwUnitGpioSensor(BoardConfig.MOTION_1, "Raspberry Pi",
                 BoardConfig.MOTION_1_PIN,
                 Gpio.ACTIVE_HIGH) as Sensor<Any>
         hardwareUnitList[BoardConfig.MOTION_1] = motion*/
 
-        /*val contactron = HomeUnitGpioNoiseSensor(BoardConfig.REED_SWITCH_1, "Raspberry Pi", BoardConfig
+        /*val contactron = HwUnitGpioNoiseSensor(BoardConfig.REED_SWITCH_1, "Raspberry Pi", BoardConfig
                 .REED_SWITCH_1_PIN, Gpio.ACTIVE_LOW) as Sensor<Any>
         hardwareUnitList[BoardConfig.REED_SWITCH_1] = contactron*/
 
-        val temperatureSensor = HomeUnitI2CTempTMP102Sensor(BoardConfig.TEMP_SENSOR_TMP102,
+        val temperatureSensor = HwUnitI2CTempTMP102Sensor(BoardConfig.TEMP_SENSOR_TMP102,
                 "Raspberry Pi",
                 BoardConfig.TEMP_SENSOR_TMP102_PIN,
                 BoardConfig.TEMP_SENSOR_TMP102_ADDR) as Sensor<Any>
         hardwareUnitList[BoardConfig.TEMP_SENSOR_TMP102] = temperatureSensor
 
-        val tempePressSensor = HomeUnitI2CTempPressBMP280Sensor(BoardConfig.TEMP_PRESS_SENSOR_BMP280,
+        val tempePressSensor = HwUnitI2CTempPressBMP280Sensor(BoardConfig.TEMP_PRESS_SENSOR_BMP280,
                 "Raspberry Pi",
                 BoardConfig.TEMP_PRESS_SENSOR_BMP280_PIN,
                 BoardConfig.TEMP_PRESS_SENSOR_BMP280_ADDR) as Sensor<Any>
         hardwareUnitList[BoardConfig.TEMP_PRESS_SENSOR_BMP280] = tempePressSensor
 
-        val mcpLightSwitch = HomeUnitI2CMCP23017Sensor(BoardConfig.IO_EXTENDER_MCP23017_1_IN_A7,
+        val mcpLightSwitch = HwUnitI2CMCP23017Sensor(BoardConfig.IO_EXTENDER_MCP23017_1_IN_A7,
                 "Raspberry Pi",
                 BoardConfig.IO_EXTENDER_MCP23017_1_PIN,
                 BoardConfig.IO_EXTENDER_MCP23017_1_ADDR,
@@ -318,7 +318,7 @@ class Home : Sensor.HomeUnitListener<Any> {
                 true) as Sensor<Any>
         hardwareUnitList[BoardConfig.IO_EXTENDER_MCP23017_1_IN_A7] = mcpLightSwitch
 
-        val mcpContactron = HomeUnitI2CMCP23017Sensor(BoardConfig.IO_EXTENDER_MCP23017_1_IN_A6,
+        val mcpContactron = HwUnitI2CMCP23017Sensor(BoardConfig.IO_EXTENDER_MCP23017_1_IN_A6,
                 "Raspberry Pi",
                 BoardConfig.IO_EXTENDER_MCP23017_1_PIN,
                 BoardConfig.IO_EXTENDER_MCP23017_1_ADDR,
@@ -327,7 +327,7 @@ class Home : Sensor.HomeUnitListener<Any> {
                 true) as Sensor<Any>
         hardwareUnitList[BoardConfig.IO_EXTENDER_MCP23017_1_IN_A6] = mcpContactron
 
-        val mcpLightSwitch2 = HomeUnitI2CMCP23017Sensor(BoardConfig.IO_EXTENDER_MCP23017_1_IN_A5,
+        val mcpLightSwitch2 = HwUnitI2CMCP23017Sensor(BoardConfig.IO_EXTENDER_MCP23017_1_IN_A5,
                 "Raspberry Pi",
                 BoardConfig.IO_EXTENDER_MCP23017_1_PIN,
                 BoardConfig.IO_EXTENDER_MCP23017_1_ADDR,
@@ -336,7 +336,7 @@ class Home : Sensor.HomeUnitListener<Any> {
                 true) as Sensor<Any>
         hardwareUnitList[BoardConfig.IO_EXTENDER_MCP23017_1_IN_A5] = mcpLightSwitch2
 
-        val mcpMotion = HomeUnitI2CMCP23017Sensor(BoardConfig.IO_EXTENDER_MCP23017_1_IN_A0,
+        val mcpMotion = HwUnitI2CMCP23017Sensor(BoardConfig.IO_EXTENDER_MCP23017_1_IN_A0,
                 "Raspberry Pi",
                 BoardConfig.IO_EXTENDER_MCP23017_1_PIN,
                 BoardConfig.IO_EXTENDER_MCP23017_1_ADDR,
@@ -344,7 +344,7 @@ class Home : Sensor.HomeUnitListener<Any> {
                 BoardConfig.IO_EXTENDER_MCP23017_1_IN_A0_PIN) as Sensor<Any>
         hardwareUnitList[BoardConfig.IO_EXTENDER_MCP23017_1_IN_A0] = mcpMotion
 
-        val mcpLed = HomeUnitI2CMCP23017Actuator(BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B0,
+        val mcpLed = HwUnitI2CMCP23017Actuator(BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B0,
                 "Raspberry Pi",
                 BoardConfig.IO_EXTENDER_MCP23017_1_PIN,
                 BoardConfig.IO_EXTENDER_MCP23017_1_ADDR,
@@ -352,7 +352,7 @@ class Home : Sensor.HomeUnitListener<Any> {
                 BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B0_PIN) as Actuator<Any>
         hardwareUnitList[BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B0] = mcpLed
 
-        val mcpLed2 = HomeUnitI2CMCP23017Actuator(BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B7,
+        val mcpLed2 = HwUnitI2CMCP23017Actuator(BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B7,
                 "Raspberry Pi",
                 BoardConfig.IO_EXTENDER_MCP23017_1_PIN,
                 BoardConfig.IO_EXTENDER_MCP23017_1_ADDR,

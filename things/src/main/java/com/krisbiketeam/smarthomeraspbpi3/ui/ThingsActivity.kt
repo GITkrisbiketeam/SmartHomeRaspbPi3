@@ -16,15 +16,15 @@ import com.google.android.things.pio.Gpio
 import com.krisbiketeam.data.auth.Authentication
 import com.krisbiketeam.data.auth.FirebaseAuthentication
 import com.krisbiketeam.data.storage.*
-import com.krisbiketeam.data.storage.dto.HomeUnitLog
+import com.krisbiketeam.data.storage.dto.HwUnitLog
 import com.krisbiketeam.data.storage.obsolete.HomeInformation
 import com.krisbiketeam.smarthomeraspbpi3.BoardConfig
 import com.krisbiketeam.smarthomeraspbpi3.Home
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.ui.setup.FirebaseCredentialsReceiverManager
 import com.krisbiketeam.smarthomeraspbpi3.ui.setup.WiFiCredentialsReceiverManager
-import com.krisbiketeam.smarthomeraspbpi3.units.hardware.HomeUnitGpioActuator
-import com.krisbiketeam.smarthomeraspbpi3.units.hardware.HomeUnitI2CFourCharDisplay
+import com.krisbiketeam.smarthomeraspbpi3.units.hardware.HwUnitGpioActuator
+import com.krisbiketeam.smarthomeraspbpi3.units.hardware.HwUnitI2CFourCharDisplay
 import com.krisbiketeam.smarthomeraspbpi3.utils.ConsoleLoggerTree
 import timber.log.Timber
 import java.io.IOException
@@ -39,9 +39,9 @@ class ThingsActivity : AppCompatActivity() {
     private lateinit var networkConnectionMonitor: NetworkConnectionMonitor
 
     private lateinit var home: Home
-    private val ledA: HomeUnitGpioActuator
-    private val ledB: HomeUnitGpioActuator
-    private val ledC: HomeUnitGpioActuator
+    private val ledA: HwUnitGpioActuator
+    private val ledB: HwUnitGpioActuator
+    private val ledC: HwUnitGpioActuator
 
     private var buttonAInputDriver: ButtonInputDriver? = null
     private var buttonBInputDriver: ButtonInputDriver? = null
@@ -52,18 +52,18 @@ class ThingsActivity : AppCompatActivity() {
 
     private val mRainbowLeds = IntArray(RainbowHat.LEDSTRIP_LENGTH)
 
-    private val fourCharDisplay = HomeUnitI2CFourCharDisplay(BoardConfig.FOUR_CHAR_DISP, "Raspberry Pi", BoardConfig.FOUR_CHAR_DISP_PIN)
+    private val fourCharDisplay = HwUnitI2CFourCharDisplay(BoardConfig.FOUR_CHAR_DISP, "Raspberry Pi", BoardConfig.FOUR_CHAR_DISP_PIN)
 
     init {
         Timber.d("init")
 
-        ledA = HomeUnitGpioActuator(BoardConfig.LED_A, "Raspberry Pi",
+        ledA = HwUnitGpioActuator(BoardConfig.LED_A, "Raspberry Pi",
                 BoardConfig.LED_A_PIN,
                 Gpio.ACTIVE_HIGH)
-        ledB = HomeUnitGpioActuator(BoardConfig.LED_B, "Raspberry Pi",
+        ledB = HwUnitGpioActuator(BoardConfig.LED_B, "Raspberry Pi",
                 BoardConfig.LED_B_PIN,
                 Gpio.ACTIVE_HIGH)
-        ledC = HomeUnitGpioActuator(BoardConfig.LED_C, "Raspberry Pi",
+        ledC = HwUnitGpioActuator(BoardConfig.LED_C, "Raspberry Pi",
                 BoardConfig.LED_C_PIN,
                 Gpio.ACTIVE_HIGH)
 
@@ -153,12 +153,12 @@ class ThingsActivity : AppCompatActivity() {
                     Button.LogicState.PRESSED_WHEN_LOW,
                     KeyEvent.KEYCODE_C)
         } catch (e: IOException) {
-            Timber.e("Error configuring GPIO pin", e)
+            Timber.e(e, "Error configuring GPIO pin")
         }
     }
 
     private fun startWiFiCredentialsReceiver() {
-       if (wiFiCredentialsReceiverManager == null) {
+        if (wiFiCredentialsReceiverManager == null) {
             wiFiCredentialsReceiverManager = WiFiCredentialsReceiverManager(this, networkConnectionMonitor)
         }
         wiFiCredentialsReceiverManager?.start()
@@ -219,7 +219,7 @@ class ThingsActivity : AppCompatActivity() {
             buttonBInputDriver?.close()
             buttonCInputDriver?.close()
         } catch (e: IOException) {
-            Timber.e("Error closing Button driver", e)
+            Timber.e(e,"Error closing Button driver")
         }
         super.onDestroy()
     }
@@ -259,7 +259,7 @@ class ThingsActivity : AppCompatActivity() {
                 when (event?.repeatCount) {
                     0 -> {
                         Timber.d("onKeyDown keyCode: $keyCode ; keEvent: $event")
-                        FirebaseHomeInformationRepository.logUnitEvent(HomeUnitLog(
+                        FirebaseHomeInformationRepository.logUnitEvent(HwUnitLog(
                                 BoardConfig.BUTTON_A,
                                 "Raspberry Pi",
                                 BoardConfig.BUTTON_A_PIN,
@@ -282,7 +282,7 @@ class ThingsActivity : AppCompatActivity() {
                 when (event?.repeatCount) {
                     0 -> {
                         Timber.d("onKeyDown keyCode: $keyCode ; keEvent: $event")
-                        FirebaseHomeInformationRepository.logUnitEvent(HomeUnitLog(
+                        FirebaseHomeInformationRepository.logUnitEvent(HwUnitLog(
                                 BoardConfig.BUTTON_B,
                                 "Raspberry Pi",
                                 BoardConfig.BUTTON_B_PIN,
@@ -305,7 +305,7 @@ class ThingsActivity : AppCompatActivity() {
                 when (event?.repeatCount) {
                     0 -> {
                         Timber.d("onKeyDown keyCode: $keyCode ; keEvent: $event")
-                        FirebaseHomeInformationRepository.logUnitEvent(HomeUnitLog(
+                        FirebaseHomeInformationRepository.logUnitEvent(HwUnitLog(
                                 BoardConfig.BUTTON_C,
                                 "Raspberry Pi",
                                 BoardConfig.BUTTON_C_PIN,
@@ -326,7 +326,7 @@ class ThingsActivity : AppCompatActivity() {
         Timber.d("onKeyUp keyCode: $keyCode ; keEvent: $event")
         when (keyCode) {
             KEYCODE_A -> {
-                FirebaseHomeInformationRepository.logUnitEvent(HomeUnitLog(
+                FirebaseHomeInformationRepository.logUnitEvent(HwUnitLog(
                         BoardConfig.BUTTON_A,
                         "Raspberry Pi",
                         BoardConfig.BUTTON_A_PIN,
@@ -335,7 +335,7 @@ class ThingsActivity : AppCompatActivity() {
                 ledA.setValue(false)
             }
             KEYCODE_B -> {
-                FirebaseHomeInformationRepository.logUnitEvent(HomeUnitLog(
+                FirebaseHomeInformationRepository.logUnitEvent(HwUnitLog(
                         BoardConfig.BUTTON_B,
                         "Raspberry Pi",
                         BoardConfig.BUTTON_B_PIN,
@@ -344,7 +344,7 @@ class ThingsActivity : AppCompatActivity() {
                 ledB.setValue(false)
             }
             KEYCODE_C -> {
-                FirebaseHomeInformationRepository.logUnitEvent(HomeUnitLog(
+                FirebaseHomeInformationRepository.logUnitEvent(HwUnitLog(
                         BoardConfig.BUTTON_C,
                         "Raspberry Pi",
                         BoardConfig.BUTTON_C_PIN,

@@ -5,8 +5,11 @@
     <data>
 
         <import type="android.view.View" />
+
         <import type="java.lang.String" />
+
         <import type="androidx.navigation.Navigation" />
+
         <import type="com.krisbiketeam.smarthomeraspbpi3.ui.StorageUnitDetailFragmentDirections" />
 
         <variable
@@ -97,10 +100,10 @@
                         android:id="@+id/unit_type_spinner"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:entries="@{viewModel.typeList}"
                         android:prompt="@string/add_storage_text_unit_type_spinner_prompt"
                         android:spinnerMode="dialog"
                         android:visibility="@{safeUnbox(viewModel.isEditMode) ? View.VISIBLE : View.INVISIBLE}"
+                        app:entries="@{viewModel.typeList}"
                         app:selectedValue="@={viewModel.type}" />
 
                     <TextView
@@ -137,10 +140,10 @@
                         android:id="@+id/room_name_spinner"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:entries="@{viewModel.roomNameList}"
                         android:prompt="@string/add_storage_text_room_spinner_prompt"
                         android:spinnerMode="dialog"
                         android:visibility="@{safeUnbox(viewModel.isEditMode) ? View.VISIBLE : View.INVISIBLE}"
+                        app:entries="@{viewModel.roomNameList}"
                         app:selectedValue="@={viewModel.room}" />
 
                     <TextView
@@ -173,23 +176,24 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/hw_unit_name_title">
 
-                    <Button
-                        android:id="@+id/hw_unit_name_button"
+                    <android.support.v7.widget.AppCompatSpinner
+                        android:id="@+id/hw_unit_name__spinner"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@{viewModel.hardwareUnitName.length() == 0 ? @string/menu_room_detail_edit : viewModel.hardwareUnitName}"
+                        android:prompt="@string/add_storage_text_room_spinner_prompt"
+                        android:spinnerMode="dialog"
                         android:visibility="@{safeUnbox(viewModel.isEditMode) ? View.VISIBLE : View.INVISIBLE}"
-                        android:onClick="@{(view) -> Navigation.findNavController(view).navigate(StorageUnitDetailFragmentDirections.actionStorageUnitDetailFragmentToHwUnitListFragment())}"/>
+                        app:entries="@{viewModel.hwUnitNameList}"
+                        app:selectedValue="@={viewModel.hwUnitName}" />
 
                     <TextView
                         android:id="@+id/hw_unit_name_text"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/margin_small"
-                        android:text="@{viewModel.hardwareUnitName}"
+                        android:layout_height="match_parent"
+                        android:gravity="center_vertical"
+                        android:text="@{viewModel.hwUnitName}"
                         android:textAppearance="@style/TextAppearance.AppCompat.Small"
                         android:visibility="@{safeUnbox(viewModel.isEditMode) ? View.INVISIBLE : View.VISIBLE}" />
-
 
                 </FrameLayout>
 
@@ -242,6 +246,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="@dimen/margin_small"
                             android:hint="@string/add_storage_text_title_hint"
+                            android:importantForAutofill="no"
                             android:inputType="text"
                             android:maxLines="1"
                             android:text="@={viewModel.name}"

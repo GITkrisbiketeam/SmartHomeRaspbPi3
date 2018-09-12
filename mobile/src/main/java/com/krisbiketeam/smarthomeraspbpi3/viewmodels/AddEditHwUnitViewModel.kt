@@ -7,13 +7,13 @@ import android.arch.lifecycle.ViewModel
 import com.krisbiketeam.data.storage.HomeInformationRepository
 import com.krisbiketeam.data.storage.dto.HOME_STORAGE_UNITS
 import com.krisbiketeam.data.storage.dto.UnitTask
-import com.krisbiketeam.smarthomeraspbpi3.ui.AddStorageHomeUnitFragment
+import com.krisbiketeam.smarthomeraspbpi3.ui.AddEditHwUnitFragment
 import timber.log.Timber
 
 /**
- * The ViewModel used in [AddStorageHomeUnitFragment].
+ * The ViewModel used in [AddEditHwUnitFragment].
  */
-class AddStorageHomeUnitViewModel(
+class AddEditHwUnitViewModel(
         homeRepository: HomeInformationRepository
 ) : ViewModel() {
 
@@ -27,8 +27,6 @@ class AddStorageHomeUnitViewModel(
 
     var hardwareUnitName: MutableLiveData<String> = MutableLiveData()
     val hardwareUnitNameList: LiveData<List<String>>
-
-    val unitsTasks: MutableLiveData<List<UnitTask>> = MutableLiveData()
 
     var storageUnitListLiveData: LiveData<List<String>>//StorageUnitListLiveData
 

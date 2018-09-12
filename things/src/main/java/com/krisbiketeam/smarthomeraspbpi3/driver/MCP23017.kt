@@ -111,17 +111,17 @@ class MCP23017(bus: String? = null,
 
     private val mIntCallback = { gpio: Gpio ->
         try {
-            Timber.d("mIntCallback onGpioEdge " + gpio.value)
+            Timber.d("mIntCallback onGpioEdge ${gpio.value}")
             mHandler.removeCallbacksAndMessages(null)
             mHandler.postDelayed({
                 try {
                     checkInterrupt()
                 } catch (e: IOException) {
-                    Timber.e("mIntCallback onGpioEdge exception", e)
+                    Timber.e(e,"mIntCallback onGpioEdge exception")
                 }
             }, debounceDelay.toLong())
         } catch (e: IOException) {
-            Timber.e("mIntCallback onGpioEdge exception", e)
+            Timber.e(e,"mIntCallback onGpioEdge exception")
         }
 
         // Return true to keep callback active.
@@ -134,7 +134,7 @@ class MCP23017(bus: String? = null,
             try {
                 connectI2c(PeripheralManager.getInstance().openI2cDevice(bus, address))
             } catch (e: IOException) {
-                Timber.e("init error connecting I2C", e)
+                Timber.e(e,"init error connecting I2C")
                 try {
                     close()
                 } catch (ignored: IOException) {
@@ -158,8 +158,7 @@ class MCP23017(bus: String? = null,
 
         currentConf = readRegister(REGISTER_IOCON) ?: -1
 
-        Timber.d("connect currentStatesA: " + currentStatesA + " currentStatesB: " +
-                currentStatesB + " currentConf: " + currentConf)
+        Timber.d("connect currentStatesA: $currentStatesA currentStatesB: $currentStatesB currentConf: $currentConf")
         resetToDefaults()
     }
 
@@ -604,7 +603,7 @@ class MCP23017(bus: String? = null,
     }
 
     private fun dispatchPinChangeEvent(pin: Pin, state: PinState) {
-        Timber.d("dispatchPinChangeEvent pin: " + pin.name + " pinState: " + state)
+        Timber.d("dispatchPinChangeEvent pin: ${pin.name} pinState: $state")
 
         val listeners = mListeners[pin]
         if (listeners != null) {

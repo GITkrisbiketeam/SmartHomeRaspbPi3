@@ -5,7 +5,6 @@ import android.databinding.DataBindingUtil
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.view.*
-import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import com.krisbiketeam.data.storage.ChildEventType
 import com.krisbiketeam.data.storage.dto.StorageUnit
@@ -38,7 +37,7 @@ class RoomDetailFragment : Fragment() {
                 inflater, R.layout.fragment_room_detail, container, false).apply {
             viewModel = roomDetailViewModel
             setLifecycleOwner(this@RoomDetailFragment)
-            fab.setOnClickListener { view ->
+            fab.setOnClickListener {
                 val direction = RoomDetailFragmentDirections.ActionRoomDetailFragmentToStorageUnitDetailFragment(
                         roomDetailViewModel.room.value?.name ?: "", "", "")
                 findNavController().navigate(direction)
@@ -48,11 +47,11 @@ class RoomDetailFragment : Fragment() {
             subscribeUi(adapter)
         }
 
-        roomDetailViewModel.room.observe(viewLifecycleOwner, Observer { room ->
+        roomDetailViewModel.room.observe(viewLifecycleOwner, Observer {
 
         })
 
-        roomDetailViewModel.isEditMode.observe(viewLifecycleOwner, Observer { isEditMode ->
+        roomDetailViewModel.isEditMode.observe(viewLifecycleOwner, Observer {
             activity?.invalidateOptionsMenu()
         })
 

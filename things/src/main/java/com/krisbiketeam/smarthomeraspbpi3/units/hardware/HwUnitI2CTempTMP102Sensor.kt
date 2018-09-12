@@ -1,9 +1,9 @@
 package com.krisbiketeam.smarthomeraspbpi3.units.hardware
 
 import com.krisbiketeam.data.storage.ConnectionType
-import com.krisbiketeam.data.storage.dto.HomeUnit
+import com.krisbiketeam.data.storage.dto.HwUnit
 import com.krisbiketeam.smarthomeraspbpi3.driver.TMP102
-import com.krisbiketeam.smarthomeraspbpi3.units.HomeUnitI2C
+import com.krisbiketeam.smarthomeraspbpi3.units.HwUnitI2C
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.Job
@@ -14,18 +14,18 @@ import java.util.*
 
 private const val REFRESH_RATE = 300000L // 5 min
 
-class HomeUnitI2CTempTMP102Sensor(name: String,
-                                  location: String,
-                                  pinName: String,
-                                  softAddress: Int,
-                                  override var device: AutoCloseable? = null) : HomeUnitI2C<Float>, Sensor<Float> {
+class HwUnitI2CTempTMP102Sensor(name: String,
+                                location: String,
+                                pinName: String,
+                                softAddress: Int,
+                                override var device: AutoCloseable? = null) : HwUnitI2C<Float>, Sensor<Float> {
 
-    override val homeUnit: HomeUnit = HomeUnit(name, location, pinName, ConnectionType.I2C, softAddress)
+    override val hwUnit: HwUnit = HwUnit(name, location, pinName, ConnectionType.I2C, softAddress)
     override var unitValue: Float? = null
     override var valueUpdateTime: String = ""
 
     private var job: Job? = null
-    private var homeUnitListener: Sensor.HomeUnitListener<Float>? = null
+    private var hwUnitListener: Sensor.HwUnitListener<Float>? = null
 
     override fun connect() {
         // Do noting we o not want to block I2C device so it will be opened while setting the value
@@ -33,9 +33,9 @@ class HomeUnitI2CTempTMP102Sensor(name: String,
     }
 
 
-    override fun registerListener(listener: Sensor.HomeUnitListener<Float>) {
+    override fun registerListener(listener: Sensor.HwUnitListener<Float>) {
         Timber.d("registerListener")
-        homeUnitListener = listener
+        hwUnitListener = listener
         job?.cancel()
         job = launch(CommonPool) {
             // We could also check for true as suspending delay() method is cancellable
@@ -50,11 +50,11 @@ class HomeUnitI2CTempTMP102Sensor(name: String,
     override fun unregisterListener() {
         Timber.d("unregisterListener")
         job?.cancel()
-        homeUnitListener = null
+        hwUnitListener = null
     }
 
     private fun oneShotReadValue() {
-        val tmp102 = TMP102(homeUnit.pinName)
+        val tmp102 = TMP102(hwUnit.pinName)
         // We do not want to block I2C buss so open device to only display some data and then immediately close it.
         // use block automatically closes resources referenced to tmp102
         tmp102.shutdownMode = true
@@ -62,7 +62,7 @@ class HomeUnitI2CTempTMP102Sensor(name: String,
             unitValue = it
             valueUpdateTime = Date().toString()
             Timber.d("temperature:$unitValue")
-            homeUnitListener?.onUnitChanged(homeUnit, unitValue, valueUpdateTime)
+            hwUnitListener?.onUnitChanged(hwUnit, unitValue, valueUpdateTime)
             tmp102.close()
         }
     }
@@ -70,7 +70,7 @@ class HomeUnitI2CTempTMP102Sensor(name: String,
     override fun readValue(): Float? {
         // We do not want to block I2C buss so open device to only display some data and then immediately close it.
         // use block automatically closes resources referenced to tmp102
-        val tmp102 = TMP102(homeUnit.pinName)
+        val tmp102 = TMP102(hwUnit.pinName)
         tmp102.use {
             unitValue = it.readTemperature()
             valueUpdateTime = Date().toString()

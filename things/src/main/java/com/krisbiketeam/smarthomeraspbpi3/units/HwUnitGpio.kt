@@ -6,15 +6,15 @@ import timber.log.Timber
 
 import java.io.IOException
 
-interface HomeUnitGpio<T> : BaseUnit<T> {
+interface HwUnitGpio<T> : BaseUnit<T> {
     var gpio: Gpio?
 
     override fun connect() {
-        Timber.e("connect on: $homeUnit")
+        Timber.e("connect on: $hwUnit")
         if (gpio == null) {
             val peripheralManager = PeripheralManager.getInstance()
             try {
-                gpio = peripheralManager.openGpio(homeUnit.pinName)
+                gpio = peripheralManager.openGpio(hwUnit.pinName)
             } catch (e: IOException) {
                 close()
             }
@@ -22,11 +22,11 @@ interface HomeUnitGpio<T> : BaseUnit<T> {
     }
 
     override fun close() {
-        Timber.e("close on: $homeUnit")
+        Timber.e("close on: $hwUnit")
         try {
             gpio?.close()
         } catch (e: IOException) {
-            Timber.e("Error closing PeripheralIO API on: $homeUnit", e)
+            Timber.e(e, "Error closing PeripheralIO API on: $hwUnit")
         } finally {
             gpio = null
         }

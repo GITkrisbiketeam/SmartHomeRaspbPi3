@@ -5,20 +5,20 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.ValueEventListener
-import com.krisbiketeam.data.storage.dto.HomeUnit
+import com.krisbiketeam.data.storage.dto.HwUnit
 import com.krisbiketeam.data.storage.firebaseTables.HOME_HW_UNITS
 import timber.log.Timber
 
 
-class HwUnitListLiveData(private val databaseReference: DatabaseReference) : LiveData<List<HomeUnit>>() {
+class HwUnitListLiveData(private val databaseReference: DatabaseReference) : LiveData<List<HwUnit>>() {
 
     private val hwUnitsListener: ValueEventListener = object: ValueEventListener {
         override fun onDataChange(dataSnapshot: DataSnapshot) {
             // A new value has been added, add it to the displayed list
-            val key = dataSnapshot.key
-            val hwUnits: ArrayList<HomeUnit> = ArrayList()
+            //val key = dataSnapshot.key
+            val hwUnits: ArrayList<HwUnit> = ArrayList()
             for(r: DataSnapshot in dataSnapshot.children){
-                val hwUnit = r.getValue(HomeUnit::class.java)
+                val hwUnit = r.getValue(HwUnit::class.java)
                 //Timber.d("onDataChange (key=$key)(hwUnit=$hwUnit)")
                 hwUnit?.let {
                     hwUnits.add(hwUnit)

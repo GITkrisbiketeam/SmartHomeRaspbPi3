@@ -29,7 +29,8 @@ class RoomListViewModel(homeRepository: HomeInformationRepository) : ViewModel()
         val livePlantList = Transformations.switchMap(growZoneNumber) {
             homeRepository.roomsLiveData()
         }
-        roomList.addSource(livePlantList, roomList::setValue)
+        roomList.addSource(livePlantList) {
+            roomList.setValue(it) }
     }
 
     fun getRooms() = roomList

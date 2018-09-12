@@ -8,11 +8,11 @@ import com.google.android.things.pio.GpioCallback
 import timber.log.Timber
 import java.util.*
 
-class HomeUnitGpioNoiseSensor(name: String,
-                              location: String,
-                              pinName: String,
-                              activeType: Int,
-                              gpio: Gpio? = null) : HomeUnitGpioSensor(name, location, pinName, activeType, gpio) {
+class HwUnitGpioNoiseSensor(name: String,
+                            location: String,
+                            pinName: String,
+                            activeType: Int,
+                            gpio: Gpio? = null) : HwUnitGpioSensor(name, location, pinName, activeType, gpio) {
 
     private var mDebounceHandler: Handler = Handler()
     private var mPendingCheckDebounce: CheckDebounce? = null
@@ -39,7 +39,7 @@ class HomeUnitGpioNoiseSensor(name: String,
     override val mGpioCallback = object : GpioCallback {
         override fun onGpioEdge(gpio: Gpio): Boolean {
             val value = readValue(gpio)
-            Timber.v("onGpioEdge gpio.readValue(): $value on: $homeUnit")
+            Timber.v("onGpioEdge gpio.readValue(): $value on: $hwUnit")
 
             if (debounceDelay == 0L) {
                 // Trigger event immediately
@@ -56,7 +56,7 @@ class HomeUnitGpioNoiseSensor(name: String,
         }
 
         override fun onGpioError(gpio: Gpio?, error: Int) {
-            Timber.w(gpio.toString() + ": Error event $error on: $homeUnit")
+            Timber.w("${gpio.toString()} : Error event $error on: $hwUnit")
         }
     }
 
@@ -72,9 +72,9 @@ class HomeUnitGpioNoiseSensor(name: String,
     internal fun performSensorEvent(event: Boolean?) {
         unitValue = event
         valueUpdateTime = Date().toString()
-        Timber.d("performSensorEvent event: $event on: $homeUnit")
-        homeUnitListener?.onUnitChanged(homeUnit, unitValue, valueUpdateTime)
-                ?: Timber.w("listener not registered on: $homeUnit")
+        Timber.d("performSensorEvent event: $event on: $hwUnit")
+        hwUnitListener?.onUnitChanged(hwUnit, unitValue, valueUpdateTime)
+                ?: Timber.w("listener not registered on: $hwUnit")
 
     }
 

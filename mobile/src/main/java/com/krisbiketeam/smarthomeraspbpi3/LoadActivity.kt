@@ -44,7 +44,7 @@ class LoadActivity : AppCompatActivity() {
             PERMISSION_REQUEST_ID -> {
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    loadNextActivity()
+                    callHomeActivity()
                 } else {
                     showWarning()
                 }
@@ -55,7 +55,7 @@ class LoadActivity : AppCompatActivity() {
     private fun requestPermissions() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
-            loadNextActivity()
+            callHomeActivity()
         } else {
             showWarning()
             ActivityCompat.requestPermissions(this,
@@ -68,13 +68,8 @@ class LoadActivity : AppCompatActivity() {
         Toast.makeText(this, "You need to provide permissions!", Toast.LENGTH_SHORT).show()
     }
 
-    private fun loadNextActivity() {
-        callActivity(HomeActivity::class.java)
-        //callActivity(MobileActivity::class.java)
-    }
-
-    private fun callActivity(clazz: Class<*>) {
-        val intent = Intent(this, clazz)
+    private fun callHomeActivity() {
+        val intent = Intent(this, HomeActivity::class.java)
         startActivity(intent)
         finish()
     }

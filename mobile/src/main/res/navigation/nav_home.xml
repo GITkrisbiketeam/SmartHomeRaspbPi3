@@ -39,7 +39,7 @@
     <fragment
         android:id="@+id/storage_unit_detail_fragment"
         android:name="com.krisbiketeam.smarthomeraspbpi3.ui.StorageUnitDetailFragment"
-        android:label="@string/fragment_storage_unit_detail_title"
+        android:label="@string/storage_unit_detail_title"
         tools:layout="@layout/fragment_storage_unit_detail">
         <argument
             android:name="roomName"
@@ -70,27 +70,43 @@
     <fragment
         android:id="@+id/unit_task_fragment"
         android:name="com.krisbiketeam.smarthomeraspbpi3.UnitTaskFragment"
-        android:label="@string/fragment_unit_task_title"
+        android:label="@string/unit_task_title"
         tools:layout="@layout/fragment_unit_task" />
 
     <fragment
         android:id="@+id/hw_unit_list_fragment"
-        android:name="com.krisbiketeam.smarthomeraspbpi3.HwUnitListFragment"
-        android:label="fragment_hw_unit_list"
-        tools:layout="@layout/fragment_hw_unit_list" />
+        android:name="com.krisbiketeam.smarthomeraspbpi3.ui.HwUnitListFragment"
+        android:label="@string/hw_unit_list_title"
+        tools:layout="@layout/fragment_hw_unit_list">
+
+        <action
+            android:id="@+id/action_hw_unit_list_fragment_to_add_edit_hw_unit_fragment"
+            app:destination="@id/add_edit_hw_unit_fragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/add_edit_hw_unit_fragment"
+        android:name="com.krisbiketeam.smarthomeraspbpi3.ui.AddEditHwUnitFragment"
+        android:label="@string/add_edit_hw_unit_title"
+        tools:layout="@layout/fragment_add_edit_hw_unit">
+
+        <argument
+            android:name="hwUnitName"
+            app:argType="string" />
+
+    </fragment>
 
 
     <fragment
         android:id="@+id/logs_fragment"
-        android:name="com.krisbiketeam.smarthomeraspbpi3.ui.LogsFragment"
-        android:label="@string/fragment_logs_title"
+        android:name="com.krisbiketeam.smarthomeraspbpi3.LogsFragment"
+        android:label="@string/logs_title"
         tools:layout="@layout/fragment_logs" />
 
-    <fragment
-        android:id="@+id/add_storage_home_unit_fragment"
-        android:name="com.krisbiketeam.smarthomeraspbpi3.ui.AddStorageHomeUnitFragment"
-        android:label="@string/add_storage_home_unit_title"
-        tools:layout="@layout/fragment_add_storage_home_unit" />
 
     <fragment
         android:id="@+id/settings_fragment"
@@ -112,18 +128,25 @@
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
             app:popExitAnim="@anim/slide_out_right" />
+        <action
+            android:id="@+id/action_settings_fragment_to_hw_unit_list_fragment"
+            app:destination="@id/hw_unit_list_fragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
     </fragment>
 
     <fragment
         android:id="@+id/wifi_settings_fragment"
         android:name="com.krisbiketeam.smarthomeraspbpi3.ui.WifiSettingsFragment"
-        android:label="@string/wifi_settings_title"
+        android:label="@string/settings_wifi_title"
         tools:layout="@layout/fragment_settings_wifi" />
 
     <fragment
         android:id="@+id/login_settings_fragment"
         android:name="com.krisbiketeam.smarthomeraspbpi3.ui.LoginSettingsFragment"
-        android:label="@string/login_settings_title"
+        android:label="@string/settings_login_title"
         tools:layout="@layout/fragment_settings_login" />
 
 </navigation>

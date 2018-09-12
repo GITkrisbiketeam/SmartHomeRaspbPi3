@@ -61,7 +61,7 @@ class StorageUnitsLiveData(private val databaseReference: DatabaseReference, pri
         }
 
         override fun onChildRemoved(dataSnapshot: DataSnapshot) {
-            Timber.d("onChildRemoved:" + dataSnapshot.key)
+            Timber.d("onChildRemoved: ${dataSnapshot.key}")
 
             // A value has changed, use the key to determine if we are displaying this
             // value and if so remove it.
@@ -92,7 +92,7 @@ class StorageUnitsLiveData(private val databaseReference: DatabaseReference, pri
         }
 
         override fun onCancelled(databaseError: DatabaseError) {
-            Timber.e("onCancelled:", databaseError)
+            Timber.w("onCancelled: $databaseError")
         }
     }
 

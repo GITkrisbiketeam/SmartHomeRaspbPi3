@@ -3,8 +3,8 @@ package com.krisbiketeam.smarthomeraspbpi3.units.hardware
 import com.google.android.things.contrib.driver.bmx280.Bmx280
 import com.google.android.things.contrib.driver.rainbowhat.RainbowHat
 import com.krisbiketeam.data.storage.ConnectionType
-import com.krisbiketeam.data.storage.dto.HomeUnit
-import com.krisbiketeam.smarthomeraspbpi3.units.HomeUnitI2C
+import com.krisbiketeam.data.storage.dto.HwUnit
+import com.krisbiketeam.smarthomeraspbpi3.units.HwUnitI2C
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.Job
@@ -16,18 +16,18 @@ private const val REFRESH_RATE = 300000L // 5 min
 
 data class TemperatureAndPressure(val temperature: Float, val pressure: Float)
 
-class HomeUnitI2CTempPressBMP280Sensor(name: String,
-                                       location: String,
-                                       pinName: String,
-                                       softAddress: Int,
-                                       override var device: AutoCloseable? = null) : HomeUnitI2C<TemperatureAndPressure>, Sensor<TemperatureAndPressure> {
+class HwUnitI2CTempPressBMP280Sensor(name: String,
+                                     location: String,
+                                     pinName: String,
+                                     softAddress: Int,
+                                     override var device: AutoCloseable? = null) : HwUnitI2C<TemperatureAndPressure>, Sensor<TemperatureAndPressure> {
 
-    override val homeUnit: HomeUnit = HomeUnit(name, location, pinName, ConnectionType.I2C, softAddress)
+    override val hwUnit: HwUnit = HwUnit(name, location, pinName, ConnectionType.I2C, softAddress)
     override var unitValue: TemperatureAndPressure? = null
     override var valueUpdateTime: String = ""
 
     private var job: Job? = null
-    private var homeUnitListener: Sensor.HomeUnitListener<TemperatureAndPressure>? = null
+    private var hwUnitListener: Sensor.HwUnitListener<TemperatureAndPressure>? = null
 
     override fun connect() {
         // Do noting we o not want to block I2C device so it will be opened while setting the value
@@ -35,9 +35,9 @@ class HomeUnitI2CTempPressBMP280Sensor(name: String,
     }
 
 
-    override fun registerListener(listener: Sensor.HomeUnitListener<TemperatureAndPressure>) {
+    override fun registerListener(listener: Sensor.HwUnitListener<TemperatureAndPressure>) {
         Timber.d("registerListener")
-        homeUnitListener = listener
+        hwUnitListener = listener
         job?.cancel()
         startJob()
     }
@@ -45,7 +45,7 @@ class HomeUnitI2CTempPressBMP280Sensor(name: String,
     override fun unregisterListener() {
         Timber.d("unregisterListener")
         job?.cancel()
-        homeUnitListener = null
+        hwUnitListener = null
     }
 
     private fun startJob() {
@@ -53,7 +53,7 @@ class HomeUnitI2CTempPressBMP280Sensor(name: String,
             while (true) {
                 readValue()
 
-                homeUnitListener?.onUnitChanged(homeUnit, unitValue, valueUpdateTime)
+                hwUnitListener?.onUnitChanged(hwUnit, unitValue, valueUpdateTime)
                 Thread.sleep(REFRESH_RATE)
             }
         }

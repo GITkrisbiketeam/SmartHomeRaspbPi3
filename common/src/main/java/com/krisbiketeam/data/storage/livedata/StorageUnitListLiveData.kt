@@ -15,8 +15,7 @@ class StorageUnitListLiveData(private val databaseReference: DatabaseReference, 
         override fun onDataChange(dataSnapshot: DataSnapshot) {
             clazz?.let {
                 // A new value has been added, add it to the displayed list
-                val key = dataSnapshot.key
-
+                //val key = dataSnapshot.key
                 val values: ArrayList<StorageUnit<Any>> = ArrayList()
                 for (child: DataSnapshot in dataSnapshot.children) {
                     val storageUnit = child.getValue(typeIndicator)

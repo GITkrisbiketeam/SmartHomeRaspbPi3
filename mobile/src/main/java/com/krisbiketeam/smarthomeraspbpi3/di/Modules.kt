@@ -25,7 +25,8 @@ val myModule = applicationContext {
     viewModel { WifiSettingsViewModel(get()) }
     viewModel { LoginSettingsViewModel(get(), get()) }
     viewModel { NavigationViewModel(get()) }
-    viewModel { AddStorageHomeUnitViewModel(FirebaseHomeInformationRepository) }
+    viewModel { AddEditHwUnitViewModel(FirebaseHomeInformationRepository) }
+    viewModel { HwUnitListViewModel(FirebaseHomeInformationRepository) }
 
     bean { NotSecureStorage(androidApplication()) as SecureStorage }
     bean { FirebaseAuthentication() as Authentication }

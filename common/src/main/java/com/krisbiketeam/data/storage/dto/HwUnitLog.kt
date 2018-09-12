@@ -6,16 +6,16 @@ import com.krisbiketeam.data.storage.ConnectionType
 import java.util.*
 
 @IgnoreExtraProperties
-data class HomeUnitLog<T>(
-        // HomeUnitLog type name ex. "BMP280" "Light"
+data class HwUnitLog<T>(
+        // HwUnit type name ex. "BMP280" "Light"
         var name: String = "",
         // Location of the sensor, ex. kitchen
         var location: String = "",
-        // Board Pin name this homeUnit is connected to
+        // Board Pin name this hwUnit is connected to
         var pinName: String = "",
-        // HomeUnitLog Connection type see {@link ConnectionType} ex. ConnectionType.I2C
+        // Connection type see {@link ConnectionType} ex. ConnectionType.I2C
         var connectionType: ConnectionType? = null,
-        // HomeUnitLog address for multiple units connected to one input ex I2c
+        // Address for multiple units connected to one input ex I2c
         var softAddress: Int? = null,
         var pinInterrupt: String? = null,
         var ioPin: String? = null,
@@ -24,15 +24,15 @@ data class HomeUnitLog<T>(
         var value: T? = null,
         var localtime: String = Date().toString(),
         var servertime: Map<String, String>? = ServerValue.TIMESTAMP) {
-    constructor(hwHomeUnit: HomeUnit, value: T?, localtime: String) : this(
-            hwHomeUnit.name,
-            hwHomeUnit.location,
-            hwHomeUnit.pinName,
-            hwHomeUnit.connectionType,
-            hwHomeUnit.softAddress,
-            hwHomeUnit.pinInterrupt,
-            hwHomeUnit.ioPin,
-            hwHomeUnit.internalPullUp,
+    constructor(hwHwUnit: HwUnit, value: T?, localtime: String) : this(
+            hwHwUnit.name,
+            hwHwUnit.location,
+            hwHwUnit.pinName,
+            hwHwUnit.connectionType,
+            hwHwUnit.softAddress,
+            hwHwUnit.pinInterrupt,
+            hwHwUnit.ioPin,
+            hwHwUnit.internalPullUp,
             value,
             localtime)
 }

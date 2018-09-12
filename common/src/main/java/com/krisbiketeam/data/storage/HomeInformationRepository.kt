@@ -23,9 +23,9 @@ interface HomeInformationRepository {
     //Obsolete Code End
 
     /**
-     *  Adds given @see[HomeUnitLog] to the log @see[LOG_INFORMATION_BASE] list in DB
+     *  Adds given @see[HwUnitLog] to the log @see[LOG_INFORMATION_BASE] list in DB
      */
-    fun logUnitEvent(homeUnit: HomeUnitLog<out Any>)
+    fun logUnitEvent(hwUnitLog: HwUnitLog<out Any>)
 
     fun writeNewUser(name: String, email: String)
 
@@ -47,9 +47,9 @@ interface HomeInformationRepository {
     fun <T> saveStorageUnit(storageUnit: StorageUnit<T>)
 
     /**
-     *  Saves/updates given @see[HomeUnitLog] as a hardware module list in DB
+     *  Saves/updates given @see[HwUnit] as a hardware module list in DB
      */
-    fun saveHardwareUnit(hwUnit: HomeUnit)
+    fun saveHardwareUnit(hwUnit: HwUnit)
 
     /**
      * get instance of @see[StorageUnitsLiveData] for listening to changes in entries in DB
@@ -164,8 +164,8 @@ object FirebaseHomeInformationRepository : HomeInformationRepository {
     // Obsolete Code End
 
 
-    override fun logUnitEvent(homeUnit: HomeUnitLog<out Any>) {
-        referenceLog.push().setValue(homeUnit)
+    override fun logUnitEvent(hwUnitLog: HwUnitLog<out Any>) {
+        referenceLog.push().setValue(hwUnitLog)
     }
 
     override fun notifyStorageUnitEvent(storageUnit: StorageUnit<out Any>) {
@@ -191,7 +191,7 @@ object FirebaseHomeInformationRepository : HomeInformationRepository {
                 .setValue(storageUnit)
     }
 
-    override fun saveHardwareUnit(hwUnit: HomeUnit) {
+    override fun saveHardwareUnit(hwUnit: HwUnit) {
         referenceHome.child(HOME_HW_UNITS).child(hwUnit.name).setValue(hwUnit)
     }
 

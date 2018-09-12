@@ -15,7 +15,7 @@ class RoomListLiveData(private val databaseReference: DatabaseReference) : LiveD
     private val roomsListener: ValueEventListener = object: ValueEventListener {
         override fun onDataChange(dataSnapshot: DataSnapshot) {
             // A new value has been added, add it to the displayed list
-            val key = dataSnapshot.key
+            //val key = dataSnapshot.key
             val rooms: ArrayList<Room> = ArrayList()
             for(r: DataSnapshot in dataSnapshot.children){
                 val room = r.getValue(Room::class.java)
