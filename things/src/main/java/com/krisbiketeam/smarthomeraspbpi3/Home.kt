@@ -12,32 +12,32 @@ import com.krisbiketeam.smarthomeraspbpi3.units.hardware.*
 import timber.log.Timber
 
 class Home : Sensor.HwUnitListener<Any> {
-    private var storageUnitsLiveData = FirebaseHomeInformationRepository.storageUnitsLiveData()
+    private var homeUnitsLiveData = FirebaseHomeInformationRepository.homeUnitsLiveData()
 
     private var hwUnitsLiveData = FirebaseHomeInformationRepository.hwUnitsLiveData()
 
 
-    private val storageUnitList: MutableMap<String, StorageUnit<Any>> = HashMap()
+    private val homeUnitList: MutableMap<String, HomeUnit<Any>> = HashMap()
 
     private val hardwareUnitList: MutableMap<String, BaseUnit<Any>> = HashMap()
 
-    private var booleanApplyFunction: StorageUnit<in Boolean>.(Any?) -> Unit = { newVal: Any? ->
+    private var booleanApplyFunction: HomeUnit<in Boolean>.(Any?) -> Unit = { newVal: Any? ->
         Timber.d("booleanApplyFunction newVal: $newVal this: $this")
         if (newVal is Boolean) {
             this.unitsTasks.forEach { task ->
-                task.storageUnitName?.let { taskStorageUnitName ->
-                    storageUnitList[taskStorageUnitName]?.run {
-                        Timber.d("booleanApplyFunction task: $task for storageUnit: $this")
+                task.homeUnitName?.let { taskhomeUnitName ->
+                    homeUnitList[taskhomeUnitName]?.run {
+                        Timber.d("booleanApplyFunction task: $task for homeUnit: $this")
                         this.value = newVal
                         this.applyFunction(newVal)
-                        FirebaseHomeInformationRepository.saveStorageUnit(this)
+                        FirebaseHomeInformationRepository.saveHomeUnit(this)
                         if (firebaseNotify == true){
-                            Timber.d("storageUnitsDataObserver notify with FCM Message")
-                            FirebaseHomeInformationRepository.notifyStorageUnitEvent(this)
+                            Timber.d("homeUnitsDataObserver notify with FCM Message")
+                            FirebaseHomeInformationRepository.notifyHomeUnitEvent(this)
                         }
                     }
                 }
-                task.hardwareUnitName?.let { hardwareUnit ->
+                task.hwUnitName?.let { hardwareUnit ->
                     hardwareUnitList[hardwareUnit]?.run {
                         Timber.d("booleanApplyFunction task: $task for this: $this")
                         if (this is Actuator) {
@@ -54,14 +54,14 @@ class Home : Sensor.HwUnitListener<Any> {
 
     init {
         //initHardwareUnitList()
-        //initStorageUnitList()
+        //inithomeUnitList()
 
         //saveToRepository()
     }
 
     fun start() {
         Timber.e("start; hardwareUnitList.size: ${hardwareUnitList.size}")
-        storageUnitsLiveData.observeForever(storageUnitsDataObserver)
+        homeUnitsLiveData.observeForever(homeUnitsDataObserver)
         hwUnitsLiveData.observeForever(hwUnitsDataObserver)
 
         hardwareUnitList.values.forEach(this::hwUnitStart)
@@ -69,7 +69,7 @@ class Home : Sensor.HwUnitListener<Any> {
 
     fun stop() {
         Timber.e("start; hardwareUnitList.size: ${hardwareUnitList.size}")
-        storageUnitsLiveData.removeObserver(storageUnitsDataObserver)
+        homeUnitsLiveData.removeObserver(homeUnitsDataObserver)
         hwUnitsLiveData.removeObserver(hwUnitsDataObserver)
 
         hardwareUnitList.values.forEach(this::hwUnitStop)
@@ -93,41 +93,41 @@ class Home : Sensor.HwUnitListener<Any> {
         }
     }
 
-    private val storageUnitsDataObserver = Observer<Pair<ChildEventType, StorageUnit<Any>>> { pair ->
-        Timber.d("storageUnitsDataObserver changed: $pair")
-        pair?.let { (action, storageUnit) ->
+    private val homeUnitsDataObserver = Observer<Pair<ChildEventType, HomeUnit<Any>>> { pair ->
+        Timber.d("homeUnitsDataObserver changed: $pair")
+        pair?.let { (action, homeUnit) ->
             when (action) {
                 ChildEventType.NODE_ACTION_CHANGED -> {
-                    Timber.d("storageUnitsDataObserver NODE_ACTION_CHANGED NEW:  $storageUnit")
-                    storageUnitList[storageUnit.name]?.run {
-                        Timber.d("storageUnitsDataObserver NODE_ACTION_CHANGED EXISTING: $this}")
-                        // set previous apply function to new storageUnit
-                        storageUnit.applyFunction = applyFunction
-                        if (storageUnit.value != value) {
-                            storageUnit.applyFunction(storageUnit.value)
-                            if (storageUnit.firebaseNotify == true){
-                                Timber.d("storageUnitsDataObserver notify with FCM Message")
-                                FirebaseHomeInformationRepository.notifyStorageUnitEvent(storageUnit)
+                    Timber.d("homeUnitsDataObserver NODE_ACTION_CHANGED NEW:  $homeUnit")
+                    homeUnitList[homeUnit.name]?.run {
+                        Timber.d("homeUnitsDataObserver NODE_ACTION_CHANGED EXISTING: $this}")
+                        // set previous apply function to new homeUnit
+                        homeUnit.applyFunction = applyFunction
+                        if (homeUnit.value != value) {
+                            homeUnit.applyFunction(homeUnit.value)
+                            if (homeUnit.firebaseNotify == true){
+                                Timber.d("homeUnitsDataObserver notify with FCM Message")
+                                FirebaseHomeInformationRepository.notifyHomeUnitEvent(homeUnit)
                             }
                         }
-                        storageUnitList[storageUnit.name] = storageUnit
+                        homeUnitList[homeUnit.name] = homeUnit
                     }
                 }
                 ChildEventType.NODE_ACTION_ADDED -> {
-                    val existingUnit = storageUnitList[storageUnit.name]
-                    Timber.d("storageUnitsDataObserver EXISTING $existingUnit ; NEW  $storageUnit")
-                    storageUnitTypeIndicatorMap[storageUnit.firebaseTableName]?.isInstance(Boolean::class.java)
+                    val existingUnit = homeUnitList[homeUnit.name]
+                    Timber.d("homeUnitsDataObserver EXISTING $existingUnit ; NEW  $homeUnit")
+                    homeUnitTypeIndicatorMap[homeUnit.firebaseTableName]?.isInstance(Boolean::class.java)
                             .let {
-                                storageUnit.applyFunction = booleanApplyFunction
+                                homeUnit.applyFunction = booleanApplyFunction
                             }
-                    storageUnitList[storageUnit.name] = storageUnit
+                    homeUnitList[homeUnit.name] = homeUnit
                 }
                 ChildEventType.NODE_ACTION_DELETED -> {
-                    val result = storageUnitList.remove(storageUnit.name)
-                    Timber.d("storageUnitsDataObserver NODE_ACTION_DELETED: $result")
+                    val result = homeUnitList.remove(homeUnit.name)
+                    Timber.d("homeUnitsDataObserver NODE_ACTION_DELETED: $result")
                 }
                 else -> {
-                    Timber.e("storageUnitsDataObserver unsupported action: $action")
+                    Timber.e("homeUnitsDataObserver unsupported action: $action")
                 }
             }
         }
@@ -209,7 +209,7 @@ class Home : Sensor.HwUnitListener<Any> {
         Timber.d("onUnitChanged unit: $hwUnit; unitValue: $unitValue; updateTime: $updateTime")
         FirebaseHomeInformationRepository.logUnitEvent(HwUnitLog(hwUnit, unitValue, updateTime))
 
-        storageUnitList.values.filter {
+        homeUnitList.values.filter {
             it.hardwareUnitName == hwUnit.name
         }.forEach {
             it.apply {
@@ -229,62 +229,62 @@ class Home : Sensor.HwUnitListener<Any> {
                     value = unitValue
                 }
                 applyFunction(this.value)
-                FirebaseHomeInformationRepository.saveStorageUnit(this)
+                FirebaseHomeInformationRepository.saveHomeUnit(this)
                 if (firebaseNotify == true){
                     Timber.d("onUnitChanged notify with FCM Message")
-                    FirebaseHomeInformationRepository.notifyStorageUnitEvent(this)
+                    FirebaseHomeInformationRepository.notifyHomeUnitEvent(this)
                 }
             }
         }
     }
 
     fun saveToRepository() {
-        storageUnitList.values.forEach { FirebaseHomeInformationRepository.saveStorageUnit(it) }
+        homeUnitList.values.forEach { FirebaseHomeInformationRepository.saveHomeUnit(it) }
         hardwareUnitList.values.forEach { FirebaseHomeInformationRepository.saveHardwareUnit(it.hwUnit) }
     }
 
-    private fun initStorageUnitList() {
+    private fun inithomeUnitList() {
         var roomName = "Kitchen"
 
-        var temp = Temperature("Kitchen 1 Temp", HOME_TEMPERATURES, roomName, BoardConfig.TEMP_PRESS_SENSOR_BMP280) as StorageUnit<Any>
+        var temp = Temperature("Kitchen 1 Temp", HOME_TEMPERATURES, roomName, BoardConfig.TEMP_PRESS_SENSOR_BMP280) as HomeUnit<Any>
 
-        val pressure = Pressure("Kitchen 1 Press", HOME_PRESSURES, roomName, BoardConfig.TEMP_PRESS_SENSOR_BMP280) as StorageUnit<Any>
+        val pressure = Pressure("Kitchen 1 Press", HOME_PRESSURES, roomName, BoardConfig.TEMP_PRESS_SENSOR_BMP280) as HomeUnit<Any>
 
-        var light = Light("Kitchen 1 Light", HOME_LIGHTS, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B0) as StorageUnit<Any>
-        light.unitsTasks.add(UnitTask(name = "Turn on HW light", hardwareUnitName = light.hardwareUnitName))
+        var light = Light("Kitchen 1 Light", HOME_LIGHTS, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B0) as HomeUnit<Any>
+        light.unitsTasks.add(UnitTask(name = "Turn on HW light", hwUnitName = light.hardwareUnitName))
         light.applyFunction = booleanApplyFunction
 
-        var lightSwitch = LightSwitch("Kitchen 1 Light Switch", HOME_LIGHT_SWITCHES, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_IN_A7) as StorageUnit<Any>
-        lightSwitch.unitsTasks.add(UnitTask(name = "Turn on light", storageUnitName = light.name))
+        var lightSwitch = LightSwitch("Kitchen 1 Light Switch", HOME_LIGHT_SWITCHES, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_IN_A7) as HomeUnit<Any>
+        lightSwitch.unitsTasks.add(UnitTask(name = "Turn on light", homeUnitName = light.name))
         lightSwitch.applyFunction = booleanApplyFunction
 
-        val reedSwitch = ReedSwitch("Kitchen 1 Reed Switch", HOME_REED_SWITCHES, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_IN_A6) as StorageUnit<Any>
+        val reedSwitch = ReedSwitch("Kitchen 1 Reed Switch", HOME_REED_SWITCHES, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_IN_A6) as HomeUnit<Any>
 
-        val motion = Motion("Kitchen 1 Motion Sensor", HOME_MOTIONS, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_IN_A0, firebaseNotify = true) as StorageUnit<Any>
+        val motion = Motion("Kitchen 1 Motion Sensor", HOME_MOTIONS, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_IN_A0, firebaseNotify = true) as HomeUnit<Any>
 
-        storageUnitList[temp.name] = temp
-        storageUnitList[pressure.name] = pressure
-        storageUnitList[light.name] = light
-        storageUnitList[lightSwitch.name] = lightSwitch
-        storageUnitList[reedSwitch.name] = reedSwitch
-        storageUnitList[motion.name] = motion
+        homeUnitList[temp.name] = temp
+        homeUnitList[pressure.name] = pressure
+        homeUnitList[light.name] = light
+        homeUnitList[lightSwitch.name] = lightSwitch
+        homeUnitList[reedSwitch.name] = reedSwitch
+        homeUnitList[motion.name] = motion
 
         // Second room
         roomName = "Bathroom"
 
-        temp = Temperature("Bathroom 1 Temp", HOME_TEMPERATURES, roomName, BoardConfig.TEMP_SENSOR_TMP102) as StorageUnit<Any>
+        temp = Temperature("Bathroom 1 Temp", HOME_TEMPERATURES, roomName, BoardConfig.TEMP_SENSOR_TMP102) as HomeUnit<Any>
 
-        light = Light("Bathroom 1 Light", HOME_LIGHTS, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B7, firebaseNotify = true) as StorageUnit<Any>
-        light.unitsTasks.add(UnitTask(name = "Turn on HW light", hardwareUnitName = light.hardwareUnitName))
+        light = Light("Bathroom 1 Light", HOME_LIGHTS, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B7, firebaseNotify = true) as HomeUnit<Any>
+        light.unitsTasks.add(UnitTask(name = "Turn on HW light", hwUnitName = light.hardwareUnitName))
         light.applyFunction = booleanApplyFunction
 
-        lightSwitch = LightSwitch("Bathroom 1 Light Switch", HOME_LIGHT_SWITCHES, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_IN_A5) as StorageUnit<Any>
-        lightSwitch.unitsTasks.add(UnitTask(name = "Turn on light", storageUnitName = light.name))
+        lightSwitch = LightSwitch("Bathroom 1 Light Switch", HOME_LIGHT_SWITCHES, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_IN_A5) as HomeUnit<Any>
+        lightSwitch.unitsTasks.add(UnitTask(name = "Turn on light", homeUnitName = light.name))
         lightSwitch.applyFunction = booleanApplyFunction
 
-        storageUnitList[temp.name] = temp
-        storageUnitList[light.name] = light
-        storageUnitList[lightSwitch.name] = lightSwitch
+        homeUnitList[temp.name] = temp
+        homeUnitList[light.name] = light
+        homeUnitList[lightSwitch.name] = lightSwitch
     }
 
     private fun initHardwareUnitList() {

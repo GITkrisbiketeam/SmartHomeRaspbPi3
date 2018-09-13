@@ -6,7 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.navigation.findNavController
 import com.krisbiketeam.data.storage.FirebaseHomeInformationRepository
-import com.krisbiketeam.data.storage.dto.StorageUnit
+import com.krisbiketeam.data.storage.dto.HomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentRoomDetailListItemBinding
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomDetailFragmentDirections
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomListFragment
@@ -15,15 +15,15 @@ import timber.log.Timber
 /**
  * Adapter for the [RecyclerView] in [RoomListFragment].
  */
-class StorageUnitListAdapter : RecyclerView.Adapter<StorageUnitListAdapter.ViewHolder>() {
-    val storageUnits: MutableList<StorageUnit<Any>> = mutableListOf()
+class HomeUnitListAdapter : RecyclerView.Adapter<HomeUnitListAdapter.ViewHolder>() {
+    val homeUnits: MutableList<HomeUnit<Any>> = mutableListOf()
 
     override fun getItemCount(): Int {
-        return storageUnits.size
+        return homeUnits.size
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val unit = storageUnits[position]
+        val unit = homeUnits[position]
         holder.apply {
             bind(createOnClickListener(unit), unit)
             itemView.tag = unit.name
@@ -35,27 +35,27 @@ class StorageUnitListAdapter : RecyclerView.Adapter<StorageUnitListAdapter.ViewH
                 LayoutInflater.from(parent.context), parent, false))
     }
 
-    private fun createOnClickListener(item: StorageUnit<Any>): View.OnClickListener {
+    private fun createOnClickListener(item: HomeUnit<Any>): View.OnClickListener {
         return View.OnClickListener { view ->
             Timber.d("onClick item: $item")
-            if (item.unitsTasks.find { it.hardwareUnitName != null } != null) {
+            if (item.unitsTasks.find { it.hwUnitName != null } != null) {
                 when (item.value) {
                     is Boolean -> {
                         item.value = (item.value as Boolean).not()
-                        FirebaseHomeInformationRepository.saveStorageUnit(item)
+                        FirebaseHomeInformationRepository.saveHomeUnit(item)
                         return@OnClickListener
                     }
                 }
             }
-            val direction = RoomDetailFragmentDirections.ActionRoomDetailFragmentToStorageUnitDetailFragment(item.room, item.name, item.firebaseTableName)
+            val direction = RoomDetailFragmentDirections.ActionRoomDetailFragmentToHomeUnitDetailFragment(item.room, item.name, item.firebaseTableName)
             view.findNavController().navigate(direction)
         }
     }
 
-    fun getItemIdx(unit: StorageUnit<Any>): Int {
+    fun getItemIdx(unit: HomeUnit<Any>): Int {
         var idx = -1
-        storageUnits.forEachIndexed { index, storageUnit ->
-            if (storageUnit.name == unit.name) {
+        homeUnits.forEachIndexed { index, homeUnit ->
+            if (homeUnit.name == unit.name) {
                 idx = index
                 return@forEachIndexed
             }
@@ -67,10 +67,10 @@ class StorageUnitListAdapter : RecyclerView.Adapter<StorageUnitListAdapter.ViewH
             private val binding: FragmentRoomDetailListItemBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(listener: View.OnClickListener, item: StorageUnit<Any>) {
+        fun bind(listener: View.OnClickListener, item: HomeUnit<Any>) {
             binding.apply {
                 clickListener = listener
-                storageUnit = item
+                homeUnit = item
                 executePendingBindings()
             }
         }

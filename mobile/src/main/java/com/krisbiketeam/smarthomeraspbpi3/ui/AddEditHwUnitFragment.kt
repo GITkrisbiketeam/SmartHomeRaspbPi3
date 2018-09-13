@@ -26,11 +26,11 @@ class AddEditHwUnitFragment : Fragment() {
             setLifecycleOwner(this@AddEditHwUnitFragment)
         }
 
-        addEditHwUnitViewModel.storageUnitType.observe(viewLifecycleOwner, Observer { tableName ->
+        addEditHwUnitViewModel.homeUnitType.observe(viewLifecycleOwner, Observer { tableName ->
             Timber.d("unitType changed: $tableName")
         })
-        addEditHwUnitViewModel.storageUnitListLiveData.observe(viewLifecycleOwner, Observer { tableName ->
-            Timber.d("storageUnitListLiveData changed: $tableName")
+        addEditHwUnitViewModel.homeUnitListLiveData.observe(viewLifecycleOwner, Observer { tableName ->
+            Timber.d("homeUnitListLiveData changed: $tableName")
         })
 
         setHasOptionsMenu(true)
@@ -46,9 +46,9 @@ class AddEditHwUnitFragment : Fragment() {
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         return when (item?.itemId) {
             R.id.action_save -> {
-                Timber.d("action_save: ${addEditHwUnitViewModel.storageUnitListLiveData.value.toString()}")
+                Timber.d("action_save: ${addEditHwUnitViewModel.homeUnitListLiveData.value.toString()}")
                 Timber.d("action_save: ${addEditHwUnitViewModel.name.value.toString()}")
-                if (addEditHwUnitViewModel.storageUnitListLiveData.value?.
+                if (addEditHwUnitViewModel.homeUnitListLiveData.value?.
                                 contains(addEditHwUnitViewModel.name.value) == true) {
 
                     //This name is already used

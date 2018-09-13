@@ -28,8 +28,8 @@
             android:name="roomName"
             app:argType="string" />
         <action
-            android:id="@+id/action_room_detail_fragment_to_storage_unit_detail_fragment"
-            app:destination="@id/storage_unit_detail_fragment"
+            android:id="@+id/action_room_detail_fragment_to_home_unit_detail_fragment"
+            app:destination="@id/home_unit_detail_fragment"
             app:enterAnim="@anim/slide_in_right"
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
@@ -37,28 +37,28 @@
     </fragment>
 
     <fragment
-        android:id="@+id/storage_unit_detail_fragment"
-        android:name="com.krisbiketeam.smarthomeraspbpi3.ui.StorageUnitDetailFragment"
-        android:label="@string/storage_unit_detail_title"
-        tools:layout="@layout/fragment_storage_unit_detail">
+        android:id="@+id/home_unit_detail_fragment"
+        android:name="com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitDetailFragment"
+        android:label="@string/home_unit_detail_title"
+        tools:layout="@layout/fragment_home_unit_detail">
         <argument
             android:name="roomName"
             app:argType="string" />
         <argument
-            android:name="storageUnitName"
+            android:name="homeUnitName"
             app:argType="string" />
         <argument
-            android:name="storageUnitType"
+            android:name="homeUnitType"
             app:argType="string" />
         <action
-            android:id="@+id/action_storage_unit_detail_fragment_to_unitTaskFragment"
+            android:id="@+id/action_home_unit_detail_fragment_to_unitTaskFragment"
             app:destination="@id/unit_task_fragment"
             app:enterAnim="@anim/slide_in_right"
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
             app:popExitAnim="@anim/slide_out_right" />
         <action
-            android:id="@+id/action_storage_unit_detail_fragment_to_hwUnitListFragment"
+            android:id="@+id/action_home_unit_detail_fragment_to_hwUnitListFragment"
             app:destination="@id/hw_unit_list_fragment"
             app:enterAnim="@anim/slide_in_right"
             app:exitAnim="@anim/slide_out_left"
@@ -91,7 +91,7 @@
     <fragment
         android:id="@+id/add_edit_hw_unit_fragment"
         android:name="com.krisbiketeam.smarthomeraspbpi3.ui.AddEditHwUnitFragment"
-        android:label="@string/add_edit_hw_unit_title"
+        android:label="@string/add_edit_home_unit_hw_unit_title"
         tools:layout="@layout/fragment_add_edit_hw_unit">
 
         <argument

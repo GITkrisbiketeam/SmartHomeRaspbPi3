@@ -15,15 +15,15 @@ class HwUnitListLiveData(private val databaseReference: DatabaseReference) : Liv
     private val hwUnitsListener: ValueEventListener = object: ValueEventListener {
         override fun onDataChange(dataSnapshot: DataSnapshot) {
             // A new value has been added, add it to the displayed list
-            //val key = dataSnapshot.key
+            val key = dataSnapshot.key
             val hwUnits: ArrayList<HwUnit> = ArrayList()
             for(r: DataSnapshot in dataSnapshot.children){
                 val hwUnit = r.getValue(HwUnit::class.java)
-                //Timber.d("onDataChange (key=$key)(hwUnit=$hwUnit)")
                 hwUnit?.let {
                     hwUnits.add(hwUnit)
                 }
             }
+            Timber.d("onDataChange (key=$key)(hwUnits=${hwUnits.size})")
             value = hwUnits
         }
 

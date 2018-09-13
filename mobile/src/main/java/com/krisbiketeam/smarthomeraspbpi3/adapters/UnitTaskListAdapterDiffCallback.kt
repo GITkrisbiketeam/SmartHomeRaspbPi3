@@ -6,7 +6,7 @@ import com.krisbiketeam.data.storage.dto.UnitTask
 class UnitTaskListAdapterDiffCallback : DiffUtil.ItemCallback<UnitTask>() {
 
     override fun areItemsTheSame(oldItem: UnitTask, newItem: UnitTask): Boolean {
-        return oldItem.name == newItem.name //oldItem.storageUnitName == newItem.storageUnitName && oldItem.hwUnitName == newItem.hwUnitName
+        return oldItem.name == newItem.name //oldItem.homeUnitName == newItem.homeUnitName && oldItem.hardwareUnitName == newItem.hardwareUnitName
     }
 
     override fun areContentsTheSame(oldItem: UnitTask, newItem: UnitTask): Boolean {

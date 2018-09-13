@@ -1,8 +1,8 @@
 package com.krisbiketeam.data.storage.dto
 
 data class UnitTask(var name: String = "",
-                    var storageUnitName: String? = null,
-                    var hardwareUnitName: String? = null,
+                    var homeUnitName: String? = null,
+                    var hwUnitName: String? = null,
                     var delay: Long? = null,
                     var duration: Long? = null,
                     var period: Long? = null,

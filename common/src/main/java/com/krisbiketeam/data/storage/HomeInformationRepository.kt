@@ -1,6 +1,7 @@
 package com.krisbiketeam.data.storage
 
 import android.arch.lifecycle.LiveData
+import com.google.android.gms.tasks.Task
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.krisbiketeam.data.storage.firebaseTables.*
@@ -11,17 +12,6 @@ import com.krisbiketeam.data.storage.livedata.*
 
 
 interface HomeInformationRepository {
-    //Obsolete Code Start
-    fun saveMessage(message: String)
-
-    fun saveLightState(isOn: Boolean)
-    fun saveButtonState(isPressed: Boolean)
-    fun saveTemperature(temperature: Float)
-    fun savePressure(pressure: Float)
-
-    fun lightLiveData(): LiveData<HomeInformation>
-    //Obsolete Code End
-
     /**
      *  Adds given @see[HwUnitLog] to the log @see[LOG_INFORMATION_BASE] list in DB
      */
@@ -32,9 +22,9 @@ interface HomeInformationRepository {
     fun addUserNotiToken(email: String, token: String)
 
     /**
-     *  Adds given @see[StorageUnit] to the log @see[NOTIFICATION_INFORMATION_BASE] list in DB
+     *  Adds given @see[HomeUnit] to the log @see[NOTIFICATION_INFORMATION_BASE] list in DB
      */
-    fun notifyStorageUnitEvent(storageUnit: StorageUnit<out Any>)
+    fun notifyHomeUnitEvent(homeUnit: HomeUnit<out Any>)
 
     /**
      *  Saves/updates given @see[Room] in DB
@@ -42,34 +32,44 @@ interface HomeInformationRepository {
     fun saveRoom(room: Room)
 
     /**
-     *  Saves/updates given @see[StorageUnit] in DB
+     *  Saves/updates given @see[HomeUnit] in DB
      */
-    fun <T> saveStorageUnit(storageUnit: StorageUnit<T>)
+    fun <T> saveHomeUnit(homeUnit: HomeUnit<T>): Task<Void>
+
+    /**
+     *  Deletes given @see[HomeUnit] from DB
+     */
+    fun <T> deleteHomeUnit(homeUnit: HomeUnit<T>): Task<Void>
 
     /**
      *  Saves/updates given @see[HwUnit] as a hardware module list in DB
      */
-    fun saveHardwareUnit(hwUnit: HwUnit)
+    fun saveHardwareUnit(hwUnit: HwUnit): Task<Void>
 
     /**
-     * get instance of @see[StorageUnitsLiveData] for listening to changes in entries in DB
+     *  Deletess given @see[HwUnit] from hardware module list in DB
      */
-    fun storageUnitsLiveData(): StorageUnitsLiveData
+    fun deleteHardwareUnit(hwUnit: HwUnit): Task<Void>
 
     /**
-     * get instance of @see[StorageUnitListLiveData] for listening to changes in entries in DB
+     * get instance of @see[HomeUnitsLiveData] for listening to changes in entries in DB
      */
-    fun storageUnitListLiveData(storageType: String): StorageUnitListLiveData
+    fun homeUnitsLiveData(): HomeUnitsLiveData
 
     /**
-     * get instance of @see[StorageUnitLiveData] for listening to changes in given StorageUnit in DB
+     * get instance of @see[HomeUnitListLiveData] for listening to changes in entries in DB
      */
-    fun storageUnitLiveData(storageType: String, storageName:String): StorageUnitLiveData
+    fun homeUnitListLiveData(storageType: String): HomeUnitListLiveData
 
     /**
-     * get instance of @see[StorageUnitsLiveData] for listening to changes in entries in DB
+     * get instance of @see[HomeUnitLiveData] for listening to changes in given HomeUnit in DB
      */
-    fun storageUnitsLiveData(roomName: String): StorageUnitsLiveData
+    fun homeUnitLiveData(storageType: String, storageName:String): HomeUnitLiveData
+
+    /**
+     * get instance of @see[HomeUnitsLiveData] for listening to changes in entries in DB
+     */
+    fun homeUnitsLiveData(roomName: String): HomeUnitsLiveData
 
     /**
      * get instance of @see[HwUnitsLiveData] for listening to changes in Room entries in DB
@@ -92,7 +92,7 @@ interface HomeInformationRepository {
     fun roomLiveData(roomName: String): RoomLiveData
 
     /**
-     * get instance of @see[UnitTaskListLiveData] for listening to changes in specific StorageUnit UnitTask List entry in DB
+     * get instance of @see[UnitTaskListLiveData] for listening to changes in specific HomeUnit UnitTask List entry in DB
      */
     fun unitTaskListLiveData(storageType: String, storageName:String): UnitTaskListLiveData
 
@@ -121,7 +121,7 @@ object FirebaseHomeInformationRepository : HomeInformationRepository {
     private val referenceNotifications = FirebaseDatabase.getInstance()
             .reference.child(NOTIFICATION_INFORMATION_BASE)
 
-    private val storageUnitsLiveData = StorageUnitsLiveData(referenceHome)
+    private val homeUnitsLiveData = HomeUnitsLiveData(referenceHome)
 
     private val hwUnitsLiveData = HwUnitsLiveData(referenceHome)
 
@@ -137,39 +137,12 @@ object FirebaseHomeInformationRepository : HomeInformationRepository {
         referenceHome.keepSynced(true)
     }
 
-    // Obsolete Code Start
-    override fun saveMessage(message: String) {
-        referenceOldHome.child(OLD_HOME_INFORMATION_MESSAGE).setValue(message)
-    }
-
-    override fun saveLightState(isOn: Boolean) {
-        referenceOldHome.child(OLD_HOME_INFORMATION_LIGHT).setValue(isOn)
-    }
-
-    override fun saveButtonState(isPressed: Boolean) {
-        referenceOldHome.child(OLD_HOME_INFORMATION_BUTTON).setValue(isPressed)
-    }
-
-    override fun saveTemperature(temperature: Float) {
-        referenceOldHome.child(OLD_HOME_INFORMATION_TEMPERATURE).setValue(temperature)
-    }
-
-    override fun savePressure(pressure: Float) {
-        referenceOldHome.child(OLD_HOME_INFORMATION_PRESSURE).setValue(pressure)
-    }
-
-    override fun lightLiveData(): LiveData<HomeInformation> {
-        return lightLiveData
-    }
-    // Obsolete Code End
-
-
     override fun logUnitEvent(hwUnitLog: HwUnitLog<out Any>) {
         referenceLog.push().setValue(hwUnitLog)
     }
 
-    override fun notifyStorageUnitEvent(storageUnit: StorageUnit<out Any>) {
-        referenceNotifications.push().setValue(storageUnit.makeNotification())
+    override fun notifyHomeUnitEvent(homeUnit: HomeUnit<out Any>) {
+        referenceNotifications.push().setValue(homeUnit.makeNotification())
     }
 
     override fun writeNewUser(name: String, email: String) {
@@ -186,26 +159,32 @@ object FirebaseHomeInformationRepository : HomeInformationRepository {
         referenceHome.child(HOME_ROOMS).child(room.name).setValue(room)
     }
 
-    override fun <T> saveStorageUnit(storageUnit: StorageUnit<T>) {
-        referenceHome.child(storageUnit.firebaseTableName).child(storageUnit.name)
-                .setValue(storageUnit)
+    override fun <T> saveHomeUnit(homeUnit: HomeUnit<T>): Task<Void> {
+        return referenceHome.child(homeUnit.firebaseTableName).child(homeUnit.name)
+                .setValue(homeUnit)
+    }
+    override fun <T> deleteHomeUnit(homeUnit: HomeUnit<T>): Task<Void> {
+        return referenceHome.child(homeUnit.firebaseTableName).child(homeUnit.name).removeValue()
     }
 
-    override fun saveHardwareUnit(hwUnit: HwUnit) {
-        referenceHome.child(HOME_HW_UNITS).child(hwUnit.name).setValue(hwUnit)
+    override fun saveHardwareUnit(hwUnit: HwUnit): Task<Void> {
+        return referenceHome.child(HOME_HW_UNITS).child(hwUnit.name).setValue(hwUnit)
     }
 
+    override fun deleteHardwareUnit(hwUnit: HwUnit): Task<Void> {
+        return referenceHome.child(HOME_HW_UNITS).child(hwUnit.name).removeValue()
+    }
 
     override fun clearLog() {
         referenceLog.removeValue()
     }
 
-    override fun storageUnitsLiveData(): StorageUnitsLiveData {
-        return storageUnitsLiveData
+    override fun homeUnitsLiveData(): HomeUnitsLiveData {
+        return homeUnitsLiveData
     }
 
-    override fun storageUnitsLiveData(roomName: String): StorageUnitsLiveData {
-        return StorageUnitsLiveData(referenceHome, roomName)
+    override fun homeUnitsLiveData(roomName: String): HomeUnitsLiveData {
+        return HomeUnitsLiveData(referenceHome, roomName)
     }
 
     override fun hwUnitsLiveData(): HwUnitsLiveData {
@@ -224,12 +203,12 @@ object FirebaseHomeInformationRepository : HomeInformationRepository {
         return RoomLiveData(referenceHome, roomName)
     }
 
-    override fun storageUnitListLiveData(storageType: String): StorageUnitListLiveData {
-        return StorageUnitListLiveData(referenceHome, storageType)
+    override fun homeUnitListLiveData(storageType: String): HomeUnitListLiveData {
+        return HomeUnitListLiveData(referenceHome, storageType)
     }
 
-    override fun storageUnitLiveData(storageType: String, storageName:String): StorageUnitLiveData {
-        return StorageUnitLiveData(referenceHome, storageType, storageName)
+    override fun homeUnitLiveData(storageType: String, storageName:String): HomeUnitLiveData {
+        return HomeUnitLiveData(referenceHome, storageType, storageName)
     }
 
     override fun unitTaskListLiveData(storageType: String, storageName:String): UnitTaskListLiveData {

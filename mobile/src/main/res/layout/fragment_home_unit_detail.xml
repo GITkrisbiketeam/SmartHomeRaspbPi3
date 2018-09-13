@@ -10,18 +10,18 @@
 
         <import type="androidx.navigation.Navigation" />
 
-        <import type="com.krisbiketeam.smarthomeraspbpi3.ui.StorageUnitDetailFragmentDirections" />
+        <import type="com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitDetailFragmentDirections" />
 
         <variable
             name="viewModel"
-            type="com.krisbiketeam.smarthomeraspbpi3.viewmodels.StorageUnitDetailViewModel" />
+            type="com.krisbiketeam.smarthomeraspbpi3.viewmodels.HomeUnitDetailViewModel" />
     </data>
 
     <android.support.design.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fitsSystemWindows="true"
-        tools:context="com.krisbiketeam.smarthomeraspbpi3.ui.StorageUnitDetailFragment"
+        tools:context="com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitDetailFragment"
         tools:ignore="MergeRootFrame">
 
         <android.support.design.widget.AppBarLayout
@@ -81,7 +81,7 @@
                     android:id="@+id/unit_type_title"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/add_storage_text_unit_type_title"
+                    android:text="@string/add_edit_home_unit_text_unit_type_title"
                     android:textAppearance="@style/TextAppearance.AppCompat.Title"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -100,9 +100,9 @@
                         android:id="@+id/unit_type_spinner"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:prompt="@string/add_storage_text_unit_type_spinner_prompt"
+                        android:prompt="@string/add_edit_home_unit_text_unit_type_spinner_prompt"
                         android:spinnerMode="dialog"
-                        android:visibility="@{safeUnbox(viewModel.isEditMode) ? View.VISIBLE : View.INVISIBLE}"
+                        android:visibility="@{safeUnbox(viewModel.isEditMode) ? View.VISIBLE : View.GONE}"
                         app:entries="@{viewModel.typeList}"
                         app:selectedValue="@={viewModel.type}" />
 
@@ -113,7 +113,7 @@
                         android:gravity="center_vertical"
                         android:text="@{viewModel.type}"
                         android:textAppearance="@style/TextAppearance.AppCompat.Small"
-                        android:visibility="@{safeUnbox(viewModel.isEditMode) ? View.INVISIBLE : View.VISIBLE}" />
+                        android:visibility="@{safeUnbox(viewModel.isEditMode) ? View.GONE : View.VISIBLE}" />
                 </FrameLayout>
 
                 <TextView
@@ -121,7 +121,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/margin_normal"
-                    android:text="@string/add_storage_text_room_title"
+                    android:text="@string/add_edit_home_unit_text_room_title"
                     android:textAppearance="@style/TextAppearance.AppCompat.Title"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -140,9 +140,9 @@
                         android:id="@+id/room_name_spinner"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:prompt="@string/add_storage_text_room_spinner_prompt"
+                        android:prompt="@string/add_edit_home_unit_text_room_spinner_prompt"
                         android:spinnerMode="dialog"
-                        android:visibility="@{safeUnbox(viewModel.isEditMode) ? View.VISIBLE : View.INVISIBLE}"
+                        android:visibility="@{safeUnbox(viewModel.isEditMode) ? View.VISIBLE : View.GONE}"
                         app:entries="@{viewModel.roomNameList}"
                         app:selectedValue="@={viewModel.room}" />
 
@@ -153,7 +153,7 @@
                         android:gravity="center_vertical"
                         android:text="@{viewModel.room}"
                         android:textAppearance="@style/TextAppearance.AppCompat.Small"
-                        android:visibility="@{safeUnbox(viewModel.isEditMode) ? View.INVISIBLE : View.VISIBLE}" />
+                        android:visibility="@{safeUnbox(viewModel.isEditMode) ? View.GONE : View.VISIBLE}" />
                 </FrameLayout>
 
                 <TextView
@@ -161,7 +161,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/margin_normal"
-                    android:text="@string/add_storage_text_hw_unit_title"
+                    android:text="@string/add_edit_home_unit_text_hw_unit_title"
                     android:textAppearance="@style/TextAppearance.AppCompat.Title"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -180,9 +180,9 @@
                         android:id="@+id/hw_unit_name__spinner"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:prompt="@string/add_storage_text_room_spinner_prompt"
+                        android:prompt="@string/add_edit_home_unit_text_room_spinner_prompt"
                         android:spinnerMode="dialog"
-                        android:visibility="@{safeUnbox(viewModel.isEditMode) ? View.VISIBLE : View.INVISIBLE}"
+                        android:visibility="@{safeUnbox(viewModel.isEditMode) ? View.VISIBLE : View.GONE}"
                         app:entries="@{viewModel.hwUnitNameList}"
                         app:selectedValue="@={viewModel.hwUnitName}" />
 
@@ -193,13 +193,13 @@
                         android:gravity="center_vertical"
                         android:text="@{viewModel.hwUnitName}"
                         android:textAppearance="@style/TextAppearance.AppCompat.Small"
-                        android:visibility="@{safeUnbox(viewModel.isEditMode) ? View.INVISIBLE : View.VISIBLE}" />
+                        android:visibility="@{safeUnbox(viewModel.isEditMode) ? View.GONE : View.VISIBLE}" />
 
                 </FrameLayout>
 
 
                 <FrameLayout
-                    android:id="@+id/storage_unit_name_value_layout"
+                    android:id="@+id/home_unit_name_value_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/margin_normal"
@@ -216,14 +216,14 @@
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="@string/add_storage_text_value"
+                            android:text="@string/add_edit_home_unit_text_value"
                             android:textAppearance="@style/TextAppearance.AppCompat.Title" />
 
                         <TextView
-                            android:id="@+id/storage_unit_value"
+                            android:id="@+id/home_unit_value"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="@{viewModel.value.toString()}"
+                            android:text="@{viewModel.homeUnit.value.toString()}"
                             android:textAppearance="@style/TextAppearance.AppCompat.Title" />
                     </LinearLayout>
 
@@ -234,18 +234,18 @@
                         android:visibility="@{safeUnbox(viewModel.isEditMode) ? View.VISIBLE : View.INVISIBLE}">
 
                         <TextView
-                            android:id="@+id/storage_unit_name_title"
+                            android:id="@+id/home_unit_name_title"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="@string/add_storage_text_name"
+                            android:text="@string/add_edit_home_unit_text_name"
                             android:textAppearance="@style/TextAppearance.AppCompat.Title" />
 
                         <EditText
-                            android:id="@+id/storage_unit_name"
+                            android:id="@+id/home_unit_name"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="@dimen/margin_small"
-                            android:hint="@string/add_storage_text_title_hint"
+                            android:hint="@string/add_edit_home_unit_text_title_hint"
                             android:importantForAutofill="no"
                             android:inputType="text"
                             android:maxLines="1"
@@ -259,11 +259,11 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/margin_normal"
-                    android:text="@string/add_storage_text_task_list_title"
+                    android:text="@string/add_edit_home_unit_text_task_list_title"
                     android:textAppearance="@style/TextAppearance.AppCompat.Title"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/storage_unit_name_value_layout" />
+                    app:layout_constraintTop_toBottomOf="@id/home_unit_name_value_layout" />
 
                 <android.support.v7.widget.RecyclerView
                     android:id="@+id/unit_task_list"
@@ -277,12 +277,27 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/unit_task_list_title"
-                    tools:listitem="@layout/fragment_storage_unit_detail_unit_list_item" />
+                    tools:listitem="@layout/fragment_home_unit_detail_unit_list_item" />
 
 
             </android.support.constraint.ConstraintLayout>
 
         </android.support.v4.widget.NestedScrollView>
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clickable="true"
+            android:visibility="@{safeUnbox(viewModel.showProgress) ? View.VISIBLE : View.GONE}">
+
+            <android.support.v4.widget.ContentLoadingProgressBar
+                style="?android:attr/progressBarStyleLarge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center" />
+
+        </FrameLayout>
+
 
     </android.support.design.widget.CoordinatorLayout>
 

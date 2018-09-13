@@ -6,7 +6,6 @@ import android.arch.lifecycle.Transformations
 import android.arch.lifecycle.ViewModel
 import com.krisbiketeam.data.storage.HomeInformationRepository
 import com.krisbiketeam.data.storage.dto.HOME_STORAGE_UNITS
-import com.krisbiketeam.data.storage.dto.UnitTask
 import com.krisbiketeam.smarthomeraspbpi3.ui.AddEditHwUnitFragment
 import timber.log.Timber
 
@@ -19,8 +18,8 @@ class AddEditHwUnitViewModel(
 
     var name: MutableLiveData<String> = MutableLiveData()
 
-    var storageUnitType: MutableLiveData<String> = MutableLiveData()
-    val storageUnitTypeList = HOME_STORAGE_UNITS
+    var homeUnitType: MutableLiveData<String> = MutableLiveData()
+    val homeUnitTypeList = HOME_STORAGE_UNITS
 
     var room: MutableLiveData<String> = MutableLiveData()
     val roomNameList: LiveData<List<String>>
@@ -28,7 +27,7 @@ class AddEditHwUnitViewModel(
     var hardwareUnitName: MutableLiveData<String> = MutableLiveData()
     val hardwareUnitNameList: LiveData<List<String>>
 
-    var storageUnitListLiveData: LiveData<List<String>>//StorageUnitListLiveData
+    var homeUnitListLiveData: LiveData<List<String>>//HomeUnitListLiveData
 
     init {
         Timber.d("init")
@@ -38,9 +37,9 @@ class AddEditHwUnitViewModel(
         hardwareUnitNameList = Transformations.map(homeRepository.hwUnitListLiveData()){ list ->
             list.map {it.name}
         }
-        storageUnitListLiveData = Transformations.switchMap(storageUnitType){ tableName ->
-            Transformations.map(homeRepository.storageUnitListLiveData(tableName)){ storageUnitList ->
-                storageUnitList.map {it.name}
+        homeUnitListLiveData = Transformations.switchMap(homeUnitType){ tableName ->
+            Transformations.map(homeRepository.homeUnitListLiveData(tableName)){ homeUnitList ->
+                homeUnitList.map {it.name}
             }
         }
     }

@@ -9,8 +9,8 @@
             name="clickListener"
             type="android.view.View.OnClickListener"/>
         <variable
-            name="storageUnit"
-            type="com.krisbiketeam.data.storage.dto.StorageUnit"/>
+            name="homeUnit"
+            type="com.krisbiketeam.data.storage.dto.HomeUnit"/>
     </data>
 
     <android.support.constraint.ConstraintLayout
@@ -19,7 +19,7 @@
         android:onClick="@{clickListener}">
 
         <ImageView
-            android:id="@+id/storage_unit_item_image"
+            android:id="@+id/home_unit_item_image"
             android:layout_width="0dp"
             android:layout_height="@dimen/plant_item_image_height"
             android:layout_marginTop="@dimen/margin_normal"
@@ -32,25 +32,25 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"/>
-            <!--app:imageFromUrl="@{storageUnit.imageUrl}"-->
+            <!--app:imageFromUrl="@{homeUnit.imageUrl}"-->
 
 
         <TextView
-            android:id="@+id/storage_unit_item_title"
+            android:id="@+id/home_unit_item_title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/margin_normal"
             android:layout_marginEnd="@dimen/margin_small"
             android:layout_marginStart="@dimen/margin_small"
             android:layout_marginTop="@dimen/margin_small"
-            android:text="@{storageUnit.name}"
+            android:text="@{homeUnit.name}"
             android:textAppearance="?attr/textAppearanceListItem"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/storage_unit_item_image"
+            app:layout_constraintTop_toBottomOf="@id/home_unit_item_image"
             tools:text="Storage Unit"/>
         <TextView
-            android:id="@+id/storage_unit_item_value"
+            android:id="@+id/home_unit_item_value"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/margin_normal"
@@ -58,10 +58,10 @@
             android:layout_marginStart="@dimen/margin_small"
             android:layout_marginTop="@dimen/margin_small"
             android:textAppearance="?attr/textAppearanceListItem"
-            android:text="@{String.valueOf(storageUnit.value)}"
+            android:text="@{String.valueOf(homeUnit.value)}"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/storage_unit_item_title"
+            app:layout_constraintTop_toBottomOf="@id/home_unit_item_title"
             tools:text="Value"/>
 
     </android.support.constraint.ConstraintLayout>

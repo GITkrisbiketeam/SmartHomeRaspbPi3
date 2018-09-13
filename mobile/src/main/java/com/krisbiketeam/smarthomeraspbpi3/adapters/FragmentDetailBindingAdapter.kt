@@ -50,13 +50,13 @@ fun stateBasedVisibility(view: View, pair: Pair<MyLiveDataState, Any>?) {
 @BindingAdapter("entries")
 fun bindEntriesData(spinner: AppCompatSpinner, entries: List<Any>?) {
     // This is for dynamic entries list, like form ViewModel LiveData
-    Timber.d("bindEntriesData entries: $entries tag: ${spinner.tag}")
+    //Timber.d("bindEntriesData entries: $entries tag: ${spinner.tag}")
     if (entries != null) {
         ArrayAdapter(spinner.context, R.layout.simple_spinner_item, entries).apply {
             setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             spinner.adapter = this
             val pos = getPosition(spinner.tag)
-            Timber.d("bindEntriesData pos: $pos")
+            //Timber.d("bindEntriesData pos: $pos")
             if (pos in 0 until spinner.count) {
                 spinner.setSelection(pos)
             }
@@ -66,22 +66,22 @@ fun bindEntriesData(spinner: AppCompatSpinner, entries: List<Any>?) {
 
 @BindingAdapter("selectedValue", "selectedValueAttrChanged", requireAll=false)
 fun bindSpinnerData(spinner: AppCompatSpinner, newSelectedValue: String?, newTextAttrChanged: InverseBindingListener) {
-    Timber.d("selectedValue BindingAdapter newSelectedValue: $newSelectedValue")
+    //Timber.d("selectedValue BindingAdapter newSelectedValue: $newSelectedValue")
     spinner.apply {
         onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onNothingSelected(parent: AdapterView<*>?) {
-                Timber.d("selectedValue $newSelectedValue onNothingSelected")
+                //Timber.d("selectedValue $newSelectedValue onNothingSelected")
             }
 
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                Timber.d("selectedValue $newSelectedValue onItemSelected : $position")
+                //Timber.d("selectedValue $newSelectedValue onItemSelected : $position")
                 newTextAttrChanged.onChange()
             }
         }
         tag = newSelectedValue
         // This is for static entries list
-        if (newSelectedValue != null) {
-            Timber.d("selectedValue $newSelectedValue count : ${adapter.count}")
+        if (newSelectedValue != null && adapter != null) {
+            //Timber.d("selectedValue $newSelectedValue count : ${adapter.count}")
             for (i in 0 until adapter.count) {
                 if (adapter.getItem(i) == newSelectedValue) {
                     setSelection(i, true)
@@ -94,7 +94,7 @@ fun bindSpinnerData(spinner: AppCompatSpinner, newSelectedValue: String?, newTex
 
 @InverseBindingAdapter(attribute = "selectedValue", event = "selectedValueAttrChanged")
 fun captureSelectedValue(spinner: AppCompatSpinner): String {
-    Timber.d("selectedValue InverseBindingAdapter ${spinner.selectedItem as String}")
+    //Timber.d("selectedValue InverseBindingAdapter ${spinner.selectedItem as String}")
     return spinner.selectedItem as String
 }
 /*

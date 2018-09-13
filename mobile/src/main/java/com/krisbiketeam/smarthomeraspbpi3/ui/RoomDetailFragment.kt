@@ -7,9 +7,9 @@ import android.support.v4.app.Fragment
 import android.view.*
 import androidx.navigation.fragment.findNavController
 import com.krisbiketeam.data.storage.ChildEventType
-import com.krisbiketeam.data.storage.dto.StorageUnit
+import com.krisbiketeam.data.storage.dto.HomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.R
-import com.krisbiketeam.smarthomeraspbpi3.adapters.StorageUnitListAdapter
+import com.krisbiketeam.smarthomeraspbpi3.adapters.HomeUnitListAdapter
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentRoomDetailBinding
 import com.krisbiketeam.smarthomeraspbpi3.di.Params.ROOM_NAME
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.RoomDetailViewModel
@@ -38,12 +38,12 @@ class RoomDetailFragment : Fragment() {
             viewModel = roomDetailViewModel
             setLifecycleOwner(this@RoomDetailFragment)
             fab.setOnClickListener {
-                val direction = RoomDetailFragmentDirections.ActionRoomDetailFragmentToStorageUnitDetailFragment(
+                val direction = RoomDetailFragmentDirections.ActionRoomDetailFragmentToHomeUnitDetailFragment(
                         roomDetailViewModel.room.value?.name ?: "", "", "")
                 findNavController().navigate(direction)
             }
-            val adapter = StorageUnitListAdapter()
-            storageUnitList.adapter = adapter
+            val adapter = HomeUnitListAdapter()
+            homeUnitList.adapter = adapter
             subscribeUi(adapter)
         }
 
@@ -60,38 +60,38 @@ class RoomDetailFragment : Fragment() {
         return binding.root
     }
 
-    private fun subscribeUi(adapter: StorageUnitListAdapter) {
-        roomDetailViewModel.storageUnits.observe(viewLifecycleOwner, Observer<Pair<ChildEventType, StorageUnit<Any>>> { pair ->
+    private fun subscribeUi(adapter: HomeUnitListAdapter) {
+        roomDetailViewModel.homeUnits.observe(viewLifecycleOwner, Observer<Pair<ChildEventType, HomeUnit<Any>>> { pair ->
             pair?.let { (action, unit) ->
                 Timber.d("subscribeUi action: $action; unit: $unit")
                 when (action) {
                     ChildEventType.NODE_ACTION_CHANGED -> {
                         val idx = adapter.getItemIdx(unit)
-                        Timber.d("subscribeUi NODE_ACTION_CHANGED: idx: $idx")
+                        Timber.d("homeUnitsDataObserver NODE_ACTION_CHANGED: idx: $idx")
                         if (idx >= 0) {
-                            adapter.storageUnits[idx] = unit
+                            adapter.homeUnits[idx] = unit
                             adapter.notifyItemChanged(idx)
                             Timber.d("subscribeUi NODE_ACTION_CHANGED: unit updated")
                         }
                     }
                     ChildEventType.NODE_ACTION_ADDED -> {
-                        Timber.d("storageUnitsDataObserver NODE_ACTION_ADDED")
-                        adapter.storageUnits.add(unit)
+                        Timber.d("homeUnitsDataObserver NODE_ACTION_ADDED")
+                        adapter.homeUnits.add(unit)
                         adapter.notifyItemInserted(adapter.itemCount - 1)
                     }
                     ChildEventType.NODE_ACTION_DELETED -> {
                         val idx = adapter.getItemIdx(unit)
-                        Timber.d("storageUnitsDataObserver NODE_ACTION_DELETED idx: $idx")
+                        Timber.d("homeUnitsDataObserver NODE_ACTION_DELETED idx: $idx")
                         if (idx >= 0) {
-                            val result = adapter.storageUnits.removeAt(idx)
+                            val result = adapter.homeUnits.removeAt(idx)
                             result.let {
                                 adapter.notifyItemRemoved(idx)
-                                Timber.d("storageUnitsDataObserver NODE_ACTION_DELETED: $result")
+                                Timber.d("homeUnitsDataObserver NODE_ACTION_DELETED: $result")
                             }
                         }
                     }
                     else -> {
-                        Timber.e("storageUnitsDataObserver unsupported action: $action")
+                        Timber.e("homeUnitsDataObserver unsupported action: $action")
                     }
                 }
             }

@@ -73,7 +73,7 @@
                     android:id="@+id/unit_type_spinner_title"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/add_storage_text_unit_type_title"
+                    android:text="@string/add_edit_home_unit_text_unit_type_title"
                     android:textColor="@color/colorPrimaryDark"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -84,20 +84,20 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/margin_small"
-                    android:entries="@{viewModel.storageUnitTypeList}"
-                    android:prompt="@string/add_storage_text_unit_type_spinner_prompt"
+                    android:entries="@{viewModel.homeUnitTypeList}"
+                    android:prompt="@string/add_edit_home_unit_text_unit_type_spinner_prompt"
                     android:spinnerMode="dialog"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/unit_type_spinner_title"
-                    app:selectedValue="@={viewModel.storageUnitType}" />
+                    app:selectedValue="@={viewModel.homeUnitType}" />
 
                 <TextView
                     android:id="@+id/room_spinner_title"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/margin_normal"
-                    android:text="@string/add_storage_text_room_title"
+                    android:text="@string/add_edit_home_unit_text_room_title"
                     android:textColor="@color/colorPrimaryDark"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -109,7 +109,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/margin_small"
                     android:entries="@{viewModel.roomNameList}"
-                    android:prompt="@string/add_storage_text_room_spinner_prompt"
+                    android:prompt="@string/add_edit_home_unit_text_room_spinner_prompt"
                     android:spinnerMode="dialog"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -121,7 +121,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/margin_normal"
-                    android:text="@string/add_storage_text_hw_unit_title"
+                    android:text="@string/add_edit_home_unit_text_hw_unit_title"
                     android:textColor="@color/colorPrimaryDark"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -133,7 +133,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/margin_small"
                     android:entries="@{viewModel.hardwareUnitNameList}"
-                    android:prompt="@string/add_storage_text_hw_unit_spinner_prompt"
+                    android:prompt="@string/add_edit_home_unit_text_hw_unit_spinner_prompt"
                     android:spinnerMode="dialog"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -141,29 +141,29 @@
                     app:selectedValue="@={viewModel.hardwareUnitName}" />
 
                 <TextView
-                    android:id="@+id/storage_unit_name_title"
+                    android:id="@+id/home_unit_name_title"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/margin_normal"
-                    android:text="@string/add_storage_text_name"
+                    android:text="@string/add_edit_home_unit_text_name"
                     android:textColor="@color/colorPrimaryDark"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/hw_unit_spinner" />
 
                 <EditText
-                    android:id="@+id/storage_unit_name"
+                    android:id="@+id/home_unit_name"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/margin_small"
-                    android:hint="@string/add_storage_text_title_hint"
+                    android:hint="@string/add_edit_home_unit_text_title_hint"
                     android:inputType="text"
                     android:maxLines="1"
                     android:text="@={viewModel.name}"
                     android:textAppearance="@style/TextAppearance.AppCompat.Title"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/storage_unit_name_title"
+                    app:layout_constraintTop_toBottomOf="@id/home_unit_name_title"
                     android:importantForAutofill="no" />
 
                 <android.support.v7.widget.RecyclerView
@@ -175,7 +175,7 @@
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/storage_unit_name"
+                    app:layout_constraintTop_toBottomOf="@id/home_unit_name"
                     tools:context="com.krisbiketeam.smarthomeraspbpi3.ui.HomeActivity"
                     tools:listitem="@layout/fragment_room_detail_list_item" />
 

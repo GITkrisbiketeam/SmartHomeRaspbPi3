@@ -4,21 +4,21 @@ import com.google.firebase.database.Exclude
 import com.krisbiketeam.data.storage.firebaseTables.*
 
 typealias LightType = Boolean
-typealias Light = StorageUnit<LightType>
+typealias Light = HomeUnit<LightType>
 typealias LightSwitchType = Boolean
-typealias LightSwitch = StorageUnit<LightSwitchType>
+typealias LightSwitch = HomeUnit<LightSwitchType>
 typealias ReedSwitchType = Boolean
-typealias ReedSwitch = StorageUnit<ReedSwitchType>
+typealias ReedSwitch = HomeUnit<ReedSwitchType>
 typealias MotionType = Boolean
-typealias Motion = StorageUnit<MotionType>
+typealias Motion = HomeUnit<MotionType>
 typealias TemperatureType = Float
-typealias Temperature = StorageUnit<TemperatureType>
+typealias Temperature = HomeUnit<TemperatureType>
 typealias PressureType = Float
-typealias Pressure = StorageUnit<PressureType>
+typealias Pressure = HomeUnit<PressureType>
 typealias BlindType = Int
-typealias Blind = StorageUnit<BlindType>
+typealias Blind = HomeUnit<BlindType>
 
-val storageUnitTypeIndicatorMap: HashMap<String, Class<out Any>> = hashMapOf(
+val homeUnitTypeIndicatorMap: HashMap<String, Class<out Any>> = hashMapOf(
         HOME_LIGHTS to LightType::class.java,
         HOME_LIGHT_SWITCHES to LightSwitchType::class.java,
         HOME_REED_SWITCHES to ReedSwitchType::class.java,
@@ -37,29 +37,29 @@ val HOME_STORAGE_UNITS: List<String> = listOf(
         HOME_PRESSURES,
         HOME_BLINDS)
 
-data class StorageUnit<T>(var name: String = "", // Name should be unique for all units
-                          var firebaseTableName: String = "",
-                          var room: String = "",
-                          var hardwareUnitName: String = "",
-                          var value: T? = null,
-                          val firebaseNotify: Boolean? = null,
-                          val unitsTasks: MutableList<UnitTask> = ArrayList()) {
-    constructor(storageUnit: StorageUnit<T>) : this(
-            storageUnit.name,
-            storageUnit.firebaseTableName,
-            storageUnit.room,
-            storageUnit.hardwareUnitName,
-            storageUnit.value,
-            storageUnit.firebaseNotify,
-            storageUnit.unitsTasks)
+data class HomeUnit<T>(var name: String = "", // Name should be unique for all units
+                       var firebaseTableName: String = "",
+                       var room: String = "",
+                       var hardwareUnitName: String = "",
+                       var value: T? = null,
+                       val firebaseNotify: Boolean? = null,
+                       val unitsTasks: MutableList<UnitTask> = ArrayList()) {
+    constructor(homeUnit: HomeUnit<T>) : this(
+            homeUnit.name,
+            homeUnit.firebaseTableName,
+            homeUnit.room,
+            homeUnit.hardwareUnitName,
+            homeUnit.value,
+            homeUnit.firebaseNotify,
+            homeUnit.unitsTasks)
 
     @Exclude
     @set:Exclude
     @get:Exclude
-    var applyFunction: StorageUnit<T>.(Any?) -> Unit = { _: Any? -> Unit}
+    var applyFunction: HomeUnit<T>.(Any?) -> Unit = { _: Any? -> Unit}
 
-    fun makeInvariant(): StorageUnit<Any>{
-        return StorageUnit<Any>(
+    fun makeInvariant(): HomeUnit<Any>{
+        return HomeUnit<Any>(
                 name,
                 firebaseTableName,
                 room,
@@ -68,8 +68,8 @@ data class StorageUnit<T>(var name: String = "", // Name should be unique for al
                 firebaseNotify,
                 unitsTasks)
     }
-    fun makeNotification(): StorageUnit<Any>{
-        return StorageUnit<Any>(
+    fun makeNotification(): HomeUnit<Any>{
+        return HomeUnit<Any>(
                 name,
                 firebaseTableName,
                 room,

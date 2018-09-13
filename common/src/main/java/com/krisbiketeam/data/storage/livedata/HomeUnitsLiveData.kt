@@ -9,19 +9,19 @@ import com.krisbiketeam.data.storage.ChildEventType
 import com.krisbiketeam.data.storage.firebaseTables.*
 
 //TODO: We should somehow only register for units from given roomName if present
-class StorageUnitsLiveData(private val databaseReference: DatabaseReference, private val roomName: String? = null) :
-        LiveData<Pair<ChildEventType, StorageUnit<Any>>>() {
+class HomeUnitsLiveData(private val databaseReference: DatabaseReference, private val roomName: String? = null) :
+        LiveData<Pair<ChildEventType, HomeUnit<Any>>>() {
 
     private val unitsList: List<MyChildEventListener> = HOME_STORAGE_UNITS.map { MyChildEventListener(it) }
 
-    private val typeIndicatorMap: HashMap<String, GenericTypeIndicator<out StorageUnit<out Any>>> = hashMapOf(
-            HOME_LIGHTS to object : GenericTypeIndicator<StorageUnit<LightType>>() {},
-            HOME_LIGHT_SWITCHES to object : GenericTypeIndicator<StorageUnit<LightSwitchType>>() {},
-            HOME_REED_SWITCHES to object : GenericTypeIndicator<StorageUnit<ReedSwitchType>>() {},
-            HOME_MOTIONS to object : GenericTypeIndicator<StorageUnit<MotionType>>() {},
-            HOME_TEMPERATURES to object : GenericTypeIndicator<StorageUnit<TemperatureType>>() {},
-            HOME_PRESSURES to object : GenericTypeIndicator<StorageUnit<PressureType>>() {},
-            HOME_BLINDS to object : GenericTypeIndicator<StorageUnit<BlindType>>() {}
+    private val typeIndicatorMap: HashMap<String, GenericTypeIndicator<out HomeUnit<out Any>>> = hashMapOf(
+            HOME_LIGHTS to object : GenericTypeIndicator<HomeUnit<LightType>>() {},
+            HOME_LIGHT_SWITCHES to object : GenericTypeIndicator<HomeUnit<LightSwitchType>>() {},
+            HOME_REED_SWITCHES to object : GenericTypeIndicator<HomeUnit<ReedSwitchType>>() {},
+            HOME_MOTIONS to object : GenericTypeIndicator<HomeUnit<MotionType>>() {},
+            HOME_TEMPERATURES to object : GenericTypeIndicator<HomeUnit<TemperatureType>>() {},
+            HOME_PRESSURES to object : GenericTypeIndicator<HomeUnit<PressureType>>() {},
+            HOME_BLINDS to object : GenericTypeIndicator<HomeUnit<BlindType>>() {}
     )
 
     inner class MyChildEventListener(val childNode: String) : ChildEventListener {
@@ -36,7 +36,7 @@ class StorageUnitsLiveData(private val databaseReference: DatabaseReference, pri
                     Timber.d("onChildAdded (roomName=$roomName)(unit.room=${it.room})")
                     if (roomName == null || roomName == it.room) {
                         // We need to create new SecureStorage unit as the one returned from GenericTypeIndicator is covariant
-                        //value = ChildEventType.NODE_ACTION_ADDED to StorageUnit(it.name, it.firebaseTableName, it.room, it.hardwareUnitName, it.value, it.unitsTasks)//StorageUnit<Any>(it)
+                        //value = ChildEventType.NODE_ACTION_ADDED to HomeUnit(it.name, it.firebaseTableName, it.room, it.hardwareUnitName, it.value, it.unitsTasks)//HomeUnit<Any>(it)
                         value = ChildEventType.NODE_ACTION_ADDED to it.makeInvariant()
                     }
                 }
@@ -53,7 +53,7 @@ class StorageUnitsLiveData(private val databaseReference: DatabaseReference, pri
                 unit?.let {
                     Timber.d("onChildChanged (roomName=$roomName)(unit.room=${it.room})")
                     if (roomName == null || roomName == it.room) {
-                        //value = ChildEventType.NODE_ACTION_CHANGED to StorageUnit(it.name, it.firebaseTableName, it.room, it.hardwareUnitName, it.value, it.unitsTasks)
+                        //value = ChildEventType.NODE_ACTION_CHANGED to HomeUnit(it.name, it.firebaseTableName, it.room, it.hardwareUnitName, it.value, it.unitsTasks)
                         value = ChildEventType.NODE_ACTION_CHANGED to it.makeInvariant()
                     }
                 }
@@ -72,7 +72,7 @@ class StorageUnitsLiveData(private val databaseReference: DatabaseReference, pri
                 unit?.let {
                     Timber.d("onChildRemoved (roomName=$roomName)(unit.room=${it.room})")
                     if (roomName == null || roomName == it.room) {
-                        //value = ChildEventType.NODE_ACTION_DELETED to StorageUnit(it.name, it.firebaseTableName, it.room, it.hardwareUnitName, it.value, it.unitsTasks)
+                        //value = ChildEventType.NODE_ACTION_DELETED to HomeUnit(it.name, it.firebaseTableName, it.room, it.hardwareUnitName, it.value, it.unitsTasks)
                         value = ChildEventType.NODE_ACTION_DELETED to it.makeInvariant()
                     }
                 }
