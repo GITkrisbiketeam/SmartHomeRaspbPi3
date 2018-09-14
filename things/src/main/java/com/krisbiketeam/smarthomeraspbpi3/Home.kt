@@ -216,10 +216,6 @@ class Home : Sensor.HwUnitListener<Any> {
                 // We need to handel differently values of non Basic Types
                 if (unitValue is TemperatureAndPressure) {
                     Timber.d("Received TemperatureAndPressure $value")
-                    // obsolete code start
-                    FirebaseHomeInformationRepository.saveTemperature(unitValue.temperature)
-                    FirebaseHomeInformationRepository.savePressure(unitValue.pressure)
-                    // obsolete code end
                     if (firebaseTableName == HOME_TEMPERATURES) {
                         value = unitValue.temperature
                     } else if (firebaseTableName == HOME_PRESSURES) {
@@ -251,11 +247,11 @@ class Home : Sensor.HwUnitListener<Any> {
         val pressure = Pressure("Kitchen 1 Press", HOME_PRESSURES, roomName, BoardConfig.TEMP_PRESS_SENSOR_BMP280) as HomeUnit<Any>
 
         var light = Light("Kitchen 1 Light", HOME_LIGHTS, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B0) as HomeUnit<Any>
-        light.unitsTasks.add(UnitTask(name = "Turn on HW light", hwUnitName = light.hardwareUnitName))
+        light.unitsTasks = listOf(UnitTask(name = "Turn on HW light", hwUnitName = light.hardwareUnitName))
         light.applyFunction = booleanApplyFunction
 
         var lightSwitch = LightSwitch("Kitchen 1 Light Switch", HOME_LIGHT_SWITCHES, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_IN_A7) as HomeUnit<Any>
-        lightSwitch.unitsTasks.add(UnitTask(name = "Turn on light", homeUnitName = light.name))
+        lightSwitch.unitsTasks = listOf(UnitTask(name = "Turn on light", homeUnitName = light.name))
         lightSwitch.applyFunction = booleanApplyFunction
 
         val reedSwitch = ReedSwitch("Kitchen 1 Reed Switch", HOME_REED_SWITCHES, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_IN_A6) as HomeUnit<Any>
@@ -275,11 +271,11 @@ class Home : Sensor.HwUnitListener<Any> {
         temp = Temperature("Bathroom 1 Temp", HOME_TEMPERATURES, roomName, BoardConfig.TEMP_SENSOR_TMP102) as HomeUnit<Any>
 
         light = Light("Bathroom 1 Light", HOME_LIGHTS, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B7, firebaseNotify = true) as HomeUnit<Any>
-        light.unitsTasks.add(UnitTask(name = "Turn on HW light", hwUnitName = light.hardwareUnitName))
+        light.unitsTasks = listOf(UnitTask(name = "Turn on HW light", hwUnitName = light.hardwareUnitName))
         light.applyFunction = booleanApplyFunction
 
         lightSwitch = LightSwitch("Bathroom 1 Light Switch", HOME_LIGHT_SWITCHES, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_IN_A5) as HomeUnit<Any>
-        lightSwitch.unitsTasks.add(UnitTask(name = "Turn on light", homeUnitName = light.name))
+        lightSwitch.unitsTasks = listOf(UnitTask(name = "Turn on light", homeUnitName = light.name))
         lightSwitch.applyFunction = booleanApplyFunction
 
         homeUnitList[temp.name] = temp

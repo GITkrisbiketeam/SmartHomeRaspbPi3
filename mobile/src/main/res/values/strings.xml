@@ -29,6 +29,8 @@
     <string name="menu_edit">Edit</string>
     <string name="menu_save">Save</string>
     <string name="menu_discard">Discard</string>
+    <string name="cancel">Cancel</string>
+    <string name="overwrite">Overwrite</string>
 
     <string name="menu_navigation_room_list">Room List</string>
     <string name="menu_navigation_hw_unit_list">Hw Unit List</string>
@@ -40,18 +42,23 @@
     <string name="add_edit_home_unit_text_title_hint">Name</string>
     <string name="add_edit_home_unit_text_description">Description:</string>
     <string name="add_edit_home_unit_text_description_hint">Your description</string>
-    <string name="add_edit_home_unit_text_unit_type_spinner_prompt">Unit Types:</string>
-    <string name="add_edit_home_unit_text_unit_type_title">Select Unit Type:</string>
-    <string name="add_edit_home_unit_text_room_spinner_prompt">Rooms:</string>
-    <string name="add_edit_home_unit_text_room_title">Select Room:</string>
-    <string name="add_edit_home_unit_text_hw_unit_spinner_prompt">Hardware Units:</string>
-    <string name="add_edit_home_unit_text_hw_unit_title">Select Hardware Unit:</string>
+    <string name="add_edit_home_unit_text_unit_type_spinner_prompt">Select Unit Type:</string>
+    <string name="add_edit_home_unit_text_unit_type_title">Unit Type:</string>
+    <string name="add_edit_home_unit_text_room_spinner_prompt">Select Room:</string>
+    <string name="add_edit_home_unit_text_room_title">Room:</string>
+    <string name="add_edit_home_unit_text_hw_unit_spinner_prompt">Select Hardware Unit:</string>
+    <string name="add_edit_home_unit_text_hw_unit_title">Hardware Unit:</string>
     <string name="add_edit_home_unit_text_value">Value: </string>
     <string name="add_edit_home_unit_text_task_list_title">Unit Task List:</string>
     <string name="add_edit_home_unit_name_already_used">This Home Unit Name is already used, please use different one.</string>
     <string name="add_edit_home_unit_save_with_delete">Home Unit Name or Type was changed Dou you want to overwrite them?</string>
     <string name="add_edit_home_unit_overwrite_changes">Do you want to overwrite changes?</string>
-    <string name="add_edit_home_unit_save_changes">Do you want to save?</string>
+    <string name="add_edit_home_unit_save_changes">Do you want to save new HomeUnit?</string>
+    <string name="add_edit_home_unit_empty_name">Home Unit name cannot be empty</string>
+    <string name="add_edit_home_unit_delete_home_unit_prompt">Do you really want to delete this Home Unit?</string>
+    <string name="add_edit_home_unit_notify_firebase_switch_text">Notify remote App about this Home Unit changes?</string>
+    <string name="add_edit_home_unit_discard_changes">Discard any changes?</string>
+    <string name="add_edit_home_unit_no_changes">No changes were made.</string>
 
     <string name="room_list_title">Rooms List</string>
     <string name="room_list_item_image">room_list_item_image</string>

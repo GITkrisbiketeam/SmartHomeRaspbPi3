@@ -42,8 +42,8 @@ data class HomeUnit<T>(var name: String = "", // Name should be unique for all u
                        var room: String = "",
                        var hardwareUnitName: String = "",
                        var value: T? = null,
-                       val firebaseNotify: Boolean? = null,
-                       val unitsTasks: MutableList<UnitTask> = ArrayList()) {
+                       var firebaseNotify: Boolean = false,
+                       var unitsTasks: List<UnitTask> = ArrayList()) {
     constructor(homeUnit: HomeUnit<T>) : this(
             homeUnit.name,
             homeUnit.firebaseTableName,
