@@ -17,6 +17,7 @@ import java.lang.Thread.sleep
  */
 class HomeUnitDetailViewModel(
         private val homeRepository: HomeInformationRepository,
+        private val roomName: String,
         private val unitName: String,
         private val unitType: String
 ) : ViewModel() {
@@ -48,7 +49,7 @@ class HomeUnitDetailViewModel(
     var homeUnitNameList: MediatorLiveData<MutableList<String>>             // HomeUnitListLiveData
 
     init {
-        Timber.d("init unitName: $unitName unitType: $unitType")
+        Timber.d("init unitName: $unitName unitType: $unitType roomName: $roomName")
 
         if (unitType.isNotEmpty() && unitName.isNotEmpty()) {
             Timber.d("init Editing existing HomeUnit")

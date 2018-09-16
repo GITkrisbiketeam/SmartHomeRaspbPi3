@@ -21,7 +21,7 @@ import org.koin.dsl.module.applicationContext
 val myModule = applicationContext {
     viewModel { RoomListViewModel(FirebaseHomeInformationRepository) }
     viewModel { RoomDetailViewModel(FirebaseHomeInformationRepository, getProperty(ROOM_NAME)) }
-    viewModel { HomeUnitDetailViewModel(FirebaseHomeInformationRepository, getProperty(HOME_UNIT_NAME), getProperty(HOME_UNIT_TYPE)) }
+    viewModel { HomeUnitDetailViewModel(FirebaseHomeInformationRepository, getProperty(ROOM_NAME), getProperty(HOME_UNIT_NAME), getProperty(HOME_UNIT_TYPE)) }
     viewModel { WifiSettingsViewModel(get()) }
     viewModel { LoginSettingsViewModel(get(), get()) }
     viewModel { NavigationViewModel(get()) }

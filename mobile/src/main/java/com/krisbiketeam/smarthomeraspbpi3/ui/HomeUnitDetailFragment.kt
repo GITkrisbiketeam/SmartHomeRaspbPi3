@@ -9,6 +9,7 @@ import android.support.transition.TransitionManager
 import android.support.v4.app.Fragment
 import android.support.v7.app.AlertDialog
 import android.view.*
+import androidx.navigation.fragment.findNavController
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentHomeUnitDetailBinding
 import com.krisbiketeam.smarthomeraspbpi3.di.Params
@@ -71,7 +72,7 @@ class HomeUnitDetailFragment : Fragment() {
             true -> {
                 menu?.findItem((R.id.action_discard))?.isVisible = true
                 menu?.findItem((R.id.action_save))?.isVisible = true
-                menu?.findItem((R.id.action_delete))?.isVisible = homeUnitDetailViewModel.unitName.isNotEmpty()
+                menu?.findItem((R.id.action_delete))?.isVisible = HomeUnitDetailFragmentArgs.fromBundle(arguments).homeUnitName.isNotEmpty()
                 menu?.findItem((R.id.action_edit))?.isVisible = false
             }
             else -> {
