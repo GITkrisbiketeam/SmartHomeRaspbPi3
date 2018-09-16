@@ -7,6 +7,7 @@ import android.support.design.widget.Snackbar
 import android.support.transition.Fade
 import android.support.transition.TransitionManager
 import android.support.v4.app.Fragment
+import android.support.v7.app.AlertDialog
 import android.view.*
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentHomeUnitDetailBinding
@@ -70,7 +71,7 @@ class HomeUnitDetailFragment : Fragment() {
             true -> {
                 menu?.findItem((R.id.action_discard))?.isVisible = true
                 menu?.findItem((R.id.action_save))?.isVisible = true
-                menu?.findItem((R.id.action_delete))?.isVisible = true
+                menu?.findItem((R.id.action_delete))?.isVisible = homeUnitDetailViewModel.unitName.isNotEmpty()
                 menu?.findItem((R.id.action_edit))?.isVisible = false
             }
             else -> {
@@ -89,35 +90,66 @@ class HomeUnitDetailFragment : Fragment() {
         }
         return when (item?.itemId) {
             R.id.action_edit -> {
-                Timber.e("onOptionsItemSelected EDIT : ${homeUnitDetailViewModel.isEditMode}")
-                homeUnitDetailViewModel.isEditMode.value = true
+                Timber.e("action_edit")
+                homeUnitDetailViewModel.actionEdit()
                 return true
             }
             R.id.action_save -> {
-                val (messageId, showDialog) = homeUnitDetailViewModel.trySaveChanges()
+                val (messageId, positiveButtonId) = homeUnitDetailViewModel.actionSave()
                 Timber.d("action_save ${getString(messageId)}")
                 if (messageId > 0) {
-                    if (showDialog) {
-
-                    } else {
-                        Snackbar.make(rootBinding.root, messageId, Snackbar.LENGTH_SHORT).show()
-                    }
+                    positiveButtonId?.let { buttonId ->
+                        showDialog(messageId, buttonId) {
+                            homeUnitDetailViewModel.saveChanges()?.addOnCompleteListener { _ ->
+                                // navigate back Up from this Fragment
+                                findNavController().navigateUp()
+                            }
+                        }
+                    } ?: Snackbar.make(rootBinding.root, messageId, Snackbar.LENGTH_SHORT).show()
                 } else {
-                    //hmm, this should not happen
-                    // navigate back Up from this Fragment
-                    //findNavController().navigateUp()
+                    //hmm, this should not happn
+                    Timber.e("action_save we got empty message This should not happen")
                 }
                 return true
             }
             R.id.action_discard -> {
-                homeUnitDetailViewModel.isEditMode.value = false
-                homeUnitDetailViewModel.discardChanges()
+                //TODO do smth with this mess
+                if (homeUnitDetailViewModel.noChangesMade()) {
+                    if (homeUnitDetailViewModel.actionDiscard()) {
+                        // navigate back Up from this Fragment
+                        findNavController().navigateUp()
+                    }
+                } else {
+                    showDialog(R.string.add_edit_home_unit_discard_changes, R.string.menu_discard) {
+                        if (homeUnitDetailViewModel.actionDiscard()) {
+                            // navigate back Up from this Fragment
+                            findNavController().navigateUp()
+                        }
+                    }
+                }
                 return true
             }
             R.id.action_delete -> {
+                showDialog(R.string.add_edit_home_unit_delete_home_unit_prompt, R.string.menu_delete) {
+                    homeUnitDetailViewModel.deleteHomeUnit()?.addOnCompleteListener { _ ->
+                        // navigate back Up from this Fragment
+                        findNavController().navigateUp()
+                    }
+                }
                 return true
             }
             else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    fun showDialog(messageId: Int, positiveButtonId: Int, positiveButtonInvoked: () -> Unit) {
+        context?.let {
+
+            AlertDialog.Builder(it)
+                    .setMessage(messageId)
+                    .setPositiveButton(positiveButtonId) { _, _ -> positiveButtonInvoked() }
+                    .setNegativeButton(R.string.cancel) { _, _ -> }
+                    .show()
         }
     }
 }

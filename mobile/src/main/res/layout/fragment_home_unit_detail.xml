@@ -223,7 +223,7 @@
                             android:id="@+id/home_unit_value"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="@{viewModel.homeUnit.value.toString()}"
+                            android:text="@{viewModel.value}"
                             android:textAppearance="@style/TextAppearance.AppCompat.Title" />
                     </LinearLayout>
 
@@ -254,6 +254,17 @@
                     </LinearLayout>
                 </FrameLayout>
 
+                <android.support.v7.widget.SwitchCompat
+                    android:id="@+id/home_unit_notify_firebase_switch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:checked="@={viewModel.firebaseNotify}"
+                    android:text="@string/add_edit_home_unit_notify_firebase_switch_text"
+                    android:clickable="@{safeUnbox(viewModel.isEditMode) ? true : false}"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/home_unit_name_value_layout" />
+
                 <TextView
                     android:id="@+id/unit_task_list_title"
                     android:layout_width="match_parent"
@@ -263,7 +274,7 @@
                     android:textAppearance="@style/TextAppearance.AppCompat.Title"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/home_unit_name_value_layout" />
+                    app:layout_constraintTop_toBottomOf="@id/home_unit_notify_firebase_switch" />
 
                 <android.support.v7.widget.RecyclerView
                     android:id="@+id/unit_task_list"
