@@ -5,7 +5,7 @@ ext {
     minSdkVersionThings = 27
 
     // Languages
-    kotlinVersion = '1.2.61'
+    kotlinVersion = '1.2.70'
 
     // ClassPath
     gradlePluginVersion = '3.2.0-rc03'

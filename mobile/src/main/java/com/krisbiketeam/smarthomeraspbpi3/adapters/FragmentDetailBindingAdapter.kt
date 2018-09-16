@@ -1,7 +1,5 @@
 package com.krisbiketeam.smarthomeraspbpi3.adapters
 
-import android.R
-import android.database.DataSetObserver
 import android.databinding.BindingAdapter
 import android.databinding.InverseBindingAdapter
 import android.databinding.InverseBindingListener
@@ -52,7 +50,7 @@ fun bindEntriesData(spinner: AppCompatSpinner, entries: List<Any>?) {
     // This is for dynamic entries list, like form ViewModel LiveData
     //Timber.d("bindEntriesData entries: $entries tag: ${spinner.tag}")
     if (entries != null) {
-        ArrayAdapter(spinner.context, R.layout.simple_spinner_item, entries).apply {
+        ArrayAdapter(spinner.context, android.R.layout.simple_spinner_item, entries).apply {
             setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             spinner.adapter = this
             val pos = getPosition(spinner.tag)

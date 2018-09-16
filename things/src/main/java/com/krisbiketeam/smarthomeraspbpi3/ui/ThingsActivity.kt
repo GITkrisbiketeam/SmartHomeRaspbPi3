@@ -1,7 +1,5 @@
 package com.krisbiketeam.smarthomeraspbpi3.ui
 
-import android.arch.lifecycle.LiveData
-import android.arch.lifecycle.Observer
 import android.content.Context
 import android.graphics.Color
 import android.net.wifi.WifiManager
@@ -15,9 +13,11 @@ import com.google.android.things.contrib.driver.rainbowhat.RainbowHat
 import com.google.android.things.pio.Gpio
 import com.krisbiketeam.data.auth.Authentication
 import com.krisbiketeam.data.auth.FirebaseAuthentication
-import com.krisbiketeam.data.storage.*
+import com.krisbiketeam.data.storage.ConnectionType
+import com.krisbiketeam.data.storage.FirebaseHomeInformationRepository
+import com.krisbiketeam.data.storage.NotSecureStorage
+import com.krisbiketeam.data.storage.SecureStorage
 import com.krisbiketeam.data.storage.dto.HwUnitLog
-import com.krisbiketeam.data.storage.obsolete.HomeInformation
 import com.krisbiketeam.smarthomeraspbpi3.BoardConfig
 import com.krisbiketeam.smarthomeraspbpi3.Home
 import com.krisbiketeam.smarthomeraspbpi3.R
@@ -34,7 +34,6 @@ private const val FIREBASE_RAINBOW_LED = 1
 
 class ThingsActivity : AppCompatActivity() {
     private lateinit var authentication: Authentication
-    private lateinit var lightsLiveData: LiveData<HomeInformation>
     private lateinit var secureStorage: SecureStorage
     private lateinit var networkConnectionMonitor: NetworkConnectionMonitor
 
@@ -70,14 +69,6 @@ class ThingsActivity : AppCompatActivity() {
         lightTheRainbow(true)
     }
 
-    // Obsolete code
-    private val lightDataObserver = Observer<HomeInformation> { homeInformation ->
-        setLightState(homeInformation?.light ?: false)
-        setMessage(homeInformation?.message)
-        Timber.d("homeInformation changed: $homeInformation")
-    }
-
-
     private val networkConnectionListener = object : NetworkConnectionListener {
         override fun onNetworkAvailable(available: Boolean) {
             Timber.d("Received onNetworkAvailable $available")
@@ -88,7 +79,6 @@ class ThingsActivity : AppCompatActivity() {
     private val loginResultListener = object : Authentication.LoginResultListener {
         override fun success() {
             Timber.d("LoginResultListener success")
-            observeLightsData()
             lightOnOffOneRainbowLed(FIREBASE_RAINBOW_LED, true)
         }
 
@@ -134,7 +124,6 @@ class ThingsActivity : AppCompatActivity() {
         }
 
         authentication = FirebaseAuthentication()
-        lightsLiveData = FirebaseHomeInformationRepository.lightLiveData()
 
         home = Home()
         //home.saveToRepository()
@@ -178,8 +167,6 @@ class ThingsActivity : AppCompatActivity() {
         super.onStart()
         loginFirebase()
 
-        // lightLiveData is registered after successful login
-
         networkConnectionMonitor.startListen(networkConnectionListener)
 
         buttonAInputDriver?.register()
@@ -195,7 +182,6 @@ class ThingsActivity : AppCompatActivity() {
 
     override fun onStop() {
         Timber.d("onStop Shutting down lights observer")
-        lightsLiveData.removeObserver(lightDataObserver)
 
         networkConnectionMonitor.stopListen()
 
@@ -363,11 +349,6 @@ class ThingsActivity : AppCompatActivity() {
         }
     }
 
-    private fun observeLightsData() {
-        Timber.d("Observing lights data")
-        lightsLiveData.observe(this, lightDataObserver)
-    }
-
     private fun lightTheRainbow(light: Boolean) {
         // Light up the rainbow
         try {
@@ -405,16 +386,5 @@ class ThingsActivity : AppCompatActivity() {
         } catch (e: IOException) {
             e.printStackTrace()
         }
-
-    }
-
-    private fun setLightState(b: Boolean) {
-        Timber.d("Setting light to $b")
-        ledA.setValue(b)
-    }
-
-    private fun setMessage(message: String?) {
-        Timber.d("Setting message to $message")
-        fourCharDisplay.setValue(message)
     }
 }

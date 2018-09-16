@@ -1,13 +1,12 @@
 package com.krisbiketeam.data.storage
 
-import android.arch.lifecycle.LiveData
 import com.google.android.gms.tasks.Task
-import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
+import com.krisbiketeam.data.storage.dto.HomeUnit
+import com.krisbiketeam.data.storage.dto.HwUnit
+import com.krisbiketeam.data.storage.dto.HwUnitLog
+import com.krisbiketeam.data.storage.dto.Room
 import com.krisbiketeam.data.storage.firebaseTables.*
-import com.krisbiketeam.data.storage.obsolete.HomeInformation
-import com.krisbiketeam.data.storage.obsolete.HomeInformationLiveData
-import com.krisbiketeam.data.storage.dto.*
 import com.krisbiketeam.data.storage.livedata.*
 
 
@@ -47,7 +46,7 @@ interface HomeInformationRepository {
     fun saveHardwareUnit(hwUnit: HwUnit): Task<Void>
 
     /**
-     *  Deletess given @see[HwUnit] from hardware module list in DB
+     *  Deletes given @see[HwUnit] from hardware module list in DB
      */
     fun deleteHardwareUnit(hwUnit: HwUnit): Task<Void>
 
@@ -103,12 +102,6 @@ interface HomeInformationRepository {
 }
 
 object FirebaseHomeInformationRepository : HomeInformationRepository {
-    // Obsolete Code Start
-    private val referenceOldHome: DatabaseReference = FirebaseDatabase.getInstance()
-            .reference.child(OLD_HOME_INFORMATION_BASE)
-    private val lightLiveData = HomeInformationLiveData(referenceOldHome)
-    // Obsolete Code End
-
     // Reference for all home related "Units"
     private val referenceHome = FirebaseDatabase.getInstance()
             .reference.child(HOME_INFORMATION_BASE)

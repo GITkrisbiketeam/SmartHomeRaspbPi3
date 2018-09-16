@@ -1,12 +1,5 @@
 package com.krisbiketeam.data.storage.firebaseTables
 
-const val OLD_HOME_INFORMATION_BASE = "old_home"
-const val OLD_HOME_INFORMATION_MESSAGE = "message"
-const val OLD_HOME_INFORMATION_LIGHT = "light"
-const val OLD_HOME_INFORMATION_BUTTON = "button"
-const val OLD_HOME_INFORMATION_PRESSURE = "pressure"
-const val OLD_HOME_INFORMATION_TEMPERATURE = "temperature"
-
 const val LOG_INFORMATION_BASE = "log"
 
 const val NOTIFICATION_INFORMATION_BASE = "notification"

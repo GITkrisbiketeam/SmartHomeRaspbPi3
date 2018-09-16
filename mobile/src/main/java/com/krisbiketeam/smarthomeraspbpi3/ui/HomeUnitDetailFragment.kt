@@ -8,7 +8,6 @@ import android.support.transition.Fade
 import android.support.transition.TransitionManager
 import android.support.v4.app.Fragment
 import android.view.*
-import androidx.navigation.fragment.findNavController
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentHomeUnitDetailBinding
 import com.krisbiketeam.smarthomeraspbpi3.di.Params
@@ -26,7 +25,7 @@ class HomeUnitDetailFragment : Fragment() {
             container: ViewGroup?,
             savedInstanceState: Bundle?
     ): View? {
-        // set ROOM_NAME property fo Koin injection
+        // set HOME_UNIT_NAME and TYPE property fo Koin injection
         setProperty(Params.HOME_UNIT_NAME, HomeUnitDetailFragmentArgs.fromBundle(arguments).homeUnitName)
         setProperty(Params.HOME_UNIT_TYPE, HomeUnitDetailFragmentArgs.fromBundle(arguments).homeUnitType)
         homeUnitDetailViewModel = getViewModel()
@@ -104,7 +103,7 @@ class HomeUnitDetailFragment : Fragment() {
                         Snackbar.make(rootBinding.root, messageId, Snackbar.LENGTH_SHORT).show()
                     }
                 } else {
-                    //hmm, this should not happn
+                    //hmm, this should not happen
                     // navigate back Up from this Fragment
                     //findNavController().navigateUp()
                 }
@@ -112,6 +111,7 @@ class HomeUnitDetailFragment : Fragment() {
             }
             R.id.action_discard -> {
                 homeUnitDetailViewModel.isEditMode.value = false
+                homeUnitDetailViewModel.discardChanges()
                 return true
             }
             R.id.action_delete -> {

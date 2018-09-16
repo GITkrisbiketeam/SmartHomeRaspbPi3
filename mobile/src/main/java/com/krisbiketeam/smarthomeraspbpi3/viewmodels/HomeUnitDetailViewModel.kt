@@ -1,9 +1,6 @@
 package com.krisbiketeam.smarthomeraspbpi3.viewmodels
 
 import android.arch.lifecycle.*
-import android.support.design.widget.Snackbar
-import androidx.navigation.fragment.findNavController
-import com.google.android.gms.tasks.Continuation
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.TaskCompletionSource
 import com.krisbiketeam.data.storage.HomeInformationRepository
@@ -20,10 +17,9 @@ import timber.log.Timber
  * The ViewModel used in [RoomDetailFragment].
  */
 class HomeUnitDetailViewModel(
-        val homeRepository: HomeInformationRepository,
-        val roomName: String,
-        val unitName: String,
-        val unitType: String
+        private val homeRepository: HomeInformationRepository,
+        private val unitName: String,
+        private val unitType: String
 ) : ViewModel() {
 
     val unitTaskListAdapter = UnitTaskListAdapter()
@@ -52,7 +48,7 @@ class HomeUnitDetailViewModel(
     var homeUnitNameList = MediatorLiveData<MutableList<String>>()//LiveData<List<String>>// HomeUnitListLiveData
 
     init {
-        Timber.d("init unitName: $unitName unitType: $unitType roomName: $roomName")
+        Timber.d("init unitName: $unitName unitType: $unitType")
 
         isEditMode.value = unitName.isEmpty() || unitType.isEmpty()
 
@@ -80,7 +76,7 @@ class HomeUnitDetailViewModel(
             MutableLiveData()
         }
 
-        // LiveDatas for editing mode
+        // LiveData's for editing mode
         roomNameList = Transformations.switchMap(isEditMode) { edit ->
             Timber.d("init roomNameList isEditMode edit: $edit")
             if (edit) {
@@ -145,10 +141,10 @@ class HomeUnitDetailViewModel(
             return Pair(R.string.add_edit_home_unit_name_already_used, false)
         } else {
             homeUnit.value?.let { unit ->
-                if (unitName != unit.name || unitType != unit.firebaseTableName) {
-                    return Pair(R.string.add_edit_home_unit_save_with_delete, true)
+                return if (unitName != unit.name || unitType != unit.firebaseTableName) {
+                    Pair(R.string.add_edit_home_unit_save_with_delete, true)
                 } else {
-                    return Pair(R.string.add_edit_home_unit_overwrite_changes, true)
+                    Pair(R.string.add_edit_home_unit_overwrite_changes, true)
                 }
             }
             return Pair(R.string.add_edit_home_unit_save_changes, true)
@@ -163,19 +159,27 @@ class HomeUnitDetailViewModel(
                 Timber.d("Name or type changed will need to delete old value name=$unitName, firebaseTableName = $unitType")
                 showProgress.value = true
                 // delete old HomeUnit
-                homeRepository.deleteHomeUnit(unit.copy(name = unitName, firebaseTableName = unitType)).continueWithTask(object : Continuation<Void, Task<Void>> {
-                    override fun then(task: Task<Void>): Task<Void> {
-                        if (task.isCanceled) {
-                            return task
-                        } else {
-                            return homeRepository.saveHomeUnit(unit)
-                        }
+                homeRepository.deleteHomeUnit(unit.copy(name = unitName, firebaseTableName = unitType)).continueWithTask { task ->
+                    if (task.isCanceled) {
+                        task
+                    } else {
+                        homeRepository.saveHomeUnit(unit)
                     }
-                })
+                }
             } else {
                 homeRepository.saveHomeUnit(unit)
             }
         }
         return null
+    }
+
+    fun discardChanges() {
+        Timber.d("tyrSaveChanges")
+        homeUnit.value?.also {
+            name.value = it.name
+            type.value = it.firebaseTableName
+            room.value = it.room
+            hwUnitName.value = it.hardwareUnitName
+        }
     }
 }

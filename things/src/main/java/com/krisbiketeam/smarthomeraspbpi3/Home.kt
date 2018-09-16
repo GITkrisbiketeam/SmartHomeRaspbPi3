@@ -54,7 +54,7 @@ class Home : Sensor.HwUnitListener<Any> {
 
     init {
         //initHardwareUnitList()
-        //inithomeUnitList()
+        //initHomeUnitList()
 
         //saveToRepository()
     }
@@ -217,8 +217,6 @@ class Home : Sensor.HwUnitListener<Any> {
                 if (unitValue is TemperatureAndPressure) {
                     Timber.d("Received TemperatureAndPressure $value")
                     // obsolete code start
-                    FirebaseHomeInformationRepository.saveTemperature(unitValue.temperature)
-                    FirebaseHomeInformationRepository.savePressure(unitValue.pressure)
                     // obsolete code end
                     if (firebaseTableName == HOME_TEMPERATURES) {
                         value = unitValue.temperature
@@ -243,7 +241,7 @@ class Home : Sensor.HwUnitListener<Any> {
         hardwareUnitList.values.forEach { FirebaseHomeInformationRepository.saveHardwareUnit(it.hwUnit) }
     }
 
-    private fun inithomeUnitList() {
+    private fun initHomeUnitList() {
         var roomName = "Kitchen"
 
         var temp = Temperature("Kitchen 1 Temp", HOME_TEMPERATURES, roomName, BoardConfig.TEMP_PRESS_SENSOR_BMP280) as HomeUnit<Any>
