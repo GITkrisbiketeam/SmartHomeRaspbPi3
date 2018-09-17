@@ -59,6 +59,7 @@
     <string name="add_edit_home_unit_notify_firebase_switch_text">Notify remote App about this Home Unit changes?</string>
     <string name="add_edit_home_unit_discard_changes">Discard any changes?</string>
     <string name="add_edit_home_unit_no_changes">No changes were made.</string>
+    <string name="add_edit_home_unit_task_list_add_new_task">Add New Unit Task</string>
 
     <string name="room_list_title">Rooms List</string>
     <string name="room_list_item_image">room_list_item_image</string>

@@ -17,9 +17,9 @@ import java.lang.Thread.sleep
  */
 class HomeUnitDetailViewModel(
         private val homeRepository: HomeInformationRepository,
-        private val roomName: String,
-        private val unitName: String,
-        private val unitType: String
+        roomName: String,
+        unitName: String,
+        unitType: String
 ) : ViewModel() {
 
     val unitTaskListAdapter = UnitTaskListAdapter()
@@ -48,10 +48,12 @@ class HomeUnitDetailViewModel(
     // used for checking if given homeUnit name is not already used
     var homeUnitNameList: MediatorLiveData<MutableList<String>>             // HomeUnitListLiveData
 
+    val addingNewUnit = unitName.isEmpty() && unitType.isEmpty()
+
     init {
         Timber.d("init unitName: $unitName unitType: $unitType roomName: $roomName")
 
-        if (unitType.isNotEmpty() && unitName.isNotEmpty()) {
+        if (!addingNewUnit) {
             Timber.d("init Editing existing HomeUnit")
             homeUnit = homeRepository.homeUnitLiveData(unitType, unitName)
             name = Transformations.map(homeUnit) { unit -> unit.name } as MutableLiveData<String>
@@ -86,7 +88,7 @@ class HomeUnitDetailViewModel(
 
         // Decide how to handle this list
         unitTaskList =
-                if (unitType.isNotEmpty() && unitName.isNotEmpty())
+                if (!addingNewUnit)
                     homeRepository.unitTaskListLiveData(unitType, unitName)
                 else MutableLiveData()
 
@@ -131,10 +133,10 @@ class HomeUnitDetailViewModel(
             unit.hardwareUnitName == hwUnitName.value &&
             unit.firebaseNotify == firebaseNotify.value &&
             unit.unitsTasks == unitTaskList.value
-        } ?: name.value?.isEmpty()
-        /*?: type.value?.isEmpty()
-        ?: room.value?.isEmpty()
-        ?: hwUnitName.value?.isEmpty()*/
+        } ?: name.value.isNullOrEmpty()
+        /*?: type.value.isNullOrEmpty()
+        ?: room.value.isNullOrEmpty()
+        ?: hwUnitName.value.isNullOrEmpty()*/
         ?: true
     }
 
@@ -146,7 +148,9 @@ class HomeUnitDetailViewModel(
      * return true if we want to exit [HomeUnitDetailFragment]
      */
     fun actionDiscard(): Boolean {
-        return if (unitName.isNotEmpty()) {
+        return if (addingNewUnit) {
+            true
+        } else {
             isEditMode.value = false
             homeUnit?.value?.let { unit ->
                 name.value = unit.name
@@ -156,8 +160,6 @@ class HomeUnitDetailViewModel(
                 firebaseNotify.value = unit.firebaseNotify
             }
             false
-        } else {
-            true
         }
     }
 
@@ -165,10 +167,10 @@ class HomeUnitDetailViewModel(
      * first return param is message Res Id, second return param if present will show dialog with this resource Id as a confirm button text, if not present Snackbar will be show.
      */
     fun actionSave(): Pair<Int, Int?> {
-        Timber.d("tyrSaveChanges")
-        if (unitName.isEmpty() && unitType.isEmpty()) {
+        Timber.d("tyrSaveChanges addingNewUnit: $addingNewUnit name.value: ${name.value}")
+        if (addingNewUnit) {
             // Adding new HomeUnit
-            if (name.value?.trim()?.isEmpty() == true) {
+            if (name.value?.trim().isNullOrEmpty()) {
                 return Pair(R.string.add_edit_home_unit_empty_name, null)
             } else if (homeUnitNameList.value?.contains(name.value?.trim()) == true) {
                 //This name is already used
@@ -178,9 +180,9 @@ class HomeUnitDetailViewModel(
         } else {
             // Editing existing HomeUnit
             homeUnit?.value?.let { unit ->
-                if (name.value?.trim()?.isEmpty() == true) {
+                if (name.value?.trim().isNullOrEmpty()) {
                     return Pair(R.string.add_edit_home_unit_empty_name, null)
-                } else if (unitName != unit.name || unitType != unit.firebaseTableName) {
+                } else if (name.value?.trim() != unit.name || type.value?.trim() != unit.firebaseTableName) {
                     return Pair(R.string.add_edit_home_unit_save_with_delete, R.string.overwrite)
                 } else if (noChangesMade()) {
                     return Pair(R.string.add_edit_home_unit_no_changes, null)
