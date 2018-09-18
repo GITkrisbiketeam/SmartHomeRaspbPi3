@@ -69,9 +69,21 @@
 
     <fragment
         android:id="@+id/unit_task_fragment"
-        android:name="com.krisbiketeam.smarthomeraspbpi3.UnitTaskFragment"
+        android:name="com.krisbiketeam.smarthomeraspbpi3.ui.UnitTaskFragment"
         android:label="@string/unit_task_title"
-        tools:layout="@layout/fragment_unit_task" />
+        tools:layout="@layout/fragment_unit_task">
+
+        <argument
+            android:name="taskName"
+            app:argType="string" />
+        <argument
+            android:name="homeUnitName"
+            app:argType="string" />
+        <argument
+            android:name="homeUnitType"
+            app:argType="string" />
+    </fragment>
+
 
     <fragment
         android:id="@+id/hw_unit_list_fragment"
@@ -99,7 +111,6 @@
             app:argType="string" />
 
     </fragment>
-
 
     <fragment
         android:id="@+id/logs_fragment"

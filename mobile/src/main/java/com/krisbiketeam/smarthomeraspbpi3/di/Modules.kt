@@ -12,6 +12,7 @@ import com.krisbiketeam.data.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.di.Params.ROOM_NAME
 import com.krisbiketeam.smarthomeraspbpi3.di.Params.HOME_UNIT_NAME
 import com.krisbiketeam.smarthomeraspbpi3.di.Params.HOME_UNIT_TYPE
+import com.krisbiketeam.smarthomeraspbpi3.di.Params.UNIT_TASK_NAME
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.*
 import com.squareup.moshi.Moshi
 import org.koin.android.architecture.ext.viewModel
@@ -22,6 +23,7 @@ val myModule = applicationContext {
     viewModel { RoomListViewModel(FirebaseHomeInformationRepository) }
     viewModel { RoomDetailViewModel(FirebaseHomeInformationRepository, getProperty(ROOM_NAME)) }
     viewModel { HomeUnitDetailViewModel(FirebaseHomeInformationRepository, getProperty(ROOM_NAME), getProperty(HOME_UNIT_NAME), getProperty(HOME_UNIT_TYPE)) }
+    viewModel { UnitTaskViewModel(FirebaseHomeInformationRepository, getProperty(UNIT_TASK_NAME), getProperty(HOME_UNIT_NAME), getProperty(HOME_UNIT_TYPE)) }
     viewModel { WifiSettingsViewModel(get()) }
     viewModel { LoginSettingsViewModel(get(), get()) }
     viewModel { NavigationViewModel(get()) }
@@ -42,4 +44,5 @@ object Params {
     const val ROOM_NAME = "room_name"
     const val HOME_UNIT_NAME = "home_unit_name"
     const val HOME_UNIT_TYPE = "home_unit_type"
+    const val UNIT_TASK_NAME = "unit_task_name"
 }

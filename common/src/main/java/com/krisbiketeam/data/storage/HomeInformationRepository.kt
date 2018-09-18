@@ -58,12 +58,12 @@ interface HomeInformationRepository {
     /**
      * get instance of @see[HomeUnitListLiveData] for listening to changes in entries in DB
      */
-    fun homeUnitListLiveData(storageType: String): HomeUnitListLiveData
+    fun homeUnitListLiveData(unitType: String): HomeUnitListLiveData
 
     /**
      * get instance of @see[HomeUnitLiveData] for listening to changes in given HomeUnit in DB
      */
-    fun homeUnitLiveData(storageType: String, storageName:String): HomeUnitLiveData
+    fun homeUnitLiveData(unitType: String, unitName:String): HomeUnitLiveData
 
     /**
      * get instance of @see[HomeUnitsLiveData] for listening to changes in entries in DB
@@ -93,7 +93,12 @@ interface HomeInformationRepository {
     /**
      * get instance of @see[UnitTaskListLiveData] for listening to changes in specific HomeUnit UnitTask List entry in DB
      */
-    fun unitTaskListLiveData(storageType: String, storageName:String): UnitTaskListLiveData
+    fun unitTaskListLiveData(unitType: String, unitName:String): UnitTaskListLiveData
+
+    /**
+     * get instance of @see[UnitTaskListLiveData] for listening to changes in specific HomeUnit UnitTask List entry in DB
+     */
+    //fun unitTaskListLiveData(taskName: String, unitType: String, unitName:String): UnitTaskListLiveData
 
     /**
      * Clear all Logs entries from DB
@@ -196,16 +201,16 @@ object FirebaseHomeInformationRepository : HomeInformationRepository {
         return RoomLiveData(referenceHome, roomName)
     }
 
-    override fun homeUnitListLiveData(storageType: String): HomeUnitListLiveData {
-        return HomeUnitListLiveData(referenceHome, storageType)
+    override fun homeUnitListLiveData(unitType: String): HomeUnitListLiveData {
+        return HomeUnitListLiveData(referenceHome, unitType)
     }
 
-    override fun homeUnitLiveData(storageType: String, storageName:String): HomeUnitLiveData {
-        return HomeUnitLiveData(referenceHome, storageType, storageName)
+    override fun homeUnitLiveData(unitType: String, unitName:String): HomeUnitLiveData {
+        return HomeUnitLiveData(referenceHome, unitType, unitName)
     }
 
-    override fun unitTaskListLiveData(storageType: String, storageName:String): UnitTaskListLiveData {
-        return UnitTaskListLiveData(referenceHome, storageType, storageName)
+    override fun unitTaskListLiveData(unitType: String, unitName:String): UnitTaskListLiveData {
+        return UnitTaskListLiveData(referenceHome, unitType, unitName)
     }
 
 }

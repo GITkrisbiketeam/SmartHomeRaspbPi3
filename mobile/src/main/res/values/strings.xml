@@ -87,5 +87,11 @@
      -->
     <string name="default_notification_channel_name" translatable="true">RSPi3</string>
 
+    <string name="unit_task_text_name_title">Name:</string>
+    <string name="unit_task_text_home_unit_name_title">Home Unit Name:</string>
+    <string name="unit_task_text_home_unit_select_spinner_prompt">Select Home Unit</string>
+    <string name="unit_task_text_hw_unit_name_title">Hw Unit Name:</string>
+    <string name="unit_task_text_hw_unit_select_spinner_prompt">Select Hw Unit</string>
+
 
 </resources>

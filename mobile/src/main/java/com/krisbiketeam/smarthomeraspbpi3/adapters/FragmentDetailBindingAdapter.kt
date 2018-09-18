@@ -50,18 +50,27 @@ fun bindEntriesData(spinner: AppCompatSpinner, entries: List<Any>?) {
     // This is for dynamic entries list, like form ViewModel LiveData
     //Timber.d("bindEntriesData entries: $entries tag: ${spinner.tag}")
     if (entries != null) {
-        ArrayAdapter(spinner.context, android.R.layout.simple_spinner_item, entries).apply {
-            setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-            spinner.adapter = this
-            val pos = getPosition(spinner.tag)
-            //Timber.d("bindEntriesData pos: $pos")
-            if (pos in 0 until spinner.count) {
-                spinner.setSelection(pos)
-            }
+        //Add empty first element to list
+        val withEmptyList = entries.toMutableList().apply {
+            add(0,"")
         }
+        ArrayAdapter(spinner.context,
+                android.R.layout.simple_spinner_item,
+                entries.toMutableList().apply {
+                    add("")
+                }).
+            apply {
+                setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+                spinner.adapter = this
+                val pos = getPosition(spinner.tag)
+                //Timber.d("bindEntriesData pos: $pos")
+                if (pos in 0 until spinner.count) {
+                    spinner.setSelection(pos)
+                }
+            }
     }
 }
-
+//TODO: Add custom ArrayAdapter not showing last empty item
 @BindingAdapter("selectedValue", "selectedValueAttrChanged", requireAll=false)
 fun bindSpinnerData(spinner: AppCompatSpinner, newSelectedValue: String?, newTextAttrChanged: InverseBindingListener) {
     //Timber.d("selectedValue BindingAdapter newSelectedValue: $newSelectedValue")

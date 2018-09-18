@@ -14,11 +14,11 @@ class UnitTaskListLiveData(private val databaseReference: DatabaseReference, pri
     private val roomsListener: ValueEventListener = object: ValueEventListener {
         override fun onDataChange(dataSnapshot: DataSnapshot) {
             // A new value has been added, add it to the displayed list
-            //val key = dataSnapshot.key
+            val key = dataSnapshot.key
             val unitTasks: ArrayList<UnitTask> = ArrayList()
             for(r: DataSnapshot in dataSnapshot.children){
                 val unitTask = r.getValue(UnitTask::class.java)
-                //Timber.d("onDataChange (key=$key)(unitTask=unitTask)")
+                Timber.d("onDataChange (key=$key)(unitTask=$unitTask)")
                 unitTask?.let {
                     unitTasks.add(unitTask)
                 }
