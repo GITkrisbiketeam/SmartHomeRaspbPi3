@@ -16,6 +16,7 @@ class Home : Sensor.HwUnitListener<Any> {
 
     private var hwUnitsLiveData = FirebaseHomeInformationRepository.hwUnitsLiveData()
 
+    private var rooms: MutableMap<String, Room> = HashMap()
 
     private val homeUnitList: MutableMap<String, HomeUnit<Any>> = HashMap()
 
@@ -116,7 +117,7 @@ class Home : Sensor.HwUnitListener<Any> {
                 ChildEventType.NODE_ACTION_ADDED -> {
                     val existingUnit = homeUnitList[homeUnit.name]
                     Timber.d("homeUnitsDataObserver EXISTING $existingUnit ; NEW  $homeUnit")
-                    homeUnitTypeIndicatorMap[homeUnit.firebaseTableName]?.isInstance(Boolean::class.java)
+                    homeUnitTypeIndicatorMap[homeUnit.type]?.isInstance(Boolean::class.java)
                             .let {
                                 homeUnit.applyFunction = booleanApplyFunction
                             }
@@ -210,15 +211,15 @@ class Home : Sensor.HwUnitListener<Any> {
         FirebaseHomeInformationRepository.logUnitEvent(HwUnitLog(hwUnit, unitValue, updateTime))
 
         homeUnitList.values.filter {
-            it.hardwareUnitName == hwUnit.name
+            it.hwUnitName == hwUnit.name
         }.forEach {
             it.apply {
                 // We need to handel differently values of non Basic Types
                 if (unitValue is TemperatureAndPressure) {
                     Timber.d("Received TemperatureAndPressure $value")
-                    if (firebaseTableName == HOME_TEMPERATURES) {
+                    if (type == HOME_TEMPERATURES) {
                         value = unitValue.temperature
-                    } else if (firebaseTableName == HOME_PRESSURES) {
+                    } else if (type == HOME_PRESSURES) {
                         value = unitValue.pressure
                     }
                 } else {
@@ -235,6 +236,7 @@ class Home : Sensor.HwUnitListener<Any> {
     }
 
     fun saveToRepository() {
+        rooms.values.forEach { FirebaseHomeInformationRepository.saveRoom(it) }
         homeUnitList.values.forEach { FirebaseHomeInformationRepository.saveHomeUnit(it) }
         hardwareUnitList.values.forEach { FirebaseHomeInformationRepository.saveHardwareUnit(it.hwUnit) }
     }
@@ -247,7 +249,7 @@ class Home : Sensor.HwUnitListener<Any> {
         val pressure = Pressure("Kitchen 1 Press", HOME_PRESSURES, roomName, BoardConfig.TEMP_PRESS_SENSOR_BMP280) as HomeUnit<Any>
 
         var light = Light("Kitchen 1 Light", HOME_LIGHTS, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B0) as HomeUnit<Any>
-        light.unitsTasks = listOf(UnitTask(name = "Turn on HW light", hwUnitName = light.hardwareUnitName))
+        light.unitsTasks = listOf(UnitTask(name = "Turn on HW light", hwUnitName = light.hwUnitName))
         light.applyFunction = booleanApplyFunction
 
         var lightSwitch = LightSwitch("Kitchen 1 Light Switch", HOME_LIGHT_SWITCHES, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_IN_A7) as HomeUnit<Any>
@@ -265,13 +267,16 @@ class Home : Sensor.HwUnitListener<Any> {
         homeUnitList[reedSwitch.name] = reedSwitch
         homeUnitList[motion.name] = motion
 
+        var room = Room(roomName, 0, listOf(light.name), listOf(lightSwitch.name), listOf(reedSwitch.name), listOf(motion.name), listOf(temp.name), listOf(pressure.name))
+        rooms[room.name] = room
+
         // Second room
         roomName = "Bathroom"
 
         temp = Temperature("Bathroom 1 Temp", HOME_TEMPERATURES, roomName, BoardConfig.TEMP_SENSOR_TMP102) as HomeUnit<Any>
 
         light = Light("Bathroom 1 Light", HOME_LIGHTS, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B7, firebaseNotify = true) as HomeUnit<Any>
-        light.unitsTasks = listOf(UnitTask(name = "Turn on HW light", hwUnitName = light.hardwareUnitName))
+        light.unitsTasks = listOf(UnitTask(name = "Turn on HW light", hwUnitName = light.hwUnitName))
         light.applyFunction = booleanApplyFunction
 
         lightSwitch = LightSwitch("Bathroom 1 Light Switch", HOME_LIGHT_SWITCHES, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_IN_A5) as HomeUnit<Any>
@@ -281,6 +286,8 @@ class Home : Sensor.HwUnitListener<Any> {
         homeUnitList[temp.name] = temp
         homeUnitList[light.name] = light
         homeUnitList[lightSwitch.name] = lightSwitch
+        room = Room(roomName, 0, listOf(light.name), listOf(lightSwitch.name), ArrayList(), ArrayList(), listOf(temp.name))
+        rooms[room.name] = room
     }
 
     private fun initHardwareUnitList() {

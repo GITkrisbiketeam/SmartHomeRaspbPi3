@@ -153,11 +153,11 @@ object FirebaseHomeInformationRepository : HomeInformationRepository {
     }
 
     override fun <T> saveHomeUnit(homeUnit: HomeUnit<T>): Task<Void> {
-        return referenceHome.child(homeUnit.firebaseTableName).child(homeUnit.name)
+        return referenceHome.child(homeUnit.type).child(homeUnit.name)
                 .setValue(homeUnit)
     }
     override fun <T> deleteHomeUnit(homeUnit: HomeUnit<T>): Task<Void> {
-        return referenceHome.child(homeUnit.firebaseTableName).child(homeUnit.name).removeValue()
+        return referenceHome.child(homeUnit.type).child(homeUnit.name).removeValue()
     }
 
     override fun saveHardwareUnit(hwUnit: HwUnit): Task<Void> {

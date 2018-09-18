@@ -57,9 +57,9 @@ class HomeUnitDetailViewModel(
             Timber.d("init Editing existing HomeUnit")
             homeUnit = homeRepository.homeUnitLiveData(unitType, unitName)
             name = Transformations.map(homeUnit) { unit -> unit.name } as MutableLiveData<String>
-            type = Transformations.map(homeUnit) { unit -> unit.firebaseTableName } as MutableLiveData<String>
+            type = Transformations.map(homeUnit) { unit -> unit.type } as MutableLiveData<String>
             room = Transformations.map(homeUnit) { unit -> unit.room } as MutableLiveData<String>
-            hwUnitName = Transformations.map(homeUnit) { unit -> unit.hardwareUnitName } as MutableLiveData<String>
+            hwUnitName = Transformations.map(homeUnit) { unit -> unit.hwUnitName } as MutableLiveData<String>
             value = Transformations.map(homeUnit) { unit -> unit.value.toString() } as MutableLiveData<String>
             firebaseNotify = Transformations.map(homeUnit) { unit -> unit.firebaseNotify ?: false } as MutableLiveData<Boolean>
 
@@ -128,9 +128,9 @@ class HomeUnitDetailViewModel(
     fun noChangesMade(): Boolean {
         return homeUnit?.value?.let { unit ->
             unit.name == name.value &&
-            unit.firebaseTableName == type.value &&
+            unit.type == type.value &&
             unit.room == room.value &&
-            unit.hardwareUnitName == hwUnitName.value &&
+            unit.hwUnitName == hwUnitName.value &&
             unit.firebaseNotify == firebaseNotify.value &&
             unit.unitsTasks == unitTaskList.value
         } ?: name.value.isNullOrEmpty()
@@ -154,9 +154,9 @@ class HomeUnitDetailViewModel(
             isEditMode.value = false
             homeUnit?.value?.let { unit ->
                 name.value = unit.name
-                type.value = unit.firebaseTableName
+                type.value = unit.type
                 room.value = unit.room
-                hwUnitName.value = unit.hardwareUnitName
+                hwUnitName.value = unit.hwUnitName
                 firebaseNotify.value = unit.firebaseNotify
             }
             false
@@ -182,7 +182,7 @@ class HomeUnitDetailViewModel(
             homeUnit?.value?.let { unit ->
                 if (name.value?.trim().isNullOrEmpty()) {
                     return Pair(R.string.add_edit_home_unit_empty_name, null)
-                } else if (name.value?.trim() != unit.name || type.value?.trim() != unit.firebaseTableName) {
+                } else if (name.value?.trim() != unit.name || type.value?.trim() != unit.type) {
                     return Pair(R.string.add_edit_home_unit_save_with_delete, R.string.overwrite)
                 } else if (noChangesMade()) {
                     return Pair(R.string.add_edit_home_unit_no_changes, null)
@@ -212,8 +212,8 @@ class HomeUnitDetailViewModel(
         Timber.d("saveChanges homeUnit: ${homeUnit?.value} homeRepositoryTask.isComplete: ${homeRepositoryTask?.isComplete}")
         homeRepositoryTask = homeUnit?.value?.let { unit ->
             showProgress.value = true
-            if (name.value != unit.name || type.value != unit.firebaseTableName) {
-                Timber.d("Name or type changed will need to delete old value name=${name.value}, firebaseTableName = ${type.value}")
+            if (name.value != unit.name || type.value != unit.type) {
+                Timber.d("Name or type changed will need to delete old value name=${name.value}, type = ${type.value}")
                 // delete old HomeUnit
                 homeRepository.deleteHomeUnit(unit)
                         .continueWithTask(object : Continuation<Void, Task<Void>> {
@@ -247,9 +247,9 @@ class HomeUnitDetailViewModel(
                                 showProgress.value = true
                                 homeRepository.saveHomeUnit(HomeUnit<Boolean>(
                                         name = name,
-                                        firebaseTableName = type,
+                                        type = type,
                                         room = room,
-                                        hardwareUnitName = hwUnitName,
+                                        hwUnitName = hwUnitName,
                                         firebaseNotify = firebaseNotify,
                                         value = value.value?.toBoolean(),
                                         unitsTasks = unitTaskList

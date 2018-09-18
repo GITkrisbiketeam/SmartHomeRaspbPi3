@@ -47,7 +47,7 @@ class HomeUnitListAdapter : RecyclerView.Adapter<HomeUnitListAdapter.ViewHolder>
                     }
                 }
             }
-            val direction = RoomDetailFragmentDirections.ActionRoomDetailFragmentToHomeUnitDetailFragment(item.room, item.name, item.firebaseTableName)
+            val direction = RoomDetailFragmentDirections.ActionRoomDetailFragmentToHomeUnitDetailFragment(item.room, item.name, item.type)
             view.findNavController().navigate(direction)
         }
     }

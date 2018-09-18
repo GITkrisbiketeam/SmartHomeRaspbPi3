@@ -36,7 +36,7 @@ class HomeUnitsLiveData(private val databaseReference: DatabaseReference, privat
                     Timber.d("onChildAdded (roomName=$roomName)(unit.room=${it.room})")
                     if (roomName == null || roomName == it.room) {
                         // We need to create new SecureStorage unit as the one returned from GenericTypeIndicator is covariant
-                        //value = ChildEventType.NODE_ACTION_ADDED to HomeUnit(it.name, it.firebaseTableName, it.room, it.hardwareUnitName, it.value, it.unitsTasks)//HomeUnit<Any>(it)
+                        //value = ChildEventType.NODE_ACTION_ADDED to HomeUnit(it.name, it.type, it.room, it.hwUnitName, it.value, it.unitsTasks)//HomeUnit<Any>(it)
                         value = ChildEventType.NODE_ACTION_ADDED to it.makeInvariant()
                     }
                 }
@@ -53,7 +53,7 @@ class HomeUnitsLiveData(private val databaseReference: DatabaseReference, privat
                 unit?.let {
                     Timber.d("onChildChanged (roomName=$roomName)(unit.room=${it.room})")
                     if (roomName == null || roomName == it.room) {
-                        //value = ChildEventType.NODE_ACTION_CHANGED to HomeUnit(it.name, it.firebaseTableName, it.room, it.hardwareUnitName, it.value, it.unitsTasks)
+                        //value = ChildEventType.NODE_ACTION_CHANGED to HomeUnit(it.name, it.type, it.room, it.hwUnitName, it.value, it.unitsTasks)
                         value = ChildEventType.NODE_ACTION_CHANGED to it.makeInvariant()
                     }
                 }
@@ -72,7 +72,7 @@ class HomeUnitsLiveData(private val databaseReference: DatabaseReference, privat
                 unit?.let {
                     Timber.d("onChildRemoved (roomName=$roomName)(unit.room=${it.room})")
                     if (roomName == null || roomName == it.room) {
-                        //value = ChildEventType.NODE_ACTION_DELETED to HomeUnit(it.name, it.firebaseTableName, it.room, it.hardwareUnitName, it.value, it.unitsTasks)
+                        //value = ChildEventType.NODE_ACTION_DELETED to HomeUnit(it.name, it.type, it.room, it.hwUnitName, it.value, it.unitsTasks)
                         value = ChildEventType.NODE_ACTION_DELETED to it.makeInvariant()
                     }
                 }

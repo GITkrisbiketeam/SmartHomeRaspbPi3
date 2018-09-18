@@ -38,17 +38,17 @@ val HOME_STORAGE_UNITS: List<String> = listOf(
         HOME_BLINDS)
 
 data class HomeUnit<T>(var name: String = "", // Name should be unique for all units
-                       var firebaseTableName: String = "",
+                       var type: String = "",
                        var room: String = "",
-                       var hardwareUnitName: String = "",
+                       var hwUnitName: String = "",
                        var value: T? = null,
                        var firebaseNotify: Boolean = false,
                        var unitsTasks: List<UnitTask> = ArrayList()) {
     constructor(homeUnit: HomeUnit<T>) : this(
             homeUnit.name,
-            homeUnit.firebaseTableName,
+            homeUnit.type,
             homeUnit.room,
-            homeUnit.hardwareUnitName,
+            homeUnit.hwUnitName,
             homeUnit.value,
             homeUnit.firebaseNotify,
             homeUnit.unitsTasks)
@@ -61,9 +61,9 @@ data class HomeUnit<T>(var name: String = "", // Name should be unique for all u
     fun makeInvariant(): HomeUnit<Any>{
         return HomeUnit<Any>(
                 name,
-                firebaseTableName,
+                type,
                 room,
-                hardwareUnitName,
+                hwUnitName,
                 value,
                 firebaseNotify,
                 unitsTasks)
@@ -71,9 +71,9 @@ data class HomeUnit<T>(var name: String = "", // Name should be unique for all u
     fun makeNotification(): HomeUnit<Any>{
         return HomeUnit<Any>(
                 name,
-                firebaseTableName,
+                type,
                 room,
-                hardwareUnitName,
+                hwUnitName,
                 value)
     }
 }
