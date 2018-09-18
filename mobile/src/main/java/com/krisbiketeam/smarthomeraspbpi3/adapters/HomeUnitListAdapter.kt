@@ -46,7 +46,7 @@ class HomeUnitListAdapter : RecyclerView.Adapter<HomeUnitListAdapter.ViewHolder>
                         return@OnClickListener
                     }
                 }
-            }
+            }*/
             val direction = RoomDetailFragmentDirections.ActionRoomDetailFragmentToHomeUnitDetailFragment(item.room, item.name, item.type)
             view.findNavController().navigate(direction)
         }
