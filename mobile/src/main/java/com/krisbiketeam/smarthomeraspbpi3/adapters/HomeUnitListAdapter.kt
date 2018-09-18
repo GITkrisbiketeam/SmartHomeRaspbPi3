@@ -38,7 +38,7 @@ class HomeUnitListAdapter : RecyclerView.Adapter<HomeUnitListAdapter.ViewHolder>
     private fun createOnClickListener(item: HomeUnit<Any>): View.OnClickListener {
         return View.OnClickListener { view ->
             Timber.d("onClick item: $item")
-            if (item.unitsTasks.find { it.hwUnitName != null } != null) {
+            /*if (item.unitsTasks.find { it.hwUnitName != null } != null) {
                 when (item.value) {
                     is Boolean -> {
                         item.value = (item.value as Boolean).not()
@@ -46,7 +46,7 @@ class HomeUnitListAdapter : RecyclerView.Adapter<HomeUnitListAdapter.ViewHolder>
                         return@OnClickListener
                     }
                 }
-            }
+            }*/
             val direction = RoomDetailFragmentDirections.ActionRoomDetailFragmentToHomeUnitDetailFragment(item.room, item.name, item.firebaseTableName)
             view.findNavController().navigate(direction)
         }
