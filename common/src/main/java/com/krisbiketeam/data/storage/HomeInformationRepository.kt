@@ -2,10 +2,7 @@ package com.krisbiketeam.data.storage
 
 import com.google.android.gms.tasks.Task
 import com.google.firebase.database.FirebaseDatabase
-import com.krisbiketeam.data.storage.dto.HomeUnit
-import com.krisbiketeam.data.storage.dto.HwUnit
-import com.krisbiketeam.data.storage.dto.HwUnitLog
-import com.krisbiketeam.data.storage.dto.Room
+import com.krisbiketeam.data.storage.dto.*
 import com.krisbiketeam.data.storage.firebaseTables.*
 import com.krisbiketeam.data.storage.livedata.*
 
@@ -49,6 +46,16 @@ interface HomeInformationRepository {
      *  Deletes given @see[HwUnit] from hardware module list in DB
      */
     fun deleteHardwareUnit(hwUnit: HwUnit): Task<Void>
+
+    /**
+     *  Saves/updates given @see[UnitTask] in DB
+     */
+    fun saveUnitTask(homeUnitType: String, homeUnitName: String, unitTask: UnitTask): Task<Void>
+
+    /**
+     *  Deletes given @see[UnitTask] from DB
+     */
+    fun deleteUnitTask(homeUnitType: String, homeUnitName: String, unitTask: UnitTask): Task<Void>
 
     /**
      * get instance of @see[HomeUnitsLiveData] for listening to changes in entries in DB
@@ -172,6 +179,14 @@ object FirebaseHomeInformationRepository : HomeInformationRepository {
     override fun deleteHardwareUnit(hwUnit: HwUnit): Task<Void> {
         return referenceHome.child(HOME_HW_UNITS).child(hwUnit.name).removeValue()
     }
+    override fun saveUnitTask(homeUnitType: String, homeUnitName: String, unitTask: UnitTask): Task<Void> {
+        return referenceHome.child(homeUnitType).child(homeUnitName).child(HOME_UNIT_TASKS).child(unitTask.name).setValue(unitTask)
+    }
+
+    override fun deleteUnitTask(homeUnitType: String, homeUnitName: String, unitTask: UnitTask): Task<Void>{
+        return referenceHome.child(homeUnitType).child(homeUnitName).child(HOME_UNIT_TASKS).child(unitTask.name).removeValue()
+    }
+
 
     override fun clearLog() {
         referenceLog.removeValue()

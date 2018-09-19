@@ -15,10 +15,10 @@ class HomeUnitLiveData(private val databaseReference: DatabaseReference, private
         override fun onDataChange(dataSnapshot: DataSnapshot) {
             clazz?.let {
                 // A new value has been added, add it to the displayed list
-                val key = dataSnapshot.key
+                //val key = dataSnapshot.key
 
                 dataSnapshot.getValue(typeIndicator)?.let {homeUnit ->
-                    Timber.d("onDataChange (key=$key)(room=$homeUnit)")
+                    //Timber.d("onDataChange (key=$key)(room=$homeUnit)")
 
                     value = homeUnit
                 }

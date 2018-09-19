@@ -15,7 +15,6 @@ class HomeUnitListLiveData(private val databaseReference: DatabaseReference, pri
         override fun onDataChange(dataSnapshot: DataSnapshot) {
             clazz?.let {
                 // A new value has been added, add it to the displayed list
-                val key = dataSnapshot.key
                 val homeUnits: ArrayList<HomeUnit<Any>> = ArrayList()
                 for (child: DataSnapshot in dataSnapshot.children) {
                     val homeUnit = child.getValue(typeIndicator)
@@ -23,7 +22,7 @@ class HomeUnitListLiveData(private val databaseReference: DatabaseReference, pri
                         homeUnits.add(homeUnit)
                     }
                 }
-                Timber.d("onDataChange (key=$key)(homeUnits=$homeUnits)")
+                //Timber.d("onDataChange (key=${dataSnapshot.key})(homeUnits=$homeUnits)")
                 value = homeUnits
             }
         }

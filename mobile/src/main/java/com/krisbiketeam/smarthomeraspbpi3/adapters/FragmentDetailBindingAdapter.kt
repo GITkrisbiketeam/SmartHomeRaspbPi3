@@ -48,47 +48,44 @@ fun stateBasedVisibility(view: View, pair: Pair<MyLiveDataState, Any>?) {
 @BindingAdapter("entries")
 fun bindEntriesData(spinner: AppCompatSpinner, entries: List<Any>?) {
     // This is for dynamic entries list, like form ViewModel LiveData
-    //Timber.d("bindEntriesData entries: $entries tag: ${spinner.tag}")
+    Timber.d("bindEntriesData entries: $entries tag: ${spinner.tag}")
     if (entries != null) {
         //Add empty first element to list
-        val withEmptyList = entries.toMutableList().apply {
-            add(0,"")
-        }
-        ArrayAdapter(spinner.context,
+        //Add empty element to list to  be able to show blank not selected item
+        object : ArrayAdapter<Any>(spinner.context,
                 android.R.layout.simple_spinner_item,
                 entries.toMutableList().apply {
                     add("")
-                }).
-            apply {
-                setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-                spinner.adapter = this
-                val pos = getPosition(spinner.tag)
-                //Timber.d("bindEntriesData pos: $pos")
-                if (pos in 0 until spinner.count) {
-                    spinner.setSelection(pos)
-                }
+                }) {
+            override fun getCount() = super.getCount() - 1
+        }.apply {
+            setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            spinner.adapter = this
+            val pos = getPosition(spinner.tag)
+            Timber.d("bindEntriesData pos: $pos")
+            if (pos in 0 .. spinner.count) {
+                spinner.setSelection(pos)
             }
+        }
     }
 }
 //TODO: Add custom ArrayAdapter not showing last empty item
 @BindingAdapter("selectedValue", "selectedValueAttrChanged", requireAll=false)
 fun bindSpinnerData(spinner: AppCompatSpinner, newSelectedValue: String?, newTextAttrChanged: InverseBindingListener) {
-    //Timber.d("selectedValue BindingAdapter newSelectedValue: $newSelectedValue")
+    Timber.d("selectedValue BindingAdapter newSelectedValue: $newSelectedValue")
     spinner.apply {
         onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onNothingSelected(parent: AdapterView<*>?) {
-                //Timber.d("selectedValue $newSelectedValue onNothingSelected")
-            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
 
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                //Timber.d("selectedValue $newSelectedValue onItemSelected : $position")
+                Timber.d("selectedValue $newSelectedValue onItemSelected : $position")
                 newTextAttrChanged.onChange()
             }
         }
-        tag = newSelectedValue
+        tag = newSelectedValue?.let{it} ?: ""
         // This is for static entries list
         if (newSelectedValue != null && adapter != null) {
-            //Timber.d("selectedValue $newSelectedValue count : ${adapter.count}")
+            Timber.d("selectedValue $newSelectedValue count : ${adapter.count}")
             for (i in 0 until adapter.count) {
                 if (adapter.getItem(i) == newSelectedValue) {
                     setSelection(i, true)
@@ -100,19 +97,9 @@ fun bindSpinnerData(spinner: AppCompatSpinner, newSelectedValue: String?, newTex
 }
 
 @InverseBindingAdapter(attribute = "selectedValue", event = "selectedValueAttrChanged")
-fun captureSelectedValue(spinner: AppCompatSpinner): String {
-    //Timber.d("selectedValue InverseBindingAdapter ${spinner.selectedItem as String}")
-    return spinner.selectedItem as String
+fun captureSelectedValue(spinner: AppCompatSpinner): String? {
+    Timber.d("selectedValue InverseBindingAdapter ${spinner.selectedItem as String}")
+    return (spinner.selectedItem as String).run {
+        if(isEmpty()) null else this
+    }
 }
-/*
-@BindingAdapter("wateringText")
-fun wateringText(textView: TextView, wateringInterval: Int) {
-    val resources = textView.context.resources
-    val quantityString = resources.getQuantityString(R.plurals.watering_needs_suffix,
-        wateringInterval, wateringInterval)
-
-    textView.text = SpannableStringBuilder()
-        .bold { append(resources.getString(R.string.watering_needs_prefix)) }
-        .append(" ")
-        .italic { append(quantityString) }
-}*/

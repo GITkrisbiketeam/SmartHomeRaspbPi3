@@ -92,6 +92,7 @@
     <string name="unit_task_text_home_unit_select_spinner_prompt">Select Home Unit</string>
     <string name="unit_task_text_hw_unit_name_title">Hw Unit Name:</string>
     <string name="unit_task_text_hw_unit_select_spinner_prompt">Select Hw Unit</string>
+    <string name="unit_task_empty_name_unit_or_hw">Empty Unit Task please fill in required fields</string>
 
 
 </resources>

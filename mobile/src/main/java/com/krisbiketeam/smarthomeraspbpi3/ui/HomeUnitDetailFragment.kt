@@ -53,7 +53,7 @@ class HomeUnitDetailFragment : Fragment() {
             taskList?.let {
                 Timber.d("onCreateView unitTaskList Observer it: $it")
                 // Update UnitTask list
-                homeUnitDetailViewModel.unitTaskListAdapter.submitList(it)
+                homeUnitDetailViewModel.unitTaskListAdapter.submitList(it.values.toMutableList())
             }
         })
 

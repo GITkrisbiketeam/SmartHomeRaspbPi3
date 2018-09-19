@@ -25,14 +25,14 @@ class Home : Sensor.HwUnitListener<Any> {
     private var booleanApplyFunction: HomeUnit<in Boolean>.(Any?) -> Unit = { newVal: Any? ->
         Timber.d("booleanApplyFunction newVal: $newVal this: $this")
         if (newVal is Boolean) {
-            this.unitsTasks.forEach { task ->
+            this.unitsTasks.values.forEach { task ->
                 task.homeUnitName?.let { taskhomeUnitName ->
                     homeUnitList[taskhomeUnitName]?.run {
                         Timber.d("booleanApplyFunction task: $task for homeUnit: $this")
                         this.value = newVal
                         this.applyFunction(newVal)
                         FirebaseHomeInformationRepository.saveHomeUnit(this)
-                        if (firebaseNotify == true){
+                        if (firebaseNotify){
                             Timber.d("homeUnitsDataObserver notify with FCM Message")
                             FirebaseHomeInformationRepository.notifyHomeUnitEvent(this)
                         }
@@ -106,7 +106,7 @@ class Home : Sensor.HwUnitListener<Any> {
                         homeUnit.applyFunction = applyFunction
                         if (homeUnit.value != value) {
                             homeUnit.applyFunction(homeUnit.value)
-                            if (homeUnit.firebaseNotify == true){
+                            if (homeUnit.firebaseNotify){
                                 Timber.d("homeUnitsDataObserver notify with FCM Message")
                                 FirebaseHomeInformationRepository.notifyHomeUnitEvent(homeUnit)
                             }
@@ -227,7 +227,7 @@ class Home : Sensor.HwUnitListener<Any> {
                 }
                 applyFunction(this.value)
                 FirebaseHomeInformationRepository.saveHomeUnit(this)
-                if (firebaseNotify == true){
+                if (firebaseNotify){
                     Timber.d("onUnitChanged notify with FCM Message")
                     FirebaseHomeInformationRepository.notifyHomeUnitEvent(this)
                 }
@@ -249,11 +249,11 @@ class Home : Sensor.HwUnitListener<Any> {
         val pressure = Pressure("Kitchen 1 Press", HOME_PRESSURES, roomName, BoardConfig.TEMP_PRESS_SENSOR_BMP280) as HomeUnit<Any>
 
         var light = Light("Kitchen 1 Light", HOME_LIGHTS, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B0) as HomeUnit<Any>
-        light.unitsTasks = listOf(UnitTask(name = "Turn on HW light", hwUnitName = light.hwUnitName))
+        light.unitsTasks = mapOf(Pair("Turn on HW light",UnitTask(name = "Turn on HW light", hwUnitName = light.hwUnitName)))
         light.applyFunction = booleanApplyFunction
 
         var lightSwitch = LightSwitch("Kitchen 1 Light Switch", HOME_LIGHT_SWITCHES, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_IN_A7) as HomeUnit<Any>
-        lightSwitch.unitsTasks = listOf(UnitTask(name = "Turn on light", homeUnitName = light.name))
+        lightSwitch.unitsTasks = mapOf(Pair("Turn on light", UnitTask(name = "Turn on light", homeUnitName = light.name)))
         lightSwitch.applyFunction = booleanApplyFunction
 
         val reedSwitch = ReedSwitch("Kitchen 1 Reed Switch", HOME_REED_SWITCHES, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_IN_A6) as HomeUnit<Any>
@@ -276,11 +276,11 @@ class Home : Sensor.HwUnitListener<Any> {
         temp = Temperature("Bathroom 1 Temp", HOME_TEMPERATURES, roomName, BoardConfig.TEMP_SENSOR_TMP102) as HomeUnit<Any>
 
         light = Light("Bathroom 1 Light", HOME_LIGHTS, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B7, firebaseNotify = true) as HomeUnit<Any>
-        light.unitsTasks = listOf(UnitTask(name = "Turn on HW light", hwUnitName = light.hwUnitName))
+        light.unitsTasks = mapOf(Pair("Turn on HW light", UnitTask(name = "Turn on HW light", hwUnitName = light.hwUnitName)))
         light.applyFunction = booleanApplyFunction
 
         lightSwitch = LightSwitch("Bathroom 1 Light Switch", HOME_LIGHT_SWITCHES, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_IN_A5) as HomeUnit<Any>
-        lightSwitch.unitsTasks = listOf(UnitTask(name = "Turn on light", homeUnitName = light.name))
+        lightSwitch.unitsTasks = mapOf(Pair("Turn on light", UnitTask(name = "Turn on light", homeUnitName = light.name)))
         lightSwitch.applyFunction = booleanApplyFunction
 
         homeUnitList[temp.name] = temp

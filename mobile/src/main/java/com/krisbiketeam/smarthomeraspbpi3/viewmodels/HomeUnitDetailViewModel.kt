@@ -36,7 +36,7 @@ class HomeUnitDetailViewModel(
     val hwUnitName: MutableLiveData<String>
     val value: MutableLiveData<String>
     val firebaseNotify: MutableLiveData<Boolean>
-    val unitTaskList: LiveData<List<UnitTask>>
+    val unitTaskList: LiveData<Map<String, UnitTask>>
 
 
     val typeList = HOME_STORAGE_UNITS
@@ -57,11 +57,13 @@ class HomeUnitDetailViewModel(
             Timber.d("init Editing existing HomeUnit")
             homeUnit = homeRepository.homeUnitLiveData(unitType, unitName)
             name = Transformations.map(homeUnit) { unit -> unit.name } as MutableLiveData<String>
-            type = Transformations.map(homeUnit) { unit -> unit.type } as MutableLiveData<String>
+            type = Transformations.map(homeUnit) { unit ->
+                Timber.d("init unit.type: ${unit.type}")
+                unit.type } as MutableLiveData<String>
             room = Transformations.map(homeUnit) { unit -> unit.room } as MutableLiveData<String>
             hwUnitName = Transformations.map(homeUnit) { unit -> unit.hwUnitName } as MutableLiveData<String>
             value = Transformations.map(homeUnit) { unit -> unit.value.toString() } as MutableLiveData<String>
-            firebaseNotify = Transformations.map(homeUnit) { unit -> unit.firebaseNotify ?: false } as MutableLiveData<Boolean>
+            firebaseNotify = Transformations.map(homeUnit) { unit -> unit.firebaseNotify } as MutableLiveData<Boolean>
 
             showProgress = Transformations.map(homeUnit) { false } as MutableLiveData<Boolean>
 
@@ -94,7 +96,8 @@ class HomeUnitDetailViewModel(
                         Transformations.map(homeRepository.unitTaskListLiveData(unitType, unitName)) {
                             if (edit) {
                                 Timber.d("init unitTaskList edit it: $it")
-                                val newList = listOf<UnitTask>(*it.toTypedArray(), UnitTask())
+                                val newList = it.toMutableMap()
+                                newList[""] = UnitTask()
                                 Timber.d("init unitTaskList edit newList: $newList")
 
                                 newList
@@ -147,8 +150,8 @@ class HomeUnitDetailViewModel(
             unit.type == type.value &&
             unit.room == room.value &&
             unit.hwUnitName == hwUnitName.value &&
-            unit.firebaseNotify == firebaseNotify.value &&
-            unit.unitsTasks == unitTaskList.value
+            unit.firebaseNotify == firebaseNotify.value/* &&
+            unit.unitsTasks == unitTaskList.value*/
         } ?: name.value.isNullOrEmpty()
         /*?: type.value.isNullOrEmpty()
         ?: room.value.isNullOrEmpty()
@@ -183,7 +186,7 @@ class HomeUnitDetailViewModel(
      * first return param is message Res Id, second return param if present will show dialog with this resource Id as a confirm button text, if not present Snackbar will be show.
      */
     fun actionSave(): Pair<Int, Int?> {
-        Timber.d("tyrSaveChanges addingNewUnit: $addingNewUnit name.value: ${name.value}")
+        Timber.d("actionSave addingNewUnit: $addingNewUnit name.value: ${name.value}")
         if (addingNewUnit) {
             // Adding new HomeUnit
             if (name.value?.trim().isNullOrEmpty()) {
@@ -232,15 +235,13 @@ class HomeUnitDetailViewModel(
                 Timber.d("Name or type changed will need to delete old value name=${name.value}, type = ${type.value}")
                 // delete old HomeUnit
                 homeRepository.deleteHomeUnit(unit)
-                        .continueWithTask(object : Continuation<Void, Task<Void>> {
-                            override fun then(task: Task<Void>): Task<Void> {
-                                return if (task.isCanceled) {
-                                    task
-                                } else {
-                                    doSaveChanges()?: task
-                                }
+                        .continueWithTask { task ->
+                            if (task.isCanceled) {
+                                task
+                            } else {
+                                doSaveChanges()?: task
                             }
-                        })
+                        }
             } else {
                 Timber.e("Save all changes")
                 doSaveChanges()

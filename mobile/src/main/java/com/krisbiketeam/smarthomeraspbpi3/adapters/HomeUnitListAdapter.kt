@@ -5,7 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.navigation.findNavController
-import com.krisbiketeam.data.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.data.storage.dto.HomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentRoomDetailListItemBinding
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomDetailFragmentDirections

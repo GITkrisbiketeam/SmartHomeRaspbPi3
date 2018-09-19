@@ -4,9 +4,10 @@ import android.arch.lifecycle.*
 import com.google.android.gms.tasks.Continuation
 import com.google.android.gms.tasks.Task
 import com.krisbiketeam.data.storage.HomeInformationRepository
-import com.krisbiketeam.data.storage.dto.*
+import com.krisbiketeam.data.storage.dto.HOME_STORAGE_UNITS
+import com.krisbiketeam.data.storage.dto.HwUnit
+import com.krisbiketeam.data.storage.dto.UnitTask
 import com.krisbiketeam.smarthomeraspbpi3.R
-import com.krisbiketeam.smarthomeraspbpi3.adapters.UnitTaskListAdapter
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomDetailFragment
 import timber.log.Timber
 import java.lang.Thread.sleep
@@ -18,8 +19,8 @@ import java.lang.Thread.sleep
 class UnitTaskViewModel(
         private val homeRepository: HomeInformationRepository,
         taskName: String,
-        unitName: String,
-        unitType: String
+        private val unitName: String,
+        private val unitType: String
 ) : ViewModel() {
 
     val showProgress: MutableLiveData<Boolean>
@@ -47,7 +48,7 @@ class UnitTaskViewModel(
     // used for checking if given homeUnit name is not already used
     var unitTaskNameList: LiveData<List<String>>                              // UnitTaskListLiveData
 
-    val addingNewUnit = unitName.isEmpty() && unitType.isEmpty()
+    val addingNewUnit = taskName.isEmpty()
 
 
     // used for checking if given homeUnit name is not already used
@@ -55,11 +56,11 @@ class UnitTaskViewModel(
     val hwUnitNameList: LiveData<List<String>>                              // HwUnitListLiveData
 
     init {
-        Timber.d("init unitName: $unitName unitType: $unitType taskName: $taskName")
+        Timber.d("init taskName: $taskName")
 
         if (!addingNewUnit) {
             Timber.d("init Editing existing HomeUnit")
-            unitTask = Transformations.map(unitTaskList) { taskList -> taskList.find { it.name == taskName }            }
+            unitTask = Transformations.map(unitTaskList) { taskList -> taskList[taskName] }
 
             name = Transformations.map(unitTask) { unit -> unit.name } as MutableLiveData<String>
             homeUnitName = Transformations.map(unitTask) { unit -> unit.homeUnitName } as MutableLiveData<String>
@@ -98,7 +99,7 @@ class UnitTaskViewModel(
         unitTaskNameList = Transformations.switchMap(isEditMode) { edit ->
             Timber.d("init unitTaskNameList isEditMode edit: $edit")
             if (edit) {
-                Transformations.map(unitTaskList) { list -> list.map(UnitTask::name) }
+                Transformations.map(unitTaskList) { list -> list.values.map(UnitTask::name) }
             } else MutableLiveData()
         }
 
@@ -127,6 +128,11 @@ class UnitTaskViewModel(
     }
 
     fun noChangesMade(): Boolean {
+        Timber.d("noChangesMade unitTask?.value: ${unitTask?.value}")
+        Timber.d("noChangesMade name.value: ${name.value}")
+        Timber.d("noChangesMade homeUnitName.value: ${homeUnitName.value}")
+        Timber.d("noChangesMade hwUnitName.value: ${hwUnitName.value}")
+
         return unitTask?.value?.let { unit ->
             unit.name == name.value &&
             unit.homeUnitName == homeUnitName.value &&
@@ -146,7 +152,7 @@ class UnitTaskViewModel(
     }
 
     /**
-     * return true if we want to exit [HomeUnitDetailFragment]
+     * return true if we want to exit [UnitTaskFragment]
      */
     fun actionDiscard(): Boolean {
         return if (addingNewUnit) {
@@ -171,7 +177,7 @@ class UnitTaskViewModel(
      * first return param is message Res Id, second return param if present will show dialog with this resource Id as a confirm button text, if not present Snackbar will be show.
      */
     fun actionSave(): Pair<Int, Int?> {
-        Timber.d("tyrSaveChanges addingNewUnit: $addingNewUnit name.value: ${name.value}")
+        Timber.d("actionSave addingNewUnit: $addingNewUnit name.value: ${name.value}")
         if (addingNewUnit) {
             // Adding new HomeUnit
             if (name.value?.trim().isNullOrEmpty()) {
@@ -184,8 +190,8 @@ class UnitTaskViewModel(
         } else {
             // Editing existing HomeUnit
             unitTask?.value?.let { unit ->
-                if (name.value?.trim().isNullOrEmpty() && homeUnitName.value.isNullOrEmpty() && hwUnitName.value.isNullOrEmpty()) {
-                    return Pair(R.string.add_edit_home_unit_empty_name, null)
+                if (name.value?.trim().isNullOrEmpty() || (homeUnitName.value.isNullOrEmpty() && hwUnitName.value.isNullOrEmpty())) {
+                    return Pair(R.string.unit_task_empty_name_unit_or_hw, null)
                 } else if (noChangesMade()) {
                     return Pair(R.string.add_edit_home_unit_no_changes, null)
                 } else {
@@ -198,35 +204,33 @@ class UnitTaskViewModel(
     }
 
     fun deleteHomeUnit(): Task<Void>? {
-        /*Timber.d("deleteHomeUnit homeUnit: ${unitTask?.value} homeRepositoryTask.isComplete: ${homeRepositoryTask?.isComplete}")
+        Timber.d("deleteHomeUnit homeUnit: ${unitTask?.value} homeRepositoryTask.isComplete: ${homeRepositoryTask?.isComplete}")
         homeRepositoryTask = unitTask?.value?.let { unit ->
             showProgress.value = true
-            homeRepository.deleteHomeUnit(unit)
+            homeRepository.deleteUnitTask(unitType, unitName, unit)
         }?.addOnCompleteListener { task ->
             sleep(1000)
             Timber.d("Task completed")
             showProgress.value = false
-        }*/
+        }
         return homeRepositoryTask
     }
 
     fun saveChanges(): Task<Void>? {
-        /*Timber.d("saveChanges homeUnit: ${unitTask?.value} homeRepositoryTask.isComplete: ${homeRepositoryTask?.isComplete}")
-        homeRepositoryTask = unitTask?.value?.let { unit ->
+        Timber.d("saveChanges homeUnit: ${unitTask?.value} homeRepositoryTask.isComplete: ${homeRepositoryTask?.isComplete}")
+        homeRepositoryTask = unitTask?.value?.let { unitTask ->
             showProgress.value = true
-            if (name.value != unit.name || type.value != unit.firebaseTableName) {
-                Timber.d("Name or type changed will need to delete old value name=${name.value}, firebaseTableName = ${type.value}")
+            if (name.value != unitTask.name) {
+                Timber.d("Name changed, will need to delete old value name=${name.value}")
                 // delete old HomeUnit
-                homeRepository.deleteHomeUnit(unit)
-                        .continueWithTask(object : Continuation<Void, Task<Void>> {
-                            override fun then(task: Task<Void>): Task<Void> {
-                                return if (task.isCanceled) {
-                                    task
-                                } else {
-                                    doSaveChanges() ?: task
-                                }
+                homeRepository.deleteUnitTask(unitType, unitName, unitTask)
+                        .continueWithTask { task ->
+                            if (task.isCanceled) {
+                                task
+                            } else {
+                                doSaveChanges() ?: task
                             }
-                        })
+                        }
             } else {
                 Timber.e("Save all changes")
                 doSaveChanges()
@@ -235,32 +239,21 @@ class UnitTaskViewModel(
             sleep(1000)
             Timber.d("Task completed")
             showProgress.value = false
-        }*/
+        }
         return homeRepositoryTask
     }
 
     fun doSaveChanges(): Task<Void>? {
-        return null /*name.value?.let { name ->
-            type.value?.let { type ->
-                room.value?.let { room ->
-                    hwUnitName.value?.let { hwUnitName ->
-                        firebaseNotify.value?.let { firebaseNotify ->
-                            unitTaskList.value?.let { unitTaskList ->
-                                showProgress.value = true
-                                homeRepository.saveHomeUnit(HomeUnit<Boolean>(
-                                        name = name,
-                                        firebaseTableName = type,
-                                        room = room,
-                                        hardwareUnitName = hwUnitName,
-                                        firebaseNotify = firebaseNotify,
-                                        value = value.value?.toBoolean(),
-                                        unitsTasks = unitTaskList
-                                ))
-                            }
-                        }
-                    }
+        return name.value?.let { name ->
+                    homeRepository.saveUnitTask(unitType, unitName, UnitTask(
+                            name = name,
+                            homeUnitName = homeUnitName.value,
+                            hwUnitName = hwUnitName.value,
+                            delay = delay.value,
+                            duration = duration.value,
+                            period = period.value,
+                            startTime = startTime.value
+                    ))
                 }
-            }
-        }*/
     }
 }

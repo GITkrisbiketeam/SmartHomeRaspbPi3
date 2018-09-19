@@ -9,18 +9,18 @@ import com.krisbiketeam.data.storage.dto.UnitTask
 import timber.log.Timber
 
 
-class UnitTaskListLiveData(private val databaseReference: DatabaseReference, private val type: String, private val name: String) : LiveData<List<UnitTask>>() {
+class UnitTaskListLiveData(private val databaseReference: DatabaseReference, private val type: String, private val name: String) : LiveData<Map<String, UnitTask>>() {
 
     private val roomsListener: ValueEventListener = object: ValueEventListener {
         override fun onDataChange(dataSnapshot: DataSnapshot) {
             // A new value has been added, add it to the displayed list
             val key = dataSnapshot.key
-            val unitTasks: ArrayList<UnitTask> = ArrayList()
+            val unitTasks: MutableMap<String, UnitTask> = HashMap()
             for(r: DataSnapshot in dataSnapshot.children){
                 val unitTask = r.getValue(UnitTask::class.java)
                 Timber.d("onDataChange (key=$key)(unitTask=$unitTask)")
                 unitTask?.let {
-                    unitTasks.add(unitTask)
+                    unitTasks[unitTask.name] = unitTask
                 }
             }
             value = unitTasks
