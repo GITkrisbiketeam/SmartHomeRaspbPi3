@@ -18,7 +18,7 @@ import com.krisbiketeam.data.auth.WifiCredentials
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentSettingsWifiBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.WifiSettingsViewModel
-import org.koin.android.architecture.ext.viewModel
+import org.koin.android.viewmodel.ext.android.viewModel
 import timber.log.Timber
 
 class WifiSettingsFragment : Fragment() {

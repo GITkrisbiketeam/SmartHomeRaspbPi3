@@ -8,7 +8,7 @@ import android.view.*
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.adapters.RoomListAdapter
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.RoomListViewModel
-import org.koin.android.architecture.ext.viewModel
+import org.koin.android.viewmodel.ext.android.viewModel
 
 class RoomListFragment : Fragment() {
 

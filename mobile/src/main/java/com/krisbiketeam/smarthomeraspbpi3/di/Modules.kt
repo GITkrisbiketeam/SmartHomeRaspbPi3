@@ -15,8 +15,8 @@ import com.krisbiketeam.smarthomeraspbpi3.di.Params.HOME_UNIT_TYPE
 import com.krisbiketeam.smarthomeraspbpi3.di.Params.UNIT_TASK_NAME
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.*
 import com.squareup.moshi.Moshi
-import org.koin.android.architecture.ext.viewModel
 import org.koin.android.ext.koin.androidApplication
+import org.koin.android.viewmodel.ext.koin.viewModel
 import org.koin.dsl.module.applicationContext
 
 val myModule = applicationContext {

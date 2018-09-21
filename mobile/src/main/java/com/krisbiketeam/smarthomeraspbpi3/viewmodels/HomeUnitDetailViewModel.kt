@@ -109,7 +109,18 @@ class HomeUnitDetailViewModel(
                         }
                     }
                 }
-                else MutableLiveData()
+                else {
+                    Transformations.switchMap(isEditMode) { edit ->
+                        Timber.d("init adding add new item to unitTaskList isEditMode edit: $edit")
+                        if (edit) {
+                            MutableLiveData<Map<String, UnitTask>>().apply {
+                                value = mutableMapOf(Pair("", UnitTask()))
+                            }//newList
+                        } else {
+                            MutableLiveData<Map<String, UnitTask>>()
+                        }
+                    }
+                }
 
         // LiveDatas for editing mode
         roomNameList =

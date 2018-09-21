@@ -69,12 +69,11 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:clipToPadding="false"
-                    android:paddingLeft="@dimen/margin_small"
-                    android:paddingRight="@dimen/margin_small"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layoutManager="android.support.v7.widget.LinearLayoutManager"
+                    app:addDivider="@{true}"
                     tools:context="com.krisbiketeam.smarthomeraspbpi3.ui.HomeActivity"
                     tools:listitem="@layout/fragment_room_detail_list_item" />
 

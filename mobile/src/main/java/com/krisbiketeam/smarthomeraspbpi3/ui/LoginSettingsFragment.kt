@@ -19,8 +19,8 @@ import com.krisbiketeam.data.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentSettingsLoginBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.LoginSettingsViewModel
-import org.koin.android.architecture.ext.viewModel
 import org.koin.android.ext.android.inject
+import org.koin.android.viewmodel.ext.android.viewModel
 import timber.log.Timber
 
 class LoginSettingsFragment : Fragment() {

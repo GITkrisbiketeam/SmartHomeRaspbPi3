@@ -5,9 +5,15 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <data>
+        <import type="android.view.View" />
+        <import type="java.lang.Boolean" />
+        <import type="com.krisbiketeam.data.storage.firebaseTables.FirebaseTablesKt" />
+        <import type="com.krisbiketeam.data.storage.FirebaseHomeInformationRepository" />
+
         <variable
             name="clickListener"
             type="android.view.View.OnClickListener"/>
+
         <variable
             name="homeUnit"
             type="com.krisbiketeam.data.storage.dto.HomeUnit"/>
@@ -20,16 +26,16 @@
 
         <ImageView
             android:id="@+id/home_unit_item_image"
-            android:layout_width="0dp"
-            android:layout_height="@dimen/plant_item_image_height"
+            android:layout_width="@dimen/room_detail_list_item_image_size"
+            android:layout_height="@dimen/room_detail_list_item_image_size"
             android:layout_marginTop="@dimen/margin_normal"
-            android:layout_marginBottom="@dimen/margin_small"
-            android:layout_marginEnd="@dimen/margin_small"
-            android:layout_marginStart="@dimen/margin_small"
+            android:layout_marginBottom="@dimen/margin_normal"
+            android:layout_marginEnd="@dimen/margin_normal"
+            android:layout_marginStart="@dimen/margin_normal"
             android:contentDescription="@string/room_detail_list_item_image"
             android:scaleType="centerCrop"
             android:src="@drawable/ic_launcher_foreground"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"/>
             <!--app:imageFromUrl="@{homeUnit.imageUrl}"-->
@@ -39,30 +45,43 @@
             android:id="@+id/home_unit_item_title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/margin_normal"
-            android:layout_marginEnd="@dimen/margin_small"
+            android:layout_marginBottom="@dimen/margin_small"
+            android:layout_marginEnd="@dimen/margin_normal"
             android:layout_marginStart="@dimen/margin_small"
-            android:layout_marginTop="@dimen/margin_small"
+            android:layout_marginTop="@dimen/margin_normal"
             android:text="@{homeUnit.name}"
             android:textAppearance="?attr/textAppearanceListItem"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/home_unit_item_image"
+            app:layout_constraintStart_toEndOf="@+id/home_unit_item_image"
+            app:layout_constraintTop_toTopOf="parent"
             tools:text="Storage Unit"/>
+
         <TextView
             android:id="@+id/home_unit_item_value"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/margin_normal"
-            android:layout_marginEnd="@dimen/margin_small"
+            android:layout_marginEnd="@dimen/margin_normal"
             android:layout_marginStart="@dimen/margin_small"
             android:layout_marginTop="@dimen/margin_small"
             android:textAppearance="?attr/textAppearanceListItem"
             android:text="@{String.valueOf(homeUnit.value)}"
+            android:visibility="@{FirebaseTablesKt.HOME_LIGHTS.equals(homeUnit.type) || FirebaseTablesKt.HOME_BLINDS.equals(homeUnit.type) ? View.VISIBLE : View.VISIBLE}"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/home_unit_item_title"
+            app:layout_constraintStart_toEndOf="@+id/home_unit_item_image"
+            app:layout_constraintTop_toBottomOf="@+id/home_unit_item_title"
+            app:layout_constraintBottom_toBottomOf="parent"
             tools:text="Value"/>
+
+        <android.support.v7.widget.SwitchCompat
+            android:id="@+id/home_unit_item_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:setChecked="@{homeUnit.value}"
+            android:visibility="@{FirebaseTablesKt.HOME_LIGHTS.equals(homeUnit.type) || FirebaseTablesKt.HOME_BLINDS.equals(homeUnit.type) ? View.VISIBLE : View.GONE}"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/home_unit_item_title"
+            app:layout_constraintBottom_toBottomOf="parent" />
 
     </android.support.constraint.ConstraintLayout>
 </layout>

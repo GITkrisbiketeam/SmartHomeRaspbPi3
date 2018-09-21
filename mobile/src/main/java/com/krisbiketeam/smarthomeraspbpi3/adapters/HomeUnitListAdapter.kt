@@ -5,17 +5,22 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.navigation.findNavController
+import com.krisbiketeam.data.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.data.storage.dto.HomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentRoomDetailListItemBinding
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomDetailFragmentDirections
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomListFragment
 import timber.log.Timber
+import java.util.*
 
 /**
  * Adapter for the [RecyclerView] in [RoomListFragment].
  */
 class HomeUnitListAdapter : RecyclerView.Adapter<HomeUnitListAdapter.ViewHolder>() {
     val homeUnits: MutableList<HomeUnit<Any>> = mutableListOf()
+    /*val homeUnits: SortedSet<HomeUnit<Any>> = sortedSetOf(Comparator<HomeUnit<Any>> { o1, o2 ->
+        o1.name.compareTo(o2.name)
+    })*/
 
     override fun getItemCount(): Int {
         return homeUnits.size
@@ -37,15 +42,6 @@ class HomeUnitListAdapter : RecyclerView.Adapter<HomeUnitListAdapter.ViewHolder>
     private fun createOnClickListener(item: HomeUnit<Any>): View.OnClickListener {
         return View.OnClickListener { view ->
             Timber.d("onClick item: $item")
-            /*if (item.unitsTasks.find { it.hwUnitName != null } != null) {
-                when (item.value) {
-                    is Boolean -> {
-                        item.value = (item.value as Boolean).not()
-                        FirebaseHomeInformationRepository.saveHomeUnit(item)
-                        return@OnClickListener
-                    }
-                }
-            }*/
             val direction = RoomDetailFragmentDirections.ActionRoomDetailFragmentToHomeUnitDetailFragment(item.room, item.name, item.type)
             view.findNavController().navigate(direction)
         }
@@ -70,6 +66,14 @@ class HomeUnitListAdapter : RecyclerView.Adapter<HomeUnitListAdapter.ViewHolder>
             binding.apply {
                 clickListener = listener
                 homeUnit = item
+                homeUnitItemSwitch.setOnCheckedChangeListener { _, isChecked ->
+                    Timber.d("OnCheckedChangeListener isChecked: $isChecked item: $item")
+                    homeUnit?.apply {
+                        value = isChecked
+                        FirebaseHomeInformationRepository.saveHomeUnit(this)
+                    }
+                }
+
                 executePendingBindings()
             }
         }

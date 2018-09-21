@@ -4,6 +4,7 @@ import android.arch.lifecycle.Observer
 import android.databinding.DataBindingUtil
 import android.os.Bundle
 import android.support.v4.app.Fragment
+import android.support.v7.widget.DividerItemDecoration
 import android.view.*
 import androidx.navigation.fragment.findNavController
 import com.krisbiketeam.data.storage.ChildEventType
@@ -13,8 +14,8 @@ import com.krisbiketeam.smarthomeraspbpi3.adapters.HomeUnitListAdapter
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentRoomDetailBinding
 import com.krisbiketeam.smarthomeraspbpi3.di.Params.ROOM_NAME
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.RoomDetailViewModel
-import org.koin.android.architecture.ext.getViewModel
 import org.koin.android.ext.android.setProperty
+import org.koin.android.viewmodel.ext.android.getViewModel
 import timber.log.Timber
 
 /**
@@ -76,6 +77,9 @@ class RoomDetailFragment : Fragment() {
                     }
                     ChildEventType.NODE_ACTION_ADDED -> {
                         Timber.d("homeUnitsDataObserver NODE_ACTION_ADDED")
+                        /*val idx = adapter.homeUnits.addSorted(unit)
+                        Timber.d("homeUnitsDataObserver NODE_ACTION_ADDED idx: $idx")
+                        adapter.notifyItemInserted(idx)*/
                         adapter.homeUnits.add(unit)
                         adapter.notifyItemInserted(adapter.itemCount - 1)
                     }
@@ -97,7 +101,17 @@ class RoomDetailFragment : Fragment() {
             }
         })
     }
-
+    fun MutableList<HomeUnit<Any>>.addSorted(homeUnit: HomeUnit<Any>): Int{
+        forEachIndexed { index, unit ->
+            Timber.e("addSorted index: $index unit.name: ${unit.name} homeUnit.name: ${homeUnit.name}")
+            if (unit.name.compareTo(homeUnit.name)<0) {
+                add(index, homeUnit)
+                return index
+            }
+        }
+        add(homeUnit)
+        return 0
+    }
     override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
         inflater?.inflate(R.menu.menu_room_detail, menu)
         super.onCreateOptionsMenu(menu, inflater)

@@ -12,7 +12,7 @@ import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.databinding.ActivityHomeBinding
 import com.krisbiketeam.smarthomeraspbpi3.databinding.NavHeaderBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.NavigationViewModel
-import org.koin.android.architecture.ext.viewModel
+import org.koin.android.viewmodel.ext.android.viewModel
 
 class HomeActivity  : AppCompatActivity() {
     private lateinit var drawerLayout: DrawerLayout

@@ -9,7 +9,7 @@ import androidx.navigation.fragment.findNavController
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentHwUnitListBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.HwUnitListViewModel
-import org.koin.android.architecture.ext.viewModel
+import org.koin.android.viewmodel.ext.android.viewModel
 
 
 class HwUnitListFragment : Fragment() {

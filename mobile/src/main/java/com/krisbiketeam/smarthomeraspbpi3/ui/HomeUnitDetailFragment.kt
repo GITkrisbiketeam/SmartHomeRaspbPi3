@@ -14,8 +14,8 @@ import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentHomeUnitDetailBinding
 import com.krisbiketeam.smarthomeraspbpi3.di.Params
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.HomeUnitDetailViewModel
-import org.koin.android.architecture.ext.getViewModel
 import org.koin.android.ext.android.setProperty
+import org.koin.android.viewmodel.ext.android.getViewModel
 import timber.log.Timber
 
 class HomeUnitDetailFragment : Fragment() {

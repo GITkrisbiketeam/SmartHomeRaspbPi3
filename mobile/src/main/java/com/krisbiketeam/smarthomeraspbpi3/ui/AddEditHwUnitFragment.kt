@@ -8,7 +8,7 @@ import android.view.*
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentAddEditHwUnitBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.AddEditHwUnitViewModel
-import org.koin.android.architecture.ext.viewModel
+import org.koin.android.viewmodel.ext.android.viewModel
 import timber.log.Timber
 
 class AddEditHwUnitFragment : Fragment() {
