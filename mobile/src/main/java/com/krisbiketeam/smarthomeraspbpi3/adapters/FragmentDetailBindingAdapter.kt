@@ -71,7 +71,7 @@ fun bindEntriesData(spinner: AppCompatSpinner, entries: List<Any>?) {
                     setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
                     spinner.adapter = this
                     val pos = getPosition(spinner.tag)
-                    Timber.d("bindEntriesData pos: $pos")
+                    Timber.d("bindEntriesData pos: $pos spinner.tag: ${spinner.tag}")
                     if (pos in 0 .. spinner.count) {
                         spinner.setSelection(pos, false)
                     } else {
@@ -84,7 +84,7 @@ fun bindEntriesData(spinner: AppCompatSpinner, entries: List<Any>?) {
 @BindingAdapter("entriesWithEmpty")
 fun bindEntriesWithEmptyData(spinner: AppCompatSpinner, entries: List<Any>?) {
     // This is for dynamic entries list, like form ViewModel LiveData
-    Timber.d("bindEntriesData entries: $entries tag: ${spinner.tag}")
+    Timber.d("entriesWithEmpty entries: $entries tag: ${spinner.tag}")
     if (entries != null) {
         //Add empty first element to list
         //Add empty element to list to  be able to show blank not selected item
@@ -97,11 +97,11 @@ fun bindEntriesWithEmptyData(spinner: AppCompatSpinner, entries: List<Any>?) {
                 setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
                 spinner.adapter = this
                 val pos = getPosition(spinner.tag)
-                Timber.d("bindEntriesData pos: $pos")
-                if (pos in 0 .. spinner.count) {
+                Timber.d("entriesWithEmpty pos: $pos")
+                if (pos in 0 .. spinner.count-1) {
                     spinner.setSelection(pos, false)
                 } else {
-                    spinner.setSelection(spinner.count, false)
+                    spinner.setSelection(spinner.count-1, false)
                 }
             }
     }

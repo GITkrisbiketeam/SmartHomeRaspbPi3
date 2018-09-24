@@ -5,6 +5,7 @@ import com.google.firebase.database.FirebaseDatabase
 import com.krisbiketeam.data.storage.dto.*
 import com.krisbiketeam.data.storage.firebaseTables.*
 import com.krisbiketeam.data.storage.livedata.*
+import timber.log.Timber
 
 
 interface HomeInformationRepository {
@@ -165,6 +166,7 @@ object FirebaseHomeInformationRepository : HomeInformationRepository {
     }
 
     override fun <T> saveHomeUnit(homeUnit: HomeUnit<T>): Task<Void> {
+        Timber.w("saveHomeUnit $homeUnit")
         return referenceHome.child(homeUnit.type).child(homeUnit.name)
                 .setValue(homeUnit)
     }

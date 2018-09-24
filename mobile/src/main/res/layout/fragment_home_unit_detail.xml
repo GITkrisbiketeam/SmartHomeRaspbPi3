@@ -107,7 +107,7 @@
                         app:selectedValue="@={viewModel.type}" />
 
                     <TextView
-                        android:id="@+id/unit_type_spinner_text"
+                        android:id="@+id/unit_name_title_text"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:gravity="center_vertical"

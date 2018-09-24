@@ -4,18 +4,16 @@ import android.arch.lifecycle.Observer
 import android.databinding.DataBindingUtil
 import android.os.Bundle
 import android.support.v4.app.Fragment
-import android.support.v7.widget.DividerItemDecoration
 import android.view.*
 import androidx.navigation.fragment.findNavController
 import com.krisbiketeam.data.storage.ChildEventType
 import com.krisbiketeam.data.storage.dto.HomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.R
-import com.krisbiketeam.smarthomeraspbpi3.adapters.HomeUnitListAdapter
+import com.krisbiketeam.smarthomeraspbpi3.adapters.RoomDetailHomeUnitListAdapter
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentRoomDetailBinding
-import com.krisbiketeam.smarthomeraspbpi3.di.Params.ROOM_NAME
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.RoomDetailViewModel
-import org.koin.android.ext.android.setProperty
-import org.koin.android.viewmodel.ext.android.getViewModel
+import org.koin.android.viewmodel.ext.android.viewModel
+import org.koin.core.parameter.parametersOf
 import timber.log.Timber
 
 /**
@@ -23,17 +21,19 @@ import timber.log.Timber
  */
 class RoomDetailFragment : Fragment() {
 
-    private lateinit var roomDetailViewModel: RoomDetailViewModel
+    private val roomDetailViewModel: RoomDetailViewModel by viewModel { parametersOf(RoomDetailFragmentArgs.fromBundle(arguments).roomName) }
+
+    init {
+        Timber.w("init $this")
+    }
 
     override fun onCreateView(
             inflater: LayoutInflater,
             container: ViewGroup?,
             savedInstanceState: Bundle?
     ): View? {
-        // set ROOM_NAME property fo Koin injection
-        setProperty(ROOM_NAME, RoomDetailFragmentArgs.fromBundle(arguments).roomName)
-        roomDetailViewModel = getViewModel()
 
+        Timber.w("onCreateView $this")
         val binding: FragmentRoomDetailBinding = DataBindingUtil.inflate<FragmentRoomDetailBinding>(
                 inflater, R.layout.fragment_room_detail, container, false).apply {
             viewModel = roomDetailViewModel
@@ -43,7 +43,7 @@ class RoomDetailFragment : Fragment() {
                         roomDetailViewModel.room.value?.name ?: "", "", "")
                 findNavController().navigate(direction)
             }
-            val adapter = HomeUnitListAdapter()
+            val adapter = RoomDetailHomeUnitListAdapter()
             homeUnitList.adapter = adapter
             subscribeUi(adapter)
         }
@@ -61,7 +61,7 @@ class RoomDetailFragment : Fragment() {
         return binding.root
     }
 
-    private fun subscribeUi(adapter: HomeUnitListAdapter) {
+    private fun subscribeUi(adapter: RoomDetailHomeUnitListAdapter) {
         roomDetailViewModel.homeUnits.observe(viewLifecycleOwner, Observer<Pair<ChildEventType, HomeUnit<Any>>> { pair ->
             pair?.let { (action, unit) ->
                 Timber.d("subscribeUi action: $action; unit: $unit")
@@ -76,12 +76,12 @@ class RoomDetailFragment : Fragment() {
                         }
                     }
                     ChildEventType.NODE_ACTION_ADDED -> {
-                        Timber.d("homeUnitsDataObserver NODE_ACTION_ADDED")
-                        /*val idx = adapter.homeUnits.addSorted(unit)
-                        Timber.d("homeUnitsDataObserver NODE_ACTION_ADDED idx: $idx")
-                        adapter.notifyItemInserted(idx)*/
-                        adapter.homeUnits.add(unit)
-                        adapter.notifyItemInserted(adapter.itemCount - 1)
+                        Timber.d("homeUnitsDataObserver NODE_ACTION_ADDED list: ${adapter.homeUnits}")
+                        val idx = adapter.homeUnits.addSorted(unit)
+                        if (idx >= 0) {
+                            Timber.d("homeUnitsDataObserver NODE_ACTION_ADDED idx: $idx")
+                            adapter.notifyItemInserted(idx)
+                        }
                     }
                     ChildEventType.NODE_ACTION_DELETED -> {
                         val idx = adapter.getItemIdx(unit)
@@ -101,17 +101,22 @@ class RoomDetailFragment : Fragment() {
             }
         })
     }
-    fun MutableList<HomeUnit<Any>>.addSorted(homeUnit: HomeUnit<Any>): Int{
+
+    fun MutableList<HomeUnit<Any>>.addSorted(homeUnit: HomeUnit<Any>): Int {
+        if (contains(homeUnit)) {
+            Timber.e("addSorted this unit is already on the list")
+            return -1
+        }
         forEachIndexed { index, unit ->
-            Timber.e("addSorted index: $index unit.name: ${unit.name} homeUnit.name: ${homeUnit.name}")
-            if (unit.name.compareTo(homeUnit.name)<0) {
+            if (unit.name.compareTo(homeUnit.name) >= 0) {
                 add(index, homeUnit)
                 return index
             }
         }
         add(homeUnit)
-        return 0
+        return size - 1
     }
+
     override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
         inflater?.inflate(R.menu.menu_room_detail, menu)
         super.onCreateOptionsMenu(menu, inflater)

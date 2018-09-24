@@ -9,40 +9,30 @@ import com.krisbiketeam.data.nearby.NearbyServiceProvider
 import com.krisbiketeam.data.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.data.storage.NotSecureStorage
 import com.krisbiketeam.data.storage.SecureStorage
-import com.krisbiketeam.smarthomeraspbpi3.di.Params.ROOM_NAME
-import com.krisbiketeam.smarthomeraspbpi3.di.Params.HOME_UNIT_NAME
-import com.krisbiketeam.smarthomeraspbpi3.di.Params.HOME_UNIT_TYPE
-import com.krisbiketeam.smarthomeraspbpi3.di.Params.UNIT_TASK_NAME
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.*
 import com.squareup.moshi.Moshi
 import org.koin.android.ext.koin.androidApplication
 import org.koin.android.viewmodel.ext.koin.viewModel
-import org.koin.dsl.module.applicationContext
+import org.koin.dsl.module.Module
+import org.koin.dsl.module.module
 
-val myModule = applicationContext {
+val myModule: Module = module {
     viewModel { RoomListViewModel(FirebaseHomeInformationRepository) }
-    viewModel { RoomDetailViewModel(FirebaseHomeInformationRepository, getProperty(ROOM_NAME)) }
-    viewModel { HomeUnitDetailViewModel(FirebaseHomeInformationRepository, getProperty(ROOM_NAME), getProperty(HOME_UNIT_NAME), getProperty(HOME_UNIT_TYPE)) }
-    viewModel { UnitTaskViewModel(FirebaseHomeInformationRepository, getProperty(UNIT_TASK_NAME), getProperty(HOME_UNIT_NAME), getProperty(HOME_UNIT_TYPE)) }
+    viewModel { (roomName: String) -> RoomDetailViewModel(FirebaseHomeInformationRepository, roomName) }
+    viewModel { (roomName: String, homeUnitame: String, homeUnitType:String) -> HomeUnitDetailViewModel(FirebaseHomeInformationRepository, roomName, homeUnitame, homeUnitType) }
+    viewModel { (taskName: String, homeUnitame: String, homeUnitType:String) -> UnitTaskViewModel(FirebaseHomeInformationRepository, taskName, homeUnitame, homeUnitType) }
     viewModel { WifiSettingsViewModel(get()) }
     viewModel { LoginSettingsViewModel(get(), get()) }
     viewModel { NavigationViewModel(get()) }
     viewModel { AddEditHwUnitViewModel(FirebaseHomeInformationRepository) }
     viewModel { HwUnitListViewModel(FirebaseHomeInformationRepository) }
 
-    bean { NotSecureStorage(androidApplication()) as SecureStorage }
-    bean { FirebaseAuthentication() as Authentication }
-    bean { Moshi.Builder().build() as Moshi}
+    single { NotSecureStorage(androidApplication()) as SecureStorage }
+    single { FirebaseAuthentication() as Authentication }
+    single { Moshi.Builder().build() as Moshi}
 
     factory { AuthenticationLiveData(get()) }
 
     factory { NearbyServiceLiveData(get()) }
     factory { NearbyServiceProvider(androidApplication(), get()) as NearbyService }
-}
-
-object Params {
-    const val ROOM_NAME = "room_name"
-    const val HOME_UNIT_NAME = "home_unit_name"
-    const val HOME_UNIT_TYPE = "home_unit_type"
-    const val UNIT_TASK_NAME = "unit_task_name"
 }

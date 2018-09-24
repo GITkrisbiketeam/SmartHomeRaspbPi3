@@ -21,7 +21,7 @@ private const val VIEW_TYPE_ADD_NEW = 1
  * Adapter for the [RecyclerView] in [HomeUnitDetailFragment].
  */
 class UnitTaskListAdapter(private val unitName: String,
-                          private val unitType: String) : ListAdapter<UnitTask, UnitTaskListAdapter.ViewHolder>(UnitTaskListAdapterDiffCallback()) {
+                          private val unitType: String) : ListAdapter<UnitTask, UnitTaskListAdapter.ViewHolder>(HomeUnitUnitTaskListAdapterDiffCallback()) {
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val unitTask = getItem(position)

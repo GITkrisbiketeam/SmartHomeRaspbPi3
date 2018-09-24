@@ -14,27 +14,24 @@ import android.view.*
 import androidx.navigation.fragment.findNavController
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentUnitTaskBinding
-import com.krisbiketeam.smarthomeraspbpi3.di.Params
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.UnitTaskViewModel
-import org.koin.android.ext.android.setProperty
-import org.koin.android.viewmodel.ext.android.getViewModel
+import org.koin.android.viewmodel.ext.android.viewModel
+import org.koin.core.parameter.parametersOf
 import timber.log.Timber
 
 
 class UnitTaskFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var listener: OnFragmentInteractionListener? = null
-    private lateinit var unitTaskViewModel: UnitTaskViewModel
+    private val unitTaskViewModel: UnitTaskViewModel by viewModel {
+        parametersOf(
+                UnitTaskFragmentArgs.fromBundle(arguments).taskName,
+                UnitTaskFragmentArgs.fromBundle(arguments).homeUnitName,
+                UnitTaskFragmentArgs.fromBundle(arguments).homeUnitType)
+    }
+
     private lateinit var rootBinding: FragmentUnitTaskBinding
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
-        // set UNIT_TASK_NAME, HOME_UNIT_NAME and TYPEproperty fo Koin injection
-        setProperty(Params.UNIT_TASK_NAME, UnitTaskFragmentArgs.fromBundle(arguments).taskName)
-        setProperty(Params.HOME_UNIT_NAME, UnitTaskFragmentArgs.fromBundle(arguments).homeUnitName)
-        setProperty(Params.HOME_UNIT_TYPE, UnitTaskFragmentArgs.fromBundle(arguments).homeUnitType)
-        unitTaskViewModel = getViewModel()
-
         rootBinding = DataBindingUtil.inflate<FragmentUnitTaskBinding>(
                 inflater, R.layout.fragment_unit_task, container, false).apply {
             viewModel = unitTaskViewModel
@@ -148,40 +145,5 @@ class UnitTaskFragment : Fragment() {
                     .setNegativeButton(R.string.cancel) { _, _ -> }
                     .show()
         }
-    }
-
-    // TODO: Rename method, update argument and hook method into UI event
-    fun onButtonPressed(uri: Uri) {
-        listener?.onFragmentInteraction(uri)
-    }
-
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        if (context is OnFragmentInteractionListener) {
-            listener = context
-        } else {
-            //throw RuntimeException(context.toString() + " must implement OnFragmentInteractionListener")
-        }
-    }
-
-    override fun onDetach() {
-        super.onDetach()
-        listener = null
-    }
-
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     *
-     *
-     * See the Android Training lesson [Communicating with Other Fragments]
-     * (http://developer.android.com/training/basics/fragments/communicating.html)
-     * for more information.
-     */
-    interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        fun onFragmentInteraction(uri: Uri)
     }
 }

@@ -11,16 +11,12 @@ import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentRoomDetailListItem
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomDetailFragmentDirections
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomListFragment
 import timber.log.Timber
-import java.util.*
 
 /**
  * Adapter for the [RecyclerView] in [RoomListFragment].
  */
-class HomeUnitListAdapter : RecyclerView.Adapter<HomeUnitListAdapter.ViewHolder>() {
+class RoomDetailHomeUnitListAdapter : RecyclerView.Adapter<RoomDetailHomeUnitListAdapter.ViewHolder>() {
     val homeUnits: MutableList<HomeUnit<Any>> = mutableListOf()
-    /*val homeUnits: SortedSet<HomeUnit<Any>> = sortedSetOf(Comparator<HomeUnit<Any>> { o1, o2 ->
-        o1.name.compareTo(o2.name)
-    })*/
 
     override fun getItemCount(): Int {
         return homeUnits.size
@@ -69,8 +65,10 @@ class HomeUnitListAdapter : RecyclerView.Adapter<HomeUnitListAdapter.ViewHolder>
                 homeUnitItemSwitch.setOnCheckedChangeListener { _, isChecked ->
                     Timber.d("OnCheckedChangeListener isChecked: $isChecked item: $item")
                     homeUnit?.apply {
-                        value = isChecked
-                        FirebaseHomeInformationRepository.saveHomeUnit(this)
+                        if (value != isChecked) {
+                            value = isChecked
+                            FirebaseHomeInformationRepository.saveHomeUnit(this)
+                        }
                     }
                 }
 

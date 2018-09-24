@@ -55,6 +55,8 @@
     <string name="add_edit_home_unit_overwrite_changes">Do you want to overwrite changes?</string>
     <string name="add_edit_home_unit_save_changes">Do you want to save new HomeUnit?</string>
     <string name="add_edit_home_unit_empty_name">Home Unit name cannot be empty</string>
+    <string name="add_edit_home_unit_empty_unit_type">Unit Type cannot be empty</string>
+    <string name="add_edit_home_unit_empty_unit_hw_unit">Hardware Unit cannot be empty</string>
     <string name="add_edit_home_unit_delete_home_unit_prompt">Do you really want to delete this Home Unit?</string>
     <string name="add_edit_home_unit_notify_firebase_switch_text">Notify remote App about this Home Unit changes?</string>
     <string name="add_edit_home_unit_discard_changes">Discard any changes?</string>

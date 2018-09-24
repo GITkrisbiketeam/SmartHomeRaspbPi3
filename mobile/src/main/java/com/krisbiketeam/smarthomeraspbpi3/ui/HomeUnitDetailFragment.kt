@@ -12,14 +12,19 @@ import android.view.*
 import androidx.navigation.fragment.findNavController
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentHomeUnitDetailBinding
-import com.krisbiketeam.smarthomeraspbpi3.di.Params
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.HomeUnitDetailViewModel
-import org.koin.android.ext.android.setProperty
-import org.koin.android.viewmodel.ext.android.getViewModel
+import org.koin.android.viewmodel.ext.android.viewModel
+import org.koin.core.parameter.parametersOf
 import timber.log.Timber
 
 class HomeUnitDetailFragment : Fragment() {
-    private lateinit var homeUnitDetailViewModel: HomeUnitDetailViewModel
+    private val homeUnitDetailViewModel: HomeUnitDetailViewModel by viewModel {
+        parametersOf(
+                HomeUnitDetailFragmentArgs.fromBundle(arguments).roomName,
+                HomeUnitDetailFragmentArgs.fromBundle(arguments).homeUnitName,
+                HomeUnitDetailFragmentArgs.fromBundle(arguments).homeUnitType)
+    }
+
     private lateinit var rootBinding: FragmentHomeUnitDetailBinding
 
     override fun onCreateView(
@@ -27,11 +32,6 @@ class HomeUnitDetailFragment : Fragment() {
             container: ViewGroup?,
             savedInstanceState: Bundle?
     ): View? {
-        // set HOME_UNIT_NAME and TYPE property fo Koin injection
-        setProperty(Params.HOME_UNIT_NAME, HomeUnitDetailFragmentArgs.fromBundle(arguments).homeUnitName)
-        setProperty(Params.HOME_UNIT_TYPE, HomeUnitDetailFragmentArgs.fromBundle(arguments).homeUnitType)
-        homeUnitDetailViewModel = getViewModel()
-
         rootBinding = DataBindingUtil.inflate<FragmentHomeUnitDetailBinding>(
                 inflater, R.layout.fragment_home_unit_detail, container, false).apply {
             viewModel = homeUnitDetailViewModel
@@ -39,7 +39,7 @@ class HomeUnitDetailFragment : Fragment() {
         }
 
         homeUnitDetailViewModel.isEditMode.observe(viewLifecycleOwner, Observer { isEditMode ->
-            // in Edit Mode we need to listen for homeUnitNameList, as there is no reference in xml layout to trigger its observer, but can we find some better way
+            // in Edit Mode we need to listen for homeUnitNameList, as there is no reference in xml layout to trigger its observer, but can we find some better way???
             if (isEditMode == true) {
                 homeUnitDetailViewModel.homeUnitNameList.observe(viewLifecycleOwner, Observer { })
             } else {

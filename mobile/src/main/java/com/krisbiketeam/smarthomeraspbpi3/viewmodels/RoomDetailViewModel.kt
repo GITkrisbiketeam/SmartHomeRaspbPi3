@@ -22,7 +22,7 @@ class RoomDetailViewModel(
 
 
     init {
-        Timber.d("init")
+        Timber.d("init roomName: $roomName")
 
         room = homeRepository.roomLiveData(roomName)
         homeUnits = homeRepository.homeUnitsLiveData(roomName)

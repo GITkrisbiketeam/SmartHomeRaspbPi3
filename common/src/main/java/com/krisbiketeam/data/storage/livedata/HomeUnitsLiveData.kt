@@ -31,7 +31,7 @@ class HomeUnitsLiveData(private val databaseReference: DatabaseReference, privat
             val key = dataSnapshot.key
             typeIndicatorMap[childNode]?.run {
                 val unit = dataSnapshot.getValue(this)
-                Timber.d("onChildAdded (key=$key)(unit=$unit)")
+                Timber.d("onChildAdded (key=$key)(unit=${unit?.name})")
                 unit?.let {
                     Timber.d("onChildAdded (roomName=$roomName)(unit.room=${it.room})")
                     if (roomName == null || roomName == it.room) {
@@ -94,6 +94,7 @@ class HomeUnitsLiveData(private val databaseReference: DatabaseReference, privat
         override fun onCancelled(databaseError: DatabaseError) {
             Timber.w("onCancelled: $databaseError")
         }
+
     }
 
     override fun onActive() {

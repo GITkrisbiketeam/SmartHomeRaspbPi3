@@ -39,7 +39,7 @@ class HomeUnitDetailViewModel(
     val unitTaskList: LiveData<Map<String, UnitTask>>
 
 
-    val typeList = HOME_STORAGE_UNITS
+    val typeList: LiveData<List<String>>
     val roomNameList: LiveData<List<String>>                                // RoomListLiveData
     val hwUnitNameList: LiveData<List<String>>                              // HwUnitListLiveData
 
@@ -87,7 +87,12 @@ class HomeUnitDetailViewModel(
             showProgress.value = false
             isEditMode.value = true
         }
-
+        typeList = Transformations.switchMap(isEditMode) { edit ->
+            Timber.d("init roomNameList isEditMode edit: $edit")
+            if (edit)
+                MutableLiveData<List<String>>().apply { value = HOME_STORAGE_UNITS}
+            else MutableLiveData()
+        }
         // Decide how to handle this list
         unitTaskList =
                 if (!addingNewUnit) {
@@ -112,13 +117,14 @@ class HomeUnitDetailViewModel(
                 else {
                     Transformations.switchMap(isEditMode) { edit ->
                         Timber.d("init adding add new item to unitTaskList isEditMode edit: $edit")
-                        if (edit) {
+                        // We cannot add option to Add new Task before Home Unit is saved as there will not be where to save ne UnitTask
+                        /*if (edit) {
                             MutableLiveData<Map<String, UnitTask>>().apply {
                                 value = mutableMapOf(Pair("", UnitTask()))
                             }//newList
-                        } else {
+                        } else {*/
                             MutableLiveData<Map<String, UnitTask>>()
-                        }
+                        //}
                     }
                 }
 
@@ -144,7 +150,7 @@ class HomeUnitDetailViewModel(
             Timber.d("init homeUnitNameList isEditMode edit: $edit")
             if (edit) {
                 MediatorLiveData<MutableList<String>>().apply {
-                    typeList.forEach { type ->
+                    typeList.value?.forEach { type ->
                         addSource(homeRepository.homeUnitListLiveData(type)) { homeUnitList ->
                             value = value ?: ArrayList()
                             value?.addAll(homeUnitList?.map { it.name } ?: emptyList())
@@ -202,6 +208,10 @@ class HomeUnitDetailViewModel(
             // Adding new HomeUnit
             if (name.value?.trim().isNullOrEmpty()) {
                 return Pair(R.string.add_edit_home_unit_empty_name, null)
+            }else if (type.value?.trim().isNullOrEmpty()) {
+                return Pair(R.string.add_edit_home_unit_empty_unit_type, null)
+            }else if (hwUnitName.value?.trim().isNullOrEmpty()) {
+                return Pair(R.string.add_edit_home_unit_empty_unit_hw_unit, null)
             } else if (homeUnitNameList.value?.contains(name.value?.trim()) == true) {
                 //This name is already used
                 Timber.d("This name is already used")
@@ -242,20 +252,13 @@ class HomeUnitDetailViewModel(
         Timber.d("saveChanges homeUnit: ${homeUnit?.value} homeRepositoryTask.isComplete: ${homeRepositoryTask?.isComplete}")
         homeRepositoryTask = homeUnit?.value?.let { unit ->
             showProgress.value = true
-            if (name.value != unit.name || type.value != unit.type) {
-                Timber.d("Name or type changed will need to delete old value name=${name.value}, type = ${type.value}")
-                // delete old HomeUnit
-                homeRepository.deleteHomeUnit(unit)
-                        .continueWithTask { task ->
-                            if (task.isCanceled) {
-                                task
-                            } else {
-                                doSaveChanges()?: task
-                            }
-                        }
-            } else {
-                Timber.e("Save all changes")
-                doSaveChanges()
+            Timber.e("Save all changes")
+            doSaveChanges().apply {
+                if (name.value != unit.name || type.value != unit.type) {
+                    Timber.d("Name or type changed will need to delete old value name=${name.value}, type = ${type.value}")
+                    // delete old HomeUnit
+                    this?.continueWithTask { task -> homeRepository.deleteHomeUnit(unit)}
+                }
             }
         } ?: doSaveChanges()?.addOnCompleteListener { task ->
             sleep(1000)
@@ -271,7 +274,7 @@ class HomeUnitDetailViewModel(
                 room.value?.let { room ->
                     hwUnitName.value?.let { hwUnitName ->
                         firebaseNotify.value?.let { firebaseNotify ->
-                            unitTaskList.value?.let { unitTaskList ->
+                            //unitTaskList.value?.let { unitTaskList ->
                                 showProgress.value = true
                                 homeRepository.saveHomeUnit(HomeUnit<Boolean>(
                                         name = name,
@@ -279,10 +282,10 @@ class HomeUnitDetailViewModel(
                                         room = room,
                                         hwUnitName = hwUnitName,
                                         firebaseNotify = firebaseNotify,
-                                        value = value.value?.toBoolean(),
-                                        unitsTasks = unitTaskList
+                                        value = value.value?.toBoolean()//,
+                                        //unitsTasks = unitTaskList.value?: HashMap()//unitTaskList
                                 ))
-                            }
+                            //}
                         }
                     }
                 }
