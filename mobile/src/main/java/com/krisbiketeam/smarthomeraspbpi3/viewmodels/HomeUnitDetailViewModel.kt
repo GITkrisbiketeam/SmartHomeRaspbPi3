@@ -101,6 +101,7 @@ class HomeUnitDetailViewModel(
                         Transformations.map(homeRepository.unitTaskListLiveData(unitType, unitName)) {
                             if (edit) {
                                 Timber.d("init unitTaskList edit it: $it")
+                                // Add empty UnitTask which will be used for adding new UnitTask
                                 val newList = it.toMutableMap()
                                 newList[""] = UnitTask()
                                 Timber.d("init unitTaskList edit newList: $newList")
@@ -282,8 +283,10 @@ class HomeUnitDetailViewModel(
                                         room = room,
                                         hwUnitName = hwUnitName,
                                         firebaseNotify = firebaseNotify,
-                                        value = value.value?.toBoolean()//,
-                                        //unitsTasks = unitTaskList.value?: HashMap()//unitTaskList
+                                        value = value.value?.toBoolean(),
+                                        unitsTasks = unitTaskList.value?.toMutableMap()?.also {
+                                            it.remove("")
+                                        }?: HashMap()
                                 ))
                             //}
                         }

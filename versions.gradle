@@ -8,7 +8,7 @@ ext {
     kotlinVersion = '1.2.70'
 
     // ClassPath
-    gradlePluginVersion = '3.2.0-rc03'
+    gradlePluginVersion = '3.2.0'
     googleServicesClassVersion = '4.1.0'
 
     // Google

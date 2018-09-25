@@ -4,15 +4,13 @@ import android.databinding.BindingAdapter
 import android.databinding.InverseBindingAdapter
 import android.databinding.InverseBindingListener
 import android.support.design.widget.FloatingActionButton
-import android.support.v7.widget.AppCompatSpinner
-import android.support.v7.widget.DividerItemDecoration
-import android.support.v7.widget.RecyclerView
-import android.support.v7.widget.SwitchCompat
+import android.support.v7.widget.*
+import android.view.LayoutInflater
 import android.view.View
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
-import android.widget.ProgressBar
+import android.view.ViewGroup
+import android.widget.*
 import com.krisbiketeam.data.MyLiveDataState
+import com.krisbiketeam.smarthomeraspbpi3.R
 import timber.log.Timber
 
 
@@ -66,18 +64,53 @@ fun bindEntriesData(spinner: AppCompatSpinner, entries: List<Any>?) {
                 entries.toMutableList().apply {
                     add("")
                 }) {
-                    override fun getCount() = super.getCount() - 1
-                }.apply {
-                    setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-                    spinner.adapter = this
-                    val pos = getPosition(spinner.tag)
-                    Timber.d("bindEntriesData pos: $pos spinner.tag: ${spinner.tag}")
-                    if (pos in 0 .. spinner.count) {
-                        spinner.setSelection(pos, false)
-                    } else {
-                        spinner.setSelection(spinner.count, false)
-                    }
+            override fun getCount() = super.getCount() - 1
+        }.apply {
+            setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            spinner.adapter = this
+            val pos = getPosition(spinner.tag)
+            Timber.d("bindEntriesData pos: $pos spinner.tag: ${spinner.tag}")
+            if (pos in 0 .. spinner.count) {
+                spinner.setSelection(pos, false)
+            } else {
+                spinner.setSelection(spinner.count, false)
+            }
+        }
+    }
+}
+
+@BindingAdapter("entriesUsed")
+fun bindEntriesUsedData(spinner: AppCompatSpinner, entries: List<Any>?) {
+    // This is for dynamic entries list, like form ViewModel LiveData
+    Timber.d("bindEntriesData entries: $entries tag: ${spinner.tag}")
+    // TODO: need to add additionall List of already used items to be marked on the list
+    if (entries != null) {
+        //Add empty first element to list
+        //Add empty element to list to  be able to show blank not selected item
+        object : ArrayAdapter<Any>(spinner.context,
+                android.R.layout.simple_spinner_dropdown_item, android.R.id.text1,
+                entries.toMutableList().apply {
+                    add(Pair("", false))
+                } ) {
+            override fun getCount() = super.getCount() - 1
+            override fun getDropDownView(position: Int, convertView: View?, parent: ViewGroup): View {
+                return super.getDropDownView(position, convertView, parent).apply {
+                    val iconView: AppCompatImageView? = findViewById(R.id.icon1)
+                    Timber.d("getDropDownView pos: $position iconView: $iconView")
+                    iconView?.visibility = if(true) View.VISIBLE else View.GONE
                 }
+            }
+        }.apply {
+            setDropDownViewResource(R.layout.spinner_custom_item)
+            spinner.adapter = this
+            val pos = getPosition(spinner.tag)
+            Timber.d("bindEntriesData pos: $pos spinner.tag: ${spinner.tag}")
+            if (pos in 0 .. spinner.count) {
+                spinner.setSelection(pos, false)
+            } else {
+                spinner.setSelection(spinner.count, false)
+            }
+        }
     }
 }
 

@@ -6,14 +6,14 @@ import com.krisbiketeam.data.nearby.NearbyService
 import com.krisbiketeam.data.nearby.NearbyServiceLiveData
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.LoginSettingsViewModel
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.WifiSettingsViewModel
-import org.koin.android.architecture.ext.viewModel
-import org.koin.dsl.module.applicationContext
+import org.koin.android.viewmodel.ext.koin.viewModel
+import org.koin.dsl.module.module
 import org.mockito.Mockito.mock
 
-val testModule = applicationContext {
+val testModule = module {
     viewModel { WifiSettingsViewModel(get()) }
-    bean { NearbyServiceLiveData(mock(NearbyService::class.java)) }
+    single { NearbyServiceLiveData(mock(NearbyService::class.java)) }
 
     viewModel { LoginSettingsViewModel(get(), get()) }
-    bean { AuthenticationLiveData(mock(Authentication::class.java)) }
+    single { AuthenticationLiveData(mock(Authentication::class.java)) }
 }

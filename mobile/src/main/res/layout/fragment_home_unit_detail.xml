@@ -183,7 +183,7 @@
                         android:prompt="@string/add_edit_home_unit_text_room_spinner_prompt"
                         android:spinnerMode="dialog"
                         android:visibility="@{safeUnbox(viewModel.isEditMode) ? View.VISIBLE : View.GONE}"
-                        app:entries="@{viewModel.hwUnitNameList}"
+                        app:entriesUsed="@{viewModel.hwUnitNameList}"
                         app:selectedValue="@={viewModel.hwUnitName}" />
 
                     <TextView
