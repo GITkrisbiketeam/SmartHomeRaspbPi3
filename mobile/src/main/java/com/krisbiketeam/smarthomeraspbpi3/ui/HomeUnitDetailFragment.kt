@@ -109,13 +109,13 @@ class HomeUnitDetailFragment : Fragment() {
                         }
                     } ?: Snackbar.make(rootBinding.root, messageId, Snackbar.LENGTH_SHORT).show()
                 } else {
-                    //hmm, this should not happn
+                    //hmm, this should not happen
                     Timber.e("action_save we got empty message This should not happen")
                 }
                 return true
             }
             R.id.action_discard -> {
-                //TODO do smth with this mess
+                //TODO do sth with this mess
                 if (homeUnitDetailViewModel.noChangesMade()) {
                     if (homeUnitDetailViewModel.actionDiscard()) {
                         // navigate back Up from this Fragment
@@ -144,7 +144,7 @@ class HomeUnitDetailFragment : Fragment() {
         }
     }
 
-    fun showDialog(messageId: Int, positiveButtonId: Int, positiveButtonInvoked: () -> Unit) {
+    private fun showDialog(messageId: Int, positiveButtonId: Int, positiveButtonInvoked: () -> Unit) {
         context?.let {
 
             AlertDialog.Builder(it)

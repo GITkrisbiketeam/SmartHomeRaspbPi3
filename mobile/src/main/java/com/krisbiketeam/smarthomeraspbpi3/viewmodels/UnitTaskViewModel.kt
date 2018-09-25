@@ -1,14 +1,13 @@
 package com.krisbiketeam.smarthomeraspbpi3.viewmodels
 
 import android.arch.lifecycle.*
-import com.google.android.gms.tasks.Continuation
 import com.google.android.gms.tasks.Task
 import com.krisbiketeam.data.storage.HomeInformationRepository
 import com.krisbiketeam.data.storage.dto.HOME_STORAGE_UNITS
-import com.krisbiketeam.data.storage.dto.HwUnit
 import com.krisbiketeam.data.storage.dto.UnitTask
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomDetailFragment
+import com.krisbiketeam.smarthomeraspbpi3.ui.UnitTaskFragment
 import timber.log.Timber
 import java.lang.Thread.sleep
 
@@ -34,7 +33,7 @@ class UnitTaskViewModel(
 
     var name: MutableLiveData<String>
     var homeUnitName: MutableLiveData<String>
-    var hwUnitName: MutableLiveData<String>
+//    var hwUnitName: MutableLiveData<String>
     var delay: MutableLiveData<Long>
     var duration: MutableLiveData<Long>
     var period: MutableLiveData<Long>
@@ -53,7 +52,7 @@ class UnitTaskViewModel(
 
     // used for checking if given homeUnit name is not already used
     var homeUnitNameList: MediatorLiveData<MutableList<String>>             // HomeUnitListLiveData
-    val hwUnitNameList: LiveData<List<String>>                              // HwUnitListLiveData
+//    val hwUnitNameList: LiveData<List<String>>                              // HwUnitListLiveData
 
     init {
         Timber.d("init taskName: $taskName")
@@ -64,7 +63,7 @@ class UnitTaskViewModel(
 
             name = Transformations.map(unitTask) { unit -> unit?.name } as MutableLiveData<String>
             homeUnitName = Transformations.map(unitTask) { unit -> unit?.homeUnitName } as MutableLiveData<String>
-            hwUnitName = Transformations.map(unitTask) { unit -> unit?.hwUnitName } as MutableLiveData<String>
+//            hwUnitName = Transformations.map(unitTask) { unit -> unit?.hwUnitName } as MutableLiveData<String>
             delay = Transformations.map(unitTask) { unit -> unit?.delay } as MutableLiveData<Long>
             duration = Transformations.map(unitTask) { unit -> unit?.duration } as MutableLiveData<Long>
             period = Transformations.map(unitTask) { unit -> unit?.period } as MutableLiveData<Long>
@@ -81,7 +80,7 @@ class UnitTaskViewModel(
 
             name = MutableLiveData()
             homeUnitName = MutableLiveData()
-            hwUnitName = MutableLiveData()
+//            hwUnitName = MutableLiveData()
             delay = MutableLiveData()
             duration = MutableLiveData()
             period = MutableLiveData()
@@ -96,13 +95,13 @@ class UnitTaskViewModel(
         }
 
         // List with all available HwUnits to be used for this Task
-        hwUnitNameList =
+/*        hwUnitNameList =
                 Transformations.switchMap(isEditMode) { edit ->
                     Timber.d("init hwUnitNameList isEditMode edit: $edit")
                     if (edit)
                         Transformations.map(homeRepository.hwUnitListLiveData()) { list -> list.map(HwUnit::name) }
                     else MutableLiveData()
-                }
+                }*/
 
         // List with all available HomeUnits to be used for this Task
         homeUnitNameList = Transformations.switchMap(isEditMode) { edit ->
@@ -132,19 +131,19 @@ class UnitTaskViewModel(
         Timber.d("noChangesMade unitTask?.value: ${unitTask?.value}")
         Timber.d("noChangesMade name.value: ${name.value}")
         Timber.d("noChangesMade homeUnitName.value: ${homeUnitName.value}")
-        Timber.d("noChangesMade hwUnitName.value: ${hwUnitName.value}")
+//        Timber.d("noChangesMade hwUnitName.value: ${hwUnitName.value}")
 
         return unitTask?.value?.let { unit ->
             unit.name == name.value &&
             unit.homeUnitName == homeUnitName.value &&
-            unit.hwUnitName == hwUnitName.value &&
+//            unit.hwUnitName == hwUnitName.value &&
             unit.delay == delay.value &&
             unit.period == period.value &&
             unit.startTime == startTime.value &&
             unit.endTime == endTime.value &&
             unit.inverse == inverse.value
         } ?: name.value.isNullOrEmpty()
-        ?: (homeUnitName.value.isNullOrEmpty() && hwUnitName.value.isNullOrEmpty())
+        ?: homeUnitName.value.isNullOrEmpty()/* && hwUnitName.value.isNullOrEmpty())*/
         ?: true
     }
 
@@ -163,7 +162,7 @@ class UnitTaskViewModel(
             unitTask?.value?.let { unit ->
                 name.value = unit.name
                 homeUnitName.value = unit.homeUnitName
-                hwUnitName.value = unit.hwUnitName
+//                hwUnitName.value = unit.hwUnitName
                 delay.value = unit.delay
                 period.value = unit.period
                 startTime.value = unit.startTime
@@ -191,12 +190,12 @@ class UnitTaskViewModel(
         } else {
             // Editing existing HomeUnit
             unitTask?.value?.let { unit ->
-                if (name.value?.trim().isNullOrEmpty() || (homeUnitName.value.isNullOrEmpty() && hwUnitName.value.isNullOrEmpty())) {
-                    return Pair(R.string.unit_task_empty_name_unit_or_hw, null)
+                return if (name.value?.trim().isNullOrEmpty() || (homeUnitName.value.isNullOrEmpty()/* && hwUnitName.value.isNullOrEmpty()*/)) {
+                    Pair(R.string.unit_task_empty_name_unit_or_hw, null)
                 } else if (noChangesMade()) {
-                    return Pair(R.string.add_edit_home_unit_no_changes, null)
+                    Pair(R.string.add_edit_home_unit_no_changes, null)
                 } else {
-                    return Pair(R.string.add_edit_home_unit_overwrite_changes, R.string.overwrite)
+                    Pair(R.string.add_edit_home_unit_overwrite_changes, R.string.overwrite)
                 }
             }
         }
@@ -242,7 +241,7 @@ class UnitTaskViewModel(
                     homeRepository.saveUnitTask(unitType, unitName, UnitTask(
                             name = name,
                             homeUnitName = homeUnitName.value,
-                            hwUnitName = hwUnitName.value,
+                            //hwUnitName = hwUnitName.value,
                             delay = delay.value,
                             duration = duration.value,
                             period = period.value,

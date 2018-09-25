@@ -1,9 +1,7 @@
 package com.krisbiketeam.smarthomeraspbpi3.ui
 
 import android.arch.lifecycle.Observer
-import android.content.Context
 import android.databinding.DataBindingUtil
-import android.net.Uri
 import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.support.transition.Fade
@@ -101,13 +99,13 @@ class UnitTaskFragment : Fragment() {
                         }
                     } ?: Snackbar.make(rootBinding.root, messageId, Snackbar.LENGTH_SHORT).show()
                 } else {
-                    //hmm, this should not happn
+                    //hmm, this should not happen
                     Timber.e("action_save we got empty message This should not happen")
                 }
                 return true
             }
             R.id.action_discard -> {
-                //TODO do smth with this mess
+                //TODO do sth with this mess
                 if (unitTaskViewModel.noChangesMade()) {
                     if (unitTaskViewModel.actionDiscard()) {
                         // navigate back Up from this Fragment
@@ -136,7 +134,7 @@ class UnitTaskFragment : Fragment() {
         }
     }
 
-    fun showDialog(messageId: Int, positiveButtonId: Int, positiveButtonInvoked: () -> Unit) {
+    private fun showDialog(messageId: Int, positiveButtonId: Int, positiveButtonInvoked: () -> Unit) {
         context?.let {
 
             AlertDialog.Builder(it)

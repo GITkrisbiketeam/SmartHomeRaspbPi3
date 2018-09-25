@@ -102,13 +102,13 @@ class RoomDetailFragment : Fragment() {
         })
     }
 
-    fun MutableList<HomeUnit<Any>>.addSorted(homeUnit: HomeUnit<Any>): Int {
+    private fun MutableList<HomeUnit<Any>>.addSorted(homeUnit: HomeUnit<Any>): Int {
         if (contains(homeUnit)) {
             Timber.e("addSorted this unit is already on the list")
             return -1
         }
         forEachIndexed { index, unit ->
-            if (unit.name.compareTo(homeUnit.name) >= 0) {
+            if (unit.name >= homeUnit.name) {
                 add(index, homeUnit)
                 return index
             }

@@ -19,8 +19,8 @@ import org.koin.dsl.module.module
 val myModule: Module = module {
     viewModel { RoomListViewModel(FirebaseHomeInformationRepository) }
     viewModel { (roomName: String) -> RoomDetailViewModel(FirebaseHomeInformationRepository, roomName) }
-    viewModel { (roomName: String, homeUnitame: String, homeUnitType:String) -> HomeUnitDetailViewModel(FirebaseHomeInformationRepository, roomName, homeUnitame, homeUnitType) }
-    viewModel { (taskName: String, homeUnitame: String, homeUnitType:String) -> UnitTaskViewModel(FirebaseHomeInformationRepository, taskName, homeUnitame, homeUnitType) }
+    viewModel { (roomName: String, homeUnitName: String, homeUnitType:String) -> HomeUnitDetailViewModel(FirebaseHomeInformationRepository, roomName, homeUnitName, homeUnitType) }
+    viewModel { (taskName: String, homeUnitName: String, homeUnitType:String) -> UnitTaskViewModel(FirebaseHomeInformationRepository, taskName, homeUnitName, homeUnitType) }
     viewModel { WifiSettingsViewModel(get()) }
     viewModel { LoginSettingsViewModel(get(), get()) }
     viewModel { NavigationViewModel(get()) }

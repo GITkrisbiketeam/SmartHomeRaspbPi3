@@ -30,6 +30,13 @@ class Home : Sensor.HwUnitListener<Any> {
                     homeUnitList[taskhomeUnitName]?.run {
                         Timber.d("booleanApplyFunction task: $task for homeUnit: $this")
                         this.value = newVal
+                        hardwareUnitList[this.hwUnitName]?.let {baseUnit ->
+                            Timber.d("homeUnitsDataObserver baseUnit: $baseUnit")
+                            if (baseUnit is Actuator) {
+                                Timber.d("homeUnitsDataObserver baseUnit setValue value: ${this.value}")
+                                baseUnit.setValue(this.value)
+                            }
+                        }
                         this.applyFunction(newVal)
                         FirebaseHomeInformationRepository.saveHomeUnit(this)
                         if (firebaseNotify){
@@ -38,7 +45,8 @@ class Home : Sensor.HwUnitListener<Any> {
                         }
                     }
                 }
-                task.hwUnitName?.let { hardwareUnit ->
+                // Below should not be needed anymore
+                /*task.hwUnitName?.let { hardwareUnit ->
                     hardwareUnitList[hardwareUnit]?.run {
                         Timber.d("booleanApplyFunction task: $task for this: $this")
                         if (this is Actuator) {
@@ -46,7 +54,7 @@ class Home : Sensor.HwUnitListener<Any> {
                             this.setValue(newVal)
                         }
                     }
-                }
+                }*/
             }
         } else {
             Timber.e("booleanApplyFunction new value is not Boolean or is null")
@@ -106,6 +114,13 @@ class Home : Sensor.HwUnitListener<Any> {
                         homeUnit.applyFunction = applyFunction
                         if (homeUnit.value != value) {
                             homeUnit.applyFunction(homeUnit.value)
+                            hardwareUnitList[homeUnit.hwUnitName]?.let {baseUnit ->
+                                Timber.d("homeUnitsDataObserver baseUnit: $baseUnit")
+                                if (baseUnit is Actuator) {
+                                    Timber.d("homeUnitsDataObserver baseUnit setValue value: $homeUnit.value")
+                                    baseUnit.setValue(homeUnit.value)
+                                }
+                            }
                             if (homeUnit.firebaseNotify){
                                 Timber.d("homeUnitsDataObserver notify with FCM Message")
                                 FirebaseHomeInformationRepository.notifyHomeUnitEvent(homeUnit)
@@ -225,7 +240,7 @@ class Home : Sensor.HwUnitListener<Any> {
                 } else {
                     value = unitValue
                 }
-                applyFunction(this.value)
+                applyFunction(value)
                 FirebaseHomeInformationRepository.saveHomeUnit(this)
                 if (firebaseNotify){
                     Timber.d("onUnitChanged notify with FCM Message")
@@ -249,7 +264,7 @@ class Home : Sensor.HwUnitListener<Any> {
         val pressure = Pressure("Kitchen 1 Press", HOME_PRESSURES, roomName, BoardConfig.TEMP_PRESS_SENSOR_BMP280) as HomeUnit<Any>
 
         var light = Light("Kitchen 1 Light", HOME_LIGHTS, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B0) as HomeUnit<Any>
-        light.unitsTasks = mapOf(Pair("Turn on HW light",UnitTask(name = "Turn on HW light", hwUnitName = light.hwUnitName)))
+//        light.unitsTasks = mapOf(Pair("Turn on HW light",UnitTask(name = "Turn on HW light", hwUnitName = light.hwUnitName)))
         light.applyFunction = booleanApplyFunction
 
         var lightSwitch = LightSwitch("Kitchen 1 Light Switch", HOME_LIGHT_SWITCHES, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_IN_A7) as HomeUnit<Any>
@@ -276,7 +291,7 @@ class Home : Sensor.HwUnitListener<Any> {
         temp = Temperature("Bathroom 1 Temp", HOME_TEMPERATURES, roomName, BoardConfig.TEMP_SENSOR_TMP102) as HomeUnit<Any>
 
         light = Light("Bathroom 1 Light", HOME_LIGHTS, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B7, firebaseNotify = true) as HomeUnit<Any>
-        light.unitsTasks = mapOf(Pair("Turn on HW light", UnitTask(name = "Turn on HW light", hwUnitName = light.hwUnitName)))
+//        light.unitsTasks = mapOf(Pair("Turn on HW light", UnitTask(name = "Turn on HW light", hwUnitName = light.hwUnitName)))
         light.applyFunction = booleanApplyFunction
 
         lightSwitch = LightSwitch("Bathroom 1 Light Switch", HOME_LIGHT_SWITCHES, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_IN_A5) as HomeUnit<Any>

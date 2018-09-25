@@ -109,7 +109,7 @@
                     android:visibility="@{safeUnbox(viewModel.isEditMode) ? View.GONE : View.VISIBLE}" />
             </FrameLayout>
 
-            <TextView
+            <!--<TextView
                 android:id="@+id/hw_unit_name_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -148,7 +148,7 @@
                     android:textAppearance="@style/TextAppearance.AppCompat.Small"
                     android:visibility="@{safeUnbox(viewModel.isEditMode) ? View.GONE : View.VISIBLE}" />
 
-            </FrameLayout>
+            </FrameLayout>-->
 
             <FrameLayout
                 android:layout_width="match_parent"

@@ -1,12 +1,12 @@
 package com.krisbiketeam.smarthomeraspbpi3.viewmodels
 
 import android.arch.lifecycle.*
-import com.google.android.gms.tasks.Continuation
 import com.google.android.gms.tasks.Task
 import com.krisbiketeam.data.storage.HomeInformationRepository
 import com.krisbiketeam.data.storage.dto.*
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.adapters.UnitTaskListAdapter
+import com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitDetailFragment
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomDetailFragment
 import timber.log.Timber
 import java.lang.Thread.sleep
@@ -43,12 +43,12 @@ class HomeUnitDetailViewModel(
     val roomNameList: LiveData<List<String>>                                // RoomListLiveData
     val hwUnitNameList: LiveData<List<String>>                              // HwUnitListLiveData
 
-    var homeRepositoryTask: Task<Void>? = null
+    private var homeRepositoryTask: Task<Void>? = null
 
     // used for checking if given homeUnit name is not already used
     var homeUnitNameList: MediatorLiveData<MutableList<String>>             // HomeUnitListLiveData
 
-    val addingNewUnit = unitName.isEmpty() && unitType.isEmpty()
+    private val addingNewUnit = unitName.isEmpty() && unitType.isEmpty()
 
     init {
         Timber.d("init unitName: $unitName unitType: $unitType roomName: $roomName")
@@ -129,7 +129,7 @@ class HomeUnitDetailViewModel(
                     }
                 }
 
-        // LiveDatas for editing mode
+        // LiveData's for editing mode
         roomNameList =
                 Transformations.switchMap(isEditMode) { edit ->
                     Timber.d("init roomNameList isEditMode edit: $edit")
@@ -207,28 +207,27 @@ class HomeUnitDetailViewModel(
         Timber.d("actionSave addingNewUnit: $addingNewUnit name.value: ${name.value}")
         if (addingNewUnit) {
             // Adding new HomeUnit
-            if (name.value?.trim().isNullOrEmpty()) {
-                return Pair(R.string.add_edit_home_unit_empty_name, null)
-            }else if (type.value?.trim().isNullOrEmpty()) {
-                return Pair(R.string.add_edit_home_unit_empty_unit_type, null)
-            }else if (hwUnitName.value?.trim().isNullOrEmpty()) {
-                return Pair(R.string.add_edit_home_unit_empty_unit_hw_unit, null)
-            } else if (homeUnitNameList.value?.contains(name.value?.trim()) == true) {
-                //This name is already used
-                Timber.d("This name is already used")
-                return Pair(R.string.add_edit_home_unit_name_already_used, null)
+            when {
+                name.value?.trim().isNullOrEmpty() -> return Pair(R.string.add_edit_home_unit_empty_name, null)
+                type.value?.trim().isNullOrEmpty() -> return Pair(R.string.add_edit_home_unit_empty_unit_type, null)
+                hwUnitName.value?.trim().isNullOrEmpty() -> return Pair(R.string.add_edit_home_unit_empty_unit_hw_unit, null)
+                homeUnitNameList.value?.contains(name.value?.trim()) == true -> {
+                    //This name is already used
+                    Timber.d("This name is already used")
+                    return Pair(R.string.add_edit_home_unit_name_already_used, null)
+                }
             }
         } else {
             // Editing existing HomeUnit
             homeUnit?.value?.let { unit ->
-                if (name.value?.trim().isNullOrEmpty()) {
-                    return Pair(R.string.add_edit_home_unit_empty_name, null)
+                return if (name.value?.trim().isNullOrEmpty()) {
+                    Pair(R.string.add_edit_home_unit_empty_name, null)
                 } else if (name.value?.trim() != unit.name || type.value?.trim() != unit.type) {
-                    return Pair(R.string.add_edit_home_unit_save_with_delete, R.string.overwrite)
+                    Pair(R.string.add_edit_home_unit_save_with_delete, R.string.overwrite)
                 } else if (noChangesMade()) {
-                    return Pair(R.string.add_edit_home_unit_no_changes, null)
+                    Pair(R.string.add_edit_home_unit_no_changes, null)
                 } else {
-                    return Pair(R.string.add_edit_home_unit_overwrite_changes, R.string.overwrite)
+                    Pair(R.string.add_edit_home_unit_overwrite_changes, R.string.overwrite)
                 }
             }
         }
@@ -269,7 +268,7 @@ class HomeUnitDetailViewModel(
         return homeRepositoryTask
     }
 
-    fun doSaveChanges(): Task<Void>?{
+    private fun doSaveChanges(): Task<Void>?{
         return name.value?.let { name ->
             type.value?.let { type ->
                 room.value?.let { room ->
@@ -277,7 +276,7 @@ class HomeUnitDetailViewModel(
                         firebaseNotify.value?.let { firebaseNotify ->
                             //unitTaskList.value?.let { unitTaskList ->
                                 showProgress.value = true
-                                homeRepository.saveHomeUnit(HomeUnit<Boolean>(
+                                homeRepository.saveHomeUnit(HomeUnit(
                                         name = name,
                                         type = type,
                                         room = room,

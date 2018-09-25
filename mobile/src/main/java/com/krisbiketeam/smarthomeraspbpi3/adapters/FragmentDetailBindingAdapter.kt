@@ -5,10 +5,11 @@ import android.databinding.InverseBindingAdapter
 import android.databinding.InverseBindingListener
 import android.support.design.widget.FloatingActionButton
 import android.support.v7.widget.*
-import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.*
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.ProgressBar
 import com.krisbiketeam.data.MyLiveDataState
 import com.krisbiketeam.smarthomeraspbpi3.R
 import timber.log.Timber
@@ -83,7 +84,7 @@ fun bindEntriesData(spinner: AppCompatSpinner, entries: List<Any>?) {
 fun bindEntriesUsedData(spinner: AppCompatSpinner, entries: List<Any>?) {
     // This is for dynamic entries list, like form ViewModel LiveData
     Timber.d("bindEntriesData entries: $entries tag: ${spinner.tag}")
-    // TODO: need to add additionall List of already used items to be marked on the list
+    // TODO: need to add additional List of already used items to be marked on the list
     if (entries != null) {
         //Add empty first element to list
         //Add empty element to list to  be able to show blank not selected item
@@ -131,7 +132,7 @@ fun bindEntriesWithEmptyData(spinner: AppCompatSpinner, entries: List<Any>?) {
                 spinner.adapter = this
                 val pos = getPosition(spinner.tag)
                 Timber.d("entriesWithEmpty pos: $pos")
-                if (pos in 0 .. spinner.count-1) {
+                if (pos in 0 until spinner.count) {
                     spinner.setSelection(pos, false)
                 } else {
                     spinner.setSelection(spinner.count-1, false)
@@ -178,7 +179,7 @@ fun captureSelectedValue(spinner: AppCompatSpinner): String? {
 fun bindSetChecked(switch: SwitchCompat, value: Any?) {
     Timber.d("setSwitch BindingAdapter value: $value")
     if (value is Boolean) {
-        switch.setChecked(value)
+        switch.isChecked = value
     }
 }
 
