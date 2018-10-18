@@ -1,4 +1,4 @@
-package com.krisbiketeam.smarthomeraspbpi3
+package com.krisbiketeam.data.hardware
 
 import com.google.android.things.contrib.driver.bmx280.Bmx280
 import com.krisbiketeam.smarthomeraspbpi3.driver.MCP23017
@@ -7,6 +7,8 @@ import com.krisbiketeam.smarthomeraspbpi3.driver.TMP102
 
 object BoardConfig {
     private const val I2C = "I2C1"
+
+    const val GPIO = "Gpio I/0"
 
     const val LED_A = "Led A"
     const val LED_A_PIN = "BCM6"
@@ -21,12 +23,6 @@ object BoardConfig {
     const val BUTTON_B_PIN = "BCM20"
     const val BUTTON_C = "Button C"
     const val BUTTON_C_PIN = "BCM16"
-
-    const val MOTION_1 = "Motion 1"
-    const val MOTION_1_PIN = "BCM14"
-
-    const val REED_SWITCH_1 = "Reed Switch 1"
-    const val REED_SWITCH_1_PIN = "BCM15"
 
     const val FOUR_CHAR_DISP = "Hat Four Char Display"
     const val FOUR_CHAR_DISP_PIN = I2C
@@ -62,4 +58,12 @@ object BoardConfig {
     const val IO_EXTENDER_MCP23017_2_PIN = I2C
     const val IO_EXTENDER_MCP23017_2_ADDR = MCP23017.DEFAULT_I2C_001_ADDRESS
     const val IO_EXTENDER_MCP23017_2_INTA_PIN = "BCM14"
+
+
+    val IO_HW_UNIT_TYPE_LIST = listOf(TEMP_SENSOR_TMP102, TEMP_PRESS_SENSOR_BMP280, IO_EXTENDER_MCP23017, GPIO, FOUR_CHAR_DISP)
+
+    val IO_GPIO_PIN_NAME_LIST = listOf(LED_A_PIN, LED_B_PIN, LED_C_PIN,
+            BUTTON_A_PIN, BUTTON_B_PIN, BUTTON_C_PIN)
+    val IO_EXTENDER_INT_PIN_LIST = listOf(IO_EXTENDER_MCP23017_1_INTA_PIN, IO_EXTENDER_MCP23017_2_INTA_PIN)
+
 }

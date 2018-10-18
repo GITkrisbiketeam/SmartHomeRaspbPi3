@@ -3,6 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <data>
+        <import type="android.view.View" />
+        <import type="android.text.TextUtils" />
+        <import type="com.krisbiketeam.data.hardware.BoardConfig" />
 
         <variable
             name="viewModel"
@@ -70,75 +73,33 @@
                 android:paddingTop="@dimen/activity_vertical_margin">
 
                 <TextView
-                    android:id="@+id/unit_type_spinner_title"
+                    android:id="@+id/hw_unit_type_spinner_title"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/add_edit_home_unit_text_unit_type_title"
+                    android:text="HwUnit Type"
                     android:textColor="@color/colorPrimaryDark"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
+                    app:layout_constraintTop_toTopOf="parent"  />
 
                 <android.support.v7.widget.AppCompatSpinner
-                    android:id="@+id/unit_type_spinner"
+                    android:id="@+id/hw_unit_type_spinner"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/margin_small"
-                    android:entries="@{viewModel.homeUnitTypeList}"
                     android:prompt="@string/add_edit_home_unit_text_unit_type_spinner_prompt"
                     android:spinnerMode="dialog"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/unit_type_spinner_title"
-                    app:selectedValue="@={viewModel.homeUnitType}" />
+                    app:layout_constraintTop_toBottomOf="@id/hw_unit_type_spinner_title"
+                    app:entries="@{viewModel.typeList}"
+                    app:selectedValue="@={viewModel.type}" />
 
-                <TextView
-                    android:id="@+id/room_spinner_title"
+                <android.support.constraint.Group
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/margin_normal"
-                    android:text="@string/add_edit_home_unit_text_room_title"
-                    android:textColor="@color/colorPrimaryDark"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/unit_type_spinner" />
-
-                <android.support.v7.widget.AppCompatSpinner
-                    android:id="@+id/room_spinner"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/margin_small"
-                    android:entries="@{viewModel.roomNameList}"
-                    android:prompt="@string/add_edit_home_unit_text_room_spinner_prompt"
-                    android:spinnerMode="dialog"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/room_spinner_title"
-                    app:selectedValue="@={viewModel.room}" />
-
-                <TextView
-                    android:id="@+id/hw_unit_spinner_title"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/margin_normal"
-                    android:text="@string/add_edit_home_unit_text_hw_unit_title"
-                    android:textColor="@color/colorPrimaryDark"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/room_spinner" />
-
-                <android.support.v7.widget.AppCompatSpinner
-                    android:id="@+id/hw_unit_spinner"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/margin_small"
-                    android:entries="@{viewModel.hardwareUnitNameList}"
-                    android:prompt="@string/add_edit_home_unit_text_hw_unit_spinner_prompt"
-                    android:spinnerMode="dialog"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/hw_unit_spinner_title"
-                    app:selectedValue="@={viewModel.hardwareUnitName}" />
+                    app:constraint_referenced_ids="home_unit_name_title, home_unit_name"
+                    android:visibility="@{TextUtils.isEmpty(viewModel.type) ? View.GONE : View.VISIBLE}"/>
 
                 <TextView
                     android:id="@+id/home_unit_name_title"
@@ -149,7 +110,7 @@
                     android:textColor="@color/colorPrimaryDark"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/hw_unit_spinner" />
+                    app:layout_constraintTop_toBottomOf="@+id/hw_unit_type_spinner"/>
 
                 <EditText
                     android:id="@+id/home_unit_name"
@@ -166,18 +127,34 @@
                     app:layout_constraintTop_toBottomOf="@id/home_unit_name_title"
                     android:importantForAutofill="no" />
 
-                <android.support.v7.widget.RecyclerView
-                    android:id="@+id/unit_task_list"
+                <android.support.constraint.Group
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:clipToPadding="false"
-                    app:layoutManager="android.support.v7.widget.LinearLayoutManager"
-                    app:layout_constraintBottom_toBottomOf="parent"
+                    android:layout_height="wrap_content"
+                    app:constraint_referenced_ids="unit_type_spinner_title, unit_type_spinner"
+                    android:visibility="@{viewModel.type == BoardConfig.GPIO ? View.VISIBLE : View.GONE}"/>
+
+                <TextView
+                    android:id="@+id/unit_type_spinner_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/add_edit_home_unit_text_unit_type_title"
+                    android:textColor="@color/colorPrimaryDark"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/home_unit_name"
-                    tools:context="com.krisbiketeam.smarthomeraspbpi3.ui.HomeActivity"
-                    tools:listitem="@layout/fragment_room_detail_list_item" />
+                    app:layout_constraintTop_toBottomOf="@id/home_unit_name"  />
+
+                <android.support.v7.widget.AppCompatSpinner
+                    android:id="@+id/unit_type_spinner"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_small"
+                    android:entries="@{viewModel.pinNameList}"
+                    android:prompt="@string/add_edit_home_unit_text_unit_type_spinner_prompt"
+                    android:spinnerMode="dialog"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/unit_type_spinner_title"
+                    app:selectedValue="@={viewModel.pinName}" />
 
             </android.support.constraint.ConstraintLayout>
 

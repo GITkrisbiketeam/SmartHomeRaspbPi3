@@ -41,12 +41,28 @@ class HomeUnitDetailViewModel(
 
     val typeList: LiveData<List<String>>
     val roomNameList: LiveData<List<String>>                                // RoomListLiveData
-    val hwUnitNameList: LiveData<List<String>>                              // HwUnitListLiveData
+    val hwUnitNameList: LiveData<List<Pair<String, Boolean>>>                              // HwUnitListLiveData
 
     private var homeRepositoryTask: Task<Void>? = null
 
     // used for checking if given homeUnit name is not already used
-    var homeUnitNameList: MediatorLiveData<MutableList<String>>             // HomeUnitListLiveData
+    var homeUnitNameList =
+            Transformations.switchMap(isEditMode) { edit ->
+                Timber.d("init homeUnitNameList isEditMode edit: $edit")
+                if (edit)
+                    MediatorLiveData<MutableList<HomeUnit<Any>>>().apply {
+                        HOME_STORAGE_UNITS.forEach { type ->
+                            addSource(homeRepository.homeUnitListLiveData(type)) { homeUnitList ->
+                                Timber.d("init homeUnitNameList homeUnitListLiveData homeUnitList: $homeUnitList")
+                                value = value ?: ArrayList()
+                                value?.addAll(homeUnitList?: emptyList())
+                            }
+                        }
+                    }
+                else MediatorLiveData()
+            } as MediatorLiveData<MutableList<HomeUnit<Any>>>
+
+
 
     private val addingNewUnit = unitName.isEmpty() && unitType.isEmpty()
 
@@ -142,24 +158,17 @@ class HomeUnitDetailViewModel(
                 Transformations.switchMap(isEditMode) { edit ->
                     Timber.d("init hwUnitNameList isEditMode edit: $edit")
                     if (edit)
-                        Transformations.map(homeRepository.hwUnitListLiveData()) { list -> list.map(HwUnit::name) }
+                    //Transformations.map(homeRepository.hwUnitListLiveData()) { list -> list.map(HwUnit::name) }
+
+                        Transformations.switchMap(homeUnitNameList) { homeUnitList ->
+                            Timber.d("init hwUnitNameList homeUnitNameList homeUnitList: $homeUnitList")
+                            Transformations.map(homeRepository.hwUnitListLiveData()) { list -> list.map {
+                                Pair(it.name, homeUnitList.find { unit -> unit.hwUnitName == it.name } != null) }
+                            }
+                        }
                     else MutableLiveData()
                 }
 
-        // used for checking if given homeUnit name is not already used
-        homeUnitNameList = Transformations.switchMap(isEditMode) { edit ->
-            Timber.d("init homeUnitNameList isEditMode edit: $edit")
-            if (edit) {
-                MediatorLiveData<MutableList<String>>().apply {
-                    typeList.value?.forEach { type ->
-                        addSource(homeRepository.homeUnitListLiveData(type)) { homeUnitList ->
-                            value = value ?: ArrayList()
-                            value?.addAll(homeUnitList?.map { it.name } ?: emptyList())
-                        }
-                    }
-                }
-            } else MediatorLiveData()
-        } as MediatorLiveData<MutableList<String>>
     }
 
     fun noChangesMade(): Boolean {
@@ -210,8 +219,9 @@ class HomeUnitDetailViewModel(
             when {
                 name.value?.trim().isNullOrEmpty() -> return Pair(R.string.add_edit_home_unit_empty_name, null)
                 type.value?.trim().isNullOrEmpty() -> return Pair(R.string.add_edit_home_unit_empty_unit_type, null)
-                hwUnitName.value?.trim().isNullOrEmpty() -> return Pair(R.string.add_edit_home_unit_empty_unit_hw_unit, null)
-                homeUnitNameList.value?.contains(name.value?.trim()) == true -> {
+                //hwUnitName.value?.trim().isNullOrEmpty() -> return Pair(R.string.add_edit_home_unit_empty_unit_hw_unit, null)
+                homeUnitNameList.value?.find { unit -> unit.name == name.value?.trim() } != null ->
+                       {
                     //This name is already used
                     Timber.d("This name is already used")
                     return Pair(R.string.add_edit_home_unit_name_already_used, null)

@@ -42,7 +42,7 @@ dependencies {
     implementation "com.android.support:support-annotations:$supportLibraryVersion"
 
     implementation "com.google.android.gms:play-services-base:$playServicesVersion"
-    implementation "com.google.android.gms:play-services-nearby:$playServicesVersion"
+    implementation "com.google.android.gms:play-services-nearby:$playServicesNearbyVersion"
     implementation "com.google.firebase:firebase-core:$firebaseCoreVersion"
     implementation "com.google.firebase:firebase-database:$firebaseDatabaseVersion"
     implementation "com.google.firebase:firebase-auth:$firebaseAuthVersion"

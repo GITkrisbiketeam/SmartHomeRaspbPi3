@@ -4,6 +4,7 @@ import android.os.Handler
 import android.support.annotation.VisibleForTesting
 import android.view.ViewConfiguration
 import com.google.android.things.pio.Gpio
+import com.google.android.things.pio.GpioCallback
 import com.google.android.things.pio.I2cDevice
 import com.google.android.things.pio.PeripheralManager
 import com.krisbiketeam.smarthomeraspbpi3.driver.MCP23017Pin.*
@@ -109,7 +110,7 @@ class MCP23017(bus: String? = null,
 
     private val mListeners = HashMap<Pin, MutableList<MCP23017PinStateChangeListener>>()
 
-    private val mIntCallback = { gpio: Gpio ->
+    private val mIntCallback = GpioCallback{ gpio: Gpio ->
         try {
             Timber.d("mIntCallback onGpioEdge ${gpio.value}")
             mHandler.removeCallbacksAndMessages(null)
@@ -127,7 +128,6 @@ class MCP23017(bus: String? = null,
         // Return true to keep callback active.
         true
     }
-
 
     init {
         if (bus != null) {

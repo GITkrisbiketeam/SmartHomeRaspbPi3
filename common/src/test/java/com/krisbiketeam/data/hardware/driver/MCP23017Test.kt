@@ -4,7 +4,7 @@ import android.util.Log
 import android.view.ViewConfiguration
 
 import com.google.android.things.pio.I2cDevice
-import com.krisbiketeam.smarthomeraspbpi3.ViewConfigurationMock
+import com.krisbiketeam.data.hardware.ViewConfigurationMock
 
 import org.junit.Rule
 import org.junit.Test

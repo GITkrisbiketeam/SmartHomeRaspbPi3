@@ -27,7 +27,7 @@ fun getFirebaseAppToken(tokenReceived: (String?) -> Unit) {
         }
 
         // Get new Instance ID token
-        val token = task.result.token
+        val token = task.result?.token
         Timber.d("getInstanceId token: $token")
         tokenReceived(token)
     }

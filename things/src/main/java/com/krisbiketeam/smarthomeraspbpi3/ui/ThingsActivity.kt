@@ -13,12 +13,12 @@ import com.google.android.things.contrib.driver.rainbowhat.RainbowHat
 import com.google.android.things.pio.Gpio
 import com.krisbiketeam.data.auth.Authentication
 import com.krisbiketeam.data.auth.FirebaseAuthentication
+import com.krisbiketeam.data.hardware.BoardConfig
 import com.krisbiketeam.data.storage.ConnectionType
 import com.krisbiketeam.data.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.data.storage.NotSecureStorage
 import com.krisbiketeam.data.storage.SecureStorage
 import com.krisbiketeam.data.storage.dto.HwUnitLog
-import com.krisbiketeam.smarthomeraspbpi3.BoardConfig
 import com.krisbiketeam.smarthomeraspbpi3.Home
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.ui.setup.FirebaseCredentialsReceiverManager
