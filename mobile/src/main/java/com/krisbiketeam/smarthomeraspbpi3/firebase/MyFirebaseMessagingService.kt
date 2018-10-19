@@ -11,8 +11,8 @@ import android.support.v4.app.NotificationCompat
 import com.google.firebase.iid.FirebaseInstanceId
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
-import com.krisbiketeam.data.storage.FirebaseHomeInformationRepository
-import com.krisbiketeam.data.storage.SecureStorage
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.LoadActivity
 import com.krisbiketeam.smarthomeraspbpi3.R
 import org.koin.android.ext.android.inject

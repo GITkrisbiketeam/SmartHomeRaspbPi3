@@ -2,9 +2,9 @@ package com.krisbiketeam.smarthomeraspbpi3.viewmodels
 
 import android.arch.lifecycle.*
 import com.google.android.gms.tasks.Task
-import com.krisbiketeam.data.storage.HomeInformationRepository
-import com.krisbiketeam.data.storage.dto.HOME_STORAGE_UNITS
-import com.krisbiketeam.data.storage.dto.UnitTask
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.HomeInformationRepository
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HOME_STORAGE_UNITS
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.UnitTask
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomDetailFragment
 import com.krisbiketeam.smarthomeraspbpi3.ui.UnitTaskFragment
@@ -27,7 +27,7 @@ class UnitTaskViewModel(
     val isEditMode: MutableLiveData<Boolean> = MutableLiveData()
 
     // Helper LiveData for UnitTaskList
-    val unitTaskList = homeRepository.unitTaskListLiveData(unitType, unitName)
+    private val unitTaskList = homeRepository.unitTaskListLiveData(unitType, unitName)
 
     val unitTask: LiveData<UnitTask>?
 
@@ -42,12 +42,12 @@ class UnitTaskViewModel(
     var inverse: MutableLiveData<Boolean>
 
 
-    var homeRepositoryTask: Task<Void>? = null
+    private var homeRepositoryTask: Task<Void>? = null
 
     // used for checking if given homeUnit name is not already used
-    var unitTaskNameList: LiveData<List<String>>                              // UnitTaskListLiveData
+    private var unitTaskNameList: LiveData<List<String>>                              // UnitTaskListLiveData
 
-    val addingNewUnit = taskName.isEmpty()
+    private val addingNewUnit = taskName.isEmpty()
 
 
     // used for checking if given homeUnit name is not already used
@@ -236,7 +236,7 @@ class UnitTaskViewModel(
         return homeRepositoryTask
     }
 
-    fun doSaveChanges(): Task<Void>? {
+    private fun doSaveChanges(): Task<Void>? {
         return name.value?.let { name ->
                     homeRepository.saveUnitTask(unitType, unitName, UnitTask(
                             name = name,

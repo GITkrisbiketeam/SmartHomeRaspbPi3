@@ -1,11 +1,12 @@
 package com.krisbiketeam.smarthomeraspbpi3
 
 import android.arch.lifecycle.Observer
-import com.krisbiketeam.data.hardware.BoardConfig
-import com.krisbiketeam.data.storage.*
-import com.krisbiketeam.data.storage.firebaseTables.*
-import com.krisbiketeam.data.storage.dto.*
-import com.krisbiketeam.smarthomeraspbpi3.driver.MCP23017Pin
+import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.*
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.*
+import com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver.MCP23017Pin
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.ChildEventType
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.units.Actuator
 import com.krisbiketeam.smarthomeraspbpi3.units.BaseUnit
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor

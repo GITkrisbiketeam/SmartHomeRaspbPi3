@@ -1,7 +1,7 @@
 package com.krisbiketeam.smarthomeraspbpi3.adapters
 
 import android.support.v7.util.DiffUtil
-import com.krisbiketeam.data.storage.dto.UnitTask
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.UnitTask
 
 class HomeUnitUnitTaskListAdapterDiffCallback : DiffUtil.ItemCallback<UnitTask>() {
 

@@ -2,8 +2,8 @@ package com.krisbiketeam.smarthomeraspbpi3.viewmodels
 
 import android.arch.core.executor.testing.InstantTaskExecutorRule
 import android.arch.lifecycle.Observer
-import com.krisbiketeam.data.MyLiveDataState
-import com.krisbiketeam.data.auth.WifiCredentials
+import com.krisbiketeam.smarthomeraspbpi3.common.MyLiveDataState
+import com.krisbiketeam.smarthomeraspbpi3.common.auth.WifiCredentials
 import com.krisbiketeam.smarthomeraspbpi3.di.testModule
 import org.junit.*
 import org.koin.standalone.StandAloneContext

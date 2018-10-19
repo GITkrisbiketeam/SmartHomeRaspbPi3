@@ -3,7 +3,7 @@ package com.krisbiketeam.smarthomeraspbpi3.viewmodels
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.Transformations
 import android.arch.lifecycle.ViewModel
-import com.krisbiketeam.data.storage.SecureStorage
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import timber.log.Timber
 
 class NavigationViewModel(

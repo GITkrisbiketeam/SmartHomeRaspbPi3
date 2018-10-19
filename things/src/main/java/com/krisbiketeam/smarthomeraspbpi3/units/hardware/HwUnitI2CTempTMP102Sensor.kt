@@ -1,8 +1,9 @@
 package com.krisbiketeam.smarthomeraspbpi3.units.hardware
 
-import com.krisbiketeam.data.storage.ConnectionType
-import com.krisbiketeam.data.storage.dto.HwUnit
-import com.krisbiketeam.smarthomeraspbpi3.driver.TMP102
+import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.ConnectionType
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
+import com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver.TMP102
 import com.krisbiketeam.smarthomeraspbpi3.units.HwUnitI2C
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
 import kotlinx.coroutines.experimental.CommonPool
@@ -20,7 +21,7 @@ class HwUnitI2CTempTMP102Sensor(name: String,
                                 softAddress: Int,
                                 override var device: AutoCloseable? = null) : HwUnitI2C<Float>, Sensor<Float> {
 
-    override val hwUnit: HwUnit = HwUnit(name, location, pinName, ConnectionType.I2C, softAddress)
+    override val hwUnit: HwUnit = HwUnit(BoardConfig. TEMP_SENSOR_TMP102, name, location, pinName, ConnectionType.I2C, softAddress)
     override var unitValue: Float? = null
     override var valueUpdateTime: String = ""
 

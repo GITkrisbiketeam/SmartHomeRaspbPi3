@@ -73,3 +73,8 @@ fastlane/readme.md
 # Firebase
 functions/node_modules
 functions/package-lock.json
+
+# SonarLint
+.idea/sonarlint/
+sonarlint.xml
+sonarlint-state.xml

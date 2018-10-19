@@ -3,11 +3,11 @@ package com.krisbiketeam.smarthomeraspbpi3.viewmodels
 import android.arch.lifecycle.MediatorLiveData
 import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.ViewModel
-import com.krisbiketeam.data.MyLiveDataState
-import com.krisbiketeam.data.auth.AuthenticationLiveData
-import com.krisbiketeam.data.auth.FirebaseCredentials
-import com.krisbiketeam.data.nearby.NearbyServiceLiveData
-import com.krisbiketeam.data.storage.FirebaseHomeInformationRepository
+import com.krisbiketeam.smarthomeraspbpi3.common.MyLiveDataState
+import com.krisbiketeam.smarthomeraspbpi3.common.auth.AuthenticationLiveData
+import com.krisbiketeam.smarthomeraspbpi3.common.auth.FirebaseCredentials
+import com.krisbiketeam.smarthomeraspbpi3.common.nearby.NearbyServiceLiveData
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.firebase.getFirebaseAppToken
 import com.krisbiketeam.smarthomeraspbpi3.firebase.sendRegistrationToServer
 import com.krisbiketeam.smarthomeraspbpi3.ui.WifiSettingsFragment

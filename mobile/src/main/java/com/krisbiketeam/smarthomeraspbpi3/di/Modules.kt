@@ -1,14 +1,14 @@
 package com.krisbiketeam.smarthomeraspbpi3.di
 
-import com.krisbiketeam.data.auth.Authentication
-import com.krisbiketeam.data.auth.AuthenticationLiveData
-import com.krisbiketeam.data.auth.FirebaseAuthentication
-import com.krisbiketeam.data.nearby.NearbyService
-import com.krisbiketeam.data.nearby.NearbyServiceLiveData
-import com.krisbiketeam.data.nearby.NearbyServiceProvider
-import com.krisbiketeam.data.storage.FirebaseHomeInformationRepository
-import com.krisbiketeam.data.storage.NotSecureStorage
-import com.krisbiketeam.data.storage.SecureStorage
+import com.krisbiketeam.smarthomeraspbpi3.common.auth.Authentication
+import com.krisbiketeam.smarthomeraspbpi3.common.auth.AuthenticationLiveData
+import com.krisbiketeam.smarthomeraspbpi3.common.auth.FirebaseAuthentication
+import com.krisbiketeam.smarthomeraspbpi3.common.nearby.NearbyService
+import com.krisbiketeam.smarthomeraspbpi3.common.nearby.NearbyServiceLiveData
+import com.krisbiketeam.smarthomeraspbpi3.common.nearby.NearbyServiceProvider
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.NotSecureStorage
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.*
 import com.squareup.moshi.Moshi
 import org.koin.android.ext.koin.androidApplication

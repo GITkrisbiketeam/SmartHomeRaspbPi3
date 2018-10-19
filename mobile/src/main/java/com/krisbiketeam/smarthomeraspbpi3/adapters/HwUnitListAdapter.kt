@@ -6,7 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.navigation.findNavController
-import com.krisbiketeam.data.storage.dto.HwUnit
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentHwUnitListItemBinding
 import com.krisbiketeam.smarthomeraspbpi3.ui.HwUnitListFragmentDirections
 import com.krisbiketeam.smarthomeraspbpi3.ui.HwUnitListFragment

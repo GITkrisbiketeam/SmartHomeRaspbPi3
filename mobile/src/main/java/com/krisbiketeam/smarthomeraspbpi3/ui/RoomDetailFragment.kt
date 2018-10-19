@@ -6,8 +6,8 @@ import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.view.*
 import androidx.navigation.fragment.findNavController
-import com.krisbiketeam.data.storage.ChildEventType
-import com.krisbiketeam.data.storage.dto.HomeUnit
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.ChildEventType
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.adapters.RoomDetailHomeUnitListAdapter
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentRoomDetailBinding

@@ -3,8 +3,9 @@ package com.krisbiketeam.smarthomeraspbpi3.units.hardware
 import com.google.android.things.contrib.driver.ht16k33.AlphanumericDisplay
 import com.google.android.things.contrib.driver.ht16k33.Ht16k33
 import com.google.android.things.contrib.driver.rainbowhat.RainbowHat
-import com.krisbiketeam.data.storage.ConnectionType
-import com.krisbiketeam.data.storage.dto.HwUnit
+import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.ConnectionType
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
 import com.krisbiketeam.smarthomeraspbpi3.units.Actuator
 import com.krisbiketeam.smarthomeraspbpi3.units.HwUnitI2C
 import java.util.*
@@ -19,7 +20,7 @@ class HwUnitI2CFourCharDisplay(name: String,
         // and then immediately closed to release resources
     }
 
-    override val hwUnit: HwUnit = HwUnit(name, location, pinName, ConnectionType.I2C, AlphanumericDisplay.I2C_ADDRESS)
+    override val hwUnit: HwUnit = HwUnit(BoardConfig.FOUR_CHAR_DISP, name, location, pinName, ConnectionType.I2C, AlphanumericDisplay.I2C_ADDRESS)
     override var unitValue: String? = null
     override var valueUpdateTime: String = ""
 

@@ -1,9 +1,10 @@
 package com.krisbiketeam.smarthomeraspbpi3.units.hardware
 
-import com.krisbiketeam.data.storage.ConnectionType
-import com.krisbiketeam.data.storage.dto.HwUnit
-import com.krisbiketeam.smarthomeraspbpi3.driver.MCP23017
-import com.krisbiketeam.smarthomeraspbpi3.driver.MCP23017Pin.*
+import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.ConnectionType
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
+import com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver.MCP23017
+import com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver.MCP23017Pin.*
 import com.krisbiketeam.smarthomeraspbpi3.units.HwUnitI2C
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
 import timber.log.Timber
@@ -18,7 +19,7 @@ open class HwUnitI2CMCP23017Sensor(name: String,
                                    private val internalPullUp: Boolean = false,
                                    override var device: AutoCloseable? = null) : HwUnitI2C<Boolean>, Sensor<Boolean> {
 
-    override val hwUnit: HwUnit = HwUnit(name, location, pinName, ConnectionType.I2C, address, pinInterrupt, ioPin.name, internalPullUp)
+    override val hwUnit: HwUnit = HwUnit(BoardConfig.IO_EXTENDER_MCP23017_INPUT, name, location, pinName, ConnectionType.I2C, address, pinInterrupt, ioPin.name, internalPullUp)
     override var unitValue: Boolean? = null
     override var valueUpdateTime: String = ""
 

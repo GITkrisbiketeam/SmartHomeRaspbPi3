@@ -5,7 +5,7 @@
     <data>
         <import type="android.view.View" />
         <import type="android.text.TextUtils" />
-        <import type="com.krisbiketeam.data.hardware.BoardConfig" />
+        <import type="com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig" />
 
         <variable
             name="viewModel"
@@ -76,18 +76,17 @@
                     android:id="@+id/hw_unit_type_spinner_title"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="HwUnit Type"
+                    android:text="@string/add_edit_hw_unit_type_spinner_title"
                     android:textColor="@color/colorPrimaryDark"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"  />
-
                 <android.support.v7.widget.AppCompatSpinner
                     android:id="@+id/hw_unit_type_spinner"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/margin_small"
-                    android:prompt="@string/add_edit_home_unit_text_unit_type_spinner_prompt"
+                    android:prompt="@string/add_edit_hw_unit_type_spinner_prompt"
                     android:spinnerMode="dialog"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -96,64 +95,93 @@
                     app:selectedValue="@={viewModel.type}" />
 
                 <android.support.constraint.Group
+                    android:id="@+id/hw_unit_name_group"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:constraint_referenced_ids="home_unit_name_title, home_unit_name"
+                    app:constraint_referenced_ids="hw_unit_name_title, hw_unit_name"
                     android:visibility="@{TextUtils.isEmpty(viewModel.type) ? View.GONE : View.VISIBLE}"/>
-
                 <TextView
-                    android:id="@+id/home_unit_name_title"
+                    android:id="@+id/hw_unit_name_title"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/margin_normal"
-                    android:text="@string/add_edit_home_unit_text_name"
+                    android:text="@string/add_edit_hw_unit_name_title"
                     android:textColor="@color/colorPrimaryDark"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/hw_unit_type_spinner"/>
-
                 <EditText
-                    android:id="@+id/home_unit_name"
+                    android:id="@+id/hw_unit_name"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/margin_small"
-                    android:hint="@string/add_edit_home_unit_text_title_hint"
+                    android:hint="@string/add_edit_hw_unit_name_hint"
                     android:inputType="text"
                     android:maxLines="1"
                     android:text="@={viewModel.name}"
                     android:textAppearance="@style/TextAppearance.AppCompat.Title"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/home_unit_name_title"
+                    app:layout_constraintTop_toBottomOf="@id/hw_unit_name_title"
                     android:importantForAutofill="no" />
-
+                
                 <android.support.constraint.Group
+                    android:id="@+id/hw_unit_location_group"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:constraint_referenced_ids="unit_type_spinner_title, unit_type_spinner"
-                    android:visibility="@{viewModel.type == BoardConfig.GPIO ? View.VISIBLE : View.GONE}"/>
-
+                    app:constraint_referenced_ids="hw_unit_location_title, hw_unit_location"
+                    android:visibility="@{TextUtils.isEmpty(viewModel.type) ? View.GONE : View.VISIBLE}"/>
                 <TextView
-                    android:id="@+id/unit_type_spinner_title"
+                    android:id="@+id/hw_unit_location_title"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/add_edit_home_unit_text_unit_type_title"
+                    android:layout_marginTop="@dimen/margin_normal"
+                    android:text="@string/add_edit_hw_unit_location_title"
                     android:textColor="@color/colorPrimaryDark"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/home_unit_name"  />
+                    app:layout_constraintTop_toBottomOf="@+id/hw_unit_name"/>
+                <EditText
+                    android:id="@+id/hw_unit_location"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_small"
+                    android:hint="@string/add_edit_hw_unit_location_hint"
+                    android:inputType="text"
+                    android:maxLines="1"
+                    android:text="@={viewModel.location}"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Title"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/hw_unit_location_title"
+                    android:importantForAutofill="no" />
 
+                <android.support.constraint.Group
+                    android:id="@+id/unit_pin_name_group"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:constraint_referenced_ids="hw_unit_pin_name_spinner_title, hw_unit_pin_name_spinner"
+                    android:visibility="@{viewModel.type == BoardConfig.GPIO_INPUT || viewModel.type == BoardConfig.GPIO_OUTPUT ? View.VISIBLE : View.GONE}"/>
+                <TextView
+                    android:id="@+id/hw_unit_pin_name_spinner_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/add_edit_hw_unit_pin_name_title"
+                    android:textColor="@color/colorPrimaryDark"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/hw_unit_location"  />
                 <android.support.v7.widget.AppCompatSpinner
-                    android:id="@+id/unit_type_spinner"
+                    android:id="@+id/hw_unit_pin_name_spinner"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/margin_small"
                     android:entries="@{viewModel.pinNameList}"
-                    android:prompt="@string/add_edit_home_unit_text_unit_type_spinner_prompt"
+                    android:prompt="@string/add_edit_hw_unit_pin_name_spinner_prompt"
                     android:spinnerMode="dialog"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/unit_type_spinner_title"
+                    app:layout_constraintTop_toBottomOf="@id/hw_unit_pin_name_spinner_title"
                     app:selectedValue="@={viewModel.pinName}" />
 
             </android.support.constraint.ConstraintLayout>

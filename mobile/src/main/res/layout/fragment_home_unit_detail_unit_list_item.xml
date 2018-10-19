@@ -10,7 +10,7 @@
             type="android.view.View.OnClickListener"/>
         <variable
             name="unitTask"
-            type="com.krisbiketeam.data.storage.dto.UnitTask"/>
+            type="com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.UnitTask"/>
     </data>
 
     <android.support.constraint.ConstraintLayout

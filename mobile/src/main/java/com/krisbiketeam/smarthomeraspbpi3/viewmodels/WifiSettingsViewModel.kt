@@ -2,8 +2,8 @@ package com.krisbiketeam.smarthomeraspbpi3.viewmodels
 
 import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.ViewModel
-import com.krisbiketeam.data.MyLiveDataState
-import com.krisbiketeam.data.nearby.NearbyServiceLiveData
+import com.krisbiketeam.smarthomeraspbpi3.common.MyLiveDataState
+import com.krisbiketeam.smarthomeraspbpi3.common.nearby.NearbyServiceLiveData
 import com.krisbiketeam.smarthomeraspbpi3.ui.WifiSettingsFragment
 import timber.log.Timber
 

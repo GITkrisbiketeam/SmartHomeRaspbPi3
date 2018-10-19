@@ -3,12 +3,12 @@ package com.krisbiketeam.smarthomeraspbpi3.viewmodels
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.ViewModel
-import com.krisbiketeam.data.hardware.BoardConfig
-import com.krisbiketeam.data.hardware.BoardConfig.IO_HW_UNIT_TYPE_LIST
-import com.krisbiketeam.data.storage.ConnectionType
-import com.krisbiketeam.data.storage.HomeInformationRepository
-import com.krisbiketeam.data.storage.dto.HwUnit
-import com.krisbiketeam.smarthomeraspbpi3.driver.MCP23017Pin
+import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig
+import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig.IO_HW_UNIT_TYPE_LIST
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.ConnectionType
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.HomeInformationRepository
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
+import com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver.MCP23017Pin
 import com.krisbiketeam.smarthomeraspbpi3.ui.AddEditHwUnitFragment
 import timber.log.Timber
 
@@ -48,7 +48,7 @@ class AddEditHwUnitViewModel(
     val internalPullUp: MutableLiveData<Boolean?> = MutableLiveData()
 
     // This is for checking if given name is not already used
-    val hwUnitList: LiveData<List<HwUnit>>
+    private val hwUnitList: LiveData<List<HwUnit>>
 
 
 

@@ -1,12 +1,15 @@
 package com.krisbiketeam.smarthomeraspbpi3.units.hardware
 
+import android.annotation.SuppressLint
 import android.support.annotation.VisibleForTesting
-import com.krisbiketeam.smarthomeraspbpi3.driver.MCP23017
+import com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver.MCP23017
 import java.util.*
 
 object HwUnitI2CMCP23017 {
 
+    @SuppressLint("UseSparseArrays")
     private var mcpMap = HashMap<Int, MCP23017>()
+    @SuppressLint("UseSparseArrays")
     @VisibleForTesting
     internal var mcpUseCountMap = HashMap<Int, Int>()
 

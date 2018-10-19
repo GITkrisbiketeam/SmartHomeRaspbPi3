@@ -4,8 +4,8 @@ import android.arch.lifecycle.MediatorLiveData
 import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.Transformations
 import android.arch.lifecycle.ViewModel
-import com.krisbiketeam.data.storage.HomeInformationRepository
-import com.krisbiketeam.data.storage.dto.Room
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.HomeInformationRepository
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.Room
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomListFragment
 import timber.log.Timber
 

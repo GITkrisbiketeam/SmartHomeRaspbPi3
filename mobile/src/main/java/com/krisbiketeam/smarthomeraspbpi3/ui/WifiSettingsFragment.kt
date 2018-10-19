@@ -13,8 +13,8 @@ import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.widget.TextView
 import androidx.navigation.Navigation
-import com.krisbiketeam.data.MyLiveDataState
-import com.krisbiketeam.data.auth.WifiCredentials
+import com.krisbiketeam.smarthomeraspbpi3.common.MyLiveDataState
+import com.krisbiketeam.smarthomeraspbpi3.common.auth.WifiCredentials
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentSettingsWifiBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.WifiSettingsViewModel

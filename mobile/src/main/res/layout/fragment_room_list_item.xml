@@ -10,7 +10,7 @@
             type="android.view.View.OnClickListener"/>
         <variable
             name="room"
-            type="com.krisbiketeam.data.storage.dto.Room"/>
+            type="com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.Room"/>
     </data>
 
     <android.support.constraint.ConstraintLayout

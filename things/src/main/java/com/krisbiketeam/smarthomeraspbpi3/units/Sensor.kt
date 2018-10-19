@@ -1,6 +1,6 @@
 package com.krisbiketeam.smarthomeraspbpi3.units
 
-import com.krisbiketeam.data.storage.dto.HwUnit
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
 
 interface Sensor<T> : BaseUnit<T> {
 

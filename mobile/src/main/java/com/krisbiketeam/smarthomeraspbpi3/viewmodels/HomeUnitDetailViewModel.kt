@@ -2,8 +2,8 @@ package com.krisbiketeam.smarthomeraspbpi3.viewmodels
 
 import android.arch.lifecycle.*
 import com.google.android.gms.tasks.Task
-import com.krisbiketeam.data.storage.HomeInformationRepository
-import com.krisbiketeam.data.storage.dto.*
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.HomeInformationRepository
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.*
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.adapters.UnitTaskListAdapter
 import com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitDetailFragment
@@ -219,7 +219,7 @@ class HomeUnitDetailViewModel(
             when {
                 name.value?.trim().isNullOrEmpty() -> return Pair(R.string.add_edit_home_unit_empty_name, null)
                 type.value?.trim().isNullOrEmpty() -> return Pair(R.string.add_edit_home_unit_empty_unit_type, null)
-                //hwUnitName.value?.trim().isNullOrEmpty() -> return Pair(R.string.add_edit_home_unit_empty_unit_hw_unit, null)
+                hwUnitName.value?.trim().isNullOrEmpty() -> return Pair(R.string.add_edit_home_unit_empty_unit_hw_unit, null)
                 homeUnitNameList.value?.find { unit -> unit.name == name.value?.trim() } != null ->
                        {
                     //This name is already used

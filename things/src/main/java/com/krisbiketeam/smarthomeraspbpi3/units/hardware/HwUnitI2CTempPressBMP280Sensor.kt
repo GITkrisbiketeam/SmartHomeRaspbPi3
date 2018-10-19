@@ -2,8 +2,9 @@ package com.krisbiketeam.smarthomeraspbpi3.units.hardware
 
 import com.google.android.things.contrib.driver.bmx280.Bmx280
 import com.google.android.things.contrib.driver.rainbowhat.RainbowHat
-import com.krisbiketeam.data.storage.ConnectionType
-import com.krisbiketeam.data.storage.dto.HwUnit
+import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.ConnectionType
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
 import com.krisbiketeam.smarthomeraspbpi3.units.HwUnitI2C
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
 import kotlinx.coroutines.experimental.CommonPool
@@ -22,7 +23,7 @@ class HwUnitI2CTempPressBMP280Sensor(name: String,
                                      softAddress: Int,
                                      override var device: AutoCloseable? = null) : HwUnitI2C<TemperatureAndPressure>, Sensor<TemperatureAndPressure> {
 
-    override val hwUnit: HwUnit = HwUnit(name, location, pinName, ConnectionType.I2C, softAddress)
+    override val hwUnit: HwUnit = HwUnit(BoardConfig.TEMP_PRESS_SENSOR_BMP280, name, location, pinName, ConnectionType.I2C, softAddress)
     override var unitValue: TemperatureAndPressure? = null
     override var valueUpdateTime: String = ""
 

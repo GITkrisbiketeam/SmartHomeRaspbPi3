@@ -11,7 +11,7 @@ import android.support.v7.widget.SwitchCompat
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ProgressBar
-import com.krisbiketeam.data.MyLiveDataState
+import com.krisbiketeam.smarthomeraspbpi3.common.MyLiveDataState
 import timber.log.Timber
 
 

@@ -299,7 +299,8 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:clickable="true"
-            android:visibility="@{safeUnbox(viewModel.showProgress) ? View.VISIBLE : View.GONE}">
+            android:visibility="@{safeUnbox(viewModel.showProgress) ? View.VISIBLE : View.GONE}"
+            android:focusable="true">
 
             <android.support.v4.widget.ContentLoadingProgressBar
                 style="?android:attr/progressBarStyleLarge"

@@ -1,6 +1,13 @@
 <resources>
     <string name="app_name">SmartHome Raspberry Pi3</string>
 
+    <!--
+            This is the name that users will see when interacting with this channel.
+            It should describe the category of notifications that will be sent through this channel
+         -->
+    <string name="default_notification_channel_name" translatable="true">RSPi3</string>
+    <string name="default_notification_channel_id" translatable="false">fcm_default_channel</string>
+
     <!-- Strings related to email -->
     <string name="prompt_email">Email</string>
     <string name="prompt_wifi">SSID Name</string>
@@ -40,13 +47,10 @@
     <string name="add_edit_home_unit_hw_unit_title">Add/Edit HW Unit</string>
     <string name="add_edit_home_unit_text_name">Name:</string>
     <string name="add_edit_home_unit_text_title_hint">Name</string>
-    <string name="add_edit_home_unit_text_description">Description:</string>
-    <string name="add_edit_home_unit_text_description_hint">Your description</string>
     <string name="add_edit_home_unit_text_unit_type_spinner_prompt">Select Unit Type:</string>
     <string name="add_edit_home_unit_text_unit_type_title">Unit Type:</string>
     <string name="add_edit_home_unit_text_room_spinner_prompt">Select Room:</string>
     <string name="add_edit_home_unit_text_room_title">Room:</string>
-    <string name="add_edit_home_unit_text_hw_unit_spinner_prompt">Select Hardware Unit:</string>
     <string name="add_edit_home_unit_text_hw_unit_title">Hardware Unit:</string>
     <string name="add_edit_home_unit_text_value">Value: </string>
     <string name="add_edit_home_unit_text_task_list_title">Unit Task List:</string>
@@ -79,15 +83,9 @@
     <string name="hw_unit_list_title">Hw Unit List</string>
 
     <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="logs_hello_blank_fragment">Hello blank fragment</string>
 
 
-    <string name="default_notification_channel_id" translatable="false">fcm_default_channel</string>
-    <!--
-        This is the name that users will see when interacting with this channel.
-        It should describe the category of notifications that will be sent through this channel
-     -->
-    <string name="default_notification_channel_name" translatable="true">RSPi3</string>
 
     <string name="unit_task_text_name_title">Name:</string>
     <string name="unit_task_text_home_unit_name_title">Home Unit Name:</string>
@@ -95,6 +93,15 @@
     <string name="unit_task_text_hw_unit_name_title">Hw Unit Name:</string>
     <string name="unit_task_text_hw_unit_select_spinner_prompt">Select Hw Unit</string>
     <string name="unit_task_empty_name_unit_or_hw">Empty Unit Task please fill in required fields</string>
+
+    <string name="add_edit_hw_unit_type_spinner_title">HwUnit Type</string>
+    <string name="add_edit_hw_unit_type_spinner_prompt">Select HW Unit Type:</string>
+    <string name="add_edit_hw_unit_name_title">HW Unit Name:</string>
+    <string name="add_edit_hw_unit_name_hint">Enter unique Name for this HW Unit</string>
+    <string name="add_edit_hw_unit_pin_name_title">Pin Name:</string>
+    <string name="add_edit_hw_unit_pin_name_spinner_prompt">Select Pin Name:</string>
+    <string name="add_edit_hw_unit_location_title">Location of HW Unit</string>
+    <string name="add_edit_hw_unit_location_hint">Enter Location of this HW Unit</string>
 
 
 </resources>

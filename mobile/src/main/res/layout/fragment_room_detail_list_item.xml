@@ -7,8 +7,8 @@
     <data>
         <import type="android.view.View" />
         <import type="java.lang.Boolean" />
-        <import type="com.krisbiketeam.data.storage.firebaseTables.FirebaseTablesKt" />
-        <import type="com.krisbiketeam.data.storage.FirebaseHomeInformationRepository" />
+        <import type="com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.FirebaseTablesKt" />
+        <import type="com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository" />
 
         <variable
             name="clickListener"
@@ -16,7 +16,7 @@
 
         <variable
             name="homeUnit"
-            type="com.krisbiketeam.data.storage.dto.HomeUnit"/>
+            type="com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit"/>
     </data>
 
     <android.support.constraint.ConstraintLayout

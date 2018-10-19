@@ -9,7 +9,7 @@
             type="android.view.View.OnClickListener"/>
         <variable
             name="hwUnit"
-            type="com.krisbiketeam.data.storage.dto.HwUnit"/>
+            type="com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit"/>
     </data>
 
     <android.support.constraint.ConstraintLayout

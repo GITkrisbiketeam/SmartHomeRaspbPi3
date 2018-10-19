@@ -2,8 +2,9 @@ package com.krisbiketeam.smarthomeraspbpi3.units.hardware
 
 import com.google.android.things.pio.Gpio
 import com.google.android.things.pio.GpioCallback
-import com.krisbiketeam.data.storage.ConnectionType
-import com.krisbiketeam.data.storage.dto.HwUnit
+import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.ConnectionType
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
 import com.krisbiketeam.smarthomeraspbpi3.units.HwUnitGpio
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
 import timber.log.Timber
@@ -16,7 +17,7 @@ open class HwUnitGpioSensor(name: String,
                             private val activeType: Int = Gpio.ACTIVE_HIGH,
                             override var gpio: Gpio? = null) : HwUnitGpio<Boolean>, Sensor<Boolean> {
 
-    override val hwUnit: HwUnit = HwUnit(name, location, pinName, ConnectionType.GPIO)
+    override val hwUnit: HwUnit = HwUnit(BoardConfig.GPIO_INPUT, name, location, pinName, ConnectionType.GPIO)
     override var unitValue: Boolean? = null
     override var valueUpdateTime: String = ""
 

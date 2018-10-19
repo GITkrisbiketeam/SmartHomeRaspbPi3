@@ -1,11 +1,11 @@
 package com.krisbiketeam.smarthomeraspbpi3.ui.setup
 
 import android.app.Activity
-import com.krisbiketeam.data.auth.FirebaseCredentials
-import com.krisbiketeam.data.nearby.NearbyService
-import com.krisbiketeam.data.nearby.NearbyServiceProvider
-import com.krisbiketeam.data.storage.NotSecureStorage
-import com.krisbiketeam.data.storage.SecureStorage
+import com.krisbiketeam.smarthomeraspbpi3.common.auth.FirebaseCredentials
+import com.krisbiketeam.smarthomeraspbpi3.common.nearby.NearbyService
+import com.krisbiketeam.smarthomeraspbpi3.common.nearby.NearbyServiceProvider
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.NotSecureStorage
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import com.squareup.moshi.Moshi
 import timber.log.Timber
 
