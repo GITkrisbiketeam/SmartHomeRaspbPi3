@@ -21,7 +21,7 @@ class HwUnitI2CTempTMP102Sensor(name: String,
                                 softAddress: Int,
                                 override var device: AutoCloseable? = null) : HwUnitI2C<Float>, Sensor<Float> {
 
-    override val hwUnit: HwUnit = HwUnit(BoardConfig. TEMP_SENSOR_TMP102, name, location, pinName, ConnectionType.I2C, softAddress)
+    override val hwUnit: HwUnit = HwUnit(name, location, BoardConfig. TEMP_SENSOR_TMP102, pinName, ConnectionType.I2C, softAddress)
     override var unitValue: Float? = null
     override var valueUpdateTime: String = ""
 

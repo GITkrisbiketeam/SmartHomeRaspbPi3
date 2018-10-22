@@ -18,7 +18,7 @@ class HwUnitI2CMCP23017Actuator(name: String,
                                 private val ioPin: Pin,
                                 override var device: AutoCloseable? = null) : HwUnitI2C<Boolean>, Actuator<Boolean> {
 
-    override val hwUnit: HwUnit = HwUnit(BoardConfig.IO_EXTENDER_MCP23017_OUTPUT, name, location, pinName, ConnectionType.I2C, address, pinInterrupt, ioPin.name)
+    override val hwUnit: HwUnit = HwUnit(name, location, BoardConfig.IO_EXTENDER_MCP23017_OUTPUT, pinName, ConnectionType.I2C, address, pinInterrupt, ioPin.name)
     override var unitValue: Boolean? = null
     override var valueUpdateTime: String = ""
 

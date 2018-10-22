@@ -16,7 +16,7 @@ class HwUnitGpioActuator(name: String,
                          private val activeType: Int,
                          override var gpio: Gpio? = null) : HwUnitGpio<Boolean>, Actuator<Boolean> {
 
-    override val hwUnit: HwUnit = HwUnit(BoardConfig.GPIO_OUTPUT, name, location, pinName, ConnectionType.GPIO)
+    override val hwUnit: HwUnit = HwUnit(name, location, BoardConfig.GPIO_OUTPUT, pinName, ConnectionType.GPIO)
     override var unitValue: Boolean? = null
     override var valueUpdateTime: String = ""
 

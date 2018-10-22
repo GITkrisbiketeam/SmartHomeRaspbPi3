@@ -20,7 +20,7 @@ class HwUnitI2CFourCharDisplay(name: String,
         // and then immediately closed to release resources
     }
 
-    override val hwUnit: HwUnit = HwUnit(BoardConfig.FOUR_CHAR_DISP, name, location, pinName, ConnectionType.I2C, AlphanumericDisplay.I2C_ADDRESS)
+    override val hwUnit: HwUnit = HwUnit(name, location, BoardConfig.FOUR_CHAR_DISP, pinName, ConnectionType.I2C, AlphanumericDisplay.I2C_ADDRESS)
     override var unitValue: String? = null
     override var valueUpdateTime: String = ""
 

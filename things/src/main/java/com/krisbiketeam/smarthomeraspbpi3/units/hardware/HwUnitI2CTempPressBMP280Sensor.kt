@@ -23,7 +23,7 @@ class HwUnitI2CTempPressBMP280Sensor(name: String,
                                      softAddress: Int,
                                      override var device: AutoCloseable? = null) : HwUnitI2C<TemperatureAndPressure>, Sensor<TemperatureAndPressure> {
 
-    override val hwUnit: HwUnit = HwUnit(BoardConfig.TEMP_PRESS_SENSOR_BMP280, name, location, pinName, ConnectionType.I2C, softAddress)
+    override val hwUnit: HwUnit = HwUnit(name, location, BoardConfig.TEMP_PRESS_SENSOR_BMP280, pinName, ConnectionType.I2C, softAddress)
     override var unitValue: TemperatureAndPressure? = null
     override var valueUpdateTime: String = ""
 

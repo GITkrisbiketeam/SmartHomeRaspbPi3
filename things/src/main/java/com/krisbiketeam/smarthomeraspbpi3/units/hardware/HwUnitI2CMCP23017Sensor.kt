@@ -19,7 +19,7 @@ open class HwUnitI2CMCP23017Sensor(name: String,
                                    private val internalPullUp: Boolean = false,
                                    override var device: AutoCloseable? = null) : HwUnitI2C<Boolean>, Sensor<Boolean> {
 
-    override val hwUnit: HwUnit = HwUnit(BoardConfig.IO_EXTENDER_MCP23017_INPUT, name, location, pinName, ConnectionType.I2C, address, pinInterrupt, ioPin.name, internalPullUp)
+    override val hwUnit: HwUnit = HwUnit(name, location, BoardConfig.IO_EXTENDER_MCP23017_INPUT, pinName, ConnectionType.I2C, address, pinInterrupt, ioPin.name, internalPullUp)
     override var unitValue: Boolean? = null
     override var valueUpdateTime: String = ""
 

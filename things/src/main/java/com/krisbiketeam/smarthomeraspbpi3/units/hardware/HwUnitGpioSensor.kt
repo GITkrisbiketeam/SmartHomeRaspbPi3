@@ -17,7 +17,7 @@ open class HwUnitGpioSensor(name: String,
                             private val activeType: Int = Gpio.ACTIVE_HIGH,
                             override var gpio: Gpio? = null) : HwUnitGpio<Boolean>, Sensor<Boolean> {
 
-    override val hwUnit: HwUnit = HwUnit(BoardConfig.GPIO_INPUT, name, location, pinName, ConnectionType.GPIO)
+    override val hwUnit: HwUnit = HwUnit(name, location, BoardConfig.GPIO_INPUT, pinName, ConnectionType.GPIO)
     override var unitValue: Boolean? = null
     override var valueUpdateTime: String = ""
 

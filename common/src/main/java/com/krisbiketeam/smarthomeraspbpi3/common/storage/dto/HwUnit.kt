@@ -5,12 +5,12 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.ConnectionType
 
 @IgnoreExtraProperties
 data class HwUnit(
-        // HwUnit type
-        var type: String = "",
         // HwUnit name ex. "BMP280" "Light", Name should be unique for all units
         var name: String = "",
         // Location of the sensor, ex. kitchen
         var location: String = "",
+        // HwUnit type
+        var type: String = "",
         // Board Pin name this hwUnit is connected to
         var pinName: String = "",
         // Connection type see {@link ConnectionType} ex. ConnectionType.I2C
