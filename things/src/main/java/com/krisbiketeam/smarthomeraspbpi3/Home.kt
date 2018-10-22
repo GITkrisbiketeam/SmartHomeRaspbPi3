@@ -166,7 +166,7 @@ class Home : Sensor.HwUnitListener<Any> {
                         Timber.w("HwUnit already exist recreate it")
                         hwUnitStop(it)
                     }
-                    when (value.name) {
+                    when (value.type) {
                         BoardConfig.TEMP_SENSOR_TMP102 -> {
                             unit = HwUnitI2CTempTMP102Sensor(
                                     value.name,
@@ -181,10 +181,7 @@ class Home : Sensor.HwUnitListener<Any> {
                                     value.pinName,
                                     value.softAddress!!) as BaseUnit<Any>
                         }
-                        BoardConfig.IO_EXTENDER_MCP23017_1_IN_A7,
-                        BoardConfig.IO_EXTENDER_MCP23017_1_IN_A6,
-                        BoardConfig.IO_EXTENDER_MCP23017_1_IN_A5,
-                        BoardConfig.IO_EXTENDER_MCP23017_1_IN_A0 -> {
+                        BoardConfig.IO_EXTENDER_MCP23017_INPUT -> {
                             unit = HwUnitI2CMCP23017Sensor(
                                     value.name,
                                     value.location,
@@ -194,8 +191,7 @@ class Home : Sensor.HwUnitListener<Any> {
                                     MCP23017Pin.Pin.valueOf(value.ioPin!!),
                                     value.internalPullUp!!) as BaseUnit<Any>
                         }
-                        BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B0,
-                        BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B7 -> {
+                        BoardConfig.IO_EXTENDER_MCP23017_OUTPUT -> {
                             unit = HwUnitI2CMCP23017Actuator(
                                     value.name,
                                     value.location,
