@@ -18,8 +18,11 @@ enum class SpinnerType {
 class SpinnerAdapter(context: Context, val type: SpinnerType, val entries: List<Any>) :
         ArrayAdapter<Any>(context, android.R.layout.simple_spinner_item, android.R.id.text1,
                 entries.toMutableList().apply {
-                    if (all { it is String }) add("")
-                    else if (all { it is Pair<*, *> }) add(Pair("", false))
+                    when {
+                        all { it is String } -> add("")
+                        all { it is Int } -> add(Int.MIN_VALUE)
+                        all { it is Pair<*, *> } -> add(Pair("", false))
+                    }
                 }) {
 
     init {

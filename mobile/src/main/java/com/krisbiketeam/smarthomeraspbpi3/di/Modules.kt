@@ -24,7 +24,7 @@ val myModule: Module = module {
     viewModel { WifiSettingsViewModel(get()) }
     viewModel { LoginSettingsViewModel(get(), get()) }
     viewModel { NavigationViewModel(get()) }
-    viewModel { AddEditHwUnitViewModel(FirebaseHomeInformationRepository) }
+    viewModel { (hwUnitName: String) -> AddEditHwUnitViewModel(FirebaseHomeInformationRepository, hwUnitName) }
     viewModel { HwUnitListViewModel(FirebaseHomeInformationRepository) }
 
     single { NotSecureStorage(androidApplication()) as SecureStorage }

@@ -1,6 +1,5 @@
 package com.krisbiketeam.smarthomeraspbpi3.ui
 
-import android.arch.lifecycle.Observer
 import android.databinding.DataBindingUtil
 import android.os.Bundle
 import android.support.v4.app.Fragment
@@ -9,27 +8,28 @@ import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentAddEditHwUnitBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.AddEditHwUnitViewModel
 import org.koin.android.viewmodel.ext.android.viewModel
-import timber.log.Timber
+import org.koin.core.parameter.parametersOf
 
 class AddEditHwUnitFragment : Fragment() {
-    private val addEditHwUnitViewModel by viewModel<AddEditHwUnitViewModel>()
-
+    private val addEditHwUnitViewModel: AddEditHwUnitViewModel by viewModel {
+        parametersOf(
+                AddEditHwUnitFragmentArgs.fromBundle(arguments).hwUnitName)
+    }
     override fun onCreateView(
             inflater: LayoutInflater,
             container: ViewGroup?,
             savedInstanceState: Bundle?
     ): View? {
-        val hwUnitName = AddEditHwUnitFragmentArgs.fromBundle(arguments).hwUnitName
         val binding = DataBindingUtil.inflate<FragmentAddEditHwUnitBinding>(
                 inflater, R.layout.fragment_add_edit_hw_unit, container, false).apply {
             viewModel = addEditHwUnitViewModel
             setLifecycleOwner(this@AddEditHwUnitFragment)
         }
 
-        addEditHwUnitViewModel.location.observe(viewLifecycleOwner, Observer { tableName ->
+        /*addEditHwUnitViewModel.location.observe(viewLifecycleOwner, Observer { tableName ->
             Timber.d("unitType changed: $tableName")
         })
-        /*addEditHwUnitViewModel.homeUnitListLiveData.observe(viewLifecycleOwner, Observer { tableName ->
+        addEditHwUnitViewModel.homeUnitListLiveData.observe(viewLifecycleOwner, Observer { tableName ->
             Timber.d("homeUnitListLiveData changed: $tableName")
         })*/
 

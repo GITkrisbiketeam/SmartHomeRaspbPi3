@@ -114,7 +114,9 @@ fun bindSpinnerData(spinner: AppCompatSpinner, newSelectedValue: Any?, newTextAt
 
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 Timber.d("selectedValue $newSelectedValue onItemSelected : $position")
-                newTextAttrChanged.onChange()
+                newSelectedValue?.let {
+                    newTextAttrChanged.onChange()
+                }
             }
         }
         tag = newSelectedValue?.let{it} ?: ""
@@ -135,12 +137,16 @@ fun bindSpinnerData(spinner: AppCompatSpinner, newSelectedValue: Any?, newTextAt
 @InverseBindingAdapter(attribute = "selectedValue", event = "selectedValueAttrChanged")
 fun captureSelectedValue(spinner: AppCompatSpinner): Any? {
     Timber.d("selectedValue InverseBindingAdapter ${spinner.selectedItem}")
-    return when {
-        spinner.selectedItem is String -> (spinner.selectedItem as String).run {
+    return when (spinner.selectedItem ) {
+        is String -> (spinner.selectedItem as String).run {
             Timber.d("selectedValue InverseBindingAdapter String ${this}")
             if (isEmpty()) null else this
         }
-        spinner.selectedItem is Pair<*,*> -> (spinner.selectedItem as Pair<*,*>).run {
+        is Int -> (spinner.selectedItem as Int).run {
+            Timber.d("selectedValue InverseBindingAdapter String ${this}")
+            if (this == Int.MIN_VALUE) null else this
+        }
+        is Pair<*,*> -> (spinner.selectedItem as Pair<*,*>).run {
             Timber.d("selectedValue InverseBindingAdapter Pair ${this}")
             if((first as String).isEmpty()) null else this.first
         }

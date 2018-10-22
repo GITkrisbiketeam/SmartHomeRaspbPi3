@@ -84,6 +84,11 @@ interface HomeInformationRepository {
     fun hwUnitsLiveData(): HwUnitsLiveData
 
     /**
+     * get instance of @see[HwUnitsLiveData] for listening to changes in entries in DB
+     */
+    fun hwUnitLiveData(hwUnitName: String): HwUnitLiveData
+
+    /**
      * get instance of @see[HwUnitListLiveData] for listening to changes in Room entries in DB
      */
     fun hwUnitListLiveData(): HwUnitListLiveData
@@ -224,6 +229,10 @@ object FirebaseHomeInformationRepository : HomeInformationRepository {
 
     override fun homeUnitLiveData(unitType: String, unitName:String): HomeUnitLiveData {
         return HomeUnitLiveData(referenceHome, unitType, unitName)
+    }
+
+    override fun hwUnitLiveData(hwUnitName: String): HwUnitLiveData {
+        return HwUnitLiveData(referenceHome, hwUnitName)
     }
 
     override fun unitTaskListLiveData(unitType: String, unitName:String): UnitTaskListLiveData {

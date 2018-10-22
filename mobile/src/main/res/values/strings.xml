@@ -102,6 +102,10 @@
     <string name="add_edit_hw_unit_pin_name_spinner_prompt">Select Pin Name:</string>
     <string name="add_edit_hw_unit_location_title">Location of HW Unit</string>
     <string name="add_edit_hw_unit_location_hint">Enter Location of this HW Unit</string>
+    <string name="add_edit_hw_unit_soft_address_title">I2C Software Address:</string>
+    <string name="add_edit_hw_unit_soft_address_title_spinner_prompt">Select I2C Software Address:</string>
+    <string name="add_edit_hw_unit_pin_interrupt_title">I2C GPIO Pin Interrupt:</string>
+    <string name="add_edit_hw_unit_pit_interrupt_title_spinner_prompt">Select I2C GPIO Pin Interrupt:</string>
 
 
 </resources>

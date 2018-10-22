@@ -6,6 +6,7 @@
         <import type="android.view.View" />
         <import type="android.text.TextUtils" />
         <import type="com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig" />
+        <import type="com.krisbiketeam.smarthomeraspbpi3.common.storage.ConnectionType" />
 
         <variable
             name="viewModel"
@@ -157,11 +158,11 @@
                     android:importantForAutofill="no" />
 
                 <android.support.constraint.Group
-                    android:id="@+id/unit_pin_name_group"
+                    android:id="@+id/hw_unit_pin_name_group"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     app:constraint_referenced_ids="hw_unit_pin_name_spinner_title, hw_unit_pin_name_spinner"
-                    android:visibility="@{viewModel.type == BoardConfig.GPIO_INPUT || viewModel.type == BoardConfig.GPIO_OUTPUT ? View.VISIBLE : View.GONE}"/>
+                    android:visibility="@{TextUtils.isEmpty(viewModel.type) ? View.GONE : View.VISIBLE}"/>
                 <TextView
                     android:id="@+id/hw_unit_pin_name_spinner_title"
                     android:layout_width="match_parent"
@@ -176,13 +177,70 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/margin_small"
-                    android:entries="@{viewModel.pinNameList}"
                     android:prompt="@string/add_edit_hw_unit_pin_name_spinner_prompt"
                     android:spinnerMode="dialog"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/hw_unit_pin_name_spinner_title"
+                    app:entries="@{viewModel.pinNameList}"
                     app:selectedValue="@={viewModel.pinName}" />
+
+                <android.support.constraint.Group
+                    android:id="@+id/hw_unit_soft_address_group"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:constraint_referenced_ids="hw_unit_soft_address_spinner_title, hw_unit_soft_address_spinner"
+                    android:visibility="@{viewModel.connectionType == ConnectionType.I2C ? View.VISIBLE : View.GONE}"/>
+                <TextView
+                    android:id="@+id/hw_unit_soft_address_spinner_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/add_edit_hw_unit_soft_address_title"
+                    android:textColor="@color/colorPrimaryDark"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/hw_unit_pin_name_spinner"  />
+                <android.support.v7.widget.AppCompatSpinner
+                    android:id="@+id/hw_unit_soft_address_spinner"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_small"
+                    android:prompt="@string/add_edit_hw_unit_soft_address_title_spinner_prompt"
+                    android:spinnerMode="dialog"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/hw_unit_soft_address_spinner_title"
+                    app:entries="@{viewModel.softAddressList}"
+                    app:selectedValue="@={viewModel.softAddress}" />
+
+                <android.support.constraint.Group
+                    android:id="@+id/hw_unit_pin_interrupt_group"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:constraint_referenced_ids="hw_unit_pin_interrupt_spinner_title, hw_unit_pin_interrupt_spinner"
+                    android:visibility="@{viewModel.type == BoardConfig.IO_EXTENDER_MCP23017_INPUT ? View.VISIBLE : View.GONE}"/>
+                <TextView
+                    android:id="@+id/hw_unit_pin_interrupt_spinner_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/add_edit_hw_unit_pin_interrupt_title"
+                    android:textColor="@color/colorPrimaryDark"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/hw_unit_soft_address_spinner"  />
+                <android.support.v7.widget.AppCompatSpinner
+                    android:id="@+id/hw_unit_pin_interrupt_spinner"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_small"
+                    android:prompt="@string/add_edit_hw_unit_pit_interrupt_title_spinner_prompt"
+                    android:spinnerMode="dialog"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/hw_unit_pin_interrupt_spinner_title"
+                    app:entriesWithEmpty="@{viewModel.pinInterruptList}"
+                    app:selectedValue="@={viewModel.pinInterrupt}" />
+
 
             </android.support.constraint.ConstraintLayout>
 
