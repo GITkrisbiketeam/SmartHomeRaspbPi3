@@ -46,14 +46,14 @@ class HomeUnitDetailViewModel(
     private var homeRepositoryTask: Task<Void>? = null
 
     // used for checking if given homeUnit name is not already used
-    var homeUnitNameList =
+    var homeUnitList =
             Transformations.switchMap(isEditMode) { edit ->
-                Timber.d("init homeUnitNameList isEditMode edit: $edit")
+                Timber.d("init homeUnitList isEditMode edit: $edit")
                 if (edit)
                     MediatorLiveData<MutableList<HomeUnit<Any>>>().apply {
                         HOME_STORAGE_UNITS.forEach { type ->
                             addSource(homeRepository.homeUnitListLiveData(type)) { homeUnitList ->
-                                Timber.d("init homeUnitNameList homeUnitListLiveData homeUnitList: $homeUnitList")
+                                Timber.d("init homeUnitList homeUnitListLiveData homeUnitList: $homeUnitList")
                                 value = value ?: ArrayList()
                                 value?.addAll(homeUnitList?: emptyList())
                             }
@@ -160,8 +160,8 @@ class HomeUnitDetailViewModel(
                     if (edit)
                     //Transformations.map(homeRepository.hwUnitListLiveData()) { list -> list.map(HwUnit::name) }
 
-                        Transformations.switchMap(homeUnitNameList) { homeUnitList ->
-                            Timber.d("init hwUnitNameList homeUnitNameList homeUnitList: $homeUnitList")
+                        Transformations.switchMap(homeUnitList) { homeUnitList ->
+                            Timber.d("init hwUnitNameList homeUnitList homeUnitList: $homeUnitList")
                             Transformations.map(homeRepository.hwUnitListLiveData()) { list -> list.map {
                                 Pair(it.name, homeUnitList.find { unit -> unit.hwUnitName == it.name } != null) }
                             }
@@ -220,7 +220,7 @@ class HomeUnitDetailViewModel(
                 name.value?.trim().isNullOrEmpty() -> return Pair(R.string.add_edit_home_unit_empty_name, null)
                 type.value?.trim().isNullOrEmpty() -> return Pair(R.string.add_edit_home_unit_empty_unit_type, null)
                 hwUnitName.value?.trim().isNullOrEmpty() -> return Pair(R.string.add_edit_home_unit_empty_unit_hw_unit, null)
-                homeUnitNameList.value?.find { unit -> unit.name == name.value?.trim() } != null ->
+                homeUnitList.value?.find { unit -> unit.name == name.value?.trim() } != null ->
                        {
                     //This name is already used
                     Timber.d("This name is already used")

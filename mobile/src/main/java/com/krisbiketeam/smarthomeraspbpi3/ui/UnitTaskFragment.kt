@@ -37,7 +37,7 @@ class UnitTaskFragment : Fragment() {
         }
 
         unitTaskViewModel.isEditMode.observe(viewLifecycleOwner, Observer { isEditMode ->
-            // in Edit Mode we need to listen for homeUnitNameList, as there is no reference in xml layout to trigger its observer, but can we find some better way
+            // in Edit Mode we need to listen for homeUnitList, as there is no reference in xml layout to trigger its observer, but can we find some better way
             if (isEditMode == true) {
                 unitTaskViewModel.homeUnitNameList.observe(viewLifecycleOwner, Observer { })
             } else {

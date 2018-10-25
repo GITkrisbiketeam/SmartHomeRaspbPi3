@@ -39,12 +39,12 @@ class HomeUnitDetailFragment : Fragment() {
         }
 
         homeUnitDetailViewModel.isEditMode.observe(viewLifecycleOwner, Observer { isEditMode ->
-            // in Edit Mode we need to listen for homeUnitNameList, as there is no reference in xml layout to trigger its observer, but can we find some better way???
+            // in Edit Mode we need to listen for homeUnitList, as there is no reference in xml layout to trigger its observer, but can we find some better way???
             Timber.d("onCreateView isEditMode: $isEditMode")
             if (isEditMode == true) {
-                homeUnitDetailViewModel.homeUnitNameList.observe(viewLifecycleOwner, Observer { })
+                homeUnitDetailViewModel.homeUnitList.observe(viewLifecycleOwner, Observer { })
             } else {
-                homeUnitDetailViewModel.homeUnitNameList.removeObservers(viewLifecycleOwner)
+                homeUnitDetailViewModel.homeUnitList.removeObservers(viewLifecycleOwner)
             }
             activity?.invalidateOptionsMenu()
             // Animate Layout edit mode change

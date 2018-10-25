@@ -105,7 +105,7 @@ class UnitTaskViewModel(
 
         // List with all available HomeUnits to be used for this Task
         homeUnitNameList = Transformations.switchMap(isEditMode) { edit ->
-            Timber.d("init homeUnitNameList isEditMode edit: $edit")
+            Timber.d("init homeUnitList isEditMode edit: $edit")
             if (edit) {
                 MediatorLiveData<MutableList<String>>().apply {
                     HOME_STORAGE_UNITS.forEach { type ->
