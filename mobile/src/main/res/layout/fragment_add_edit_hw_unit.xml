@@ -92,8 +92,8 @@
                     android:prompt="@string/add_edit_hw_unit_type_spinner_prompt"
                     android:spinnerMode="dialog"
                     app:entries="@{viewModel.typeList}"
-                    app:layout_constraintTop_toBottomOf="@id/hw_unit_type_spinner_title"
-                    app:selectedValue="@={viewModel.type}" />
+                    android:selectedItemPosition="@={viewModel.typeItemPosition}"
+                    app:layout_constraintTop_toBottomOf="@id/hw_unit_type_spinner_title" />
 
                 <android.support.constraint.Group
                     android:id="@+id/hw_unit_name_location_pin_name_group"
@@ -161,7 +161,7 @@
                     android:spinnerMode="dialog"
                     app:entries="@{viewModel.pinNameList}"
                     app:layout_constraintTop_toBottomOf="@id/hw_unit_pin_name_spinner_title"
-                    app:selectedValue="@={viewModel.pinName}" />
+                    android:selectedItemPosition="@={viewModel.pinNamePosition}" />
 
                 <android.support.constraint.Group
                     android:id="@+id/hw_unit_soft_address_group"
@@ -186,7 +186,7 @@
                     android:spinnerMode="dialog"
                     app:entries="@{viewModel.softAddressList}"
                     app:layout_constraintTop_toBottomOf="@id/hw_unit_soft_address_spinner_title"
-                    app:selectedValue="@={viewModel.softAddress}" />
+                    android:selectedItemPosition="@={viewModel.softAddressPosition}" />
 
                 <android.support.constraint.Group
                     android:id="@+id/hw_unit_pin_extender_io_pin_spinner_group"
@@ -250,9 +250,9 @@
                     android:layout_marginTop="@dimen/margin_small"
                     android:prompt="@string/add_edit_hw_unit_pit_interrupt_title_spinner_prompt"
                     android:spinnerMode="dialog"
+                    android:selectedItemPosition="@={viewModel.pinInterruptItemPosition}"
                     app:entriesUsed="@{viewModel.pinInterruptList}"
-                    app:layout_constraintTop_toBottomOf="@id/hw_unit_pin_interrupt_spinner_title"
-                    app:selectedValue="@={viewModel.pinInterrupt}" />
+                    app:layout_constraintTop_toBottomOf="@id/hw_unit_pin_interrupt_spinner_title" />
 
 
             </android.support.constraint.ConstraintLayout>

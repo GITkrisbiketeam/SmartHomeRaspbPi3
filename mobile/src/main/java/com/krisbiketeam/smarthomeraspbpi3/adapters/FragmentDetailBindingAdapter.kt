@@ -3,11 +3,13 @@ package com.krisbiketeam.smarthomeraspbpi3.adapters
 import android.databinding.BindingAdapter
 import android.databinding.InverseBindingAdapter
 import android.databinding.InverseBindingListener
+import android.support.constraint.Group
 import android.support.design.widget.FloatingActionButton
 import android.support.v7.widget.AppCompatSpinner
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.SwitchCompat
+import android.text.TextUtils
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ProgressBar
@@ -28,6 +30,11 @@ fun imageFromUrl(view: ImageView, imageUrl: String?) {
 @BindingAdapter("showIf")
 fun showIf(view: FloatingActionButton, isShow: Boolean?) {
     if (isShow == null || isShow) view.show() else view.hide()
+}
+
+@BindingAdapter("hideIfEmpty")
+fun hideIfEmpty(view: Group, type: String?) {
+    view.visibility = if (TextUtils.isEmpty(type)) View.GONE else View.VISIBLE
 }
 
 @BindingAdapter("stateBasedVisibility")
@@ -62,11 +69,11 @@ fun bindEntriesData(spinner: AppCompatSpinner, entries: List<Any>?) {
         //Add empty element to list to  be able to show blank not selected item
         spinner.apply {
             val spinAdapter = SpinnerAdapter(spinner.context, SpinnerType.DEFAULT, entries)
-            var pos = spinAdapter.getPosition(spinner.tag)
+            //var pos = spinAdapter.getPosition(spinner.tag)
             adapter = spinAdapter
-            Timber.d("bindEntriesData pos: $pos spinner.tag: $tag spinner.count: $count")
-            if (pos !in 0 .. adapter.count) pos = count
-            setSelection(pos, false)
+            //Timber.d("bindEntriesData pos: $pos spinner.tag: $tag spinner.count: $count")
+            //if (pos !in 0 .. adapter.count) pos = count
+            //setSelection(pos, false)
         }
     }
 }
@@ -78,11 +85,11 @@ fun bindEntriesUsedData(spinner: AppCompatSpinner, entries: List<Pair<String, Bo
     if (entries != null) {
         spinner.apply {
             val spinAdapter = SpinnerAdapter(spinner.context, SpinnerType.ENTRIES_USED, entries)
-            var pos = spinAdapter.getPosition(spinner.tag)
+            //var pos = spinAdapter.getPosition(spinner.tag)
             adapter = spinAdapter
-            Timber.d("bindEntriesUsedData pos: $pos spinner.tag: $tag spinner.count: $count")
-            if (pos !in 0 .. adapter.count) pos = count
-            setSelection(pos, false)
+            //Timber.d("bindEntriesUsedData pos: $pos spinner.tag: $tag spinner.count: $count")
+            //if (pos !in 0 .. adapter.count) pos = count
+            //setSelection(pos, false)
         }
     }
 }
@@ -96,11 +103,11 @@ fun bindEntriesWithEmptyData(spinner: AppCompatSpinner, entries: List<Any>?) {
         //Add empty element to list to  be able to show blank not selected item
         spinner.apply {
             val spinAdapter = SpinnerAdapter(spinner.context, SpinnerType.WITH_EMPTY, entries)
-            var pos = spinAdapter.getPosition(spinner.tag)
+            //var pos = spinAdapter.getPosition(spinner.tag)
             adapter = spinAdapter
-            Timber.d("bindEntriesUsedData pos: $pos spinner.tag: $tag spinner.count: $count")
-            if (pos !in 0 .. adapter.count) pos = count-1
-            setSelection(pos, false)
+            //Timber.d("bindEntriesUsedData pos: $pos spinner.tag: $tag spinner.count: $count")
+            //if (pos !in 0 .. adapter.count) pos = count-1
+            //setSelection(pos, false)
         }
     }
 }

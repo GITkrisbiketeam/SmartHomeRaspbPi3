@@ -20,7 +20,7 @@ class SpinnerAdapter(context: Context, val type: SpinnerType, val entries: List<
                 entries.toMutableList().apply {
                     when {
                         all { it is String } -> add("")
-                        all { it is Int } -> add(Int.MIN_VALUE)
+                        all { it is Int } -> add("")
                         all { it is Pair<*, *> } -> add(Pair("", false))
                     }
                 }) {
@@ -41,7 +41,7 @@ class SpinnerAdapter(context: Context, val type: SpinnerType, val entries: List<
                 val textView: TextView? = findViewById(android.R.id.text1)
                 //Timber.d("getDropDownView pos: $position iconView: $iconView")
                 textView?.text = (getItem(position) as Pair<String, *>).first
-                iconView?.visibility = if ((getItem(position) as Pair<*, Boolean>).second == true) View.VISIBLE else View.GONE
+                iconView?.visibility = if ((getItem(position) as Pair<*, Boolean>).second) View.VISIBLE else View.GONE
             }
         }
     }
@@ -53,18 +53,6 @@ class SpinnerAdapter(context: Context, val type: SpinnerType, val entries: List<
                 Timber.d("getView pos: $position textView: $textView")
                 textView?.text = (getItem(position) as Pair<String, *>).first
             }
-        }
-    }
-
-    override fun getPosition(item: Any?): Int {
-        Timber.d("getPosition item: $item")
-        if (entries.all { it is Pair<*, *> }) {
-            for((index, any) in entries.withIndex()){
-                if (item == (any as Pair<*, *>).first) return index
-            }
-            return -1
-        } else {
-            return super.getPosition(item)
         }
     }
 }
