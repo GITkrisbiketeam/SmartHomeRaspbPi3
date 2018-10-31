@@ -1,0 +1,7 @@
+<resources>
+
+    <style name="EditTextStyle" parent="BaseEditTextStyle">
+        <item name="android:importantForAutofill">no</item>
+    </style>
+
+</resources>

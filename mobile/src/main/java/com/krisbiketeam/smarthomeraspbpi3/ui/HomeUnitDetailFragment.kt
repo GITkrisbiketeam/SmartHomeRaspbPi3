@@ -103,7 +103,7 @@ class HomeUnitDetailFragment : Fragment() {
                 if (messageId > 0) {
                     positiveButtonId?.let { buttonId ->
                         showDialog(messageId, buttonId) {
-                            homeUnitDetailViewModel.saveChanges()?.addOnCompleteListener { _ ->
+                            homeUnitDetailViewModel.saveChanges()?.addOnCompleteListener {
                                 // navigate back Up from this Fragment
                                 findNavController().navigateUp()
                             }
@@ -134,7 +134,7 @@ class HomeUnitDetailFragment : Fragment() {
             }
             R.id.action_delete -> {
                 showDialog(R.string.add_edit_home_unit_delete_home_unit_prompt, R.string.menu_delete) {
-                    homeUnitDetailViewModel.deleteHomeUnit()?.addOnCompleteListener { _ ->
+                    homeUnitDetailViewModel.deleteHomeUnit()?.addOnCompleteListener {
                         // navigate back Up from this Fragment
                         findNavController().navigateUp()
                     }

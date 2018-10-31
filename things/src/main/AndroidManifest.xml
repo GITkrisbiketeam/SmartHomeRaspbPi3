@@ -16,6 +16,7 @@
     <application
         android:name=".ui.ThingsApplication"
         android:allowBackup="false"
+        android:label="@string/app_name"
         android:theme="@style/Theme.AppCompat"
         tools:ignore="GoogleAppIndexingWarning,MissingApplicationIcon">
         <uses-library android:name="com.google.android.things" />

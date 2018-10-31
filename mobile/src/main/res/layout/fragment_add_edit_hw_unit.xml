@@ -111,17 +111,12 @@
                     android:textColor="@color/colorPrimaryDark"
                     app:layout_constraintTop_toBottomOf="@+id/hw_unit_type_spinner" />
                 <EditText
+                    style="@style/EditTextStyle"
                     android:id="@+id/hw_unit_name"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/margin_small"
                     android:hint="@string/add_edit_hw_unit_name_hint"
-                    android:importantForAutofill="no"
-                    android:inputType="text"
-                    android:maxLines="1"
                     android:text="@={viewModel.name}"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Title"
-                    app:layout_constraintTop_toBottomOf="@id/hw_unit_name_title" />
+                    app:layout_constraintTop_toBottomOf="@id/hw_unit_name_title"
+                    tools:ignore="Autofill,TextFields" />
 
                 <TextView
                     android:id="@+id/hw_unit_location_title"
@@ -132,17 +127,12 @@
                     android:textColor="@color/colorPrimaryDark"
                     app:layout_constraintTop_toBottomOf="@+id/hw_unit_name" />
                 <EditText
+                    style="@style/EditTextStyle"
                     android:id="@+id/hw_unit_location"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/margin_small"
                     android:hint="@string/add_edit_hw_unit_location_hint"
-                    android:importantForAutofill="no"
-                    android:inputType="text"
-                    android:maxLines="1"
                     android:text="@={viewModel.location}"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Title"
-                    app:layout_constraintTop_toBottomOf="@id/hw_unit_location_title" />
+                    app:layout_constraintTop_toBottomOf="@id/hw_unit_location_title"
+                    tools:ignore="Autofill,TextFields" />
 
                 <TextView
                     android:id="@+id/hw_unit_pin_name_spinner_title"
@@ -160,8 +150,8 @@
                     android:prompt="@string/add_edit_hw_unit_pin_name_spinner_prompt"
                     android:spinnerMode="dialog"
                     app:entries="@{viewModel.pinNameList}"
-                    app:layout_constraintTop_toBottomOf="@id/hw_unit_pin_name_spinner_title"
-                    android:selectedItemPosition="@={viewModel.pinNamePosition}" />
+                    android:selectedItemPosition="@={viewModel.pinNamePosition}"
+                    app:layout_constraintTop_toBottomOf="@id/hw_unit_pin_name_spinner_title" />
 
                 <android.support.constraint.Group
                     android:id="@+id/hw_unit_soft_address_group"
@@ -185,8 +175,8 @@
                     android:prompt="@string/add_edit_hw_unit_soft_address_title_spinner_prompt"
                     android:spinnerMode="dialog"
                     app:entries="@{viewModel.softAddressList}"
-                    app:layout_constraintTop_toBottomOf="@id/hw_unit_soft_address_spinner_title"
-                    android:selectedItemPosition="@={viewModel.softAddressPosition}" />
+                    android:selectedItemPosition="@={viewModel.softAddressPosition}"
+                    app:layout_constraintTop_toBottomOf="@id/hw_unit_soft_address_spinner_title" />
 
                 <android.support.constraint.Group
                     android:id="@+id/hw_unit_pin_extender_io_pin_spinner_group"
@@ -209,9 +199,9 @@
                     android:layout_marginTop="@dimen/margin_small"
                     android:prompt="@string/add_edit_hw_unit_pit_interrupt_title_spinner_prompt"
                     android:spinnerMode="dialog"
-                    app:entriesUsed="@{viewModel.ioPinNameList}"
-                    app:layout_constraintTop_toBottomOf="@id/hw_unit_pin_extender_io_pin_spinner_title"
-                    app:selectedValue="@={viewModel.ioPin}" />
+                    app:entriesUsed="@{viewModel.ioPinList}"
+                    android:selectedItemPosition="@={viewModel.ioPinPosition}"
+                    app:layout_constraintTop_toBottomOf="@id/hw_unit_pin_extender_io_pin_spinner_title" />
 
                 <android.support.constraint.Group
                     android:id="@+id/hw_unit_pin_extender_output_group"
@@ -250,8 +240,8 @@
                     android:layout_marginTop="@dimen/margin_small"
                     android:prompt="@string/add_edit_hw_unit_pit_interrupt_title_spinner_prompt"
                     android:spinnerMode="dialog"
-                    android:selectedItemPosition="@={viewModel.pinInterruptItemPosition}"
                     app:entriesUsed="@{viewModel.pinInterruptList}"
+                    android:selectedItemPosition="@={viewModel.pinInterruptItemPosition}"
                     app:layout_constraintTop_toBottomOf="@id/hw_unit_pin_interrupt_spinner_title" />
 
 

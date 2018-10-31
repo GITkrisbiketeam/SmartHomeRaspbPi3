@@ -23,7 +23,7 @@ class SpinnerAdapter(context: Context, val type: SpinnerType, val entries: List<
                         all { it is Int } -> add("")
                         all { it is Pair<*, *> } -> add(Pair("", false))
                     }
-                }) {
+                }.also { Timber.d("SpinnerAdapter $it") }) {
 
     init {
         when (type) {
@@ -40,8 +40,8 @@ class SpinnerAdapter(context: Context, val type: SpinnerType, val entries: List<
                 val iconView: AppCompatImageView? = findViewById(R.id.icon1)
                 val textView: TextView? = findViewById(android.R.id.text1)
                 //Timber.d("getDropDownView pos: $position iconView: $iconView")
-                textView?.text = (getItem(position) as Pair<String, *>).first
-                iconView?.visibility = if ((getItem(position) as Pair<*, Boolean>).second) View.VISIBLE else View.GONE
+                textView?.text = (getItem(position) as Pair<*, *>).first as String
+                iconView?.visibility = if ((getItem(position) as Pair<*, *>).second as Boolean) View.VISIBLE else View.GONE
             }
         }
     }
@@ -50,8 +50,8 @@ class SpinnerAdapter(context: Context, val type: SpinnerType, val entries: List<
         return super.getView(position, convertView, parent).apply {
             if (SpinnerType.ENTRIES_USED == type) {
                 val textView: TextView? = findViewById(android.R.id.text1)
-                Timber.d("getView pos: $position textView: $textView")
-                textView?.text = (getItem(position) as Pair<String, *>).first
+                Timber.d("getView pos: $position textView: ${(getItem(position) as Pair<*, *>).first as String}")
+                textView?.text = (getItem(position) as Pair<*, *>).first as String
             }
         }
     }

@@ -57,16 +57,11 @@
 
                 <EditText
                     android:id="@+id/hw_unit_name"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/margin_small"
+                    style="@style/EditTextStyle"
                     android:hint="@string/add_edit_home_unit_text_title_hint"
-                    android:importantForAutofill="no"
-                    android:inputType="text"
-                    android:maxLines="1"
                     android:text="@={viewModel.name}"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Title"
-                    android:visibility="@{safeUnbox(viewModel.isEditMode) ? View.VISIBLE : View.GONE}" />
+                    android:visibility="@{safeUnbox(viewModel.isEditMode) ? View.VISIBLE : View.GONE}"
+                    tools:ignore="Autofill,TextFields" />
             </FrameLayout>
 
             <TextView
@@ -154,12 +149,12 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:clickable="true"
+                android:focusable="true"
                 android:visibility="@{safeUnbox(viewModel.showProgress) ? View.VISIBLE : View.GONE}"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                android:focusable="true">
+                app:layout_constraintTop_toTopOf="parent">
 
                 <android.support.v4.widget.ContentLoadingProgressBar
                     style="?android:attr/progressBarStyleLarge"

@@ -6,10 +6,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver.TMP102
 import com.krisbiketeam.smarthomeraspbpi3.units.HwUnitI2C
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.Job
-import kotlinx.coroutines.experimental.delay
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.*
 import timber.log.Timber
 import java.util.*
 
@@ -38,7 +35,7 @@ class HwUnitI2CTempTMP102Sensor(name: String,
         Timber.d("registerListener")
         hwUnitListener = listener
         job?.cancel()
-        job = launch(CommonPool) {
+        job = GlobalScope.launch {
             // We could also check for true as suspending delay() method is cancellable
             while (isActive) {
                 // Cancel will not stop non suspending oneShotReadValue function

@@ -501,7 +501,7 @@ class MCP23017(bus: String? = null,
     @SuppressLint("NewApi")
     fun registerPinListener(pin: Pin, listener: MCP23017PinStateChangeListener): Boolean {
         return if (getMode(pin) == PinMode.DIGITAL_INPUT) {
-            val pinListeners = mListeners.computeIfAbsent(pin) { _ -> ArrayList(1)}
+            val pinListeners = mListeners.computeIfAbsent(pin) { ArrayList(1)}
             pinListeners.add(listener)
             true
         } else {

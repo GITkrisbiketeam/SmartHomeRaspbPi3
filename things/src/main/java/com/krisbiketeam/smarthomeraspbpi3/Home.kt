@@ -28,8 +28,8 @@ class Home : Sensor.HwUnitListener<Any> {
         Timber.d("booleanApplyFunction newVal: $newVal this: $this")
         if (newVal is Boolean) {
             this.unitsTasks.values.forEach { task ->
-                task.homeUnitName?.let { taskhomeUnitName ->
-                    homeUnitList[taskhomeUnitName]?.run {
+                task.homeUnitName?.let { taskHomeUnitName ->
+                    homeUnitList[taskHomeUnitName]?.run {
                         Timber.d("booleanApplyFunction task: $task for homeUnit: $this")
                         this.value = newVal
                         hardwareUnitList[this.hwUnitName]?.let {baseUnit ->

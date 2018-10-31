@@ -23,6 +23,7 @@ ext {
     androidArchComponentsVersion = '1.1.1'
     navigationVersion = '1.0.0-alpha06'
     ktxVersion = '0.3'
+    kotlinxCoroutinesAndroid = '1.0.0'
 
     // Things
     rainbowhatVersion = '1.0'

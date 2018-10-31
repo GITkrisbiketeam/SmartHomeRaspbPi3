@@ -250,7 +250,7 @@ class HomeUnitDetailViewModel(
         homeRepositoryTask = homeUnit?.value?.let { unit ->
             showProgress.value = true
             homeRepository.deleteHomeUnit(unit)
-        }?.addOnCompleteListener { task ->
+        }?.addOnCompleteListener {
             sleep(1000)
             Timber.d("Task completed")
             showProgress.value = false
@@ -267,10 +267,10 @@ class HomeUnitDetailViewModel(
                 if (name.value != unit.name || type.value != unit.type) {
                     Timber.d("Name or type changed will need to delete old value name=${name.value}, type = ${type.value}")
                     // delete old HomeUnit
-                    this?.continueWithTask { task -> homeRepository.deleteHomeUnit(unit)}
+                    this?.continueWithTask { homeRepository.deleteHomeUnit(unit)}
                 }
             }
-        } ?: doSaveChanges()?.addOnCompleteListener { task ->
+        } ?: doSaveChanges()?.addOnCompleteListener {
             sleep(1000)
             Timber.d("Task completed")
             showProgress.value = false

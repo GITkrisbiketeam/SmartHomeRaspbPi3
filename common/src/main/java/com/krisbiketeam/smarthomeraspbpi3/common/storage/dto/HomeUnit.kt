@@ -56,7 +56,7 @@ data class HomeUnit<T>(var name: String = "", // Name should be unique for all u
     @Exclude
     @set:Exclude
     @get:Exclude
-    var applyFunction: HomeUnit<T>.(Any?) -> Unit = { _: Any? -> Unit}
+    var applyFunction: HomeUnit<T>.(Any?) -> Unit = { Unit}
 
     fun makeInvariant(): HomeUnit<Any>{
         return HomeUnit<Any>(

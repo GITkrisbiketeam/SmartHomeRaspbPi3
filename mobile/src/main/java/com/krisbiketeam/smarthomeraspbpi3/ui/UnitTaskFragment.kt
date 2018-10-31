@@ -92,7 +92,7 @@ class UnitTaskFragment : Fragment() {
                 if (messageId > 0) {
                     positiveButtonId?.let { buttonId ->
                         showDialog(messageId, buttonId) {
-                            unitTaskViewModel.saveChanges()?.addOnCompleteListener { _ ->
+                            unitTaskViewModel.saveChanges()?.addOnCompleteListener {
                                 // navigate back Up from this Fragment
                                 findNavController().navigateUp()
                             }
@@ -123,7 +123,7 @@ class UnitTaskFragment : Fragment() {
             }
             R.id.action_delete -> {
                 showDialog(R.string.add_edit_home_unit_delete_home_unit_prompt, R.string.menu_delete) {
-                    unitTaskViewModel.deleteHomeUnit()?.addOnCompleteListener { _ ->
+                    unitTaskViewModel.deleteHomeUnit()?.addOnCompleteListener {
                         // navigate back Up from this Fragment
                         findNavController().navigateUp()
                     }

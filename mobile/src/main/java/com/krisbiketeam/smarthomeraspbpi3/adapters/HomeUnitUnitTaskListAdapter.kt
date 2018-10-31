@@ -26,7 +26,7 @@ class UnitTaskListAdapter(private val unitName: String,
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val unitTask = getItem(position)
         holder.apply {
-            bind(createOnClickListener(unitTask.name), unitTask, getItemViewType(position))
+            bind(createOnClickListener(unitTask.name), unitTask)
             itemView.tag = unitTask
         }
     }
@@ -53,7 +53,7 @@ class UnitTaskListAdapter(private val unitName: String,
             private val binding: ViewDataBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(listener: View.OnClickListener, item: UnitTask, itemViewType: Int) {
+        fun bind(listener: View.OnClickListener, item: UnitTask) {
             when (binding){
                 is FragmentHomeUnitDetailUnitListItemBinding -> {
                     binding.apply {

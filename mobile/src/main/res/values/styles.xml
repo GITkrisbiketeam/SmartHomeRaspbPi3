@@ -21,5 +21,13 @@
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.MaterialComponents.Light"/>
 
+    <style name="BaseEditTextStyle" parent="TextAppearance.AppCompat.Title">
+        <item name="android:maxLines">1</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">@dimen/margin_small</item>
+    </style>
+
+    <style name="EditTextStyle" parent="BaseEditTextStyle"/>
 
 </resources>
