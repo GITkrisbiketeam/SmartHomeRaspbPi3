@@ -269,7 +269,7 @@ class Home : Sensor.HwUnitListener<Any> {
         lightSwitch.unitsTasks = mapOf(Pair("Turn on light", UnitTask(name = "Turn on light", homeUnitName = light.name)))
         lightSwitch.applyFunction = booleanApplyFunction
 
-        val reedSwitch = ReedSwitch("Kitchen 1 Reed Switch", HOME_REED_SWITCHES, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_IN_A6) as HomeUnit<Any>
+        var reedSwitch = ReedSwitch("Kitchen 1 Reed Switch", HOME_REED_SWITCHES, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_IN_A6) as HomeUnit<Any>
 
         val motion = Motion("Kitchen 1 Motion Sensor", HOME_MOTIONS, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_IN_A0, firebaseNotify = true) as HomeUnit<Any>
 
@@ -296,10 +296,13 @@ class Home : Sensor.HwUnitListener<Any> {
         lightSwitch.unitsTasks = mapOf(Pair("Turn on light", UnitTask(name = "Turn on light", homeUnitName = light.name)))
         lightSwitch.applyFunction = booleanApplyFunction
 
+        reedSwitch = ReedSwitch("Bathroom 1 Reed Switch", HOME_REED_SWITCHES, roomName, BoardConfig.IO_EXTENDER_MCP23017_2_IN_B0) as HomeUnit<Any>
+
         homeUnitList[temp.name] = temp
         homeUnitList[light.name] = light
         homeUnitList[lightSwitch.name] = lightSwitch
-        room = Room(roomName, 0, listOf(light.name), listOf(lightSwitch.name), ArrayList(), ArrayList(), listOf(temp.name))
+        homeUnitList[reedSwitch.name] = reedSwitch
+        room = Room(roomName, 0, listOf(light.name), listOf(lightSwitch.name), listOf(reedSwitch.name), ArrayList(), listOf(temp.name))
         rooms[room.name] = room
     }
 
@@ -375,5 +378,16 @@ class Home : Sensor.HwUnitListener<Any> {
                 BoardConfig.IO_EXTENDER_MCP23017_1_INTA_PIN,
                 BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B7_PIN) as Actuator<Any>
         hardwareUnitList[BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B7] = mcpLed2
+
+        val mcpNewContactron = HwUnitI2CMCP23017Sensor(BoardConfig.IO_EXTENDER_MCP23017_2_IN_B0,
+                "Raspberry Pi",
+                BoardConfig.IO_EXTENDER_MCP23017_2_PIN,
+                BoardConfig.IO_EXTENDER_MCP23017_2_ADDR,
+                BoardConfig.IO_EXTENDER_MCP23017_2_INTA_PIN,
+                BoardConfig.IO_EXTENDER_MCP23017_2_IN_B0_PIN,
+                false) as Sensor<Any>
+        hardwareUnitList[BoardConfig.IO_EXTENDER_MCP23017_2_IN_B0] = mcpNewContactron
+
+
     }
 }
