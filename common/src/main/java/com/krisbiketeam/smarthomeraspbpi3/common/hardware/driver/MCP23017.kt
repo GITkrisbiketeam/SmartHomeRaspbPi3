@@ -133,12 +133,13 @@ class MCP23017(bus: String? = null,
     init {
         if (bus != null) {
             try {
-                connectI2c(PeripheralManager.getInstance().openI2cDevice(bus, address))
+                connectI2c(PeripheralManager.getInstance()?.openI2cDevice(bus, address))
             } catch (e: IOException) {
                 Timber.e(e,"init error connecting I2C")
                 try {
                     close()
                 } catch (ignored: IOException) {
+                    Timber.e(e,"init error closing I2C")
                 }
             }
         }
@@ -172,14 +173,18 @@ class MCP23017(bus: String? = null,
             Timber.d("connectGpio currentConf: $currentConf")
 
             Timber.d("connectGpio intGpio openGpio $intGpio")
-            // Step 1. Create GPIO connection.
-            mIntGpio = manager.openGpio(intGpio)
-            // Step 2. Configure as an input.
-            mIntGpio?.setDirection(Gpio.DIRECTION_IN)
-            // Step 3. Enable edge trigger events.
-            mIntGpio?.setEdgeTriggerType(Gpio.EDGE_FALLING)    // INT active Low
-            // Step 4. Register an event callback.
-            mIntGpio?.registerGpioCallback(mIntCallback)
+            try {
+                // Step 1. Create GPIO connection.
+                mIntGpio = manager.openGpio(intGpio)
+                // Step 2. Configure as an input.
+                mIntGpio?.setDirection(Gpio.DIRECTION_IN)
+                // Step 3. Enable edge trigger events.
+                mIntGpio?.setEdgeTriggerType(Gpio.EDGE_FALLING)    // INT active Low
+                // Step 4. Register an event callback.
+                mIntGpio?.registerGpioCallback(mIntCallback)
+            } catch (e: Exception){
+                Timber.e("connectGpio exception: $e")
+            }
         }
     }
 
@@ -219,6 +224,8 @@ class MCP23017(bus: String? = null,
 
         try {
             mDevice?.close()
+        } catch (e: Exception){
+            Timber.e("close i2c exception: $e")
         } finally {
             mDevice = null
         }
@@ -227,15 +234,27 @@ class MCP23017(bus: String? = null,
         mIntGpio?.unregisterGpioCallback(mIntCallback)
         try {
             mIntGpio?.close()
+        } catch (e: Exception){
+            Timber.e("close mIntGpio exception: $e")
         } finally {
             mIntGpio = null
         }
     }
 
 
-    private fun readRegister(reg: Int): Int? = mDevice?.readRegByte(reg)?.toInt()?.and(0xff)
+    private fun readRegister(reg: Int): Int? = try {
+        mDevice?.readRegByte(reg)?.toInt()?.and(0xff)
+    } catch (e: java.lang.Exception){
+        Timber.e("error reading I2C register e:$e")
+        -1
+    }
 
-    private fun writeRegister(reg: Int, regVal: Int) = mDevice?.writeRegByte(reg, regVal.toByte())
+    private fun writeRegister(reg: Int, regVal: Int) = try {
+        mDevice?.writeRegByte(reg, regVal.toByte())
+    } catch (e: java.lang.Exception){
+        Timber.e("error writing I2C register e:$e")
+        -1
+    }
 
     private fun resetToDefaults() {
         // set all default pins directions

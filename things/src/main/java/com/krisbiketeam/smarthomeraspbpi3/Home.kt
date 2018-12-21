@@ -64,10 +64,10 @@ class Home : Sensor.HwUnitListener<Any> {
     }
 
     init {
-        //initHardwareUnitList()
-        //initHomeUnitList()
+        initHardwareUnitList()
+        initHomeUnitList()
 
-        //saveToRepository()
+        saveToRepository()
     }
 
     fun start() {
@@ -271,7 +271,7 @@ class Home : Sensor.HwUnitListener<Any> {
 
         var reedSwitch = ReedSwitch("Kitchen 1 Reed Switch", HOME_REED_SWITCHES, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_IN_A6) as HomeUnit<Any>
 
-        val motion = Motion("Kitchen 1 Motion Sensor", HOME_MOTIONS, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_IN_A0, firebaseNotify = true) as HomeUnit<Any>
+        var motion = Motion("Kitchen 1 Motion Sensor", HOME_MOTIONS, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_IN_A0, firebaseNotify = true) as HomeUnit<Any>
 
         homeUnitList[temp.name] = temp
         homeUnitList[pressure.name] = pressure
@@ -286,7 +286,8 @@ class Home : Sensor.HwUnitListener<Any> {
         // Second room
         roomName = "Bathroom"
 
-        temp = Temperature("Bathroom 1 Temp", HOME_TEMPERATURES, roomName, BoardConfig.TEMP_SENSOR_TMP102) as HomeUnit<Any>
+        temp = Temperature("Bathroom 1 Temp TMP102", HOME_TEMPERATURES, roomName, BoardConfig.TEMP_SENSOR_TMP102) as HomeUnit<Any>
+        val temp1 = Temperature("Bathroom 1 Temp MCP9808", HOME_TEMPERATURES, roomName, BoardConfig.TEMP_SENSOR_MCP9808) as HomeUnit<Any>
 
         light = Light("Bathroom 1 Light", HOME_LIGHTS, roomName, BoardConfig.IO_EXTENDER_MCP23017_1_OUT_B7, firebaseNotify = true) as HomeUnit<Any>
 //        light.unitsTasks = mapOf(Pair("Turn on HW light", UnitTask(name = "Turn on HW light", hwUnitName = light.hwUnitName)))
@@ -297,12 +298,16 @@ class Home : Sensor.HwUnitListener<Any> {
         lightSwitch.applyFunction = booleanApplyFunction
 
         reedSwitch = ReedSwitch("Bathroom 1 Reed Switch", HOME_REED_SWITCHES, roomName, BoardConfig.IO_EXTENDER_MCP23017_2_IN_B0) as HomeUnit<Any>
+        motion = Motion("Bathroom 1 Motion Sensor", HOME_MOTIONS, roomName, BoardConfig.IO_EXTENDER_MCP23017_2_IN_A7, firebaseNotify = true) as HomeUnit<Any>
 
         homeUnitList[temp.name] = temp
+        homeUnitList[temp1.name] = temp1
         homeUnitList[light.name] = light
         homeUnitList[lightSwitch.name] = lightSwitch
         homeUnitList[reedSwitch.name] = reedSwitch
-        room = Room(roomName, 0, listOf(light.name), listOf(lightSwitch.name), listOf(reedSwitch.name), ArrayList(), listOf(temp.name))
+        homeUnitList[motion.name] = motion
+
+        room = Room(roomName, 0, listOf(light.name), listOf(lightSwitch.name), /*ArrayList()*/listOf(reedSwitch.name), /*ArrayList()*/listOf(motion.name), listOf(temp.name, temp1.name))
         rooms[room.name] = room
     }
 
@@ -316,11 +321,11 @@ class Home : Sensor.HwUnitListener<Any> {
                 .REED_SWITCH_1_PIN, Gpio.ACTIVE_LOW) as Sensor<Any>
         hardwareUnitList[BoardConfig.REED_SWITCH_1] = contactron*/
 
-        val temperatureSensor = HwUnitI2CTempTMP102Sensor(BoardConfig.TEMP_SENSOR_TMP102,
+        val temperatureTMP102Sensor = HwUnitI2CTempTMP102Sensor(BoardConfig.TEMP_SENSOR_TMP102,
                 "Raspberry Pi",
                 BoardConfig.TEMP_SENSOR_TMP102_PIN,
                 BoardConfig.TEMP_SENSOR_TMP102_ADDR) as Sensor<Any>
-        hardwareUnitList[BoardConfig.TEMP_SENSOR_TMP102] = temperatureSensor
+        hardwareUnitList[BoardConfig.TEMP_SENSOR_TMP102] = temperatureTMP102Sensor
 
         val tempePressSensor = HwUnitI2CTempPressBMP280Sensor(BoardConfig.TEMP_PRESS_SENSOR_BMP280,
                 "Raspberry Pi",
@@ -384,10 +389,22 @@ class Home : Sensor.HwUnitListener<Any> {
                 BoardConfig.IO_EXTENDER_MCP23017_2_PIN,
                 BoardConfig.IO_EXTENDER_MCP23017_2_ADDR,
                 BoardConfig.IO_EXTENDER_MCP23017_2_INTA_PIN,
-                BoardConfig.IO_EXTENDER_MCP23017_2_IN_B0_PIN,
-                false) as Sensor<Any>
+                BoardConfig.IO_EXTENDER_MCP23017_2_IN_B0_PIN) as Sensor<Any>
         hardwareUnitList[BoardConfig.IO_EXTENDER_MCP23017_2_IN_B0] = mcpNewContactron
 
+        val mcpNewMotion = HwUnitI2CMCP23017Sensor(BoardConfig.IO_EXTENDER_MCP23017_2_IN_A7,
+                "Raspberry Pi",
+                BoardConfig.IO_EXTENDER_MCP23017_2_PIN,
+                BoardConfig.IO_EXTENDER_MCP23017_2_ADDR,
+                BoardConfig.IO_EXTENDER_MCP23017_2_INTA_PIN,
+                BoardConfig.IO_EXTENDER_MCP23017_2_IN_A7_PIN) as Sensor<Any>
+        hardwareUnitList[BoardConfig.IO_EXTENDER_MCP23017_2_IN_A7] = mcpNewMotion
+
+        val temperatureMCP9808Sensor = HwUnitI2CTempMCP9808Sensor(BoardConfig.TEMP_SENSOR_MCP9808,
+                "Raspberry Pi",
+                BoardConfig.TEMP_SENSOR_MCP9808_PIN,
+                BoardConfig.TEMP_SENSOR_MCP9808_ADDR) as Sensor<Any>
+        hardwareUnitList[BoardConfig.TEMP_SENSOR_MCP9808] = temperatureMCP9808Sensor
 
     }
 }

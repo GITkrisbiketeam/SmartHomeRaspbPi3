@@ -188,9 +188,8 @@ class TMP102(bus: String? = null, address: Int = DEFAULT_I2C_GND_ADDRESS) : Auto
 
     init {
         if (bus != null) {
-            val device = PeripheralManager.getInstance().openI2cDevice(bus, address)
             try {
-                mDevice = device
+                mDevice = PeripheralManager.getInstance()?.openI2cDevice(bus, address)
                 mConfig = readSample16(TMP102_REG_CONF) ?: 0
                 Timber.d("connect mConfig: $mConfig")
             } catch (e: IOException) {

@@ -12,11 +12,15 @@ interface HwUnitGpio<T> : BaseUnit<T> {
     override fun connect() {
         Timber.e("connect on: $hwUnit")
         if (gpio == null) {
-            val peripheralManager = PeripheralManager.getInstance()
             try {
-                gpio = peripheralManager.openGpio(hwUnit.pinName)
+                gpio = PeripheralManager.getInstance()?.openGpio(hwUnit.pinName)
             } catch (e: IOException) {
-                close()
+                Timber.e(e,"Error connecting device")
+                try {
+                    close()
+                } catch (e: IOException) {
+                    Timber.e(e,"Error closing device")
+                }
             }
         }
     }

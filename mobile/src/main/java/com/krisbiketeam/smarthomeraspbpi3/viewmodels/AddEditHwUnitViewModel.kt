@@ -3,6 +3,7 @@ package com.krisbiketeam.smarthomeraspbpi3.viewmodels
 import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.Transformations
 import android.arch.lifecycle.ViewModel
+import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver.MCP23017Pin
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.ConnectionType
@@ -262,6 +263,8 @@ class AddEditHwUnitViewModel(
     // This is for checking if given name is not already used
     private val hwUnitList = homeRepository.hwUnitListLiveData()
 
+    private val addingNewHwUnit = hwUnitName.isEmpty()
+
     init {
         Timber.d("init hwUnitName: $hwUnitName")
 
@@ -269,5 +272,39 @@ class AddEditHwUnitViewModel(
             typeItemPosition.value = typeList.size
         }
     }
-
+    /**
+     * first return param is message Res Id, second return param if present will show dialog with this resource Id as a confirm button text, if not present Snackbar will be show.
+     */
+    fun actionSave(): Pair<Int, Int?> {
+        Timber.d("actionSave addingNewHwUnit: $addingNewHwUnit name.value: ${name.value}")
+        /*if (addingNewHwUnit) {
+            // Adding new HomeUnit
+            when {
+                name.value?.trim().isNullOrEmpty() -> return Pair(R.string.add_edit_home_unit_empty_name, null)
+                type.value?.trim().isNullOrEmpty() -> return Pair(R.string.add_edit_home_unit_empty_unit_type, null)
+                hwUnitName.value?.trim().isNullOrEmpty() -> return Pair(R.string.add_edit_home_unit_empty_unit_hw_unit, null)
+                homeUnitList.value?.find { unit -> unit.name == name.value?.trim() } != null ->
+                {
+                    //This name is already used
+                    Timber.d("This name is already used")
+                    return Pair(R.string.add_edit_home_unit_name_already_used, null)
+                }
+            }
+        } else {
+            // Editing existing HomeUnit
+            homeUnit?.value?.let { unit ->
+                return if (name.value?.trim().isNullOrEmpty()) {
+                    Pair(R.string.add_edit_home_unit_empty_name, null)
+                } else if (name.value?.trim() != unit.name || type.value?.trim() != unit.type) {
+                    Pair(R.string.add_edit_home_unit_save_with_delete, R.string.overwrite)
+                } else if (noChangesMade()) {
+                    Pair(R.string.add_edit_home_unit_no_changes, null)
+                } else {
+                    Pair(R.string.add_edit_home_unit_overwrite_changes, R.string.overwrite)
+                }
+            }
+        }*/
+        // new Home Unit adding just show Save Dialog
+        return Pair(R.string.add_edit_home_unit_save_changes, R.string.menu_save)
+    }
 }
