@@ -1,6 +1,6 @@
 package com.krisbiketeam.smarthomeraspbpi3.common.storage.livedata
 
-import android.arch.lifecycle.LiveData
+import androidx.lifecycle.LiveData
 import com.google.firebase.database.*
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.*
 import timber.log.Timber

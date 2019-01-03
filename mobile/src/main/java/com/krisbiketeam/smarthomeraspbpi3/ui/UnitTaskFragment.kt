@@ -1,13 +1,13 @@
 package com.krisbiketeam.smarthomeraspbpi3.ui
 
-import android.arch.lifecycle.Observer
-import android.databinding.DataBindingUtil
+import androidx.lifecycle.Observer
+import androidx.databinding.DataBindingUtil
 import android.os.Bundle
-import android.support.design.widget.Snackbar
-import android.support.transition.Fade
-import android.support.transition.TransitionManager
-import android.support.v4.app.Fragment
-import android.support.v7.app.AlertDialog
+import com.google.android.material.snackbar.Snackbar
+import androidx.transition.Fade
+import androidx.transition.TransitionManager
+import androidx.fragment.app.Fragment
+import androidx.appcompat.app.AlertDialog
 import android.view.*
 import androidx.navigation.fragment.findNavController
 import com.krisbiketeam.smarthomeraspbpi3.R
@@ -21,9 +21,9 @@ import timber.log.Timber
 class UnitTaskFragment : Fragment() {
     private val unitTaskViewModel: UnitTaskViewModel by viewModel {
         parametersOf(
-                UnitTaskFragmentArgs.fromBundle(arguments).taskName,
-                UnitTaskFragmentArgs.fromBundle(arguments).homeUnitName,
-                UnitTaskFragmentArgs.fromBundle(arguments).homeUnitType)
+                arguments?.let { UnitTaskFragmentArgs.fromBundle(it).taskName}?: "",
+                arguments?.let { UnitTaskFragmentArgs.fromBundle(it).homeUnitName}?: "",
+                arguments?.let { UnitTaskFragmentArgs.fromBundle(it).homeUnitType}?: "")
     }
 
     private lateinit var rootBinding: FragmentUnitTaskBinding
@@ -52,35 +52,38 @@ class UnitTaskFragment : Fragment() {
 
         return rootBinding.root
     }
-    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
-        inflater?.inflate(R.menu.menu_unit_task, menu)
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.menu_unit_task, menu)
         super.onCreateOptionsMenu(menu, inflater)
     }
 
-    override fun onPrepareOptionsMenu(menu: Menu?) {
+    override fun onPrepareOptionsMenu(menu: Menu) {
         super.onPrepareOptionsMenu(menu)
         when (unitTaskViewModel.isEditMode.value) {
             true -> {
-                menu?.findItem((R.id.action_discard))?.isVisible = true
-                menu?.findItem((R.id.action_save))?.isVisible = true
-                menu?.findItem((R.id.action_delete))?.isVisible = UnitTaskFragmentArgs.fromBundle(arguments).homeUnitName.isNotEmpty()
-                menu?.findItem((R.id.action_edit))?.isVisible = false
+                menu.findItem((R.id.action_discard))?.isVisible = true
+                menu.findItem((R.id.action_save))?.isVisible = true
+                menu.findItem((R.id.action_delete))?.isVisible =
+                        arguments?.let {
+                            UnitTaskFragmentArgs.fromBundle(it).homeUnitName.isNotEmpty()
+                        } ?: false
+                menu.findItem((R.id.action_edit))?.isVisible = false
             }
             else -> {
-                menu?.findItem((R.id.action_discard))?.isVisible = false
-                menu?.findItem((R.id.action_save))?.isVisible = false
-                menu?.findItem((R.id.action_delete))?.isVisible = false
-                menu?.findItem((R.id.action_edit))?.isVisible = true
+                menu.findItem((R.id.action_discard))?.isVisible = false
+                menu.findItem((R.id.action_save))?.isVisible = false
+                menu.findItem((R.id.action_delete))?.isVisible = false
+                menu.findItem((R.id.action_edit))?.isVisible = true
             }
         }
     }
 
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
         // If showing progress do not allow app bar actions
         if (unitTaskViewModel.showProgress.value == true) {
             return false
         }
-        return when (item?.itemId) {
+        return when (item.itemId) {
             R.id.action_edit -> {
                 Timber.e("action_edit")
                 unitTaskViewModel.actionEdit()

@@ -10,14 +10,14 @@
             type="com.krisbiketeam.smarthomeraspbpi3.viewmodels.HwUnitListViewModel" />
     </data>
 
-    <android.support.v7.widget.RecyclerView
+    <androidx.recyclerview.widget.RecyclerView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:adapter="@{viewModel.hwUnitListAdapter}"
         android:clipToPadding="false"
         android:paddingLeft="@dimen/margin_normal"
         android:paddingRight="@dimen/margin_normal"
-        app:layoutManager="android.support.v7.widget.LinearLayoutManager"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         tools:context="com.krisbiketeam.smarthomeraspbpi3.ui.HomeActivity"
         tools:listitem="@layout/fragment_hw_unit_list_item" />
 

@@ -1,9 +1,9 @@
 package com.krisbiketeam.smarthomeraspbpi3.ui
 
-import android.arch.lifecycle.Observer
-import android.databinding.DataBindingUtil
+import androidx.lifecycle.Observer
+import androidx.databinding.DataBindingUtil
 import android.os.Bundle
-import android.support.v4.app.Fragment
+import androidx.fragment.app.Fragment
 import android.view.*
 import androidx.navigation.fragment.findNavController
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.ChildEventType
@@ -21,7 +21,9 @@ import timber.log.Timber
  */
 class RoomDetailFragment : Fragment() {
 
-    private val roomDetailViewModel: RoomDetailViewModel by viewModel { parametersOf(RoomDetailFragmentArgs.fromBundle(arguments).roomName) }
+    private val roomDetailViewModel: RoomDetailViewModel by viewModel {
+        parametersOf(arguments?.let { RoomDetailFragmentArgs.fromBundle(it).roomName}?: "")
+    }
 
     init {
         Timber.w("init $this")
@@ -117,29 +119,29 @@ class RoomDetailFragment : Fragment() {
         return size - 1
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
-        inflater?.inflate(R.menu.menu_room_detail, menu)
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.menu_room_detail, menu)
         super.onCreateOptionsMenu(menu, inflater)
     }
 
-    override fun onPrepareOptionsMenu(menu: Menu?) {
+    override fun onPrepareOptionsMenu(menu: Menu) {
         super.onPrepareOptionsMenu(menu)
         when (roomDetailViewModel.isEditMode.value) {
             true -> {
-                menu?.findItem((R.id.action_discard))?.isVisible = true
-                menu?.findItem((R.id.action_save))?.isVisible = true
-                menu?.findItem((R.id.action_edit))?.isVisible = false
+                menu.findItem((R.id.action_discard))?.isVisible = true
+                menu.findItem((R.id.action_save))?.isVisible = true
+                menu.findItem((R.id.action_edit))?.isVisible = false
             }
             else -> {
-                menu?.findItem((R.id.action_discard))?.isVisible = false
-                menu?.findItem((R.id.action_save))?.isVisible = false
-                menu?.findItem((R.id.action_edit))?.isVisible = true
+                menu.findItem((R.id.action_discard))?.isVisible = false
+                menu.findItem((R.id.action_save))?.isVisible = false
+                menu.findItem((R.id.action_edit))?.isVisible = true
             }
         }
     }
 
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        return when (item?.itemId) {
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
             R.id.action_edit -> {
                 Timber.e("onOptionsItemSelected EDIT : ${roomDetailViewModel.isEditMode}")
                 roomDetailViewModel.isEditMode.value = true

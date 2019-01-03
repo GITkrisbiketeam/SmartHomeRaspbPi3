@@ -1,6 +1,6 @@
 package com.krisbiketeam.smarthomeraspbpi3
 
-import android.arch.lifecycle.Observer
+import androidx.lifecycle.Observer
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.*
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.*

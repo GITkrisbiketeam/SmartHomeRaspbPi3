@@ -1,9 +1,9 @@
 package com.krisbiketeam.smarthomeraspbpi3.ui
 
-import android.arch.lifecycle.Observer
-import android.databinding.DataBindingUtil
+import androidx.lifecycle.Observer
+import androidx.databinding.DataBindingUtil
 import android.os.Bundle
-import android.support.v4.app.Fragment
+import androidx.fragment.app.Fragment
 import android.view.*
 import androidx.navigation.fragment.findNavController
 import com.krisbiketeam.smarthomeraspbpi3.R
@@ -38,8 +38,8 @@ class HwUnitListFragment : Fragment() {
         return binding.root
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
-        inflater?.inflate(R.menu.menu_hw_unit_list, menu)
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.menu_hw_unit_list, menu)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

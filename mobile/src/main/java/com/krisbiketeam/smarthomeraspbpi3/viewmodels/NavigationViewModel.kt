@@ -1,8 +1,8 @@
 package com.krisbiketeam.smarthomeraspbpi3.viewmodels
 
-import android.arch.lifecycle.LiveData
-import android.arch.lifecycle.Transformations
-import android.arch.lifecycle.ViewModel
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.Transformations
+import androidx.lifecycle.ViewModel
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import timber.log.Timber
 

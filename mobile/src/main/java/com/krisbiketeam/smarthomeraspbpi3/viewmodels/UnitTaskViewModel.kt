@@ -1,6 +1,6 @@
 package com.krisbiketeam.smarthomeraspbpi3.viewmodels
 
-import android.arch.lifecycle.*
+import androidx.lifecycle.*
 import com.google.android.gms.tasks.Task
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.HomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HOME_STORAGE_UNITS

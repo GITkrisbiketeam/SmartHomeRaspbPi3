@@ -1,6 +1,6 @@
 package com.krisbiketeam.smarthomeraspbpi3.adapters
 
-import android.support.v7.util.DiffUtil
+import androidx.recyclerview.widget.DiffUtil
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.Room
 
 class RoomListAdapterDiffCallback : DiffUtil.ItemCallback<Room>() {

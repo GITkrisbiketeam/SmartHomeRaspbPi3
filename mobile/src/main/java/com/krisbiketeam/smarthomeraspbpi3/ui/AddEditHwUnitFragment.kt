@@ -1,13 +1,13 @@
 package com.krisbiketeam.smarthomeraspbpi3.ui
 
-import android.arch.lifecycle.Observer
-import android.databinding.DataBindingUtil
+import androidx.lifecycle.Observer
+import androidx.databinding.DataBindingUtil
 import android.os.Bundle
-import android.support.design.widget.Snackbar
-import android.support.transition.Fade
-import android.support.transition.TransitionManager
-import android.support.v4.app.Fragment
-import android.support.v7.app.AlertDialog
+import com.google.android.material.snackbar.Snackbar
+import androidx.transition.Fade
+import androidx.transition.TransitionManager
+import androidx.fragment.app.Fragment
+import androidx.appcompat.app.AlertDialog
 import android.view.*
 import androidx.navigation.fragment.findNavController
 import com.krisbiketeam.smarthomeraspbpi3.R
@@ -19,8 +19,9 @@ import timber.log.Timber
 
 class AddEditHwUnitFragment : Fragment() {
     private val addEditHwUnitViewModel: AddEditHwUnitViewModel by viewModel {
-        parametersOf(
-                AddEditHwUnitFragmentArgs.fromBundle(arguments).hwUnitName)
+        parametersOf(arguments?.let {
+            AddEditHwUnitFragmentArgs.fromBundle(it).hwUnitName
+        } ?: "")
     }
 
     private lateinit var rootBinding: FragmentAddEditHwUnitBinding
@@ -59,35 +60,38 @@ class AddEditHwUnitFragment : Fragment() {
         return rootBinding.root
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
-        inflater?.inflate(R.menu.menu_add_edit_hw_unit, menu)
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.menu_add_edit_hw_unit, menu)
         super.onCreateOptionsMenu(menu, inflater)
     }
 
-    override fun onPrepareOptionsMenu(menu: Menu?) {
+    override fun onPrepareOptionsMenu(menu: Menu) {
         super.onPrepareOptionsMenu(menu)
         when (addEditHwUnitViewModel.isEditMode.value) {
             true -> {
-                menu?.findItem((R.id.action_discard))?.isVisible = true
-                menu?.findItem((R.id.action_save))?.isVisible = true
-                menu?.findItem((R.id.action_delete))?.isVisible = AddEditHwUnitFragmentArgs.fromBundle(arguments).hwUnitName.isNotEmpty()
-                menu?.findItem((R.id.action_edit))?.isVisible = false
+                menu.findItem((R.id.action_discard))?.isVisible = true
+                menu.findItem((R.id.action_save))?.isVisible = true
+                menu.findItem((R.id.action_delete))?.isVisible =
+                        arguments?.let {
+                            AddEditHwUnitFragmentArgs.fromBundle(it).hwUnitName.isNotEmpty()
+                        } ?: false
+                menu.findItem((R.id.action_edit))?.isVisible = false
             }
             else -> {
-                menu?.findItem((R.id.action_discard))?.isVisible = false
-                menu?.findItem((R.id.action_save))?.isVisible = false
-                menu?.findItem((R.id.action_delete))?.isVisible = false
-                menu?.findItem((R.id.action_edit))?.isVisible = true
+                menu.findItem((R.id.action_discard))?.isVisible = false
+                menu.findItem((R.id.action_save))?.isVisible = false
+                menu.findItem((R.id.action_delete))?.isVisible = false
+                menu.findItem((R.id.action_edit))?.isVisible = true
             }
         }
     }
 
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
         // If showing progress do not allow app bar actions
         if (addEditHwUnitViewModel.showProgress.value == true) {
             //return false
         }
-        return when (item?.itemId) {
+        return when (item.itemId) {
             R.id.action_edit -> {
                 Timber.e("action_edit")
                 addEditHwUnitViewModel.actionEdit()

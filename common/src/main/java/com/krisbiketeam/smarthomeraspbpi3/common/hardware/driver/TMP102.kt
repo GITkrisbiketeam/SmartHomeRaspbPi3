@@ -1,6 +1,6 @@
 package com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver
 
-import android.support.annotation.VisibleForTesting
+import androidx.annotation.VisibleForTesting
 import com.google.android.things.pio.I2cDevice
 import com.google.android.things.pio.PeripheralManager
 import kotlinx.coroutines.GlobalScope

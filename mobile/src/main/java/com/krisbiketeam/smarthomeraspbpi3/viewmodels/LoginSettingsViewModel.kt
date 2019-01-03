@@ -1,8 +1,8 @@
 package com.krisbiketeam.smarthomeraspbpi3.viewmodels
 
-import android.arch.lifecycle.MediatorLiveData
-import android.arch.lifecycle.MutableLiveData
-import android.arch.lifecycle.ViewModel
+import androidx.lifecycle.MediatorLiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import com.krisbiketeam.smarthomeraspbpi3.common.MyLiveDataState
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.AuthenticationLiveData
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.FirebaseCredentials

@@ -1,6 +1,6 @@
 package com.krisbiketeam.smarthomeraspbpi3.adapters
 
-import android.support.v7.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,7 +15,7 @@ import timber.log.Timber
 /**
  * Adapter for the [RecyclerView] in [RoomListFragment].
  */
-class RoomDetailHomeUnitListAdapter : RecyclerView.Adapter<RoomDetailHomeUnitListAdapter.ViewHolder>() {
+class RoomDetailHomeUnitListAdapter : androidx.recyclerview.widget.RecyclerView.Adapter<RoomDetailHomeUnitListAdapter.ViewHolder>() {
     val homeUnits: MutableList<HomeUnit<Any>> = mutableListOf()
 
     override fun getItemCount(): Int {
@@ -56,7 +56,7 @@ class RoomDetailHomeUnitListAdapter : RecyclerView.Adapter<RoomDetailHomeUnitLis
 
     class ViewHolder(
             private val binding: FragmentRoomDetailListItemBinding
-    ) : RecyclerView.ViewHolder(binding.root) {
+    ) : androidx.recyclerview.widget.RecyclerView.ViewHolder(binding.root) {
 
         fun bind(listener: View.OnClickListener, item: HomeUnit<Any>) {
             binding.apply {

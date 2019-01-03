@@ -1,7 +1,7 @@
 package com.krisbiketeam.smarthomeraspbpi3.adapters
 
-import android.support.v7.recyclerview.extensions.ListAdapter
-import android.support.v7.widget.RecyclerView
+import androidx.recyclerview.widget.ListAdapter
+import androidx.recyclerview.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -40,7 +40,7 @@ class RoomListAdapter : ListAdapter<Room, RoomListAdapter.ViewHolder>(RoomListAd
 
     class ViewHolder(
         private val binding: FragmentRoomListItemBinding
-    ) : RecyclerView.ViewHolder(binding.root) {
+    ) : androidx.recyclerview.widget.RecyclerView.ViewHolder(binding.root) {
 
         fun bind(listener: View.OnClickListener, item: Room) {
             binding.apply {

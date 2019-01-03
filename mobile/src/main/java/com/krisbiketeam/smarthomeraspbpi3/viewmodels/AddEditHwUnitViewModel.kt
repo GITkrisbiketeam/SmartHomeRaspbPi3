@@ -1,8 +1,8 @@
 package com.krisbiketeam.smarthomeraspbpi3.viewmodels
 
-import android.arch.lifecycle.MutableLiveData
-import android.arch.lifecycle.Transformations
-import android.arch.lifecycle.ViewModel
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Transformations
+import androidx.lifecycle.ViewModel
 import com.google.android.gms.tasks.Task
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig
@@ -337,7 +337,7 @@ class AddEditHwUnitViewModel(
                 location.value = unit.location
                 type.value = unit.type
                 pinName = unit.pinName
-                // connectionType  is autmatically populated by type LiveData
+                // connectionType  is automatically populated by type LiveData
                 softAddress.value = unit.softAddress
                 pinInterrupt = unit.pinInterrupt
                 ioPin = unit.ioPin

@@ -12,14 +12,14 @@
             type="com.krisbiketeam.smarthomeraspbpi3.viewmodels.UnitTaskViewModel" />
     </data>
 
-    <android.support.design.widget.CoordinatorLayout
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fitsSystemWindows="true"
         tools:context="com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitDetailFragment"
         tools:ignore="MergeRootFrame">
 
-        <android.support.constraint.ConstraintLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:paddingLeft="@dimen/activity_horizontal_margin"
@@ -84,7 +84,7 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/room_name_title">
 
-                <android.support.v7.widget.AppCompatSpinner
+                <androidx.appcompat.widget.AppCompatSpinner
                     android:id="@+id/home_unit_name_spinner"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -156,14 +156,14 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent">
 
-                <android.support.v4.widget.ContentLoadingProgressBar
+                <androidx.core.widget.ContentLoadingProgressBar
                     style="?android:attr/progressBarStyleLarge"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center" />
 
             </FrameLayout>
-        </android.support.constraint.ConstraintLayout>
-    </android.support.design.widget.CoordinatorLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
 </layout>

@@ -1,13 +1,13 @@
 package com.krisbiketeam.smarthomeraspbpi3.ui
 
-import android.arch.lifecycle.Observer
-import android.databinding.DataBindingUtil
+import androidx.lifecycle.Observer
+import androidx.databinding.DataBindingUtil
 import android.os.Bundle
-import android.support.design.widget.Snackbar
-import android.support.transition.Fade
-import android.support.transition.TransitionManager
-import android.support.v4.app.Fragment
-import android.support.v7.app.AlertDialog
+import com.google.android.material.snackbar.Snackbar
+import androidx.transition.Fade
+import androidx.transition.TransitionManager
+import androidx.fragment.app.Fragment
+import androidx.appcompat.app.AlertDialog
 import android.view.*
 import androidx.navigation.fragment.findNavController
 import com.krisbiketeam.smarthomeraspbpi3.R
@@ -20,9 +20,9 @@ import timber.log.Timber
 class HomeUnitDetailFragment : Fragment() {
     private val homeUnitDetailViewModel: HomeUnitDetailViewModel by viewModel {
         parametersOf(
-                HomeUnitDetailFragmentArgs.fromBundle(arguments).roomName,
-                HomeUnitDetailFragmentArgs.fromBundle(arguments).homeUnitName,
-                HomeUnitDetailFragmentArgs.fromBundle(arguments).homeUnitType)
+                arguments?.let { HomeUnitDetailFragmentArgs.fromBundle(it).roomName} ?: "",
+                arguments?.let { HomeUnitDetailFragmentArgs.fromBundle(it).homeUnitName} ?: "",
+                arguments?.let { HomeUnitDetailFragmentArgs.fromBundle(it).homeUnitType} ?: "")
     }
 
     private lateinit var rootBinding: FragmentHomeUnitDetailBinding
@@ -63,35 +63,38 @@ class HomeUnitDetailFragment : Fragment() {
         return rootBinding.root
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
-        inflater?.inflate(R.menu.menu_home_unit_details, menu)
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.menu_home_unit_details, menu)
         super.onCreateOptionsMenu(menu, inflater)
     }
 
-    override fun onPrepareOptionsMenu(menu: Menu?) {
+    override fun onPrepareOptionsMenu(menu: Menu) {
         super.onPrepareOptionsMenu(menu)
         when (homeUnitDetailViewModel.isEditMode.value) {
             true -> {
-                menu?.findItem((R.id.action_discard))?.isVisible = true
-                menu?.findItem((R.id.action_save))?.isVisible = true
-                menu?.findItem((R.id.action_delete))?.isVisible = HomeUnitDetailFragmentArgs.fromBundle(arguments).homeUnitName.isNotEmpty()
-                menu?.findItem((R.id.action_edit))?.isVisible = false
+                menu.findItem((R.id.action_discard))?.isVisible = true
+                menu.findItem((R.id.action_save))?.isVisible = true
+                menu.findItem((R.id.action_delete))?.isVisible =
+                        arguments?.let {
+                            HomeUnitDetailFragmentArgs.fromBundle(it).homeUnitName.isNotEmpty()
+                        } ?: false
+                menu.findItem((R.id.action_edit))?.isVisible = false
             }
             else -> {
-                menu?.findItem((R.id.action_discard))?.isVisible = false
-                menu?.findItem((R.id.action_save))?.isVisible = false
-                menu?.findItem((R.id.action_delete))?.isVisible = false
-                menu?.findItem((R.id.action_edit))?.isVisible = true
+                menu.findItem((R.id.action_discard))?.isVisible = false
+                menu.findItem((R.id.action_save))?.isVisible = false
+                menu.findItem((R.id.action_delete))?.isVisible = false
+                menu.findItem((R.id.action_edit))?.isVisible = true
             }
         }
     }
 
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
         // If showing progress do not allow app bar actions
         if (homeUnitDetailViewModel.showProgress.value == true) {
             return false
         }
-        return when (item?.itemId) {
+        return when (item.itemId) {
             R.id.action_edit -> {
                 Timber.e("action_edit")
                 homeUnitDetailViewModel.actionEdit()

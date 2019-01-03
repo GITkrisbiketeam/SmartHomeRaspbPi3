@@ -13,7 +13,7 @@
             type="com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit"/>
     </data>
 
-    <android.support.constraint.ConstraintLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="?attr/selectableItemBackground"
@@ -34,5 +34,5 @@
             app:layout_constraintTop_toBottomOf="@id/room_item_image"
             tools:text="HwUnit"/>
 
-    </android.support.constraint.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

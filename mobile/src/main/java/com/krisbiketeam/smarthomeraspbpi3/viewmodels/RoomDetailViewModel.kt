@@ -1,6 +1,6 @@
 package com.krisbiketeam.smarthomeraspbpi3.viewmodels
 
-import android.arch.lifecycle.*
+import androidx.lifecycle.*
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.HomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.livedata.HomeUnitsLiveData
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.Room

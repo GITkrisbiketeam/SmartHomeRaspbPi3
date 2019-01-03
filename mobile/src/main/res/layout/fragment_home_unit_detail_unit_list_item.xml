@@ -13,7 +13,7 @@
             type="com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.UnitTask"/>
     </data>
 
-    <android.support.constraint.ConstraintLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="?attr/selectableItemBackground"
@@ -34,5 +34,5 @@
             app:layout_constraintBottom_toBottomOf="parent"
             tools:text="Unit Task"/>
 
-    </android.support.constraint.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

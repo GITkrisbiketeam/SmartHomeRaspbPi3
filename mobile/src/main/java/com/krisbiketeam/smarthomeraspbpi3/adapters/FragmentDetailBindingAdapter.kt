@@ -1,14 +1,14 @@
 package com.krisbiketeam.smarthomeraspbpi3.adapters
 
-import android.databinding.BindingAdapter
-import android.databinding.InverseBindingAdapter
-import android.databinding.InverseBindingListener
-import android.support.constraint.Group
-import android.support.design.widget.FloatingActionButton
-import android.support.v7.widget.AppCompatSpinner
-import android.support.v7.widget.DividerItemDecoration
-import android.support.v7.widget.RecyclerView
-import android.support.v7.widget.SwitchCompat
+import androidx.databinding.BindingAdapter
+import androidx.databinding.InverseBindingAdapter
+import androidx.databinding.InverseBindingListener
+import androidx.constraintlayout.widget.Group
+import com.google.android.material.floatingactionbutton.FloatingActionButton
+import androidx.appcompat.widget.AppCompatSpinner
+import androidx.recyclerview.widget.DividerItemDecoration
+import androidx.recyclerview.widget.RecyclerView
+import androidx.appcompat.widget.SwitchCompat
 import android.text.TextUtils
 import android.view.View
 import android.widget.AdapterView

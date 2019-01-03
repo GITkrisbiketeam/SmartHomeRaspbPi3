@@ -1,8 +1,8 @@
 package com.krisbiketeam.smarthomeraspbpi3.common.nearby
 
-import android.arch.lifecycle.LifecycleOwner
-import android.arch.lifecycle.LiveData
-import android.arch.lifecycle.Observer
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.Observer
 import com.krisbiketeam.smarthomeraspbpi3.common.MyLiveDataState
 import timber.log.Timber
 
@@ -24,12 +24,12 @@ class NearbyServiceLiveData(private val nearbyService: NearbyService) : LiveData
         }
     }
 
-    override fun observe(owner: LifecycleOwner, observer: Observer<Pair<MyLiveDataState, Any>>) {
+    override fun observe(owner: LifecycleOwner, observer: Observer<in Pair<MyLiveDataState, Any>>) {
         nearbyService.dataSendResultListener(dataSendResultListener)
         super.observe(owner, observer)
     }
 
-    override fun observeForever(observer: Observer<Pair<MyLiveDataState, Any>>) {
+    override fun observeForever(observer: Observer<in Pair<MyLiveDataState, Any>>) {
         nearbyService.dataSendResultListener(dataSendResultListener)
         super.observeForever(observer)
     }

@@ -1,10 +1,10 @@
 package com.krisbiketeam.smarthomeraspbpi3.ui
 
-import android.databinding.DataBindingUtil
+import androidx.databinding.DataBindingUtil
 import android.os.Bundle
-import android.support.v4.view.GravityCompat
-import android.support.v4.widget.DrawerLayout
-import android.support.v7.app.AppCompatActivity
+import androidx.core.view.GravityCompat
+import androidx.drawerlayout.widget.DrawerLayout
+import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.Navigation
 import androidx.navigation.ui.NavigationUI
 import androidx.navigation.ui.setupWithNavController
@@ -44,8 +44,8 @@ class HomeActivity  : AppCompatActivity() {
     }
 
     override fun onSupportNavigateUp(): Boolean {
-        return NavigationUI.navigateUp(drawerLayout,
-                Navigation.findNavController(this, R.id.home_nav_fragment))
+        return NavigationUI.navigateUp(
+                Navigation.findNavController(this, R.id.home_nav_fragment), drawerLayout)
     }
 
     override fun onBackPressed() {

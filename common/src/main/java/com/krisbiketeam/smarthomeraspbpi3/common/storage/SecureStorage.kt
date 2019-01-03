@@ -1,6 +1,6 @@
 package com.krisbiketeam.smarthomeraspbpi3.common.storage
 
-import android.arch.lifecycle.LiveData
+import androidx.lifecycle.LiveData
 import android.content.Context
 import android.content.SharedPreferences
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.FirebaseCredentials

@@ -1,12 +1,12 @@
 package com.krisbiketeam.smarthomeraspbpi3.ui
 
-import android.arch.lifecycle.Observer
-import android.databinding.DataBindingUtil
-import android.databinding.OnRebindCallback
-import android.databinding.ViewDataBinding
+import androidx.lifecycle.Observer
+import androidx.databinding.DataBindingUtil
+import androidx.databinding.OnRebindCallback
+import androidx.databinding.ViewDataBinding
 import android.os.Bundle
-import android.support.transition.TransitionManager
-import android.support.v4.app.Fragment
+import androidx.transition.TransitionManager
+import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup

@@ -1,7 +1,7 @@
 package com.krisbiketeam.smarthomeraspbpi3.units.hardware
 
 import android.annotation.SuppressLint
-import android.support.annotation.VisibleForTesting
+import androidx.annotation.VisibleForTesting
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver.MCP23017
 import java.util.*
 

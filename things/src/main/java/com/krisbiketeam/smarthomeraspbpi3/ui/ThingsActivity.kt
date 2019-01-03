@@ -4,7 +4,7 @@ import android.content.Context
 import android.graphics.Color
 import android.net.wifi.WifiManager
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatActivity
 import android.view.KeyEvent
 import android.view.KeyEvent.*
 import com.google.android.things.contrib.driver.button.Button

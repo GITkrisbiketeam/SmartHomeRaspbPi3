@@ -1,8 +1,8 @@
 package com.krisbiketeam.smarthomeraspbpi3.adapters
 
-import android.databinding.ViewDataBinding
-import android.support.v7.recyclerview.extensions.ListAdapter
-import android.support.v7.widget.RecyclerView
+import androidx.databinding.ViewDataBinding
+import androidx.recyclerview.widget.ListAdapter
+import androidx.recyclerview.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -51,7 +51,7 @@ class UnitTaskListAdapter(private val unitName: String,
 
     class ViewHolder(
             private val binding: ViewDataBinding
-    ) : RecyclerView.ViewHolder(binding.root) {
+    ) : androidx.recyclerview.widget.RecyclerView.ViewHolder(binding.root) {
 
         fun bind(listener: View.OnClickListener, item: UnitTask) {
             when (binding){

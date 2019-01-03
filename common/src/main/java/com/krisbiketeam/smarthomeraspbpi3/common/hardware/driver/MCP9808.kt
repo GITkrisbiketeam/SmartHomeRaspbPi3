@@ -1,6 +1,6 @@
 package com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver
 
-import android.support.annotation.VisibleForTesting
+import androidx.annotation.VisibleForTesting
 import com.google.android.things.pio.I2cDevice
 import com.google.android.things.pio.PeripheralManager
 import kotlinx.coroutines.GlobalScope
@@ -397,7 +397,7 @@ class MCP9808(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS) : Aut
     internal fun calculateTemperature(rawTemp: Int?): Float? {
         if (rawTemp == null) return null
         Timber.w("calculateTemperature rawTemp:$rawTemp")
-        var tempRaw = rawTemp and MCO9808_REG_TEMP_MASK
+        val tempRaw = rawTemp and MCO9808_REG_TEMP_MASK
         Timber.w("calculateTemperature tempRaw:$tempRaw")
         return if (rawTemp and MCO9808_REG_TEMP_SIGN_BIT > 0) {
             // Negative Temperature value
