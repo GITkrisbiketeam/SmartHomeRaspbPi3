@@ -36,7 +36,7 @@ ext {
     moshiVersion = '1.5.0'
 
     // Koin DI
-    koin_version = "1.0.0"
+    koin_version = '1.0.1'
 
     // Testing
     junitVersion = '4.12'

@@ -66,10 +66,4 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
 }
 
-kotlin {
-    experimental {
-        coroutines "enable"
-    }
-}
-
 apply plugin: "com.google.gms.google-services"

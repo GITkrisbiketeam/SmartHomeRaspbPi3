@@ -8,11 +8,6 @@
         app:showAsAction="ifRoom" />
 
     <item
-        android:id="@+id/action_delete"
-        android:title="@string/menu_delete"
-        app:showAsAction="ifRoom" />
-
-    <item
         android:id="@+id/action_save"
         android:title="@string/menu_save"
         app:showAsAction="ifRoom" />
@@ -22,4 +17,9 @@
         android:title="@string/menu_discard"
         app:showAsAction="ifRoom" />
     <!--android:icon="@drawable/ic_share"-->
+    <item
+        android:id="@+id/action_delete"
+        android:title="@string/menu_delete"
+        app:showAsAction="ifRoom" />
+
 </menu>
