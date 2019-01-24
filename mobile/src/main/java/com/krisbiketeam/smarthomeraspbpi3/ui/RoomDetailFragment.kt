@@ -41,7 +41,7 @@ class RoomDetailFragment : Fragment() {
             viewModel = roomDetailViewModel
             setLifecycleOwner(this@RoomDetailFragment)
             fab.setOnClickListener {
-                val direction = RoomDetailFragmentDirections.ActionRoomDetailFragmentToHomeUnitDetailFragment(
+                val direction = RoomDetailFragmentDirections.actionRoomDetailFragmentToHomeUnitDetailFragment(
                         roomDetailViewModel.room.value?.name ?: "", "", "")
                 findNavController().navigate(direction)
             }

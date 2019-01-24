@@ -32,7 +32,7 @@ class HwUnitListAdapter : ListAdapter<HwUnit, HwUnitListAdapter.ViewHolder>(HwUn
     private fun createOnClickListener(hwUnitName: String): View.OnClickListener {
         return View.OnClickListener {view ->
             Timber.d("onClick")
-            view.findNavController().navigate(HwUnitListFragmentDirections.ActionHwUnitListFragmentToAddEditHwUnitFragment(hwUnitName))
+            view.findNavController().navigate(HwUnitListFragmentDirections.actionHwUnitListFragmentToAddEditHwUnitFragment(hwUnitName))
         }
     }
 

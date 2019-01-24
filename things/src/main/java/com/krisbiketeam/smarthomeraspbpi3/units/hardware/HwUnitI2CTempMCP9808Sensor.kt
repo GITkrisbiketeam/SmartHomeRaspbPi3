@@ -13,10 +13,10 @@ import java.util.*
 private const val REFRESH_RATE = 10000L // 10 sec
 
 class HwUnitI2CTempMCP9808Sensor(name: String,
-                                location: String,
-                                val pinName: String,
-                                val softAddress: Int,
-                                override var device: AutoCloseable? = null) : HwUnitI2C<Float>, Sensor<Float> {
+                                 location: String,
+                                 private val pinName: String,
+                                 private val softAddress: Int,
+                                 override var device: AutoCloseable? = null) : HwUnitI2C<Float>, Sensor<Float> {
 
     override val hwUnit: HwUnit = HwUnit(name, location, BoardConfig.TEMP_SENSOR_MCP9808, pinName, ConnectionType.I2C, softAddress)
     override var unitValue: Float? = null

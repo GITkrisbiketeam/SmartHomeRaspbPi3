@@ -189,7 +189,7 @@ class UnitTaskViewModel(
             }
         } else {
             // Editing existing HomeUnit
-            unitTask?.value?.let { unit ->
+            unitTask?.value?.let {
                 return if (name.value?.trim().isNullOrEmpty() || (homeUnitName.value.isNullOrEmpty()/* && hwUnitName.value.isNullOrEmpty()*/)) {
                     Pair(R.string.unit_task_empty_name_unit_or_hw, null)
                 } else if (noChangesMade()) {
@@ -208,7 +208,7 @@ class UnitTaskViewModel(
         homeRepositoryTask = unitTask?.value?.let { unit ->
             showProgress.value = true
             homeRepository.deleteUnitTask(unitType, unitName, unit)
-        }?.addOnCompleteListener { task ->
+        }?.addOnCompleteListener {
             sleep(1000)
             Timber.d("Task completed")
             showProgress.value = false
@@ -228,7 +228,7 @@ class UnitTaskViewModel(
                     this?.continueWithTask { task -> homeRepository.deleteUnitTask(unitType, unitName, unitTask) }
                 }
             }
-        } ?: doSaveChanges()?.addOnCompleteListener { task ->
+        } ?: doSaveChanges()?.addOnCompleteListener {
             sleep(1000)
             Timber.d("Task completed")
             showProgress.value = false

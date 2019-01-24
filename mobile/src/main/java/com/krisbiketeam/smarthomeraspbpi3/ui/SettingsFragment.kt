@@ -22,13 +22,13 @@ class SettingsFragment : PreferenceFragmentCompat() {
             when(preference?.key){
                 getString(R.string.settings_wifi_fragment_key) -> {
                     Timber.d("onPreferenceTreeClick go to WifiSettings")
-                    val direction = SettingsFragmentDirections.ActionSettingsFragmentToWifiSettingsFragment()
+                    val direction = SettingsFragmentDirections.actionSettingsFragmentToWifiSettingsFragment()
                     Navigation.findNavController(it, R.id.home_nav_fragment).navigate(direction)
                     return true
                 }
                 getString(R.string.settings_login_fragment_key) -> {
                     Timber.d("onPreferenceTreeClick go to LoginSettings")
-                    val direction = SettingsFragmentDirections.ActionSettingsFragmentToLoginSettingsFragment()
+                    val direction = SettingsFragmentDirections.actionSettingsFragmentToLoginSettingsFragment()
                     Navigation.findNavController(it, R.id.home_nav_fragment).navigate(direction)
                     return true
                 }

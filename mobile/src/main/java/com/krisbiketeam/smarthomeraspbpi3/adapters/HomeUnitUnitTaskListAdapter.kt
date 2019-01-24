@@ -41,7 +41,7 @@ class UnitTaskListAdapter(private val unitName: String,
     private fun createOnClickListener(taskName: String): View.OnClickListener {
         return View.OnClickListener { view ->
             Timber.d("onClick taskName: $taskName")
-            view.findNavController().navigate(HomeUnitDetailFragmentDirections.ActionHomeUnitDetailFragmentToUnitTaskFragment(taskName, unitName, unitType))
+            view.findNavController().navigate(HomeUnitDetailFragmentDirections.actionHomeUnitDetailFragmentToUnitTaskFragment(taskName, unitName, unitType))
         }
     }
 

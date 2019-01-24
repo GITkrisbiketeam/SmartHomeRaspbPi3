@@ -128,7 +128,7 @@ private const val MCO9808_REG_T_UPPER = 0x02
 private const val MCO9808_REG_T_LOWER = 0x03
 private const val MCO9808_REG_T_CRITICAL = 0x04
 private const val MCO9808_REG_TEMP = 0x05
-private const val MCO9808_REG_MANUFACURER = 0x06
+private const val MAO9808_REG_MANUFACTURER = 0x06
 private const val MCO9808_REG_ID_REV = 0x07
 private const val MCO9808_REG_RESOLUTION = 0x08
 
@@ -234,7 +234,7 @@ class MCP9808(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS) : Aut
 
     /**
      * Shutdown mode disables all power consuming activities (including temperature sampling
-     * oerations) while leaving the serial interface active. This mode is selected by setting bit 8
+     * operations) while leaving the serial interface active. This mode is selected by setting bit 8
      * of CONFIG to ‘1’. In this mode, the device consumes ISHDN. It remains in this mode until bit
      * 8 is cleared to ‘0’ to enable Continuous Conversion mode or until power is recycled.
      * The Shutdown bit (bit 8) cannot be set to ‘1’ while the CONFIG<7:6> bits (Lock bits) are set

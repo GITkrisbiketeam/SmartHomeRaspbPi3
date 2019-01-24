@@ -356,7 +356,7 @@ class AddEditHwUnitViewModel(
         when {
             type.value.isNullOrEmpty() -> return Pair(R.string.add_edit_hw_unit_empty_type, null)
             name.value?.trim().isNullOrEmpty() -> return Pair(R.string.add_edit_hw_unit_empty_name, null)
-            (hwUnitLiveData == null || (hwUnitLiveData != null && hwUnitLiveData.value?.name != name.value?.trim())) &&
+            (hwUnitLiveData == null || (hwUnitLiveData.value?.name != name.value?.trim())) &&
                     hwUnitList.value?.find { unit -> unit.name == name.value?.trim() } != null ->
             {
                 //This name is already used
@@ -374,12 +374,13 @@ class AddEditHwUnitViewModel(
 
             hwUnitLiveData != null -> // Editing existing HomeUnit
                 hwUnitLiveData.value?.let { unit ->
-                    return if (name.value?.trim() != unit.name) {
-                        Pair(R.string.add_edit_hw_unit_save_with_delete, R.string.overwrite)
-                    } else if (noChangesMade()) {
-                        Pair(R.string.add_edit_home_unit_no_changes, null)
-                    } else {
-                        Pair(R.string.add_edit_home_unit_overwrite_changes, R.string.overwrite)
+                    return when {
+                        name.value?.trim() != unit.name ->
+                            Pair(R.string.add_edit_hw_unit_save_with_delete, R.string.overwrite)
+                        noChangesMade() ->
+                            Pair(R.string.add_edit_home_unit_no_changes, null)
+                        else ->
+                            Pair(R.string.add_edit_home_unit_overwrite_changes, R.string.overwrite)
                     }
                 }
         }

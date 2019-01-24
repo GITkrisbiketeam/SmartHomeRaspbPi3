@@ -45,7 +45,7 @@ class HwUnitListFragment : Fragment() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_add -> {
-                findNavController().navigate(HwUnitListFragmentDirections.ActionHwUnitListFragmentToAddEditHwUnitFragment(""))
+                findNavController().navigate(HwUnitListFragmentDirections.actionHwUnitListFragmentToAddEditHwUnitFragment(""))
                 true
             }
             else -> super.onOptionsItemSelected(item)

@@ -113,6 +113,8 @@
                     app:layout_constraintTop_toBottomOf="@+id/hw_unit_type_spinner" />
                 <EditText
                     style="@style/EditTextStyle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
                     android:id="@+id/hw_unit_name"
                     android:hint="@string/add_edit_hw_unit_name_hint"
                     android:text="@={viewModel.name}"
@@ -129,6 +131,8 @@
                     app:layout_constraintTop_toBottomOf="@+id/hw_unit_name" />
                 <EditText
                     style="@style/EditTextStyle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
                     android:id="@+id/hw_unit_location"
                     android:hint="@string/add_edit_hw_unit_location_hint"
                     android:text="@={viewModel.location}"
