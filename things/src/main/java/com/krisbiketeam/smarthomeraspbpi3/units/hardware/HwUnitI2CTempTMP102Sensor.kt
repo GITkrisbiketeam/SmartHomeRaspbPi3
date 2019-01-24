@@ -14,8 +14,8 @@ private const val REFRESH_RATE = 300000L // 5 min
 
 class HwUnitI2CTempTMP102Sensor(name: String,
                                 location: String,
-                                pinName: String,
-                                softAddress: Int,
+                                val pinName: String,
+                                val softAddress: Int,
                                 override var device: AutoCloseable? = null) : HwUnitI2C<Float>, Sensor<Float> {
 
     override val hwUnit: HwUnit = HwUnit(name, location, BoardConfig.TEMP_SENSOR_TMP102, pinName, ConnectionType.I2C, softAddress)
@@ -52,7 +52,7 @@ class HwUnitI2CTempTMP102Sensor(name: String,
     }
 
     private fun oneShotReadValue() {
-        val tmp102 = TMP102(hwUnit.pinName)
+        val tmp102 = TMP102(pinName, softAddress)
         // We do not want to block I2C buss so open device to only display some data and then immediately close it.
         // use block automatically closes resources referenced to tmp102
         tmp102.shutdownMode = true
@@ -68,7 +68,7 @@ class HwUnitI2CTempTMP102Sensor(name: String,
     override fun readValue(): Float? {
         // We do not want to block I2C buss so open device to only display some data and then immediately close it.
         // use block automatically closes resources referenced to tmp102
-        val tmp102 = TMP102(hwUnit.pinName)
+        val tmp102 = TMP102(pinName, softAddress)
         tmp102.use {
             unitValue = it.readTemperature()
             valueUpdateTime = Date().toString()

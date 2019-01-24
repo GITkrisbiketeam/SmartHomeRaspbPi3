@@ -134,10 +134,10 @@ class Home : Sensor.HwUnitListener<Any> {
                 ChildEventType.NODE_ACTION_ADDED -> {
                     val existingUnit = homeUnitList[homeUnit.name]
                     Timber.d("homeUnitsDataObserver EXISTING $existingUnit ; NEW  $homeUnit")
-                    homeUnitTypeIndicatorMap[homeUnit.type]?.isInstance(Boolean::class.java)
-                            .let {
-                                homeUnit.applyFunction = booleanApplyFunction
-                            }
+                    if (homeUnitTypeIndicatorMap[homeUnit.type] == Boolean::class.java) {
+                        Timber.d("homeUnitsDataObserver EXISTING set boolean apply function")
+                        homeUnit.applyFunction = booleanApplyFunction
+                    }
                     homeUnitList[homeUnit.name] = homeUnit
                 }
                 ChildEventType.NODE_ACTION_DELETED -> {
