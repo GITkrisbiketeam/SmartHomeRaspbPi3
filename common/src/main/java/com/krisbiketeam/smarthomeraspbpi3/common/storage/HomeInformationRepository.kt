@@ -14,6 +14,11 @@ interface HomeInformationRepository {
      */
     fun logUnitEvent(hwUnitLog: HwUnitLog<out Any>)
 
+    /**
+     *  Adds given @see[HwUnitLog] to the hw Error lg @see[HW_ERROR_INFORMATION_BASE] list in DB
+     */
+    fun hwUnitErrorEvent(hwUnitLog: HwUnitLog<out Any>)
+
     fun writeNewUser(name: String, email: String)
 
     fun addUserNotiToken(email: String, token: String)
@@ -117,6 +122,11 @@ interface HomeInformationRepository {
      * Clear all Logs entries from DB
      */
     fun clearLog()
+
+    /**
+     * Clear all hw Error entries from DB
+     */
+    fun clearHwError()
 }
 
 object FirebaseHomeInformationRepository : HomeInformationRepository {
@@ -125,6 +135,8 @@ object FirebaseHomeInformationRepository : HomeInformationRepository {
             .reference.child(HOME_INFORMATION_BASE)
     // Reference for all log related events
     private val referenceLog = FirebaseDatabase.getInstance().reference.child(LOG_INFORMATION_BASE)
+    // Reference for all log related events
+    private val referenceHwError = FirebaseDatabase.getInstance().reference.child(HW_ERROR_INFORMATION_BASE)
     // Reference for all users
     private val referenceUsers = FirebaseDatabase.getInstance()
             .reference.child(USER_INFORMATION_BASE)
@@ -150,6 +162,10 @@ object FirebaseHomeInformationRepository : HomeInformationRepository {
 
     override fun logUnitEvent(hwUnitLog: HwUnitLog<out Any>) {
         referenceLog.push().setValue(hwUnitLog)
+    }
+
+    override fun hwUnitErrorEvent(hwUnitError: HwUnitLog<out Any>) {
+        referenceHwError.child(hwUnitError.name).setValue(hwUnitError)
     }
 
     override fun notifyHomeUnitEvent(homeUnit: HomeUnit<out Any>) {
@@ -197,6 +213,10 @@ object FirebaseHomeInformationRepository : HomeInformationRepository {
 
     override fun clearLog() {
         referenceLog.removeValue()
+    }
+
+    override fun clearHwError() {
+        referenceHwError.removeValue()
     }
 
     override fun homeUnitsLiveData(): HomeUnitsLiveData {

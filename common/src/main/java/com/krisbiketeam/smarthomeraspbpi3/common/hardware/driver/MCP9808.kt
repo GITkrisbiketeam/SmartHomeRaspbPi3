@@ -287,7 +287,9 @@ class MCP9808(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS) : Aut
                     close()
                 } catch (e: IOException) {
                     Timber.e(e,"Error closing device")
+                    throw Exception("Error closing MCP9808", e)
                 }
+                throw Exception("Error Initializing MCP9808", e)
             }
         }
     }
@@ -307,9 +309,12 @@ class MCP9808(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS) : Aut
     /**
      * Close the driver and the underlying device.
      */
-    override fun close() {
+    @Throws(Exception::class)
+    override fun close(){
         try {
             mDevice?.close()
+        } catch (e: IOException) {
+            throw Exception("Error closing MCP9808", e)
         } finally {
             mDevice = null
         }
@@ -333,7 +338,7 @@ class MCP9808(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS) : Aut
                 GlobalScope.launch {
                     //disable shutdown
                     shutdownMode = false
-                    // Wait 26 ms for conversion to complete
+                    // Wait 250 ms for conversion to complete
                     delay(POWER_ON_CONVERSION_DELAY)
                     // check if conversion finished by reading OS bit to '1'
                     val temp = readTemperature()
@@ -354,6 +359,7 @@ class MCP9808(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS) : Aut
     /**
      * Reads 16 bits from the given address.
      */
+    @Throws(Exception::class)
     private fun readSample16(address: Int): Int? {
         synchronized(mBuffer) {
             // Reading a byte buffer instead of a short to avoid having to deal with
@@ -362,7 +368,7 @@ class MCP9808(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS) : Aut
                 mDevice?.readRegBuffer(address, mBuffer, 2) ?: return null
             } catch (e: IOException) {
                 Timber.e(e,"Error reading RegBuffer")
-                return null
+                throw Exception("Error reading MCP9808", e)
             }
             // msb[7:0] lsb[7:0]
 
@@ -372,6 +378,7 @@ class MCP9808(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS) : Aut
         }
     }
 
+    @Throws(Exception::class)
     private fun writeSample16(address: Int, data: Int) {
         synchronized(mBuffer) {
             //msb
@@ -383,6 +390,7 @@ class MCP9808(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS) : Aut
                 mDevice?.writeRegBuffer(address, mBuffer, 2)
             } catch (e: IOException) {
                 Timber.e(e,"Error writing RegBuffer")
+                throw Exception("Error writing MCP9808", e)
             }
         }
     }

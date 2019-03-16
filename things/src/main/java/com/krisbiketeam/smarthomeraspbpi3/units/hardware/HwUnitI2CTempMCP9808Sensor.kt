@@ -4,10 +4,13 @@ import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.ConnectionType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver.MCP9808
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnitLog
 import com.krisbiketeam.smarthomeraspbpi3.units.HwUnitI2C
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
 import kotlinx.coroutines.*
 import timber.log.Timber
+import java.lang.Exception
 import java.util.*
 
 private const val REFRESH_RATE = 10000L // 10 sec
@@ -39,10 +42,12 @@ class HwUnitI2CTempMCP9808Sensor(name: String,
             // We could also check for true as suspending delay() method is cancellable
             while (isActive) {
                 // Cancel will not stop non suspending oneShotReadValue function
-                //oneShotReadValue()
-                readValue()
-                hwUnitListener?.onUnitChanged(hwUnit, unitValue, valueUpdateTime)
-                delay(REFRESH_RATE)
+                oneShotReadValue()
+                if (unitValue != Float.MAX_VALUE) {
+                    delay(REFRESH_RATE)
+                } else{
+                    job?.cancel()
+                }
             }
         }
     }
@@ -53,30 +58,47 @@ class HwUnitI2CTempMCP9808Sensor(name: String,
         hwUnitListener = null
     }
 
+    override fun close() {
+        job?.cancel()
+        super.close()
+    }
+
     private fun oneShotReadValue() {
-        val mcp9808 = MCP9808(pinName, softAddress)
-        // We do not want to block I2C buss so open device to only display some data and then immediately close it.
-        // use block automatically closes resources referenced to tmp102
-        mcp9808.shutdownMode = true
-        mcp9808.readOneShotTemperature {
-            unitValue = it
-            valueUpdateTime = Date().toString()
-            Timber.d("temperature:$unitValue")
-            hwUnitListener?.onUnitChanged(hwUnit, unitValue, valueUpdateTime)
-            mcp9808.close()
+        try {
+            val mcp9808 = MCP9808(pinName, softAddress)
+            // We do not want to block I2C buss so open device to only display some data and then immediately close it.
+            // use block automatically closes resources referenced to tmp102
+            mcp9808.shutdownMode = true
+            mcp9808.use {
+                it.readOneShotTemperature {value ->
+                    unitValue = value
+                    valueUpdateTime = Date().toString()
+                    Timber.d("temperature:$unitValue")
+                    hwUnitListener?.onUnitChanged(hwUnit, unitValue, valueUpdateTime)
+                }
+            }
+        } catch (e: Exception){
+            FirebaseHomeInformationRepository.hwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, Date().toString().plus(e.message)))
+            Timber.e(e,"Error oneShotReadValue HwUnitI2CTempMCP9808Sensor on: $hwUnit")
+            unitValue = Float.MAX_VALUE
         }
     }
 
     override fun readValue(): Float? {
-        // We do not want to block I2C buss so open device to only display some data and then immediately close it.
-        // use block automatically closes resources referenced to tmp102
-        val mcp9808 = MCP9808(pinName, softAddress)
-        mcp9808.use {
-            unitValue = it.readTemperature()
-            valueUpdateTime = Date().toString()
-            Timber.d("temperature:$unitValue")
+        try {
+            // We do not want to block I2C buss so open device to only display some data and then immediately close it.
+            // use block automatically closes resources referenced to tmp102
+            val mcp9808 = MCP9808(pinName, softAddress)
+            mcp9808.use {
+                unitValue = it.readTemperature()
+                valueUpdateTime = Date().toString()
+                Timber.d("temperature:$unitValue")
+            }
+        } catch (e: Exception){
+            FirebaseHomeInformationRepository.hwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, Date().toString().plus(e.message)))
+            Timber.e(e,"Error readValue HwUnitI2CTempMCP9808Sensor on: $hwUnit")
+            return Float.MAX_VALUE
         }
-
         return unitValue
     }
 }

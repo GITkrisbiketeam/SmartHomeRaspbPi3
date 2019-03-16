@@ -9,6 +9,7 @@ import kotlinx.coroutines.launch
 
 import timber.log.Timber
 import java.io.IOException
+import java.lang.Exception
 
 private const val TMP102_EXTENDED_MODE_BIT_SHIFT = 4
 
@@ -199,6 +200,7 @@ class TMP102(bus: String? = null, address: Int = DEFAULT_I2C_GND_ADDRESS) : Auto
                 } catch (e: IOException) {
                     Timber.e(e,"Error closing device")
                 }
+                throw Exception("Error Initializing TMP102", e)
             }
         }
     }
@@ -218,9 +220,12 @@ class TMP102(bus: String? = null, address: Int = DEFAULT_I2C_GND_ADDRESS) : Auto
     /**
      * Close the driver and the underlying device.
      */
+    @Throws(Exception::class)
     override fun close() {
         try {
             mDevice?.close()
+        } catch (e: IOException){
+            throw Exception("Error closing TMP102", e)
         } finally {
             mDevice = null
         }
@@ -267,6 +272,7 @@ class TMP102(bus: String? = null, address: Int = DEFAULT_I2C_GND_ADDRESS) : Auto
     /**
      * Reads 16 bits from the given address.
      */
+    @Throws(Exception::class)
     private fun readSample16(address: Int): Int? {
         synchronized(mBuffer) {
             // Reading a byte buffer instead of a short to avoid having to deal with
@@ -275,7 +281,7 @@ class TMP102(bus: String? = null, address: Int = DEFAULT_I2C_GND_ADDRESS) : Auto
                 mDevice?.readRegBuffer(address, mBuffer, 2) ?: return null
             } catch (e: IOException) {
                 Timber.e(e,"Error reading RegBuffer")
-                return null
+                throw Exception("Error reading TMP102", e)
             }
             // msb[7:0] lsb[7:0]
 
@@ -285,6 +291,7 @@ class TMP102(bus: String? = null, address: Int = DEFAULT_I2C_GND_ADDRESS) : Auto
         }
     }
 
+    @Throws(Exception::class)
     private fun writeSample16(address: Int, data: Int) {
         synchronized(mBuffer) {
             //msb
@@ -296,6 +303,7 @@ class TMP102(bus: String? = null, address: Int = DEFAULT_I2C_GND_ADDRESS) : Auto
                 mDevice?.writeRegBuffer(address, mBuffer, 2)
             } catch (e: IOException) {
                 Timber.e(e,"Error writing RegBuffer")
+                throw Exception("Error writing TMP102", e)
             }
         }
     }

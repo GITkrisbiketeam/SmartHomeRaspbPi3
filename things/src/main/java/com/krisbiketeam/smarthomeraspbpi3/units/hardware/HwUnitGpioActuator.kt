@@ -3,7 +3,9 @@ package com.krisbiketeam.smarthomeraspbpi3.units.hardware
 import com.google.android.things.pio.Gpio
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.ConnectionType
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnitLog
 import com.krisbiketeam.smarthomeraspbpi3.units.Actuator
 import com.krisbiketeam.smarthomeraspbpi3.units.HwUnitGpio
 import timber.log.Timber
@@ -26,6 +28,7 @@ class HwUnitGpioActuator(name: String,
             try {
                 gpio?.value = value
             } catch (e: IOException) {
+                FirebaseHomeInformationRepository.hwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, Date().toString().plus(e.message)))
                 Timber.e(e,"Error updating GPIO value on $hwUnit")
             }
         } else {
@@ -43,6 +46,7 @@ class HwUnitGpioActuator(name: String,
                 setDirection(Gpio.DIRECTION_OUT_INITIALLY_LOW)
                 setActiveType(activeType)
             } catch (e: IOException) {
+                FirebaseHomeInformationRepository.hwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, Date().toString().plus(e.message)))
                 Timber.e(e,"Error initializing PeripheralIO API on: $hwUnit")
             }
         }

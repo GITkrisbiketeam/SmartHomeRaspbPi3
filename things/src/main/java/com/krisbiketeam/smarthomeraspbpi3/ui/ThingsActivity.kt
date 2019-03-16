@@ -1,16 +1,16 @@
 package com.krisbiketeam.smarthomeraspbpi3.ui
 
 import android.content.Context
-import android.graphics.Color
 import android.net.wifi.WifiManager
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
 import android.view.KeyEvent
 import android.view.KeyEvent.*
-import com.google.android.things.contrib.driver.button.Button
-import com.google.android.things.contrib.driver.button.ButtonInputDriver
-import com.google.android.things.contrib.driver.rainbowhat.RainbowHat
-import com.google.android.things.pio.Gpio
+import androidx.appcompat.app.AppCompatActivity
+import com.google.android.things.userdriver.UserDriverManager
+import com.google.android.things.userdriver.input.InputDriver
+import com.google.android.things.userdriver.input.InputDriverEvent
+import com.krisbiketeam.smarthomeraspbpi3.Home
+import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.Authentication
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.FirebaseAuthentication
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig
@@ -18,73 +18,115 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.ConnectionType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.NotSecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnitLog
-import com.krisbiketeam.smarthomeraspbpi3.Home
-import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.ui.setup.FirebaseCredentialsReceiverManager
 import com.krisbiketeam.smarthomeraspbpi3.ui.setup.WiFiCredentialsReceiverManager
-import com.krisbiketeam.smarthomeraspbpi3.units.hardware.HwUnitGpioActuator
-import com.krisbiketeam.smarthomeraspbpi3.units.hardware.HwUnitI2CFourCharDisplay
+import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
+import com.krisbiketeam.smarthomeraspbpi3.units.hardware.HwUnitI2CPCF8574ATActuator
+import com.krisbiketeam.smarthomeraspbpi3.units.hardware.HwUnitI2CPCF8574ATSensor
 import com.krisbiketeam.smarthomeraspbpi3.utils.ConsoleLoggerTree
 import timber.log.Timber
-import java.io.IOException
 
-private const val WIFI_RAINBOW_LED = 0
-private const val FIREBASE_RAINBOW_LED = 1
+// Driver parameters
+private const val DRIVER_NAME = "PCF8574AT Button Driver"
 
-class ThingsActivity : AppCompatActivity() {
+class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
     private lateinit var authentication: Authentication
     private lateinit var secureStorage: SecureStorage
     private lateinit var networkConnectionMonitor: NetworkConnectionMonitor
 
     private lateinit var home: Home
-    private val ledA: HwUnitGpioActuator
-    private val ledB: HwUnitGpioActuator
-    private val ledC: HwUnitGpioActuator
+    private val ledA: HwUnitI2CPCF8574ATActuator
+    private val ledB: HwUnitI2CPCF8574ATActuator
+    private val ledC: HwUnitI2CPCF8574ATActuator
 
-    private var buttonAInputDriver: ButtonInputDriver? = null
-    private var buttonBInputDriver: ButtonInputDriver? = null
-    private var buttonCInputDriver: ButtonInputDriver? = null
+    private val led1: HwUnitI2CPCF8574ATActuator
+    private val led2: HwUnitI2CPCF8574ATActuator
+
+    private var buttonAInputDriver: HwUnitI2CPCF8574ATSensor
+    private var buttonBInputDriver: HwUnitI2CPCF8574ATSensor
+    private var buttonCInputDriver: HwUnitI2CPCF8574ATSensor
 
     private var wiFiCredentialsReceiverManager: WiFiCredentialsReceiverManager? = null
     private var firebaseCredentialsReceiverManager: FirebaseCredentialsReceiverManager? = null
 
-    private val mRainbowLeds = IntArray(RainbowHat.LEDSTRIP_LENGTH)
 
-    private val fourCharDisplay = HwUnitI2CFourCharDisplay(BoardConfig.FOUR_CHAR_DISP, "Raspberry Pi", BoardConfig.FOUR_CHAR_DISP_PIN)
+    private lateinit var mDriver: InputDriver
 
     init {
         Timber.d("init")
 
-        ledA = HwUnitGpioActuator(BoardConfig.LED_A, "Raspberry Pi",
-                BoardConfig.LED_A_PIN,
-                Gpio.ACTIVE_HIGH)
-        ledB = HwUnitGpioActuator(BoardConfig.LED_B, "Raspberry Pi",
-                BoardConfig.LED_B_PIN,
-                Gpio.ACTIVE_HIGH)
-        ledC = HwUnitGpioActuator(BoardConfig.LED_C, "Raspberry Pi",
-                BoardConfig.LED_C_PIN,
-                Gpio.ACTIVE_HIGH)
+        ledA = HwUnitI2CPCF8574ATActuator(BoardConfig.IO_EXTENDER_PCF8574AT_LED_1,
+                "Raspberry Pi",
+                BoardConfig.IO_EXTENDER_PCF8574AT_PIN,
+                BoardConfig.IO_EXTENDER_PCF8574AT_ADDR,
+                BoardConfig.IO_EXTENDER_PCF8574AT_INT_PIN,
+                BoardConfig.IO_EXTENDER_PCF8574AT_LED_1_PIN)
 
-        lightTheRainbow(true)
+        ledB = HwUnitI2CPCF8574ATActuator(BoardConfig.IO_EXTENDER_PCF8574AT_LED_2,
+                "Raspberry Pi",
+                BoardConfig.IO_EXTENDER_PCF8574AT_PIN,
+                BoardConfig.IO_EXTENDER_PCF8574AT_ADDR,
+                BoardConfig.IO_EXTENDER_PCF8574AT_INT_PIN,
+                BoardConfig.IO_EXTENDER_PCF8574AT_LED_2_PIN)
+        ledC = HwUnitI2CPCF8574ATActuator(BoardConfig.IO_EXTENDER_PCF8574AT_LED_3,
+                "Raspberry Pi",
+                BoardConfig.IO_EXTENDER_PCF8574AT_PIN,
+                BoardConfig.IO_EXTENDER_PCF8574AT_ADDR,
+                BoardConfig.IO_EXTENDER_PCF8574AT_INT_PIN,
+                BoardConfig.IO_EXTENDER_PCF8574AT_LED_3_PIN)
+        led1 = HwUnitI2CPCF8574ATActuator(BoardConfig.IO_EXTENDER_PCF8574AT_LED_4,
+                "Raspberry Pi",
+                BoardConfig.IO_EXTENDER_PCF8574AT_PIN,
+                BoardConfig.IO_EXTENDER_PCF8574AT_ADDR,
+                BoardConfig.IO_EXTENDER_PCF8574AT_INT_PIN,
+                BoardConfig.IO_EXTENDER_PCF8574AT_LED_4_PIN)
+        led2 = HwUnitI2CPCF8574ATActuator(BoardConfig.IO_EXTENDER_PCF8574AT_LED_5,
+                "Raspberry Pi",
+                BoardConfig.IO_EXTENDER_PCF8574AT_PIN,
+                BoardConfig.IO_EXTENDER_PCF8574AT_ADDR,
+                BoardConfig.IO_EXTENDER_PCF8574AT_INT_PIN,
+                BoardConfig.IO_EXTENDER_PCF8574AT_LED_5_PIN)
+
+        buttonAInputDriver = HwUnitI2CPCF8574ATSensor(BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_1,
+                "Raspberry Pi",
+                BoardConfig.IO_EXTENDER_PCF8574AT_PIN,
+                BoardConfig.IO_EXTENDER_PCF8574AT_ADDR,
+                BoardConfig.IO_EXTENDER_PCF8574AT_INT_PIN,
+                BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_1_PIN)
+
+        buttonBInputDriver = HwUnitI2CPCF8574ATSensor(BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_2,
+                "Raspberry Pi",
+                BoardConfig.IO_EXTENDER_PCF8574AT_PIN,
+                BoardConfig.IO_EXTENDER_PCF8574AT_ADDR,
+                BoardConfig.IO_EXTENDER_PCF8574AT_INT_PIN,
+                BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_2_PIN)
+        buttonCInputDriver = HwUnitI2CPCF8574ATSensor(BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_3,
+                "Raspberry Pi",
+                BoardConfig.IO_EXTENDER_PCF8574AT_PIN,
+                BoardConfig.IO_EXTENDER_PCF8574AT_ADDR,
+                BoardConfig.IO_EXTENDER_PCF8574AT_INT_PIN,
+                BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_3_PIN)
+
     }
 
     private val networkConnectionListener = object : NetworkConnectionListener {
         override fun onNetworkAvailable(available: Boolean) {
             Timber.d("Received onNetworkAvailable $available")
-            lightOnOffOneRainbowLed(WIFI_RAINBOW_LED, available)
+            led1.setValue(available)
         }
     }
 
     private val loginResultListener = object : Authentication.LoginResultListener {
         override fun success() {
             Timber.d("LoginResultListener success")
-            lightOnOffOneRainbowLed(FIREBASE_RAINBOW_LED, true)
+            led2.setValue(true)
         }
 
         override fun failed(exception: Exception) {
             Timber.d("LoginResultListener failed e: $exception")
-            lightOnOffOneRainbowLed(FIREBASE_RAINBOW_LED, false)
+            led2.setValue(false)
         }
     }
 
@@ -94,7 +136,29 @@ class ThingsActivity : AppCompatActivity() {
         setContentView(R.layout.activity_home)
         ConsoleLoggerTree.setLogConsole(this)
 
-        lightTheRainbow(false)
+        ledA.connect()
+        ledB.connect()
+        ledC.connect()
+        led1.connect()
+        led2.connect()
+        buttonAInputDriver.connect()
+        buttonBInputDriver.connect()
+        buttonCInputDriver.connect()
+
+        ledA.setValue(true)
+        ledB.setValue(true)
+        ledC.setValue(true)
+        led1.setValue(true)
+        led2.setValue(true)
+
+        // Create a new driver instance
+        mDriver = InputDriver.Builder()
+                .setName(DRIVER_NAME)
+                .setSupportedKeys(intArrayOf(KEYCODE_A, KEYCODE_B, KEYCODE_C))
+                .build()
+
+        // Register with the framework
+        UserDriverManager.getInstance().registerInputDriver(mDriver)
 
         secureStorage = NotSecureStorage(this)
 
@@ -104,6 +168,12 @@ class ThingsActivity : AppCompatActivity() {
 
         Timber.e("onCreate isNetworkConnectedVal: ${networkConnectionMonitor.isNetworkConnectedVal}")
         Timber.e("onCreate isNetworkConnected(): ${networkConnectionMonitor.isNetworkConnected()}")
+
+        ledA.setValue(false)
+        ledB.setValue(false)
+        ledC.setValue(false)
+        led1.setValue(false)
+        led2.setValue(false)
 
         if (!networkConnectionMonitor.isNetworkConnected()) {
             if (!wifiManager.isWifiEnabled) {
@@ -115,7 +185,7 @@ class ThingsActivity : AppCompatActivity() {
 
             startWiFiCredentialsReceiver()
         } else {
-            lightOnOffOneRainbowLed(WIFI_RAINBOW_LED, true)
+            led1.setValue(true)
         }
 
         if (!secureStorage.isAuthenticated()) {
@@ -127,23 +197,6 @@ class ThingsActivity : AppCompatActivity() {
 
         home = Home()
         //home.saveToRepository()
-
-        try {
-            buttonAInputDriver = ButtonInputDriver(
-                    BoardConfig.BUTTON_A_PIN,
-                    Button.LogicState.PRESSED_WHEN_LOW,
-                    KeyEvent.KEYCODE_A)
-            buttonBInputDriver = ButtonInputDriver(
-                    BoardConfig.BUTTON_B_PIN,
-                    Button.LogicState.PRESSED_WHEN_LOW,
-                    KeyEvent.KEYCODE_B)
-            buttonCInputDriver = ButtonInputDriver(
-                    BoardConfig.BUTTON_C_PIN,
-                    Button.LogicState.PRESSED_WHEN_LOW,
-                    KeyEvent.KEYCODE_C)
-        } catch (e: IOException) {
-            Timber.e(e, "Error configuring GPIO pin")
-        }
     }
 
     private fun startWiFiCredentialsReceiver() {
@@ -169,13 +222,9 @@ class ThingsActivity : AppCompatActivity() {
 
         networkConnectionMonitor.startListen(networkConnectionListener)
 
-        buttonAInputDriver?.register()
-        buttonBInputDriver?.register()
-        buttonCInputDriver?.register()
-
-        ledA.connect()
-        ledB.connect()
-        ledC.connect()
+        buttonAInputDriver.registerListener(this)
+        buttonBInputDriver.registerListener(this)
+        buttonCInputDriver.registerListener(this)
 
         home.start()
     }
@@ -185,13 +234,9 @@ class ThingsActivity : AppCompatActivity() {
 
         networkConnectionMonitor.stopListen()
 
-        buttonAInputDriver?.unregister()
-        buttonBInputDriver?.unregister()
-        buttonCInputDriver?.unregister()
-
-        ledA.close()
-        ledB.close()
-        ledC.close()
+        buttonAInputDriver.unregisterListener()
+        buttonBInputDriver.unregisterListener()
+        buttonCInputDriver.unregisterListener()
 
         home.stop()
         super.onStop()
@@ -200,14 +245,35 @@ class ThingsActivity : AppCompatActivity() {
     override fun onDestroy() {
         Timber.d("onDestroy")
 
-        try {
-            buttonAInputDriver?.close()
-            buttonBInputDriver?.close()
-            buttonCInputDriver?.close()
-        } catch (e: IOException) {
-            Timber.e(e,"Error closing Button driver")
-        }
+        ledA.close()
+        ledB.close()
+        ledC.close()
+        led1.close()
+        led2.close()
+        buttonAInputDriver.close()
+        buttonBInputDriver.close()
+        buttonCInputDriver.close()
+        UserDriverManager.getInstance().unregisterInputDriver(mDriver)
         super.onDestroy()
+    }
+
+    override fun onUnitChanged(hwUnit: HwUnit, unitValue: Boolean?, updateTime: String) {
+        Timber.d("onUnitChanged hwUnit: $hwUnit ; unitValue: $unitValue ; updateTime: $updateTime")
+        unitValue?.let {
+
+            val keyCode = when(hwUnit.ioPin){
+                BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_1_PIN.name -> KEYCODE_A
+                BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_2_PIN.name -> KEYCODE_B
+                BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_3_PIN.name -> KEYCODE_C
+                else -> null
+            }
+            keyCode?.let {
+                mDriver.emit(
+                        InputDriverEvent().apply {
+                            setKeyPressed(keyCode, !unitValue)
+                        })
+            }
+        }
     }
 
     override fun onKeyLongPress(keyCode: Int, event: KeyEvent?): Boolean {
@@ -215,20 +281,9 @@ class ThingsActivity : AppCompatActivity() {
         when (keyCode) {
             KEYCODE_A -> {
                 ledA.setValue(true)
-                /*try {
-                        mBuzzer.play(440.0)
-                    } catch (e: IOException) {
-                        e.printStackTrace()
-                    }*/
             }
             KEYCODE_B -> {
                 ledB.setValue(true)
-                /*try {
-                        // Stop the buzzer.
-                        mBuzzer.stop()
-                    } catch (e: IOException) {
-                        e.printStackTrace()
-                    }*/
                 // will cause onKeyUp be called with flag cancelled
                 return true
             }
@@ -246,9 +301,9 @@ class ThingsActivity : AppCompatActivity() {
                     0 -> {
                         Timber.d("onKeyDown keyCode: $keyCode ; keEvent: $event")
                         FirebaseHomeInformationRepository.logUnitEvent(HwUnitLog(
-                                BoardConfig.BUTTON_A,
+                                BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_1,
                                 "Raspberry Pi",
-                                BoardConfig.BUTTON_A_PIN,
+                                BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_1_PIN.name,
                                 ConnectionType.GPIO,
                                 value = true))
                         ledA.setValue(true)
@@ -269,9 +324,9 @@ class ThingsActivity : AppCompatActivity() {
                     0 -> {
                         Timber.d("onKeyDown keyCode: $keyCode ; keEvent: $event")
                         FirebaseHomeInformationRepository.logUnitEvent(HwUnitLog(
-                                BoardConfig.BUTTON_B,
+                                BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_2,
                                 "Raspberry Pi",
-                                BoardConfig.BUTTON_B_PIN,
+                                BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_2_PIN.name,
                                 ConnectionType.GPIO,
                                 value = true))
                         ledB.setValue(true)
@@ -292,9 +347,9 @@ class ThingsActivity : AppCompatActivity() {
                     0 -> {
                         Timber.d("onKeyDown keyCode: $keyCode ; keEvent: $event")
                         FirebaseHomeInformationRepository.logUnitEvent(HwUnitLog(
-                                BoardConfig.BUTTON_C,
+                                BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_3,
                                 "Raspberry Pi",
-                                BoardConfig.BUTTON_C_PIN,
+                                BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_3_PIN.name,
                                 ConnectionType.GPIO,
                                 value = true))
                         ledC.setValue(true)
@@ -313,27 +368,27 @@ class ThingsActivity : AppCompatActivity() {
         when (keyCode) {
             KEYCODE_A -> {
                 FirebaseHomeInformationRepository.logUnitEvent(HwUnitLog(
-                        BoardConfig.BUTTON_A,
+                        BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_1,
                         "Raspberry Pi",
-                        BoardConfig.BUTTON_A_PIN,
+                        BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_1_PIN.name,
                         ConnectionType.GPIO,
                         value = false))
                 ledA.setValue(false)
             }
             KEYCODE_B -> {
                 FirebaseHomeInformationRepository.logUnitEvent(HwUnitLog(
-                        BoardConfig.BUTTON_B,
+                        BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_2,
                         "Raspberry Pi",
-                        BoardConfig.BUTTON_B_PIN,
+                        BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_2_PIN.name,
                         ConnectionType.GPIO,
                         value = false))
                 ledB.setValue(false)
             }
             KEYCODE_C -> {
                 FirebaseHomeInformationRepository.logUnitEvent(HwUnitLog(
-                        BoardConfig.BUTTON_C,
+                        BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_3,
                         "Raspberry Pi",
-                        BoardConfig.BUTTON_C_PIN,
+                        BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_3_PIN.name,
                         ConnectionType.GPIO,
                         value = false))
                 ledC.setValue(false)
@@ -346,45 +401,6 @@ class ThingsActivity : AppCompatActivity() {
         if (secureStorage.isAuthenticated()) {
             authentication.addLoginResultListener(loginResultListener)
             authentication.login(secureStorage.firebaseCredentials)
-        }
-    }
-
-    private fun lightTheRainbow(light: Boolean) {
-        // Light up the rainbow
-        try {
-            val ledstrip = RainbowHat.openLedStrip()
-            ledstrip.brightness = 1
-            for (i in mRainbowLeds.indices) {
-                mRainbowLeds[i] =
-                        if (light)
-                            Color.HSVToColor(255, floatArrayOf(i * 360f / mRainbowLeds
-                                    .size, 1.0f, 1.0f))
-                        else
-                            0
-            }
-            ledstrip.write(mRainbowLeds)
-            // Close the device when done.
-            ledstrip.close()
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
-    }
-
-    private fun lightOnOffOneRainbowLed(led: Int, on: Boolean) {
-        try {
-            val ledStrip = RainbowHat.openLedStrip()
-            ledStrip.brightness = 1
-            mRainbowLeds[led] =
-                    if (on)
-                        Color.HSVToColor(255, floatArrayOf(led * 360f / mRainbowLeds
-                                .size, 1.0f, 1.0f))
-                    else
-                        0
-            ledStrip.write(mRainbowLeds)
-            // Close the device when done.
-            ledStrip.close()
-        } catch (e: IOException) {
-            e.printStackTrace()
         }
     }
 }

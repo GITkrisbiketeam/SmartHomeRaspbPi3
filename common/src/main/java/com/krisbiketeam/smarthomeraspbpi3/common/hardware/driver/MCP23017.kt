@@ -63,7 +63,7 @@ private const val MIRROR_INT_A_INT_B = 0x40
 class MCP23017(bus: String? = null,
                address: Int = DEFAULT_I2C_000_ADDRESS,
                var intGpio: String? = null,
-               var pollingTime: Int = NO_POLLING_TIME,
+               private var pollingTime: Int = NO_POLLING_TIME,
                private val debounceDelay: Int = DEBOUNCE_DELAY) : AutoCloseable {
 
 
@@ -81,12 +81,6 @@ class MCP23017(bus: String? = null,
         const val DEFAULT_I2C_110_ADDRESS = 0x26
         const val DEFAULT_I2C_111_ADDRESS = 0x27
 
-        /**
-         * Maximum power consumption in micro-amperes when measuring temperature.
-         */
-        const val MAX_POWER_CONSUMPTION_TEMP_UA = 85f
-        // Sensor constants from the datasheet.
-        // https://cdn-shop.adafruit.com/datasheets/BST-BMP280-DS001-11.pdf
         const val DEFAULT_POLLING_TIME = 50
         const val NO_POLLING_TIME = -1
 
@@ -637,6 +631,7 @@ class MCP23017(bus: String? = null,
 
     /**
      * This class/thread is used to to actively monitor for GPIO interrupts
+     * TODO: change to corutine
      *
      * @author Robert Savage
      */

@@ -4,10 +4,13 @@ import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.ConnectionType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver.TMP102
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnitLog
 import com.krisbiketeam.smarthomeraspbpi3.units.HwUnitI2C
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
 import kotlinx.coroutines.*
 import timber.log.Timber
+import java.lang.Exception
 import java.util.*
 
 private const val REFRESH_RATE = 300000L // 5 min
@@ -40,7 +43,11 @@ class HwUnitI2CTempTMP102Sensor(name: String,
             while (isActive) {
                 // Cancel will not stop non suspending oneShotReadValue function
                 oneShotReadValue()
-                delay(REFRESH_RATE)
+                if (unitValue != Float.MAX_VALUE) {
+                    delay(REFRESH_RATE)
+                } else{
+                    job?.cancel()
+                }
             }
         }
     }
@@ -51,30 +58,47 @@ class HwUnitI2CTempTMP102Sensor(name: String,
         hwUnitListener = null
     }
 
+    override fun close() {
+        job?.cancel()
+        super.close()
+    }
+
     private fun oneShotReadValue() {
-        val tmp102 = TMP102(pinName, softAddress)
-        // We do not want to block I2C buss so open device to only display some data and then immediately close it.
-        // use block automatically closes resources referenced to tmp102
-        tmp102.shutdownMode = true
-        tmp102.readOneShotTemperature {
-            unitValue = it
-            valueUpdateTime = Date().toString()
-            Timber.d("temperature:$unitValue")
-            hwUnitListener?.onUnitChanged(hwUnit, unitValue, valueUpdateTime)
-            tmp102.close()
+        try {
+            val tmp102 = TMP102(pinName, softAddress)
+            // We do not want to block I2C buss so open device to only display some data and then immediately close it.
+            // use block automatically closes resources referenced to tmp102
+            tmp102.shutdownMode = true
+            tmp102.use {
+                it.readOneShotTemperature {value ->
+                    unitValue = value
+                    valueUpdateTime = Date().toString()
+                    Timber.d("temperature:$unitValue")
+                    hwUnitListener?.onUnitChanged(hwUnit, unitValue, valueUpdateTime)
+                }
+            }
+        } catch (e: Exception){
+            FirebaseHomeInformationRepository.hwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, Date().toString().plus(e.message)))
+            Timber.e(e,"Error oneShotReadValue HwUnitI2CTempTMP102Sensor on: $hwUnit")
+            unitValue = Float.MAX_VALUE
         }
     }
 
     override fun readValue(): Float? {
-        // We do not want to block I2C buss so open device to only display some data and then immediately close it.
-        // use block automatically closes resources referenced to tmp102
-        val tmp102 = TMP102(pinName, softAddress)
-        tmp102.use {
-            unitValue = it.readTemperature()
-            valueUpdateTime = Date().toString()
-            Timber.d("temperature:$unitValue")
+        try {
+            // We do not want to block I2C buss so open device to only display some data and then immediately close it.
+            // use block automatically closes resources referenced to tmp102
+            val tmp102 = TMP102(pinName, softAddress)
+            tmp102.use {
+                unitValue = it.readTemperature()
+                valueUpdateTime = Date().toString()
+                Timber.d("temperature:$unitValue")
+            }
+        } catch (e: Exception){
+            FirebaseHomeInformationRepository.hwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, Date().toString().plus(e.message)))
+            Timber.e(e,"Error readValue HwUnitI2CTempTMP102Sensor on: $hwUnit")
+            return Float.MAX_VALUE
         }
-
         return unitValue
     }
 }

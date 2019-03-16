@@ -2,6 +2,8 @@ package com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables
 
 const val LOG_INFORMATION_BASE = "log"
 
+const val HW_ERROR_INFORMATION_BASE = "hw_error"
+
 const val NOTIFICATION_INFORMATION_BASE = "notification"
 
 const val HOME_INFORMATION_BASE = "home"
