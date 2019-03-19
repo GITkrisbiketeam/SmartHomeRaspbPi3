@@ -8,4 +8,6 @@ data class UnitTask(var name: String = "",
                     var period: Long? = null,
                     var startTime: Long? = null,
                     var endTime: Long? = null,
-                    var inverse: Boolean? = null)
+                    var inverse: Boolean? = null,
+                    var threshold: Float? = null,
+                    var hysteresis: Float? = null)

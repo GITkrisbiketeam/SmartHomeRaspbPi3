@@ -93,7 +93,8 @@
     <string name="unit_task_text_home_unit_select_spinner_prompt">Select Home Unit</string>
     <string name="unit_task_text_hw_unit_name_title" tools:keep="@string/unit_task_text_hw_unit_name_title">Hw Unit Name:</string>
     <string name="unit_task_text_hw_unit_select_spinner_prompt" tools:keep="@string/unit_task_text_hw_unit_select_spinner_prompt">Select Hw Unit</string>
-    <string name="unit_task_empty_name_unit_or_hw">Empty Unit Task please fill in required fields</string>
+    <string name="unit_task_empty_name_unit_or_hw">Empty Unit Task, please fill in required fields</string>
+    <string name="unit_task_empty_home_unit_name">Empty Home Unit Name, please fill in required fields</string>
 
     <string name="add_edit_hw_unit_type_spinner_title">HwUnit Type</string>
     <string name="add_edit_hw_unit_type_spinner_prompt">Select HW Unit Type:</string>

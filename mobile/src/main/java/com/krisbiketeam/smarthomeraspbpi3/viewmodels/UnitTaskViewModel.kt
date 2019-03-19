@@ -21,18 +21,87 @@ class UnitTaskViewModel(
         private val unitName: String,
         private val unitType: String
 ) : ViewModel() {
-
-    val showProgress: MutableLiveData<Boolean>
-
-    val isEditMode: MutableLiveData<Boolean> = MutableLiveData()
+    private val addingNewUnit = taskName.isEmpty()
 
     // Helper LiveData for UnitTaskList
     private val unitTaskList = homeRepository.unitTaskListLiveData(unitType, unitName)
+    // used for checking if given homeUnit name is not already used
+    private var unitTaskNameList: LiveData<List<String>>                              // UnitTaskListLiveData
 
-    val unitTask: LiveData<UnitTask>?
+    private val unitTask = if(addingNewUnit) MutableLiveData() else Transformations.map(unitTaskList) { taskList -> taskList[taskName] }
 
-    var name: MutableLiveData<String>
-    var homeUnitName: MutableLiveData<String>
+    val showProgress: MutableLiveData<Boolean>
+
+    val isEditMode: MutableLiveData<Boolean> = MutableLiveData(addingNewUnit)
+
+
+    var name: MutableLiveData<String> = if(addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.name } as MutableLiveData<String>
+
+
+    // used for checking if given homeUnit name is not already used
+    var homeUnitNameList = Transformations.switchMap(isEditMode) { edit ->      // HomeUnitListLiveData
+        Timber.d("init homeUnitList isEditMode edit: $edit")
+        if (edit) {
+            MediatorLiveData<MutableList<String>>().apply {
+                HOME_STORAGE_UNITS.forEach { type ->
+                    addSource(homeRepository.homeUnitListLiveData(type)) { homeUnitList ->
+                        value = value ?: ArrayList()
+                        value?.addAll(homeUnitList?.map { it.name } ?: emptyList())
+                    }
+                }
+            }
+        } else MediatorLiveData()
+    } as MediatorLiveData<MutableList<String>>
+    val homeUnitNamePosition = Transformations.switchMap(isEditMode) { edit ->
+        if (edit) {
+            if (addingNewUnit) {
+                Transformations.map(homeUnitNameList) { homeUnitNameList ->
+                    homeUnitNameList.size
+                }
+            } else {
+                Transformations.switchMap(unitTask) { unitTask ->
+                    Transformations.map(homeUnitNameList) { homeUnitNameList ->
+                        homeUnitNameList.indexOfFirst {it == unitTask?.homeUnitName}
+                    }
+                }
+            }
+        } else {
+            MutableLiveData()
+        }
+    } as MutableLiveData<Int>
+    var homeUnitName = Transformations.switchMap(isEditMode) { edit ->
+        if (edit) {
+        Transformations.switchMap(homeUnitNameList) { homeUnitNameList ->
+                Transformations.map(homeUnitNamePosition) { position ->
+                    if (position in 0 until (homeUnitNameList?.size ?: 0)) {
+                        Timber.d("homeUnitName getValue position: $position val: ${homeUnitNameList?.get(position)}")
+                        homeUnitNameList?.get(position)
+                    } else {
+                        Timber.d("homeUnitName getValue position: $position val: null")
+                        null
+                    }
+                }
+            }
+        } else {
+            Transformations.map(unitTask) { unit -> unit?.homeUnitName }
+        }
+    } as MutableLiveData<String>
+        /*get() = homeUnitNamePosition.value?.let { position ->
+            if (position in 0 until (homeUnitNameList.value?.size ?: 0)) {
+                Timber.d("homeUnitName getValue position: $position val: ${homeUnitNameList.value?.get(position)}")
+                homeUnitNameList.value?.get(position)
+            } else {
+                Timber.d("homeUnitName getValue position: $position val: null")
+                null
+            }
+        }
+        set(value) {
+            val position = homeUnitNameList.value?.indexOfFirst { it == value } ?: -1
+            if (position != -1) {
+                homeUnitNamePosition.value = position
+            }
+        }*/
+
 //    var hwUnitName: MutableLiveData<String>
     var delay: MutableLiveData<Long>
     var duration: MutableLiveData<Long>
@@ -44,14 +113,9 @@ class UnitTaskViewModel(
 
     private var homeRepositoryTask: Task<Void>? = null
 
-    // used for checking if given homeUnit name is not already used
-    private var unitTaskNameList: LiveData<List<String>>                              // UnitTaskListLiveData
-
-    private val addingNewUnit = taskName.isEmpty()
 
 
-    // used for checking if given homeUnit name is not already used
-    var homeUnitNameList: MediatorLiveData<MutableList<String>>             // HomeUnitListLiveData
+
 //    val hwUnitNameList: LiveData<List<String>>                              // HwUnitListLiveData
 
     init {
@@ -59,10 +123,6 @@ class UnitTaskViewModel(
 
         if (!addingNewUnit) {
             Timber.d("init Editing existing HomeUnit")
-            unitTask = Transformations.map(unitTaskList) { taskList -> taskList[taskName] }
-
-            name = Transformations.map(unitTask) { unit -> unit?.name } as MutableLiveData<String>
-            homeUnitName = Transformations.map(unitTask) { unit -> unit?.homeUnitName } as MutableLiveData<String>
 //            hwUnitName = Transformations.map(unitTask) { unit -> unit?.hwUnitName } as MutableLiveData<String>
             delay = Transformations.map(unitTask) { unit -> unit?.delay } as MutableLiveData<Long>
             duration = Transformations.map(unitTask) { unit -> unit?.duration } as MutableLiveData<Long>
@@ -73,13 +133,8 @@ class UnitTaskViewModel(
             showProgress = Transformations.map(unitTask) { false } as MutableLiveData<Boolean>
 
             showProgress.value = true
-            isEditMode.value = false
         } else {
             Timber.d("init Adding new HomeUnit")
-            unitTask = null
-
-            name = MutableLiveData()
-            homeUnitName = MutableLiveData()
 //            hwUnitName = MutableLiveData()
             delay = MutableLiveData()
             duration = MutableLiveData()
@@ -91,7 +146,6 @@ class UnitTaskViewModel(
             showProgress = MutableLiveData()
 
             showProgress.value = false
-            isEditMode.value = true
         }
 
         // List with all available HwUnits to be used for this Task
@@ -104,19 +158,7 @@ class UnitTaskViewModel(
                 }*/
 
         // List with all available HomeUnits to be used for this Task
-        homeUnitNameList = Transformations.switchMap(isEditMode) { edit ->
-            Timber.d("init homeUnitList isEditMode edit: $edit")
-            if (edit) {
-                MediatorLiveData<MutableList<String>>().apply {
-                    HOME_STORAGE_UNITS.forEach { type ->
-                        addSource(homeRepository.homeUnitListLiveData(type)) { homeUnitList ->
-                            value = value ?: ArrayList()
-                            value?.addAll(homeUnitList?.map { it.name } ?: emptyList())
-                        }
-                    }
-                }
-            } else MediatorLiveData()
-        } as MediatorLiveData<MutableList<String>>
+
 
         // used for checking if given homeUnit name is not already used
         unitTaskNameList = Transformations.switchMap(isEditMode) { edit ->
@@ -128,12 +170,12 @@ class UnitTaskViewModel(
     }
 
     fun noChangesMade(): Boolean {
-        Timber.d("noChangesMade unitTask?.value: ${unitTask?.value}")
+        Timber.d("noChangesMade unitTask?.value: ${unitTask.value}")
         Timber.d("noChangesMade name.value: ${name.value}")
-        Timber.d("noChangesMade homeUnitName.value: ${homeUnitName.value}")
+        Timber.d("noChangesMade homeUnitName: $homeUnitName")
 //        Timber.d("noChangesMade hwUnitName.value: ${hwUnitName.value}")
 
-        return unitTask?.value?.let { unit ->
+        return unitTask.value?.let { unit ->
             unit.name == name.value &&
             unit.homeUnitName == homeUnitName.value &&
 //            unit.hwUnitName == hwUnitName.value &&
@@ -159,9 +201,8 @@ class UnitTaskViewModel(
             true
         } else {
             isEditMode.value = false
-            unitTask?.value?.let { unit ->
+            unitTask.value?.let { unit ->
                 name.value = unit.name
-                homeUnitName.value = unit.homeUnitName
 //                hwUnitName.value = unit.hwUnitName
                 delay.value = unit.delay
                 period.value = unit.period
@@ -182,6 +223,8 @@ class UnitTaskViewModel(
             // Adding new HomeUnit
             if (name.value?.trim().isNullOrEmpty()) {
                 return Pair(R.string.add_edit_home_unit_empty_name, null)
+            } else if (homeUnitName.value.isNullOrEmpty()) {
+                return Pair(R.string.unit_task_empty_home_unit_name, null)
             } else if (unitTaskNameList.value?.contains(name.value?.trim()) == true) {
                 //This name is already used
                 Timber.d("This name is already used")
@@ -189,7 +232,7 @@ class UnitTaskViewModel(
             }
         } else {
             // Editing existing HomeUnit
-            unitTask?.value?.let {
+            unitTask.value?.let {
                 return if (name.value?.trim().isNullOrEmpty() || (homeUnitName.value.isNullOrEmpty()/* && hwUnitName.value.isNullOrEmpty()*/)) {
                     Pair(R.string.unit_task_empty_name_unit_or_hw, null)
                 } else if (noChangesMade()) {
@@ -204,8 +247,8 @@ class UnitTaskViewModel(
     }
 
     fun deleteHomeUnit(): Task<Void>? {
-        Timber.d("deleteHomeUnit homeUnit: ${unitTask?.value} homeRepositoryTask.isComplete: ${homeRepositoryTask?.isComplete}")
-        homeRepositoryTask = unitTask?.value?.let { unit ->
+        Timber.d("deleteHomeUnit homeUnit: ${unitTask.value} homeRepositoryTask.isComplete: ${homeRepositoryTask?.isComplete}")
+        homeRepositoryTask = unitTask.value?.let { unit ->
             showProgress.value = true
             homeRepository.deleteUnitTask(unitType, unitName, unit)
         }?.addOnCompleteListener {
@@ -217,8 +260,8 @@ class UnitTaskViewModel(
     }
 
     fun saveChanges(): Task<Void>? {
-        Timber.d("saveChanges homeUnit: ${unitTask?.value} homeRepositoryTask.isComplete: ${homeRepositoryTask?.isComplete}")
-        homeRepositoryTask = unitTask?.value?.let { unitTask ->
+        Timber.d("saveChanges homeUnit: ${unitTask.value} homeRepositoryTask.isComplete: ${homeRepositoryTask?.isComplete}")
+        homeRepositoryTask = unitTask.value?.let { unitTask ->
             showProgress.value = true
             Timber.e("Save all changes")
             doSaveChanges().apply {
