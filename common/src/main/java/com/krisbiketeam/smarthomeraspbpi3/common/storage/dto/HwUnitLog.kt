@@ -23,7 +23,8 @@ data class HwUnitLog<T>(
         // Current value this unit holds
         var value: T? = null,
         var localtime: String = Date().toString(),
-        var servertime: Map<String, String>? = ServerValue.TIMESTAMP) {
+        var servertime: Any = ServerValue.TIMESTAMP) {
+
     constructor(hwHwUnit: HwUnit, value: T?, localtime: String) : this(
             hwHwUnit.name,
             hwHwUnit.location,

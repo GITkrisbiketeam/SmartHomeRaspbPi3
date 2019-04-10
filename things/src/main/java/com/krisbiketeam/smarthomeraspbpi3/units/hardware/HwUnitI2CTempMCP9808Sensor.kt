@@ -19,6 +19,7 @@ class HwUnitI2CTempMCP9808Sensor(name: String,
                                  location: String,
                                  private val pinName: String,
                                  private val softAddress: Int,
+                                 private val refreshRate: Long? = REFRESH_RATE,
                                  override var device: AutoCloseable? = null) : HwUnitI2C<Float>, Sensor<Float> {
 
     override val hwUnit: HwUnit = HwUnit(name, location, BoardConfig.TEMP_SENSOR_MCP9808, pinName, ConnectionType.I2C, softAddress)
@@ -29,7 +30,7 @@ class HwUnitI2CTempMCP9808Sensor(name: String,
     private var hwUnitListener: Sensor.HwUnitListener<Float>? = null
 
     override fun connect() {
-        // Do noting we o not want to block I2C device so it will be opened while setting the value
+        // Do noting we do not want to block I2C device so it will be opened while setting the value
         // and then immediately closed to release resources
     }
 
@@ -44,7 +45,7 @@ class HwUnitI2CTempMCP9808Sensor(name: String,
                 // Cancel will not stop non suspending oneShotReadValue function
                 oneShotReadValue()
                 if (unitValue != Float.MAX_VALUE) {
-                    delay(REFRESH_RATE)
+                    delay(refreshRate ?: REFRESH_RATE)
                 } else{
                     job?.cancel()
                 }
@@ -59,15 +60,16 @@ class HwUnitI2CTempMCP9808Sensor(name: String,
     }
 
     override fun close() {
+        Timber.d("close")
         job?.cancel()
         super.close()
     }
 
     private fun oneShotReadValue() {
         try {
-            val mcp9808 = MCP9808(pinName, softAddress)
             // We do not want to block I2C buss so open device to only display some data and then immediately close it.
-            // use block automatically closes resources referenced to tmp102
+            // use block automatically closes resources referenced to mcp9808
+            val mcp9808 = MCP9808(pinName, softAddress)
             mcp9808.shutdownMode = true
             mcp9808.use {
                 it.readOneShotTemperature {value ->

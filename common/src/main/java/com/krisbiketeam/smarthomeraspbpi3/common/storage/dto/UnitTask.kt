@@ -1,7 +1,7 @@
 package com.krisbiketeam.smarthomeraspbpi3.common.storage.dto
 
 data class UnitTask(var name: String = "",
-                    var homeUnitName: String? = null,
+                    var homeUnitName: String = "",
                     //var hwUnitName: String? = null,
                     var delay: Long? = null,
                     var duration: Long? = null,

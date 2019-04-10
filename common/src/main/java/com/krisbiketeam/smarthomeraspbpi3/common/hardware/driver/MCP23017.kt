@@ -1,7 +1,6 @@
 package com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver
 
 import android.annotation.SuppressLint
-import android.os.Handler
 import androidx.annotation.VisibleForTesting
 import android.view.ViewConfiguration
 import com.google.android.things.pio.Gpio
@@ -9,6 +8,7 @@ import com.google.android.things.pio.GpioCallback
 import com.google.android.things.pio.I2cDevice
 import com.google.android.things.pio.PeripheralManager
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver.MCP23017Pin.*
+import kotlinx.coroutines.*
 import timber.log.Timber
 import java.io.IOException
 import java.util.*
@@ -96,28 +96,30 @@ class MCP23017(bus: String? = null,
     private var currentPullupB = 0
     private var currentConf = 0
 
-    private val mHandler = Handler()
-
-    private var monitor: GpioStateMonitor? = null
-
     private var mDevice: I2cDevice? = null
-    private var mIntGpio: Gpio? = null
+    private var mGpioInt: Gpio? = null
 
     private val mListeners = HashMap<Pin, MutableList<MCP23017PinStateChangeListener>>()
 
+    private var monitorJob: Job? = null
+
+    private var debounceIntCallbackJob: Job? = null
+
     private val mIntCallback = GpioCallback{ gpio: Gpio ->
-        try {
+        if (debounceDelay != NO_DEBOUNCE_DELAY) {
             Timber.d("mIntCallback onGpioEdge ${gpio.value}")
-            mHandler.removeCallbacksAndMessages(null)
-            mHandler.postDelayed({
+            debounceIntCallbackJob?.cancel()
+            debounceIntCallbackJob = GlobalScope.launch {
+                delay(debounceDelay.toLong())
                 try {
                     checkInterrupt()
-                } catch (e: IOException) {
-                    Timber.e(e,"mIntCallback onGpioEdge exception")
+                } finally {
+                    debounceIntCallbackJob?.cancel()
                 }
-            }, debounceDelay.toLong())
-        } catch (e: IOException) {
-            Timber.e(e,"mIntCallback onGpioEdge exception")
+            }
+        } else {
+            debounceIntCallbackJob?.cancel()
+            checkInterrupt()
         }
 
         // Return true to keep callback active.
@@ -130,11 +132,8 @@ class MCP23017(bus: String? = null,
                 connectI2c(PeripheralManager.getInstance()?.openI2cDevice(bus, address))
             } catch (e: IOException) {
                 Timber.e(e,"init error connecting I2C")
-                try {
-                    close()
-                } catch (ignored: IOException) {
-                    Timber.e(e,"init error closing I2C")
-                }
+                close()
+                throw (Exception("Error init MCP23017", e))
             }
         }
     }
@@ -144,7 +143,7 @@ class MCP23017(bus: String? = null,
         mDevice = device
     }
 
-
+    @Throws(IOException::class)
     private fun connectI2c(device: I2cDevice?) {
         mDevice = device
 
@@ -158,8 +157,9 @@ class MCP23017(bus: String? = null,
         resetToDefaults()
     }
 
+    @Throws(IOException::class)
     private fun connectGpio() {
-        if (intGpio != null && mIntGpio == null) {
+        if (intGpio != null && mGpioInt == null) {
             val manager = PeripheralManager.getInstance()
             //Mirror IntA and IntB pins to single Interrupt from either A or B ports
             currentConf = currentConf.or(MIRROR_INT_A_INT_B)
@@ -167,33 +167,42 @@ class MCP23017(bus: String? = null,
             Timber.d("connectGpio currentConf: $currentConf")
 
             Timber.d("connectGpio intGpio openGpio $intGpio")
-            try {
-                // Step 1. Create GPIO connection.
-                mIntGpio = manager.openGpio(intGpio)
-                // Step 2. Configure as an input.
-                mIntGpio?.setDirection(Gpio.DIRECTION_IN)
-                // Step 3. Enable edge trigger events.
-                mIntGpio?.setEdgeTriggerType(Gpio.EDGE_FALLING)    // INT active Low
-                // Step 4. Register an event callback.
-                mIntGpio?.registerGpioCallback(mIntCallback)
-            } catch (e: Exception){
-                Timber.e("connectGpio exception: $e")
-            }
+            // Step 1. Create GPIO connection.
+            mGpioInt = manager.openGpio(intGpio)
+            // Step 2. Configure as an input.
+            mGpioInt?.setDirection(Gpio.DIRECTION_IN)
+            // Step 3. Enable edge trigger events.
+            mGpioInt?.setEdgeTriggerType(Gpio.EDGE_FALLING)    // INT active Low
+            // Step 4. Register an event callback.
+            mGpioInt?.registerGpioCallback(mIntCallback)
         }
     }
 
+    @Throws(Exception::class)
     private fun disconnectGpio() {
         Timber.d("disconnect int Gpio ")
-        mIntGpio = mIntGpio?.unregisterGpioCallback(mIntCallback).run { null }
+        mGpioInt = mGpioInt?.run {
+            unregisterGpioCallback(mIntCallback)
+            close()
+            null
+        }
     }
 
+    @Throws(Exception::class)
     private fun startMonitor(){
-        if(pollingTime != NO_POLLING_TIME) {
+        if (pollingTime != NO_POLLING_TIME) {
             // if the monitor has not been started, then start it now
-            if (monitor == null) {
-                // start monitoring thread
-                monitor = GpioStateMonitor()
-                monitor?.start()
+            monitorJob = GlobalScope.launch {
+                // We could also check for true as suspending delay() method is cancellable
+                while (isActive) {
+                    try {
+                        checkInterrupt()
+                        delay(pollingTime.toLong())
+                    } catch (e: Exception) {
+                        stopMonitor()
+                        throw (Exception("Error startMonitor checkInterrupt MCP23017", e))
+                    }
+                }
             }
         } else {
             stopMonitor()
@@ -201,63 +210,55 @@ class MCP23017(bus: String? = null,
     }
 
     private fun stopMonitor(){
-        // shutdown and destroy monitoring thread since there are no input pins configured
-        monitor?.shutdown()
-        monitor = null
-
+        // cancel and null monitoring Job since there are no input pins configured
+        monitorJob?.cancel()
+        monitorJob = null
     }
 
     /**
      * Close the driver and the underlying device.
      */
-    @Throws(IOException::class)
+    @Throws(Exception::class)
     override fun close() {
         // if a monitor is running, then shut it down now
-        monitor?.shutdown()
-        monitor = null
+        stopMonitor()
 
         try {
             mDevice?.close()
-        } catch (e: Exception){
+        } catch (e: IOException){
             Timber.e("close i2c exception: $e")
+            throw (Exception("Error closing MCP23017", e))
         } finally {
             mDevice = null
         }
 
-
-        mIntGpio?.unregisterGpioCallback(mIntCallback)
+        mGpioInt?.unregisterGpioCallback(mIntCallback)
         try {
-            mIntGpio?.close()
-        } catch (e: Exception){
-            Timber.e("close mIntGpio exception: $e")
+            mGpioInt?.close()
+        } catch (e: IOException){
+            Timber.e("close mGpioInt exception: $e")
+            throw (Exception("Error closing MCP23017 mGpioInt", e))
         } finally {
-            mIntGpio = null
+            mGpioInt = null
         }
     }
 
 
-    private fun readRegister(reg: Int): Int? = try {
-        mDevice?.readRegByte(reg)?.toInt()?.and(0xff)
-    } catch (e: java.lang.Exception){
-        Timber.e("error reading I2C register e:$e")
-        -1
-    }
+    @Throws(IOException::class)
+    private fun readRegister(reg: Int): Int? = mDevice?.readRegByte(reg)?.toInt()?.and(0xff)
 
-    private fun writeRegister(reg: Int, regVal: Int) = try {
-        mDevice?.writeRegByte(reg, regVal.toByte())
-    } catch (e: java.lang.Exception){
-        Timber.e("error writing I2C register e:$e")
-        -1
-    }
+    @Throws(IOException::class)
+    private fun writeRegister(reg: Int, regVal: Int) = mDevice?.writeRegByte(reg, regVal.toByte())
 
+    @Throws(IOException::class)
     private fun resetToDefaults() {
         // set all default pins directions
-        writeRegister(REGISTER_IODIR_A, currentDirectionA)
-        writeRegister(REGISTER_IODIR_B, currentDirectionB)
+        writeRegister(REGISTER_IODIR_A, 0)
+        writeRegister(REGISTER_IODIR_B, 0)
 
         // set all default pin interrupts
-        writeRegister(REGISTER_GPINTEN_A, currentDirectionA)
-        writeRegister(REGISTER_GPINTEN_B, currentDirectionB)
+        writeRegister(REGISTER_GPINTEN_A, 0)
+        writeRegister(REGISTER_GPINTEN_B, 0)
 
         // set all default pin interrupt default values
         writeRegister(REGISTER_DEFVAL_A, 0)
@@ -268,27 +269,24 @@ class MCP23017(bus: String? = null,
         writeRegister(REGISTER_INTCON_B, 0)
 
         // set all default pin states
-        writeRegister(REGISTER_GPIO_A, currentStatesA)
-        writeRegister(REGISTER_GPIO_B, currentStatesB)
+        writeRegister(REGISTER_GPIO_A, 0)
+        writeRegister(REGISTER_GPIO_B, 0)
 
         // set all default pin pull up resistors
-        writeRegister(REGISTER_GPPU_A, currentPullupA)
-        writeRegister(REGISTER_GPPU_B, currentPullupB)
+        writeRegister(REGISTER_GPPU_A, 0)
+        writeRegister(REGISTER_GPPU_B, 0)
 
         writeRegister(REGISTER_IOCON, 0)
     }
 
     // Set Input or output mode functions
+    @Throws(Exception::class)
     fun setMode(pin: Pin, mode: PinMode) {
         // determine A or B port based on pin address
-        try {
-            if (pin.address < GPIO_B_OFFSET) {
-                setModeA(pin, mode)
-            } else {
-                setModeB(pin, mode)
-            }
-        } catch (ex: IOException) {
-            throw RuntimeException(ex)
+        if (pin.address < GPIO_B_OFFSET) {
+            setModeA(pin, mode)
+        } else {
+            setModeB(pin, mode)
         }
 
         // if any pins are configured as input pins, then we need to start the interrupt monitoring
@@ -359,18 +357,14 @@ class MCP23017(bus: String? = null,
     }
 
     // Set Output state functions
+    @Throws(IOException::class)
     fun setState(pin: Pin, state: PinState) {
-        try {
-            // determine A or B port based on pin address
-            if (pin.address < GPIO_B_OFFSET) {
-                setStateA(pin, state)
-            } else {
-                setStateB(pin, state)
-            }
-        } catch (ex: IOException) {
-            throw RuntimeException(ex)
+        // determine A or B port based on pin address
+        if (pin.address < GPIO_B_OFFSET) {
+            setStateA(pin, state)
+        } else {
+            setStateB(pin, state)
         }
-
     }
 
     @Throws(IOException::class)
@@ -406,6 +400,7 @@ class MCP23017(bus: String? = null,
     }
 
     // Get Input state functions
+    @Throws(IOException::class)
     fun getState(pin: Pin): PinState {
         // determine A or B port based on pin address
         return if (pin.address < GPIO_B_OFFSET) {
@@ -415,13 +410,9 @@ class MCP23017(bus: String? = null,
         }
     }
 
+    @Throws(IOException::class)
     private fun getStateA(pin: Pin): PinState {
-
-        try {
-            currentStatesA = readRegister(REGISTER_GPIO_A) ?: currentStatesA
-        } catch (e: IOException) {
-            throw RuntimeException(e)
-        }
+        currentStatesA = readRegister(REGISTER_GPIO_A) ?: currentStatesA
 
         // determine pin address
         val pinAddress = pin.address - GPIO_A_OFFSET
@@ -431,13 +422,9 @@ class MCP23017(bus: String? = null,
         return if (currentStatesA and pinAddress == pinAddress) PinState.HIGH else PinState.LOW
     }
 
+    @Throws(IOException::class)
     private fun getStateB(pin: Pin): PinState {
-
-        try {
-            currentStatesB = readRegister(REGISTER_GPIO_B) ?: currentStatesB
-        } catch (e: IOException) {
-            throw RuntimeException(e)
-        }
+        currentStatesB = readRegister(REGISTER_GPIO_B) ?: currentStatesB
 
         // determine pin address
         val pinAddress = pin.address - GPIO_B_OFFSET
@@ -447,18 +434,14 @@ class MCP23017(bus: String? = null,
     }
 
     // PullUps resistors mode functions for input Pins
+    @Throws(IOException::class)
     fun setPullResistance(pin: Pin, resistance: PinPullResistance) {
-        try {
-            // determine A or B port based on pin address
-            if (pin.address < GPIO_B_OFFSET) {
-                setPullResistanceA(pin, resistance)
-            } else {
-                setPullResistanceB(pin, resistance)
-            }
-        } catch (ex: IOException) {
-            throw RuntimeException(ex)
+        // determine A or B port based on pin address
+        if (pin.address < GPIO_B_OFFSET) {
+            setPullResistanceA(pin, resistance)
+        } else {
+            setPullResistanceB(pin, resistance)
         }
-
     }
 
     @Throws(IOException::class)
@@ -627,36 +610,6 @@ class MCP23017(bus: String? = null,
                 listener.onPinStateChanged(pin, state)
             }
         }
-    }
-
-    /**
-     * This class/thread is used to to actively monitor for GPIO interrupts
-     * TODO: change to corutine
-     *
-     * @author Robert Savage
-     */
-    private inner class GpioStateMonitor : Thread() {
-        private var shuttingDown = false
-
-        fun shutdown() {
-            shuttingDown = true
-        }
-
-        override fun run() {
-            while (!shuttingDown) {
-                try {
-                    checkInterrupt()
-
-                    // ... lets take a short breather ...
-                    Thread.currentThread()
-                    Thread.sleep(pollingTime.toLong())
-                } catch (ex: Exception) {
-                    ex.printStackTrace()
-                }
-
-            }
-        }
-
     }
 
 }

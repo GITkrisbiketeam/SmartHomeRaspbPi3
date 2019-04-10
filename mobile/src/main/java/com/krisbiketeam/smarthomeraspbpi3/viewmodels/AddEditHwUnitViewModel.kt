@@ -50,6 +50,8 @@ class AddEditHwUnitViewModel(
 
     val location = if(hwUnitLiveData == null) MutableLiveData() else Transformations.map(hwUnitLiveData) { hwUnit -> hwUnit.location } as MutableLiveData<String>
 
+    val refreshRate = if(hwUnitLiveData == null) MutableLiveData() else Transformations.map(hwUnitLiveData) { hwUnit -> hwUnit.refreshRate } as MutableLiveData<Long?>
+
     // This will be only valid for Gpio type HwUnits BoardConfig.IO_GPIO_PIN_NAME_LIST
     val pinNamePosition = if(hwUnitLiveData == null) {
         MutableLiveData()

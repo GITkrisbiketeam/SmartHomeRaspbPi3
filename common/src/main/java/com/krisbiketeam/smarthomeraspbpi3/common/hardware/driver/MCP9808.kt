@@ -281,14 +281,8 @@ class MCP9808(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS) : Aut
                 mDevice = PeripheralManager.getInstance()?.openI2cDevice(bus, address)
                 mConfig = readSample16(MCO9808_REG_CONF) ?: 0
                 Timber.d("connect mConfig: $mConfig")
-            } catch (e: IOException) {
-                Timber.e(e,"Error connecting device")
-                try {
-                    close()
-                } catch (e: IOException) {
-                    Timber.e(e,"Error closing device")
-                    throw Exception("Error closing MCP9808", e)
-                }
+            } catch (e: Exception) {
+                close()
                 throw Exception("Error Initializing MCP9808", e)
             }
         }
@@ -298,7 +292,6 @@ class MCP9808(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS) : Aut
      * Create a new MCP9808 sensor driver connected to the given I2c device.
      *
      * @param device I2C device of the sensor.
-     * @throws IOException
      */
     @VisibleForTesting
     internal constructor(device: I2cDevice, config: Int) : this() {
@@ -308,9 +301,11 @@ class MCP9808(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS) : Aut
 
     /**
      * Close the driver and the underlying device.
+     * @throws Exception
      */
     @Throws(Exception::class)
     override fun close(){
+        Timber.d("close")
         try {
             mDevice?.close()
         } catch (e: IOException) {
@@ -325,13 +320,17 @@ class MCP9808(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS) : Aut
      * Read the current temperature.
      *
      * @return the current temperature in degrees Celsius
+     * @throws IOException
      */
+    @Throws(IOException::class)
     fun readTemperature(): Float? = calculateTemperature(readSample16(MCO9808_REG_TEMP))
 
     /**
      * Read the current temperature in SD (ShutDown) mode. Callback will be triggered after temp
      * read is completed
+     * @throws IOException
      */
+    @Throws(IOException::class)
     fun readOneShotTemperature(onResult: (Float?)-> Unit) {
         if (shutdownMode) {
             synchronized(mBuffer) {
@@ -358,19 +357,14 @@ class MCP9808(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS) : Aut
 
     /**
      * Reads 16 bits from the given address.
+     * @throws IOException
      */
-    @Throws(Exception::class)
+    @Throws(IOException::class)
     private fun readSample16(address: Int): Int? {
         synchronized(mBuffer) {
             // Reading a byte buffer instead of a short to avoid having to deal with
             // platform-specific endianness.
-            try {
-                mDevice?.readRegBuffer(address, mBuffer, 2) ?: return null
-            } catch (e: IOException) {
-                Timber.e(e,"Error reading RegBuffer")
-                throw Exception("Error reading MCP9808", e)
-            }
-            // msb[7:0] lsb[7:0]
+            mDevice?.readRegBuffer(address, mBuffer, 2) ?: return null
 
             val msb = mBuffer[0].toInt().and(0xff)
             val lsb = mBuffer[1].toInt().and(0xff)
@@ -378,7 +372,7 @@ class MCP9808(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS) : Aut
         }
     }
 
-    @Throws(Exception::class)
+    @Throws(IOException::class)
     private fun writeSample16(address: Int, data: Int) {
         synchronized(mBuffer) {
             //msb
@@ -386,12 +380,7 @@ class MCP9808(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS) : Aut
             mBuffer[1] = data.toByte()
             // Reading a byte buffer instead of a short to avoid having to deal with
             // platform-specific endianness.
-            try {
-                mDevice?.writeRegBuffer(address, mBuffer, 2)
-            } catch (e: IOException) {
-                Timber.e(e,"Error writing RegBuffer")
-                throw Exception("Error writing MCP9808", e)
-            }
+            mDevice?.writeRegBuffer(address, mBuffer, 2)
         }
     }
 

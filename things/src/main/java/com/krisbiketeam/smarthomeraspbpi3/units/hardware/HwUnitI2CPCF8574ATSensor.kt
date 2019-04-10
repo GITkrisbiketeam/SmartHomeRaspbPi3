@@ -38,8 +38,7 @@ open class HwUnitI2CPCF8574ATSensor(name: String,
 
     override fun connect() {
         try {
-            device = HwUnitI2CPCF8574AT.getPcf8574AtInstance(pinName, address)
-            (device as PCF8574AT).run {
+            device = HwUnitI2CPCF8574AT.getPcf8574AtInstance(pinName, address).apply {
                 intGpio = pinInterrupt
                 setMode(ioPin, PinMode.DIGITAL_INPUT)
             }
@@ -53,14 +52,12 @@ open class HwUnitI2CPCF8574ATSensor(name: String,
     override fun close() {
         unregisterListener()
         // We do not want to close this device if it is used by another instance of this class
-        val refCount = HwUnitI2CPCF8574AT.decreaseUseCount(pinName, address)
-        if (refCount == 0) {
-            try {
-                super.close()
-            } catch (e: Exception) {
-                FirebaseHomeInformationRepository.hwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, Date().toString().plus(e.message)))
-                Timber.e(e, "Error close HwUnitI2CPCF8574ATSensor")
-            }
+        // decreaseUseCount will close HwUnitI2C when count reaches 0
+        try {
+            HwUnitI2CPCF8574AT.decreaseUseCount(pinName, address)
+        } catch (e: Exception) {
+            FirebaseHomeInformationRepository.hwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, Date().toString().plus(e.message)))
+            Timber.e(e, "Error close HwUnitI2CPCF8574ATSensor")
         }
     }
 

@@ -193,11 +193,10 @@ class TMP102(bus: String? = null, address: Int = DEFAULT_I2C_GND_ADDRESS) : Auto
                 mDevice = PeripheralManager.getInstance()?.openI2cDevice(bus, address)
                 mConfig = readSample16(TMP102_REG_CONF) ?: 0
                 Timber.d("connect mConfig: $mConfig")
-            } catch (e: IOException) {
-                Timber.e(e,"Error connecting device")
+            } catch (e: Exception) {
                 try {
                     close()
-                } catch (e: IOException) {
+                } catch (e: Exception) {
                     Timber.e(e,"Error closing device")
                 }
                 throw Exception("Error Initializing TMP102", e)
@@ -219,9 +218,11 @@ class TMP102(bus: String? = null, address: Int = DEFAULT_I2C_GND_ADDRESS) : Auto
 
     /**
      * Close the driver and the underlying device.
+     * @throws Exception
      */
     @Throws(Exception::class)
     override fun close() {
+        Timber.d("close")
         try {
             mDevice?.close()
         } catch (e: IOException){
@@ -236,12 +237,16 @@ class TMP102(bus: String? = null, address: Int = DEFAULT_I2C_GND_ADDRESS) : Auto
      * Read the current temperature.
      *
      * @return the current temperature in degrees Celsius
+     * @throws IOException
      */
+    @Throws(IOException::class)
     fun readTemperature(): Float? = calculateTemperature(readSample16(TMP102_REG_TEMP))
 
     /**
      * Read the current temperature in SD (ShutDown) mode. Callback will be triggered after temp read is completed
-      */
+     * @throws IOException
+     */
+    @Throws(IOException::class)
     fun readOneShotTemperature(onResult: (Float?)-> Unit) {
         if (shutdownMode) {
             synchronized(mBuffer) {
@@ -271,19 +276,14 @@ class TMP102(bus: String? = null, address: Int = DEFAULT_I2C_GND_ADDRESS) : Auto
 
     /**
      * Reads 16 bits from the given address.
+     * @throws IOException
      */
-    @Throws(Exception::class)
+    @Throws(IOException::class)
     private fun readSample16(address: Int): Int? {
         synchronized(mBuffer) {
             // Reading a byte buffer instead of a short to avoid having to deal with
             // platform-specific endianness.
-            try {
-                mDevice?.readRegBuffer(address, mBuffer, 2) ?: return null
-            } catch (e: IOException) {
-                Timber.e(e,"Error reading RegBuffer")
-                throw Exception("Error reading TMP102", e)
-            }
-            // msb[7:0] lsb[7:0]
+            mDevice?.readRegBuffer(address, mBuffer, 2) ?: return null
 
             val msb = mBuffer[0].toInt().and(0xff)
             val lsb = mBuffer[1].toInt().and(0xff)
@@ -291,7 +291,7 @@ class TMP102(bus: String? = null, address: Int = DEFAULT_I2C_GND_ADDRESS) : Auto
         }
     }
 
-    @Throws(Exception::class)
+    @Throws(IOException::class)
     private fun writeSample16(address: Int, data: Int) {
         synchronized(mBuffer) {
             //msb
@@ -299,12 +299,7 @@ class TMP102(bus: String? = null, address: Int = DEFAULT_I2C_GND_ADDRESS) : Auto
             mBuffer[1] = data.toByte()
             // Reading a byte buffer instead of a short to avoid having to deal with
             // platform-specific endianness.
-            try {
-                mDevice?.writeRegBuffer(address, mBuffer, 2)
-            } catch (e: IOException) {
-                Timber.e(e,"Error writing RegBuffer")
-                throw Exception("Error writing TMP102", e)
-            }
+            mDevice?.writeRegBuffer(address, mBuffer, 2)
         }
     }
 

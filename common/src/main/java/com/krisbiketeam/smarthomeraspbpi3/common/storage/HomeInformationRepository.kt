@@ -17,7 +17,7 @@ interface HomeInformationRepository {
     /**
      *  Adds given @see[HwUnitLog] to the hw Error lg @see[HW_ERROR_INFORMATION_BASE] list in DB
      */
-    fun hwUnitErrorEvent(hwUnitLog: HwUnitLog<out Any>)
+    fun hwUnitErrorEvent(hwUnitError: HwUnitLog<out Any>)
 
     fun writeNewUser(name: String, email: String)
 
@@ -101,7 +101,7 @@ interface HomeInformationRepository {
     /**
      * get instance of @see[RoomListLiveData] for listening to changes in Room entries in DB
      */
-    fun roomsLiveData(): RoomListLiveData
+    fun roomListLiveData(): RoomListLiveData
 
     /**
      * get instance of @see[RoomLiveData] for listening to changes in specific Room entry in DB
@@ -119,6 +119,11 @@ interface HomeInformationRepository {
     //fun unitTaskListLiveData(taskName: String, unitType: String, unitName:String): UnitTaskListLiveData
 
     /**
+     * get instance of @see[HwUnitErrorEventListLiveData] for listening to changes HwUnit Error Event List in DB
+     */
+    fun hwUnitErrorEventListLiveData(): HwUnitErrorEventListLiveData
+
+        /**
      * Clear all Logs entries from DB
      */
     fun clearLog()
@@ -126,7 +131,7 @@ interface HomeInformationRepository {
     /**
      * Clear all hw Error entries from DB
      */
-    fun clearHwError()
+    fun clearHwErrors()
 }
 
 object FirebaseHomeInformationRepository : HomeInformationRepository {
@@ -151,6 +156,8 @@ object FirebaseHomeInformationRepository : HomeInformationRepository {
     private val roomsLiveData = RoomListLiveData(referenceHome)
 
     private val hwUnitListLiveData = HwUnitListLiveData(referenceHome)
+
+    private val hwUnitErrorEventListLiveData = HwUnitErrorEventListLiveData(referenceHwError)
 
     init {
         // Enable offline this causes some huge delays :(
@@ -191,6 +198,7 @@ object FirebaseHomeInformationRepository : HomeInformationRepository {
         return referenceHome.child(homeUnit.type).child(homeUnit.name)
                 .setValue(homeUnit)
     }
+
     override fun <T> deleteHomeUnit(homeUnit: HomeUnit<T>): Task<Void> {
         return referenceHome.child(homeUnit.type).child(homeUnit.name).removeValue()
     }
@@ -202,6 +210,7 @@ object FirebaseHomeInformationRepository : HomeInformationRepository {
     override fun deleteHardwareUnit(hwUnit: HwUnit): Task<Void> {
         return referenceHome.child(HOME_HW_UNITS).child(hwUnit.name).removeValue()
     }
+
     override fun saveUnitTask(homeUnitType: String, homeUnitName: String, unitTask: UnitTask): Task<Void> {
         return referenceHome.child(homeUnitType).child(homeUnitName).child(HOME_UNIT_TASKS).child(unitTask.name).setValue(unitTask)
     }
@@ -210,13 +219,16 @@ object FirebaseHomeInformationRepository : HomeInformationRepository {
         return referenceHome.child(homeUnitType).child(homeUnitName).child(HOME_UNIT_TASKS).child(unitTask.name).removeValue()
     }
 
-
     override fun clearLog() {
         referenceLog.removeValue()
     }
 
-    override fun clearHwError() {
+    override fun clearHwErrors() {
         referenceHwError.removeValue()
+    }
+
+    override fun homeUnitListLiveData(unitType: String): HomeUnitListLiveData {
+        return HomeUnitListLiveData(referenceHome, unitType)
     }
 
     override fun homeUnitsLiveData(): HomeUnitsLiveData {
@@ -227,15 +239,23 @@ object FirebaseHomeInformationRepository : HomeInformationRepository {
         return HomeUnitsLiveData(referenceHome, roomName)
     }
 
-    override fun hwUnitsLiveData(): HwUnitsLiveData {
-        return hwUnitsLiveData
+    override fun homeUnitLiveData(unitType: String, unitName:String): HomeUnitLiveData {
+        return HomeUnitLiveData(referenceHome, unitType, unitName)
     }
 
     override fun hwUnitListLiveData(): HwUnitListLiveData {
         return hwUnitListLiveData
     }
 
-    override fun roomsLiveData(): RoomListLiveData {
+    override fun hwUnitsLiveData(): HwUnitsLiveData {
+        return hwUnitsLiveData
+    }
+
+    override fun hwUnitLiveData(hwUnitName: String): HwUnitLiveData {
+        return HwUnitLiveData(referenceHome, hwUnitName)
+    }
+
+    override fun roomListLiveData(): RoomListLiveData {
         return roomsLiveData
     }
 
@@ -243,20 +263,12 @@ object FirebaseHomeInformationRepository : HomeInformationRepository {
         return RoomLiveData(referenceHome, roomName)
     }
 
-    override fun homeUnitListLiveData(unitType: String): HomeUnitListLiveData {
-        return HomeUnitListLiveData(referenceHome, unitType)
-    }
-
-    override fun homeUnitLiveData(unitType: String, unitName:String): HomeUnitLiveData {
-        return HomeUnitLiveData(referenceHome, unitType, unitName)
-    }
-
-    override fun hwUnitLiveData(hwUnitName: String): HwUnitLiveData {
-        return HwUnitLiveData(referenceHome, hwUnitName)
-    }
-
     override fun unitTaskListLiveData(unitType: String, unitName:String): UnitTaskListLiveData {
         return UnitTaskListLiveData(referenceHome, unitType, unitName)
+    }
+
+    override fun hwUnitErrorEventListLiveData(): HwUnitErrorEventListLiveData {
+        return hwUnitErrorEventListLiveData
     }
 
 }

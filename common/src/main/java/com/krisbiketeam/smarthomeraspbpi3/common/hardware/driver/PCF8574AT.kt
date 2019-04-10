@@ -83,8 +83,8 @@ class PCF8574AT(bus: String? = null,
                 connectI2c(PeripheralManager.getInstance()?.openI2cDevice(bus, address))
             } catch (e: IOException) {
                 Timber.e(e,"init error connecting I2C")
-                throw (Exception("Error init PCF8574AT", e))
                 close()
+                throw (Exception("Error init PCF8574AT", e))
             }
         }
     }
@@ -94,7 +94,7 @@ class PCF8574AT(bus: String? = null,
         mDevice = device
     }
 
-    @Throws(Exception::class)
+    @Throws(IOException::class)
     private fun connectI2c(device: I2cDevice?) {
         mDevice = device
 
@@ -105,31 +105,31 @@ class PCF8574AT(bus: String? = null,
         resetToDefaults()
     }
 
-    @Throws(Exception::class)
+    @Throws(IOException::class)
     private fun connectGpio() {
         if (intGpio != null && mGpioInt == null) {
             val manager = PeripheralManager.getInstance()
             //Mirror IntA and IntB pins to single Interrupt from either A or B ports
             Timber.d("connectGpio intGpio openGpio $intGpio")
-            try {
-                // Step 1. Create GPIO connection.
-                mGpioInt = manager.openGpio(intGpio)
-                // Step 2. Configure as an input.
-                mGpioInt?.setDirection(Gpio.DIRECTION_IN)
-                // Step 3. Enable edge trigger events.
-                mGpioInt?.setEdgeTriggerType(Gpio.EDGE_FALLING)    // INT active Low
-                // Step 4. Register an event callback.
-                mGpioInt?.registerGpioCallback(mIntCallback)
-            } catch (e: Exception){
-                Timber.e("connectGpio exception: $e")
-                throw (Exception("Error connectGpio PCF8574AT", e))
-            }
+            // Step 1. Create GPIO connection.
+            mGpioInt = manager.openGpio(intGpio)
+            // Step 2. Configure as an input.
+            mGpioInt?.setDirection(Gpio.DIRECTION_IN)
+            // Step 3. Enable edge trigger events.
+            mGpioInt?.setEdgeTriggerType(Gpio.EDGE_FALLING)    // INT active Low
+            // Step 4. Register an event callback.
+            mGpioInt?.registerGpioCallback(mIntCallback)
         }
     }
 
+    @Throws(Exception::class)
     private fun disconnectGpio() {
         Timber.d("disconnect int Gpio ")
-        mGpioInt = mGpioInt?.unregisterGpioCallback(mIntCallback).run { null }
+        mGpioInt = mGpioInt?.run {
+            unregisterGpioCallback(mIntCallback)
+            close()
+            null
+        }
     }
 
     @Throws(Exception::class)
@@ -154,7 +154,7 @@ class PCF8574AT(bus: String? = null,
     }
 
     private fun stopMonitor(){
-        // shutdown and destroy monitoring thread since there are no input pins configured
+        // cancel and null monitoring Job since there are no input pins configured
         monitorJob?.cancel()
         monitorJob = null
     }
@@ -188,27 +188,21 @@ class PCF8574AT(bus: String? = null,
     }
 
 
-    @Throws(Exception::class)
-    private fun readRegister(): Int? = try {
+    @Throws(IOException::class)
+    private fun readRegister(): Int? {
         val byteArray = ByteArray(1)
         mDevice?.read(byteArray, 1)
-        byteArray[0].toInt().and(0xff)
-    } catch (e: Exception) {
-        Timber.e("error reading I2C register e:$e")
-        throw (Exception("Error readRegister PCF8574AT", e))
+        return byteArray[0].toInt().and(0xff)
     }
 
-    @Throws(Exception::class)
-    private fun writeRegister(regVal: Int) = try {
+    @Throws(IOException::class)
+    private fun writeRegister(regVal: Int) {
         val buffer = ByteArray(1)
         buffer[0] = regVal.toByte()
         mDevice?.write(buffer, 1)
-    } catch (e: Exception){
-        Timber.e("error writing I2C register e:$e")
-        throw (Exception("Error writeRegister PCF8574AT", e))
     }
 
-    @Throws(Exception::class)
+    @Throws(IOException::class)
     private fun resetToDefaults() {
         writeRegister( 0xFF)
     }
@@ -248,7 +242,7 @@ class PCF8574AT(bus: String? = null,
     }
 
     // Set Output state functions
-    @Throws(Exception::class)
+    @Throws(IOException::class)
     fun setState(pin: Pin, state: PinState) {
         // determine pin address
         val pinAddress = pin.address
@@ -269,7 +263,7 @@ class PCF8574AT(bus: String? = null,
     }
 
     // Get Input state functions
-    @Throws(Exception::class)
+    @Throws(IOException::class)
     fun getState(pin: Pin): PinState {
         currentStates = readRegister() ?: currentStates
 
@@ -299,7 +293,7 @@ class PCF8574AT(bus: String? = null,
         return pinListeners?.remove(listener) ?: false
     }
 
-    @Throws(Exception::class)
+    @Throws(IOException::class)
     private fun checkInterrupt() {
         Timber.v("checkInterrupt")
 

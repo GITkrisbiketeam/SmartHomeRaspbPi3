@@ -221,14 +221,14 @@ class UnitTaskViewModel(
         Timber.d("actionSave addingNewUnit: $addingNewUnit name.value: ${name.value}")
         if (addingNewUnit) {
             // Adding new HomeUnit
-            if (name.value?.trim().isNullOrEmpty()) {
-                return Pair(R.string.add_edit_home_unit_empty_name, null)
-            } else if (homeUnitName.value.isNullOrEmpty()) {
-                return Pair(R.string.unit_task_empty_home_unit_name, null)
-            } else if (unitTaskNameList.value?.contains(name.value?.trim()) == true) {
-                //This name is already used
-                Timber.d("This name is already used")
-                return Pair(R.string.add_edit_home_unit_name_already_used, null)
+            when {
+                name.value?.trim().isNullOrEmpty() -> return Pair(R.string.add_edit_home_unit_empty_name, null)
+                homeUnitName.value.isNullOrEmpty() -> return Pair(R.string.unit_task_empty_home_unit_name, null)
+                unitTaskNameList.value?.contains(name.value?.trim()) == true -> {
+                    //This name is already used
+                    Timber.d("This name is already used")
+                    return Pair(R.string.add_edit_home_unit_name_already_used, null)
+                }
             }
         } else {
             // Editing existing HomeUnit
@@ -281,15 +281,18 @@ class UnitTaskViewModel(
 
     private fun doSaveChanges(): Task<Void>? {
         return name.value?.let { name ->
-                    homeRepository.saveUnitTask(unitType, unitName, UnitTask(
-                            name = name,
-                            homeUnitName = homeUnitName.value,
-                            //hwUnitName = hwUnitName.value,
-                            delay = delay.value,
-                            duration = duration.value,
-                            period = period.value,
-                            startTime = startTime.value
-                    ))
-                }
+            homeUnitName.value?.let { homeUnitName ->
+                homeRepository.saveUnitTask(unitType, unitName,
+                        UnitTask(
+                                name = name,
+                                homeUnitName = homeUnitName,
+                                //hwUnitName = hwUnitName.value,
+                                delay = delay.value,
+                                duration = duration.value,
+                                period = period.value,
+                                startTime = startTime.value
+                        ))
+            }
+        }
     }
 }

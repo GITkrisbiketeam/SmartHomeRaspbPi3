@@ -13,6 +13,7 @@ object HwUnitI2CMCP23017 {
     @VisibleForTesting
     internal var mcpUseCountMap = HashMap<Int, Int>()
 
+    @Throws(Exception::class)
     fun getMcp23017Instance(bus: String, i2cAddr: Int): MCP23017 {
         return mcpMap.computeIfAbsent(getKeyHash(bus, i2cAddr)) { MCP23017(bus, i2cAddr) }
     }
@@ -21,11 +22,12 @@ object HwUnitI2CMCP23017 {
         return mcpUseCountMap.compute(getKeyHash(bus, i2cAddr)){_, v -> v?.inc() ?: 1}
     }
 
+    @Throws(Exception::class)
     fun decreaseUseCount(bus: String, i2cAddr: Int): Int? {
         return mcpUseCountMap.compute(getKeyHash(bus, i2cAddr)){k, v ->
             (v?.dec() ?: 0).also {
                 if (it ==0 ){
-                    mcpMap.remove(k)
+                    mcpMap.remove(k)?.close()
                 }
             }
         }

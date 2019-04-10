@@ -17,6 +17,11 @@ data class HwUnit(
         var connectionType: ConnectionType? = null,
         // Address for multiple units connected to one input ex I2c
         var softAddress: Int? = null,
+        // Interrupt GPIO Pin name for Alerting events
         var pinInterrupt: String? = null,
+        // Pin Name for Units supporting multiple inputs/outputs like Extenders
         var ioPin: String? = null,
-        val internalPullUp: Boolean? = null)
+        // Should Software pullup be applied to Extenders Units
+        val internalPullUp: Boolean? = null,
+        // Refresh rate for Sensor Type Units
+        val refreshRate: Long? = null)

@@ -4,13 +4,14 @@ import com.google.android.things.contrib.driver.bmx280.Bmx280
 import com.google.android.things.contrib.driver.rainbowhat.RainbowHat
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.ConnectionType
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnitLog
 import com.krisbiketeam.smarthomeraspbpi3.units.HwUnitI2C
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import timber.log.Timber
+import java.lang.Exception
 import java.util.*
 
 private const val REFRESH_RATE = 300000L // 5 min
@@ -21,6 +22,7 @@ class HwUnitI2CTempPressBMP280Sensor(name: String,
                                      location: String,
                                      pinName: String,
                                      softAddress: Int,
+                                     private val refreshRate: Long? = REFRESH_RATE,
                                      override var device: AutoCloseable? = null) : HwUnitI2C<TemperatureAndPressure>, Sensor<TemperatureAndPressure> {
 
     override val hwUnit: HwUnit = HwUnit(name, location, BoardConfig.TEMP_PRESS_SENSOR_BMP280, pinName, ConnectionType.I2C, softAddress)
@@ -40,7 +42,18 @@ class HwUnitI2CTempPressBMP280Sensor(name: String,
         Timber.d("registerListener")
         hwUnitListener = listener
         job?.cancel()
-        startJob()
+        job = GlobalScope.launch {
+            // We could also check for true as suspending delay() method is cancellable
+            while (isActive) {
+                readValue()
+                if (unitValue?.temperature != Float.MAX_VALUE) {
+                    hwUnitListener?.onUnitChanged(hwUnit, unitValue, valueUpdateTime)
+                    delay(refreshRate ?: REFRESH_RATE)
+                } else{
+                    job?.cancel()
+                }
+            }
+        }
     }
 
     override fun unregisterListener() {
@@ -49,29 +62,29 @@ class HwUnitI2CTempPressBMP280Sensor(name: String,
         hwUnitListener = null
     }
 
-    private fun startJob() {
-        job = GlobalScope.launch {
-            while (true) {
-                readValue()
-
-                hwUnitListener?.onUnitChanged(hwUnit, unitValue, valueUpdateTime)
-                Thread.sleep(REFRESH_RATE)
-            }
-        }
+    override fun close() {
+        job?.cancel()
+        super.close()
     }
 
     override fun readValue(): TemperatureAndPressure? {
-        // We do not want to block I2C buss so open device to only display some data and then immediately close it.
-        // use block automatically closes resources referenced to tmp102
-        // We do not want to block I2C buss so open device to only get some data and then immediately close it.
-        val bmx280 = RainbowHat.openSensor()
-        bmx280.use {
-            it.temperatureOversampling = Bmx280.OVERSAMPLING_1X
-            it.pressureOversampling = Bmx280.OVERSAMPLING_1X
-            it.setMode(Bmx280.MODE_NORMAL)
-            unitValue = TemperatureAndPressure(it.readTemperature(), it.readPressure())
-            valueUpdateTime = Date().toString()
-            Timber.d("temperature:$unitValue")
+        try {
+            // We do not want to block I2C buss so open device to only display some data and then immediately close it.
+            // use block automatically closes resources referenced to tmp102
+            // We do not want to block I2C buss so open device to only get some data and then immediately close it.
+            val bmx280 = RainbowHat.openSensor()
+            bmx280.use {
+                it.temperatureOversampling = Bmx280.OVERSAMPLING_1X
+                it.pressureOversampling = Bmx280.OVERSAMPLING_1X
+                it.setMode(Bmx280.MODE_NORMAL)
+                unitValue = TemperatureAndPressure(it.readTemperature(), it.readPressure())
+                valueUpdateTime = Date().toString()
+                Timber.d("temperature:$unitValue")
+            }
+        } catch (e: Exception){
+            FirebaseHomeInformationRepository.hwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, Date().toString().plus(e.message)))
+            Timber.e(e,"Error readValue HwUnitI2CTempMCP9808Sensor on: $hwUnit")
+            return TemperatureAndPressure(Float.MAX_VALUE, Float.MAX_VALUE)
         }
         return unitValue
     }

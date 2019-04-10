@@ -5,6 +5,8 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.ConnectionType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver.MCP23017
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver.MCP23017Pin.*
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnitLog
 import com.krisbiketeam.smarthomeraspbpi3.units.HwUnitI2C
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
 import timber.log.Timber
@@ -36,14 +38,18 @@ open class HwUnitI2CMCP23017Sensor(name: String,
     }
 
     override fun connect() {
-        device = HwUnitI2CMCP23017.getMcp23017Instance(pinName, address)
-        (device as MCP23017).run {
-            intGpio = pinInterrupt
-            setPullResistance(ioPin,
-                    if (internalPullUp) PinPullResistance.PULL_UP else PinPullResistance.OFF)
-            setMode(ioPin, PinMode.DIGITAL_INPUT)
+        try {
+            device = HwUnitI2CMCP23017.getMcp23017Instance(pinName, address).apply {
+                intGpio = pinInterrupt
+                setPullResistance(ioPin,
+                        if (internalPullUp) PinPullResistance.PULL_UP else PinPullResistance.OFF)
+                setMode(ioPin, PinMode.DIGITAL_INPUT)
+            }
+            HwUnitI2CMCP23017.increaseUseCount(pinName, address)
+        } catch (e: Exception) {
+            FirebaseHomeInformationRepository.hwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, Date().toString().plus(e.message)))
+            Timber.e(e, "Error connect HwUnitI2CMCP23017Sensor")
         }
-        HwUnitI2CMCP23017.increaseUseCount(pinName, address)
     }
 
     override fun close() {

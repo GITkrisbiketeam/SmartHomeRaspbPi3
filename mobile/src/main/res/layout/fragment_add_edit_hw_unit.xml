@@ -9,6 +9,8 @@
 
         <import type="android.text.TextUtils" />
 
+        <import type="java.lang.Long" />
+
         <import type="com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig" />
 
         <import type="com.krisbiketeam.smarthomeraspbpi3.common.storage.ConnectionType" />
@@ -249,6 +251,32 @@
                     android:selectedItemPosition="@={viewModel.pinInterruptItemPosition}"
                     app:layout_constraintTop_toBottomOf="@id/hw_unit_pin_interrupt_spinner_title" />
 
+                <androidx.constraintlayout.widget.Group
+                    android:id="@+id/hw_unit_sensor_refresh_rate_group"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:visibility="@{viewModel.type == BoardConfig.TEMP_SENSOR_MCP9808 || viewModel.type == BoardConfig.TEMP_SENSOR_TMP102 || viewModel.type == BoardConfig.TEMP_PRESS_SENSOR_BMP280 ? View.VISIBLE : View.GONE}"
+                    app:constraint_referenced_ids="hw_unit_sensor_refresh_rate_title, hw_unit_sensor_refresh_rate" />
+
+                <TextView
+                    android:id="@+id/hw_unit_sensor_refresh_rate_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_normal"
+                    android:text="@string/add_edit_hw_unit_refresh_rate_title"
+                    android:textColor="@color/colorPrimaryDark"
+                    app:layout_constraintTop_toBottomOf="@id/hw_unit_soft_address_spinner" />
+
+                <TextView
+                    android:id="@+id/hw_unit_sensor_refresh_rate"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:hint="Set Refresh Rate"
+                    android:text="@{Long.toString(viewModel.refreshRate)}"
+                    android:textColor="@color/design_default_color_on_secondary"
+                    app:layout_constraintTop_toBottomOf="@id/hw_unit_sensor_refresh_rate_title" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 

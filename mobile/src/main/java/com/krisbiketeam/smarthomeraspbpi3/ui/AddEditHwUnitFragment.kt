@@ -16,6 +16,10 @@ import com.krisbiketeam.smarthomeraspbpi3.viewmodels.AddEditHwUnitViewModel
 import org.koin.android.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
 import timber.log.Timber
+import android.app.TimePickerDialog
+import android.widget.TimePicker
+import kotlinx.android.synthetic.main.fragment_add_edit_hw_unit.*
+
 
 class AddEditHwUnitFragment : Fragment() {
     private val addEditHwUnitViewModel: AddEditHwUnitViewModel by viewModel {
@@ -41,12 +45,17 @@ class AddEditHwUnitFragment : Fragment() {
             Timber.d("onCreateView isEditMode: $isEditMode")
             if (isEditMode == true) {
                 addEditHwUnitViewModel.hwUnitList.observe(viewLifecycleOwner, Observer { })
+                hw_unit_sensor_refresh_rate.setOnClickListener {
+                    showTimePicker()
+                }
             } else {
                 addEditHwUnitViewModel.hwUnitList.removeObservers(viewLifecycleOwner)
+                hw_unit_sensor_refresh_rate.setOnClickListener(null)
             }
             activity?.invalidateOptionsMenu()
             // Animate Layout edit mode change
             TransitionManager.beginDelayedTransition(rootBinding.root as ViewGroup, Fade())
+
         })
         /*addEditHwUnitViewModel.location.observe(viewLifecycleOwner, Observer { tableName ->
             Timber.d("unitType changed: $tableName")
@@ -153,6 +162,15 @@ class AddEditHwUnitFragment : Fragment() {
                     .setPositiveButton(positiveButtonId) { _, _ -> positiveButtonInvoked() }
                     .setNegativeButton(R.string.cancel) { _, _ -> }
                     .show()
+        }
+    }
+
+    private fun showTimePicker() {
+        // TODO: Add proper Time Picker
+        context?.let {
+            TimePickerDialog(context, { _: TimePicker, hourOfDay: Int, minute: Int ->
+                addEditHwUnitViewModel.refreshRate.value = (minute * 1000 + hourOfDay * 60 * 1000).toLong()
+            }, 0, 0, true).show()
         }
     }
 }

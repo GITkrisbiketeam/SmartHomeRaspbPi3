@@ -119,6 +119,7 @@
     <string name="add_edit_hw_unit_empty_pin_interrupt">Hardware Unit I2C GPIO Pin Interrupt cannot be empty</string>
     <string name="add_edit_hw_unit_name_already_used">This Hw Unit Name is already used, please use different one.</string>
     <string name="add_edit_hw_unit_save_with_delete">Hardware Unit Name was changed Dou you want to overwrite it?</string>
+    <string name="add_edit_hw_unit_refresh_rate_title">Refresh time rate:</string>
 
 
 </resources>

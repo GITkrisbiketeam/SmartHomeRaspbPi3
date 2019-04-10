@@ -27,7 +27,7 @@ class RoomListViewModel(homeRepository: HomeInformationRepository) : ViewModel()
         growZoneNumber.value = NO_GROW_ZONE
 
         val livePlantList = Transformations.switchMap(growZoneNumber) {
-            homeRepository.roomsLiveData()
+            homeRepository.roomListLiveData()
         }
         roomList.addSource(livePlantList) {
             roomList.setValue(it) }

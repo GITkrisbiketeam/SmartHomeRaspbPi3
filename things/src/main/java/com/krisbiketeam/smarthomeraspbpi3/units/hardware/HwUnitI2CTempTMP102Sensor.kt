@@ -19,6 +19,7 @@ class HwUnitI2CTempTMP102Sensor(name: String,
                                 location: String,
                                 private val pinName: String,
                                 private val softAddress: Int,
+                                private val refreshRate: Long? = REFRESH_RATE,
                                 override var device: AutoCloseable? = null) : HwUnitI2C<Float>, Sensor<Float> {
 
     override val hwUnit: HwUnit = HwUnit(name, location, BoardConfig.TEMP_SENSOR_TMP102, pinName, ConnectionType.I2C, softAddress)
@@ -44,7 +45,7 @@ class HwUnitI2CTempTMP102Sensor(name: String,
                 // Cancel will not stop non suspending oneShotReadValue function
                 oneShotReadValue()
                 if (unitValue != Float.MAX_VALUE) {
-                    delay(REFRESH_RATE)
+                    delay(refreshRate ?: REFRESH_RATE)
                 } else{
                     job?.cancel()
                 }
@@ -59,15 +60,16 @@ class HwUnitI2CTempTMP102Sensor(name: String,
     }
 
     override fun close() {
+        Timber.d("close")
         job?.cancel()
         super.close()
     }
 
     private fun oneShotReadValue() {
         try {
-            val tmp102 = TMP102(pinName, softAddress)
             // We do not want to block I2C buss so open device to only display some data and then immediately close it.
             // use block automatically closes resources referenced to tmp102
+            val tmp102 = TMP102(pinName, softAddress)
             tmp102.shutdownMode = true
             tmp102.use {
                 it.readOneShotTemperature {value ->

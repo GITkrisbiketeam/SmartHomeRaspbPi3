@@ -150,7 +150,7 @@ class HomeUnitDetailViewModel(
                 Transformations.switchMap(isEditMode) { edit ->
                     Timber.d("init roomNameList isEditMode edit: $edit")
                     if (edit)
-                        Transformations.map(homeRepository.roomsLiveData()) { list -> list.map(Room::name) }
+                        Transformations.map(homeRepository.roomListLiveData()) { list -> list.map(Room::name) }
                     else MutableLiveData()
                 }
 
