@@ -2,15 +2,15 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdkVersion 27
-
+    buildToolsVersion buildToolsVersion
+    compileSdkVersion compileWithSDK
     defaultConfig {
-        minSdkVersion 17
-        targetSdkVersion 27
+        minSdkVersion minSdkVersionApp
+        targetSdkVersion targetedSDK
         versionCode 1
         versionName "1.0"
 
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
     }
 
@@ -25,24 +25,40 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+
+    dataBinding {
+        enabled = true
+    }
 }
 
 dependencies {
     compileOnly "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
     compileOnly "com.jakewharton.timber:timber:$timberVersion"
-    compileOnly "android.arch.lifecycle:extensions:$androidArchComponentsVersion"
+    compileOnly 'androidx.lifecycle:lifecycle-extensions:2.1.0-alpha01'
 
-    implementation "com.android.support:support-v4:$supportLibraryVersion"
-    implementation "com.android.support:appcompat-v7:$supportLibraryVersion"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinxCoroutinesAndroid"
+
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+    implementation 'androidx.appcompat:appcompat:1.1.0-alpha01'
 
     implementation "com.google.firebase:firebase-core:$firebaseCoreVersion"
     implementation "com.google.firebase:firebase-database:$firebaseDatabaseVersion"
     implementation "com.google.firebase:firebase-auth:$firebaseAuthVersion"
 
     implementation "com.google.android.gms:play-services-base:$playServicesVersion"
-    implementation "com.google.android.gms:play-services-nearby:$playServicesVersion"
+    implementation "com.google.android.gms:play-services-nearby:$playServicesNearbyVersion"
 
     implementation "com.squareup.moshi:moshi:$moshiVersion"
 
+    implementation "com.google.android.things.contrib:driver-bmx280:$bmx280Version"
+    compileOnly "com.google.android.things:androidthings:$thingsVersion"
+
     testImplementation "junit:junit:$junitVersion"
+    testImplementation 'com.google.android.things:androidthings:1.0'
+    testImplementation 'org.powermock:powermock-module-junit4:1.6.6'
+    testImplementation 'org.powermock:powermock-classloading-base:1.6.6'
+    testImplementation 'org.powermock:powermock-classloading-xstream:1.6.6'
+    testImplementation 'org.powermock:powermock-api-mockito:1.6.6'
+
+    androidTestImplementation 'androidx.test:runner:1.1.1'
 }

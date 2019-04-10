@@ -1,0 +1,287 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <import type="android.view.View" />
+
+        <import type="android.text.TextUtils" />
+
+        <import type="java.lang.Long" />
+
+        <import type="com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig" />
+
+        <import type="com.krisbiketeam.smarthomeraspbpi3.common.storage.ConnectionType" />
+
+        <variable
+            name="viewModel"
+            type="com.krisbiketeam.smarthomeraspbpi3.viewmodels.AddEditHwUnitViewModel" />
+    </data>
+
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fitsSystemWindows="true"
+        tools:context="com.krisbiketeam.smarthomeraspbpi3.ui.AddEditHwUnitFragment"
+        tools:ignore="MergeRootFrame">
+
+        <com.google.android.material.appbar.AppBarLayout
+            android:id="@+id/appbar"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/app_bar_height"
+            android:fitsSystemWindows="true"
+            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+
+            <com.google.android.material.appbar.CollapsingToolbarLayout
+                android:id="@+id/toolbar_layout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:fitsSystemWindows="true"
+                app:contentScrim="?attr/colorPrimary"
+                app:layout_scrollFlags="scroll|exitUntilCollapsed"
+                app:title="@{viewModel.name}"
+                app:toolbarId="@+id/toolbar">
+
+                <ImageView
+                    android:id="@+id/detail_image"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:contentDescription="@string/room_detail_image_content_description"
+                    android:fitsSystemWindows="true"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/ic_launcher_foreground"
+                    app:layout_collapseMode="parallax" />
+                <!--app:imageFromUrl="@{viewModel.roomName.imageUrl}"-->
+
+                <androidx.appcompat.widget.Toolbar
+                    android:id="@+id/detail_toolbar"
+                    android:layout_width="match_parent"
+                    android:layout_height="?attr/actionBarSize"
+                    app:layout_collapseMode="pin"
+                    app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+
+            </com.google.android.material.appbar.CollapsingToolbarLayout>
+
+        </com.google.android.material.appbar.AppBarLayout>
+
+        <androidx.core.widget.NestedScrollView
+            android:id="@+id/room_detail_scrollview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingLeft="@dimen/activity_horizontal_margin"
+                android:paddingTop="@dimen/activity_vertical_margin"
+                android:paddingRight="@dimen/activity_horizontal_margin"
+                android:paddingBottom="@dimen/activity_vertical_margin">
+
+                <TextView
+                    android:id="@+id/hw_unit_type_spinner_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/add_edit_hw_unit_type_spinner_title"
+                    android:textColor="@color/colorPrimaryDark"
+                    app:layout_constraintTop_toTopOf="parent" />
+                <androidx.appcompat.widget.AppCompatSpinner
+                    android:id="@+id/hw_unit_type_spinner"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_small"
+                    android:prompt="@string/add_edit_hw_unit_type_spinner_prompt"
+                    android:spinnerMode="dialog"
+                    app:entries="@{viewModel.typeList}"
+                    android:selectedItemPosition="@={viewModel.typeItemPosition}"
+                    app:layout_constraintTop_toBottomOf="@id/hw_unit_type_spinner_title" />
+
+                <androidx.constraintlayout.widget.Group
+                    android:id="@+id/hw_unit_name_location_pin_name_group"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:visibility="@{TextUtils.isEmpty(viewModel.type) ? View.GONE : View.VISIBLE}"
+                    app:constraint_referenced_ids="hw_unit_name_title, hw_unit_name, hw_unit_location_title, hw_unit_location, hw_unit_pin_name_spinner_title, hw_unit_pin_name_spinner" />
+
+                <TextView
+                    android:id="@+id/hw_unit_name_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_normal"
+                    android:text="@string/add_edit_hw_unit_name_title"
+                    android:textColor="@color/colorPrimaryDark"
+                    app:layout_constraintTop_toBottomOf="@+id/hw_unit_type_spinner" />
+                <EditText
+                    style="@style/EditTextStyle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/hw_unit_name"
+                    android:hint="@string/add_edit_hw_unit_name_hint"
+                    android:text="@={viewModel.name}"
+                    app:layout_constraintTop_toBottomOf="@id/hw_unit_name_title"
+                    tools:ignore="Autofill,TextFields" />
+
+                <TextView
+                    android:id="@+id/hw_unit_location_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_normal"
+                    android:text="@string/add_edit_hw_unit_location_title"
+                    android:textColor="@color/colorPrimaryDark"
+                    app:layout_constraintTop_toBottomOf="@+id/hw_unit_name" />
+                <EditText
+                    style="@style/EditTextStyle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/hw_unit_location"
+                    android:hint="@string/add_edit_hw_unit_location_hint"
+                    android:text="@={viewModel.location}"
+                    app:layout_constraintTop_toBottomOf="@id/hw_unit_location_title"
+                    tools:ignore="Autofill,TextFields" />
+
+                <TextView
+                    android:id="@+id/hw_unit_pin_name_spinner_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_normal"
+                    android:text="@string/add_edit_hw_unit_pin_name_title"
+                    android:textColor="@color/colorPrimaryDark"
+                    app:layout_constraintTop_toBottomOf="@id/hw_unit_location" />
+                <androidx.appcompat.widget.AppCompatSpinner
+                    android:id="@+id/hw_unit_pin_name_spinner"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_small"
+                    android:prompt="@string/add_edit_hw_unit_pin_name_spinner_prompt"
+                    android:spinnerMode="dialog"
+                    app:entries="@{viewModel.pinNameList}"
+                    android:selectedItemPosition="@={viewModel.pinNamePosition}"
+                    app:layout_constraintTop_toBottomOf="@id/hw_unit_pin_name_spinner_title" />
+
+                <androidx.constraintlayout.widget.Group
+                    android:id="@+id/hw_unit_soft_address_group"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:visibility="@{viewModel.connectionType == ConnectionType.I2C ? View.VISIBLE : View.GONE}"
+                    app:constraint_referenced_ids="hw_unit_soft_address_spinner_title, hw_unit_soft_address_spinner" />
+                <TextView
+                    android:id="@+id/hw_unit_soft_address_spinner_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_normal"
+                    android:text="@string/add_edit_hw_unit_soft_address_title"
+                    android:textColor="@color/colorPrimaryDark"
+                    app:layout_constraintTop_toBottomOf="@id/hw_unit_pin_name_spinner" />
+                <androidx.appcompat.widget.AppCompatSpinner
+                    android:id="@+id/hw_unit_soft_address_spinner"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_small"
+                    android:prompt="@string/add_edit_hw_unit_soft_address_title_spinner_prompt"
+                    android:spinnerMode="dialog"
+                    app:entries="@{viewModel.softAddressList}"
+                    android:selectedItemPosition="@={viewModel.softAddressPosition}"
+                    app:layout_constraintTop_toBottomOf="@id/hw_unit_soft_address_spinner_title" />
+
+                <androidx.constraintlayout.widget.Group
+                    android:id="@+id/hw_unit_pin_extender_io_pin_spinner_group"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:visibility="@{viewModel.type == BoardConfig.IO_EXTENDER_MCP23017_OUTPUT || viewModel.type == BoardConfig.IO_EXTENDER_MCP23017_INPUT ? View.VISIBLE : View.GONE}"
+                    app:constraint_referenced_ids="hw_unit_pin_extender_io_pin_spinner_title, hw_unit_pin_extender_io_pin_spinner" />
+                <TextView
+                    android:id="@+id/hw_unit_pin_extender_io_pin_spinner_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_normal"
+                    android:text="@string/add_edit_hw_unit_pin_extender_io_pin_spinner_title"
+                    android:textColor="@color/colorPrimaryDark"
+                    app:layout_constraintTop_toBottomOf="@id/hw_unit_soft_address_spinner" />
+                <androidx.appcompat.widget.AppCompatSpinner
+                    android:id="@+id/hw_unit_pin_extender_io_pin_spinner"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_small"
+                    android:prompt="@string/add_edit_hw_unit_pit_interrupt_title_spinner_prompt"
+                    android:spinnerMode="dialog"
+                    app:entriesUsed="@{viewModel.ioPinList}"
+                    android:selectedItemPosition="@={viewModel.ioPinPosition}"
+                    app:layout_constraintTop_toBottomOf="@id/hw_unit_pin_extender_io_pin_spinner_title" />
+
+                <androidx.constraintlayout.widget.Group
+                    android:id="@+id/hw_unit_pin_extender_output_group"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:visibility="@{viewModel.type == BoardConfig.IO_EXTENDER_MCP23017_OUTPUT ? View.VISIBLE : View.GONE}"
+                    app:constraint_referenced_ids="hw_unit_pin_pull_up_switch" />
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/hw_unit_pin_pull_up_switch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_normal"
+                    android:text="@string/add_edit_hw_unit_pin_pull_up_title"
+                    android:textColor="@color/colorPrimaryDark"
+                    app:layout_constraintTop_toBottomOf="@id/hw_unit_pin_extender_io_pin_spinner"
+                    app:setChecked="@{viewModel.internalPullUp}" />
+
+                <androidx.constraintlayout.widget.Group
+                    android:id="@+id/hw_unit_pin_extender_input_group"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:visibility="@{viewModel.softAddress == 0 || viewModel.type != BoardConfig.IO_EXTENDER_MCP23017_INPUT ? View.GONE : View.VISIBLE}"
+                    app:constraint_referenced_ids="hw_unit_pin_interrupt_spinner_title, hw_unit_pin_interrupt_spinner" />
+                <TextView
+                    android:id="@+id/hw_unit_pin_interrupt_spinner_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_normal"
+                    android:text="@string/add_edit_hw_unit_pin_interrupt_title"
+                    android:textColor="@color/colorPrimaryDark"
+                    app:layout_constraintTop_toBottomOf="@id/hw_unit_pin_extender_io_pin_spinner" />
+                <androidx.appcompat.widget.AppCompatSpinner
+                    android:id="@+id/hw_unit_pin_interrupt_spinner"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_small"
+                    android:prompt="@string/add_edit_hw_unit_pit_interrupt_title_spinner_prompt"
+                    android:spinnerMode="dialog"
+                    app:entriesUsed="@{viewModel.pinInterruptList}"
+                    android:selectedItemPosition="@={viewModel.pinInterruptItemPosition}"
+                    app:layout_constraintTop_toBottomOf="@id/hw_unit_pin_interrupt_spinner_title" />
+
+                <androidx.constraintlayout.widget.Group
+                    android:id="@+id/hw_unit_sensor_refresh_rate_group"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:visibility="@{viewModel.type == BoardConfig.TEMP_SENSOR_MCP9808 || viewModel.type == BoardConfig.TEMP_SENSOR_TMP102 || viewModel.type == BoardConfig.TEMP_PRESS_SENSOR_BMP280 ? View.VISIBLE : View.GONE}"
+                    app:constraint_referenced_ids="hw_unit_sensor_refresh_rate_title, hw_unit_sensor_refresh_rate" />
+
+                <TextView
+                    android:id="@+id/hw_unit_sensor_refresh_rate_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_normal"
+                    android:text="@string/add_edit_hw_unit_refresh_rate_title"
+                    android:textColor="@color/colorPrimaryDark"
+                    app:layout_constraintTop_toBottomOf="@id/hw_unit_soft_address_spinner" />
+
+                <TextView
+                    android:id="@+id/hw_unit_sensor_refresh_rate"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:hint="Set Refresh Rate"
+                    android:text="@{Long.toString(viewModel.refreshRate)}"
+                    android:textColor="@color/design_default_color_on_secondary"
+                    app:layout_constraintTop_toBottomOf="@id/hw_unit_sensor_refresh_rate_title" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </androidx.core.widget.NestedScrollView>
+
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+</layout>

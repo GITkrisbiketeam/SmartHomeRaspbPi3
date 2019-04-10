@@ -6,7 +6,7 @@ import android.view.ViewConfiguration;
 import com.google.android.things.pio.Gpio;
 import com.google.android.things.pio.GpioCallback;
 import com.krisbiketeam.smarthomeraspbpi3.ViewConfigurationMock;
-import com.krisbiketeam.smarthomeraspbpi3.units.hardware.HomeUnitGpioNoiseSensor;
+import com.krisbiketeam.smarthomeraspbpi3.units.hardware.HwUnitGpioNoiseSensor;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -20,7 +20,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import static org.mockito.Matchers.any;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ViewConfiguration.class, HomeUnitGpioNoiseSensor.class, Gpio.class, Log.class})
+@PrepareForTest({ViewConfiguration.class, HwUnitGpioNoiseSensor.class, Gpio.class, Log.class})
 public class SensorGpioTest {
 
     @Mock
@@ -41,7 +41,7 @@ public class SensorGpioTest {
 
     @Test
     public void close() {
-        HomeUnitGpioNoiseSensor gpio = new HomeUnitGpioNoiseSensor(mGpio, Gpio.ACTIVE_LOW);
+        HwUnitGpioNoiseSensor gpio = new HwUnitGpioNoiseSensor(mGpio, Gpio.ACTIVE_LOW);
         gpio.close();
         Mockito.verify(mGpio).unregisterGpioCallback(any(GpioCallback.class));
         //Mockito.verify(mGpio).close();
@@ -49,7 +49,7 @@ public class SensorGpioTest {
 
     @Test
     public void close_safeToCallTwice() throws IOException {
-        HomeUnitGpioNoiseSensor gpio = new HomeUnitGpioNoiseSensor(mGpio, Gpio.ACTIVE_LOW);
+        HwUnitGpioNoiseSensor gpio = new HwUnitGpioNoiseSensor(mGpio, Gpio.ACTIVE_LOW);
         gpio.close();
         gpio.close(); // should not throw
         Mockito.verify(mGpio, times(1)).close();
@@ -57,7 +57,7 @@ public class SensorGpioTest {
 
     @Test
     public void setDebounceDelay() {
-        HomeUnitGpioNoiseSensor gpio = new HomeUnitGpioNoiseSensor(mGpio, Gpio.ACTIVE_LOW);
+        HwUnitGpioNoiseSensor gpio = new HwUnitGpioNoiseSensor(mGpio, Gpio.ACTIVE_LOW);
         final long DELAY = 1000L;
         gpio.setDebounceDelay(DELAY);
         assertEquals(DELAY, gpio.getDebounceDelay());
@@ -65,7 +65,7 @@ public class SensorGpioTest {
 
     @Test
     public void setDebounceDelay_throwsIfTooSmall() {
-        HomeUnitGpioNoiseSensor gpio = new HomeUnitGpioNoiseSensor(mGpio, Gpio.ACTIVE_LOW);
+        HwUnitGpioNoiseSensor gpio = new HwUnitGpioNoiseSensor(mGpio, Gpio.ACTIVE_LOW);
         mExpectedException.expect(IllegalArgumentException.class);
         gpio.setDebounceDelay(-1);
     }
@@ -73,16 +73,16 @@ public class SensorGpioTest {
     @Test
     public void getValue() throws IOException {
         PowerMockito.when(mGpio.getValue()).thenReturn(Boolean.TRUE);
-        HomeUnitGpioNoiseSensor gpio = new HomeUnitGpioNoiseSensor(mGpio, Gpio.ACTIVE_LOW);
+        HwUnitGpioNoiseSensor gpio = new HwUnitGpioNoiseSensor(mGpio, Gpio.ACTIVE_LOW);
         assertEquals(gpio.readValue(), Boolean.TRUE);
     }
 
     @Test
     public void setButtonEventListener() {
         PowerMockito.mockStatic(Log.class);
-        HomeUnitGpioNoiseSensor gpio = new HomeUnitGpioNoiseSensor(mGpio, Gpio.ACTIVE_LOW);
+        HwUnitGpioNoiseSensor gpio = new HwUnitGpioNoiseSensor(mGpio, Gpio.ACTIVE_LOW);
         // Add listener
-        HomeUnitLog.HomeUnitListener mockListener = Mockito.mock(HomeUnitLog.HomeUnitListener.class);
+        HwUnitLog.HwUnitListener mockListener = Mockito.mock(HwUnitLog.HwUnitListener.class);
         gpio.registerListener(mockListener);
 
         // Perform button events and check the listener is called

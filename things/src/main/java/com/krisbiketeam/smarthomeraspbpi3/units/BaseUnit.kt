@@ -1,9 +1,9 @@
 package com.krisbiketeam.smarthomeraspbpi3.units
 
-import com.krisbiketeam.data.storage.dto.HomeUnit
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
 
 interface BaseUnit<T> : AutoCloseable {
-    val homeUnit: HomeUnit
+    val hwUnit: HwUnit
     var unitValue: T?
     var valueUpdateTime: String
 

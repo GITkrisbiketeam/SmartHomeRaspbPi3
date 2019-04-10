@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/room_list_fragment"
+        android:title="@string/menu_navigation_room_list"/>
+    <item
+        android:id="@+id/hw_unit_list_fragment"
+        android:title="@string/menu_navigation_hw_unit_list"/>
+
+    <item
+        android:id="@+id/logs_fragment"
+        android:title="@string/menu_navigation_logs"/>
+
+    <item
+        android:id="@+id/settings_fragment"
+        android:title="@string/menu_navigation_settings"/>
+
+
+</menu>

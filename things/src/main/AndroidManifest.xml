@@ -16,6 +16,7 @@
     <application
         android:name=".ui.ThingsApplication"
         android:allowBackup="false"
+        android:label="@string/app_name"
         android:theme="@style/Theme.AppCompat"
         tools:ignore="GoogleAppIndexingWarning,MissingApplicationIcon">
         <uses-library android:name="com.google.android.things" />
@@ -34,8 +35,6 @@
                 <category android:name="android.intent.category.HOME"/>
             </intent-filter>
         </activity>
-        <activity android:name=".ui.setup.FirebaseCredentialsReceiverActivity" />
-        <activity android:name=".ui.setup.WiFiCredentialsReceiverActivity" />
     </application>
 
 </manifest>

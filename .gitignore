@@ -41,6 +41,7 @@ captures/
 .idea/misc.xml
 .idea/modules.xml
 .idea/gradle.xml
+.idea/navEditor.xml
 .idea/assetWizardSettings.xml
 .idea/dictionaries
 .idea/libraries
@@ -68,3 +69,12 @@ fastlane/Preview.html
 fastlane/screenshots
 fastlane/test_output
 fastlane/readme.md
+
+# Firebase
+functions/node_modules
+functions/package-lock.json
+
+# SonarLint
+.idea/sonarlint/
+sonarlint.xml
+sonarlint-state.xml
