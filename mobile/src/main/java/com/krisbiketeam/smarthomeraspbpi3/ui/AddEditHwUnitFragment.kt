@@ -1,24 +1,23 @@
 package com.krisbiketeam.smarthomeraspbpi3.ui
 
-import androidx.lifecycle.Observer
-import androidx.databinding.DataBindingUtil
+import android.app.TimePickerDialog
 import android.os.Bundle
-import com.google.android.material.snackbar.Snackbar
+import android.view.*
+import android.widget.TimePicker
+import androidx.appcompat.app.AlertDialog
+import androidx.databinding.DataBindingUtil
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
+import androidx.navigation.fragment.findNavController
 import androidx.transition.Fade
 import androidx.transition.TransitionManager
-import androidx.fragment.app.Fragment
-import androidx.appcompat.app.AlertDialog
-import android.view.*
-import androidx.navigation.fragment.findNavController
+import com.google.android.material.snackbar.Snackbar
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentAddEditHwUnitBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.AddEditHwUnitViewModel
 import org.koin.android.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
 import timber.log.Timber
-import android.app.TimePickerDialog
-import android.widget.TimePicker
-import kotlinx.android.synthetic.main.fragment_add_edit_hw_unit.*
 
 
 class AddEditHwUnitFragment : Fragment() {
@@ -39,30 +38,15 @@ class AddEditHwUnitFragment : Fragment() {
                 inflater, R.layout.fragment_add_edit_hw_unit, container, false).apply {
             viewModel = addEditHwUnitViewModel
             setLifecycleOwner(this@AddEditHwUnitFragment)
+            hwUnitSensorRefreshRate.setOnClickListener {
+                showTimePicker()
+            }
         }
         addEditHwUnitViewModel.isEditMode.observe(viewLifecycleOwner, Observer { isEditMode ->
-            // in Edit Mode we need to listen for homeUnitList, as there is no reference in xml layout to trigger its observer, but can we find some better way???
-            Timber.d("onCreateView isEditMode: $isEditMode")
-            if (isEditMode == true) {
-                addEditHwUnitViewModel.hwUnitList.observe(viewLifecycleOwner, Observer { })
-                hw_unit_sensor_refresh_rate.setOnClickListener {
-                    showTimePicker()
-                }
-            } else {
-                addEditHwUnitViewModel.hwUnitList.removeObservers(viewLifecycleOwner)
-                hw_unit_sensor_refresh_rate.setOnClickListener(null)
-            }
             activity?.invalidateOptionsMenu()
             // Animate Layout edit mode change
             TransitionManager.beginDelayedTransition(rootBinding.root as ViewGroup, Fade())
-
         })
-        /*addEditHwUnitViewModel.location.observe(viewLifecycleOwner, Observer { tableName ->
-            Timber.d("unitType changed: $tableName")
-        })
-        addEditHwUnitViewModel.homeUnitListLiveData.observe(viewLifecycleOwner, Observer { tableName ->
-            Timber.d("homeUnitListLiveData changed: $tableName")
-        })*/
 
         setHasOptionsMenu(true)
 

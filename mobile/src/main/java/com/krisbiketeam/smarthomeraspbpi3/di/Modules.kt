@@ -26,6 +26,7 @@ val myModule: Module = module {
     viewModel { NavigationViewModel(get()) }
     viewModel { (hwUnitName: String) -> AddEditHwUnitViewModel(FirebaseHomeInformationRepository, hwUnitName) }
     viewModel { HwUnitListViewModel(FirebaseHomeInformationRepository) }
+    viewModel { HwUnitErrorEventListViewModel(FirebaseHomeInformationRepository) }
 
     single { NotSecureStorage(androidApplication()) as SecureStorage }
     single { FirebaseAuthentication() as Authentication }

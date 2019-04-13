@@ -268,7 +268,7 @@ class UnitTaskViewModel(
                 if (name.value != unitTask.name) {
                     Timber.d("Name changed, will need to delete old value name=${name.value}")
                     // delete old HomeUnit
-                    this?.continueWithTask { task -> homeRepository.deleteUnitTask(unitType, unitName, unitTask) }
+                    this?.continueWithTask { homeRepository.deleteUnitTask(unitType, unitName, unitTask) }
                 }
             }
         } ?: doSaveChanges()?.addOnCompleteListener {

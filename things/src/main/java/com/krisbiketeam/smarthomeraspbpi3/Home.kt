@@ -29,7 +29,7 @@ class Home : Sensor.HwUnitListener<Any> {
 
     private val hardwareUnitList: MutableMap<String, BaseUnit<Any>> = HashMap()
 
-    private val hwUnitErrorEventList: MutableMap<String, Int> = HashMap()
+    private val hwUnitErrorEventList: MutableMap<String, Triple<String, Int, BaseUnit<Any>>> = HashMap()
 
     private var booleanApplyFunction: HomeUnit<in Boolean>.(Any?) -> Unit = { newVal: Any? ->
         Timber.d("booleanApplyFunction newVal: $newVal this: $this")
@@ -219,63 +219,28 @@ class Home : Sensor.HwUnitListener<Any> {
         pair?.let { (action, value) ->
             when (action) {
                 ChildEventType.NODE_ACTION_CHANGED -> {
-                    Timber.e("hwUnitsDataObserver NODE_ACTION_CHANGED unsupported value: $value")
-                }
-                ChildEventType.NODE_ACTION_ADDED -> {
-                    // TODO: consider this unit is already present in hardwareUnitList
-                    var unit = hardwareUnitList[value.name]
-                    Timber.d("hwUnitsDataObserver HwUnit NODE_ACTION_ADDED: $unit")
-                    unit?.let {
-                        Timber.w("HwUnit already exist recreate it")
+                    hardwareUnitList[value.name]?.let {
+                        Timber.w("NODE_ACTION_CHANGEDHwUnit already exist stop existing one")
                         hwUnitStop(it)
                     }
-                    when (value.type) {
-                        BoardConfig.TEMP_SENSOR_TMP102 -> {
-                            unit = HwUnitI2CTempTMP102Sensor(
-                                    value.name,
-                                    value.location,
-                                    value.pinName,
-                                    value.softAddress!!,
-                                    value.refreshRate) as BaseUnit<Any>
-                        }
-                        BoardConfig.TEMP_SENSOR_MCP9808 -> {
-                            unit = HwUnitI2CTempMCP9808Sensor(
-                                    value.name,
-                                    value.location,
-                                    value.pinName,
-                                    value.softAddress!!,
-                                    value.refreshRate) as BaseUnit<Any>
-                        }
-                        BoardConfig.TEMP_PRESS_SENSOR_BMP280 -> {
-                            unit = HwUnitI2CTempPressBMP280Sensor(
-                                    value.name,
-                                    value.location,
-                                    value.pinName,
-                                    value.softAddress!!,
-                                    value.refreshRate) as BaseUnit<Any>
-                        }
-                        BoardConfig.IO_EXTENDER_MCP23017_INPUT -> {
-                            unit = HwUnitI2CMCP23017Sensor(
-                                    value.name,
-                                    value.location,
-                                    value.pinName,
-                                    value.softAddress!!,
-                                    value.pinInterrupt!!,
-                                    MCP23017Pin.Pin.valueOf(value.ioPin!!),
-                                    value.internalPullUp!!) as BaseUnit<Any>
-                        }
-                        BoardConfig.IO_EXTENDER_MCP23017_OUTPUT -> {
-                            unit = HwUnitI2CMCP23017Actuator(
-                                    value.name,
-                                    value.location,
-                                    value.pinName,
-                                    value.softAddress!!,
-                                    value.pinInterrupt!!,
-                                    MCP23017Pin.Pin.valueOf(value.ioPin!!)) as BaseUnit<Any>
-                        }
+                    if (hwUnitErrorEventList.contains(value.name)) {
+                        Timber.w("hwUnitsDataObserver NODE_ACTION_CHANGED remove from ErrorEventList value: ${value.name}")
+                        hwUnitErrorEventList.remove(value.name)
+                        FirebaseHomeInformationRepository.clearHwErrorEvent(value.name)
                     }
-                    unit?.let {
+                    createHwUnit(value)?.let {
                         Timber.w("HwUnit recreated connect and eventually listen to it")
+                        hwUnitStart(it)
+                    }
+                }
+                ChildEventType.NODE_ACTION_ADDED -> {
+                    // consider this unit is already present in hardwareUnitList
+                    hardwareUnitList[value.name]?.let {
+                        Timber.w("NODE_ACTION_ADDED HwUnit already exist stop old one:")
+                        hwUnitStop(it)
+                    }
+                    createHwUnit(value)?.let {
+                        Timber.w("NODE_ACTION_ADDED HwUnit recreated connect and eventually listen to it")
                         hwUnitStart(it)
                     }
                 }
@@ -294,19 +259,95 @@ class Home : Sensor.HwUnitListener<Any> {
         }
     }
 
+    private fun createHwUnit(hwUnit: HwUnit): BaseUnit<Any>? {
+        return when (hwUnit.type) {
+            BoardConfig.TEMP_SENSOR_TMP102 -> {
+                HwUnitI2CTempTMP102Sensor(
+                        hwUnit.name,
+                        hwUnit.location,
+                        hwUnit.pinName,
+                        hwUnit.softAddress ?: 0,
+                        hwUnit.refreshRate) as BaseUnit<Any>
+            }
+            BoardConfig.TEMP_SENSOR_MCP9808 -> {
+                HwUnitI2CTempMCP9808Sensor(
+                        hwUnit.name,
+                        hwUnit.location,
+                        hwUnit.pinName,
+                        hwUnit.softAddress ?: 0,
+                        hwUnit.refreshRate) as BaseUnit<Any>
+            }
+            BoardConfig.TEMP_PRESS_SENSOR_BMP280 -> {
+                HwUnitI2CTempPressBMP280Sensor(
+                        hwUnit.name,
+                        hwUnit.location,
+                        hwUnit.pinName,
+                        hwUnit.softAddress ?: 0,
+                        hwUnit.refreshRate) as BaseUnit<Any>
+            }
+            BoardConfig.IO_EXTENDER_MCP23017_INPUT -> {
+                MCP23017Pin.Pin.values().find {
+                    it.name == hwUnit.ioPin
+                }?.let { ioPin ->
+                    HwUnitI2CMCP23017Sensor(
+                            hwUnit.name,
+                            hwUnit.location,
+                            hwUnit.pinName,
+                            hwUnit.softAddress ?: 0,
+                            hwUnit.pinInterrupt ?: "",
+                            ioPin,
+                            hwUnit.internalPullUp ?: false) as BaseUnit<Any>
+                }
+            }
+            BoardConfig.IO_EXTENDER_MCP23017_OUTPUT -> {
+                MCP23017Pin.Pin.values().find {
+                    it.name == hwUnit.ioPin
+                }?.let { ioPin ->
+                    HwUnitI2CMCP23017Actuator(
+                            hwUnit.name,
+                            hwUnit.location,
+                            hwUnit.pinName,
+                            hwUnit.softAddress ?: 0,
+                            hwUnit.pinInterrupt ?: "",
+                            ioPin) as BaseUnit<Any>
+                }
+            }
+            else -> null
+        }
+    }
+
     private val hwUnitErrorEventListDataObserver = Observer<List<HwUnitLog<Any>>> { errorEventList ->
         Timber.d("hwUnitErrorEventListDataObserver errorEventList: $errorEventList; errorEventList.size: ${errorEventList.size}")
-        errorEventList.forEach { hwUnitErrorEvent ->
-            hwUnitErrorEventList.compute(hwUnitErrorEvent.name) { key, value ->
-                val count = value?.inc() ?: 0
-                if(count > 3){
-                    val result = hardwareUnitList.remove(key)
-                    result?.let {
-                        hwUnitStop(result)
+        if (errorEventList.isNotEmpty()) {
+            errorEventList.forEach { hwUnitErrorEvent ->
+                hwUnitErrorEventList.compute(hwUnitErrorEvent.name) { key, value ->
+                    value?.run {
+                        if (hwUnitErrorEvent.localtime != first){
+                            val count = second.inc()
+                            if (count > 3) {
+                                val result = hardwareUnitList.remove(key)
+                                result?.let {
+                                    hwUnitStop(result)
+                                }
+                                Timber.w("hwUnitErrorEventListDataObserver to many errors ($count) from hwUnit: $key, remove it from hardwareUnitList result: ${result != null}")
+                            }
+                            Triple(hwUnitErrorEvent.localtime, count, third)
+                        } else {
+                            value
+                        }
+                    } ?: hardwareUnitList[hwUnitErrorEvent.name]?.let { hwUnit ->
+                        Triple(hwUnitErrorEvent.localtime, 0, hwUnit)
                     }
-                    Timber.w("hwUnitErrorEventListDataObserver to many errors ($count) from hwUnit: $key, remove it from hardwareUnitList result: ${result != null}")
                 }
-                count
+            }
+        } else {
+            val hwUnitRestoreList: MutableList<BaseUnit<Any>> = mutableListOf()
+            hwUnitErrorEventList.values.forEach { (_, _, hwUnit) ->
+                hwUnitRestoreList.add(hwUnit)
+            }
+            hwUnitErrorEventList.clear()
+            hwUnitRestoreList.forEach { hwUnit ->
+                hwUnitStart(hwUnit)
             }
         }
     }

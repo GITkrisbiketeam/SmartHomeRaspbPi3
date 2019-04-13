@@ -5,9 +5,22 @@
         android:key="@string/settings_wifi_fragment_key"
         android:persistent="false"
         android:title="Setup remote device WiFI" />
+
     <Preference
         android:fragment="com.krisbiketeam.smarthomeraspbpi3.ui.LoginSettingsFragment"
         android:key="@string/settings_login_fragment_key"
         android:persistent="false"
         android:title="Login to Firebase" />
+
+    <Preference
+        android:fragment="com.krisbiketeam.smarthomeraspbpi3.ui.HwUnitListFragment"
+        android:key="@string/settings_hw_unit_list_fragment_key"
+        android:persistent="false"
+        android:title="@string/hw_unit_list_title" />
+
+    <Preference
+        android:fragment="com.krisbiketeam.smarthomeraspbpi3.ui.HwUnitErrorEventListFragment"
+        android:key="@string/settings_hw_unit_error_event_list_fragment_key"
+        android:persistent="false"
+        android:title="@string/hw_unit_error_event_list_title" />
 </PreferenceScreen>

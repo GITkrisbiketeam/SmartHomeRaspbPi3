@@ -28,7 +28,7 @@ class HwUnitGpioActuator(name: String,
             try {
                 gpio?.value = value
             } catch (e: IOException) {
-                FirebaseHomeInformationRepository.hwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, Date().toString().plus(e.message)))
+                FirebaseHomeInformationRepository.addHwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, e.message, Date().toString()))
                 Timber.e(e,"Error updating GPIO value on $hwUnit")
             }
         } else {
@@ -46,7 +46,7 @@ class HwUnitGpioActuator(name: String,
                 setDirection(Gpio.DIRECTION_OUT_INITIALLY_LOW)
                 setActiveType(activeType)
             } catch (e: IOException) {
-                FirebaseHomeInformationRepository.hwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, Date().toString().plus(e.message)))
+                FirebaseHomeInformationRepository.addHwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, e.message, Date().toString()))
                 Timber.e(e,"Error initializing PeripheralIO API on: $hwUnit")
             }
         }

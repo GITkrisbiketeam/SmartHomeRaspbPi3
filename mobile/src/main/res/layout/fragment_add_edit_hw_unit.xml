@@ -92,6 +92,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/margin_small"
+                    android:clickable="@{viewModel.isEditMode}"
                     android:prompt="@string/add_edit_hw_unit_type_spinner_prompt"
                     android:spinnerMode="dialog"
                     app:entries="@{viewModel.typeList}"
@@ -114,10 +115,12 @@
                     android:textColor="@color/colorPrimaryDark"
                     app:layout_constraintTop_toBottomOf="@+id/hw_unit_type_spinner" />
                 <EditText
+                    android:id="@+id/hw_unit_name"
                     style="@style/EditTextStyle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:id="@+id/hw_unit_name"
+                    android:clickable="@{viewModel.isEditMode}"
+                    android:focusable="@{viewModel.isEditMode}"
                     android:hint="@string/add_edit_hw_unit_name_hint"
                     android:text="@={viewModel.name}"
                     app:layout_constraintTop_toBottomOf="@id/hw_unit_name_title"
@@ -132,10 +135,12 @@
                     android:textColor="@color/colorPrimaryDark"
                     app:layout_constraintTop_toBottomOf="@+id/hw_unit_name" />
                 <EditText
+                    android:id="@+id/hw_unit_location"
                     style="@style/EditTextStyle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:id="@+id/hw_unit_location"
+                    android:clickable="@{viewModel.isEditMode}"
+                    android:focusable="@{viewModel.isEditMode}"
                     android:hint="@string/add_edit_hw_unit_location_hint"
                     android:text="@={viewModel.location}"
                     app:layout_constraintTop_toBottomOf="@id/hw_unit_location_title"
@@ -154,6 +159,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/margin_small"
+                    android:clickable="@{viewModel.isEditMode}"
                     android:prompt="@string/add_edit_hw_unit_pin_name_spinner_prompt"
                     android:spinnerMode="dialog"
                     app:entries="@{viewModel.pinNameList}"
@@ -179,6 +185,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/margin_small"
+                    android:clickable="@{viewModel.isEditMode}"
                     android:prompt="@string/add_edit_hw_unit_soft_address_title_spinner_prompt"
                     android:spinnerMode="dialog"
                     app:entries="@{viewModel.softAddressList}"
@@ -204,6 +211,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/margin_small"
+                    android:clickable="@{viewModel.isEditMode}"
                     android:prompt="@string/add_edit_hw_unit_pit_interrupt_title_spinner_prompt"
                     android:spinnerMode="dialog"
                     app:entriesUsed="@{viewModel.ioPinList}"
@@ -216,11 +224,13 @@
                     android:layout_height="0dp"
                     android:visibility="@{viewModel.type == BoardConfig.IO_EXTENDER_MCP23017_OUTPUT ? View.VISIBLE : View.GONE}"
                     app:constraint_referenced_ids="hw_unit_pin_pull_up_switch" />
+
                 <androidx.appcompat.widget.SwitchCompat
                     android:id="@+id/hw_unit_pin_pull_up_switch"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/margin_normal"
+                    android:clickable="@{viewModel.isEditMode}"
                     android:text="@string/add_edit_hw_unit_pin_pull_up_title"
                     android:textColor="@color/colorPrimaryDark"
                     app:layout_constraintTop_toBottomOf="@id/hw_unit_pin_extender_io_pin_spinner"
@@ -240,11 +250,13 @@
                     android:text="@string/add_edit_hw_unit_pin_interrupt_title"
                     android:textColor="@color/colorPrimaryDark"
                     app:layout_constraintTop_toBottomOf="@id/hw_unit_pin_extender_io_pin_spinner" />
+
                 <androidx.appcompat.widget.AppCompatSpinner
                     android:id="@+id/hw_unit_pin_interrupt_spinner"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/margin_small"
+                    android:clickable="@{viewModel.isEditMode}"
                     android:prompt="@string/add_edit_hw_unit_pit_interrupt_title_spinner_prompt"
                     android:spinnerMode="dialog"
                     app:entriesUsed="@{viewModel.pinInterruptList}"
@@ -271,9 +283,9 @@
                     android:id="@+id/hw_unit_sensor_refresh_rate"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:clickable="true"
+                    android:clickable="@{viewModel.isEditMode}"
                     android:focusable="true"
-                    android:hint="Set Refresh Rate"
+                    android:hint="@string/add_edit_hw_unit_refresh_rate"
                     android:text="@{Long.toString(viewModel.refreshRate)}"
                     android:textColor="@color/design_default_color_on_secondary"
                     app:layout_constraintTop_toBottomOf="@id/hw_unit_sensor_refresh_rate_title" />

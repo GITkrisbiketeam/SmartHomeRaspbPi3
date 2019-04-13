@@ -44,7 +44,7 @@ open class HwUnitI2CPCF8574ATSensor(name: String,
             }
             HwUnitI2CPCF8574AT.increaseUseCount(pinName, address)
         } catch (e: Exception) {
-            FirebaseHomeInformationRepository.hwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, Date().toString().plus(e.message)))
+            FirebaseHomeInformationRepository.addHwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, e.message, Date().toString()))
             Timber.e(e, "Error connect HwUnitI2CPCF8574ATSensor")
         }
     }
@@ -56,7 +56,7 @@ open class HwUnitI2CPCF8574ATSensor(name: String,
         try {
             HwUnitI2CPCF8574AT.decreaseUseCount(pinName, address)
         } catch (e: Exception) {
-            FirebaseHomeInformationRepository.hwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, Date().toString().plus(e.message)))
+            FirebaseHomeInformationRepository.addHwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, e.message, Date().toString()))
             Timber.e(e, "Error close HwUnitI2CPCF8574ATSensor")
         }
     }
@@ -84,7 +84,7 @@ open class HwUnitI2CPCF8574ATSensor(name: String,
             try {
                 getState(ioPin) == PinState.HIGH
             } catch (e: Exception) {
-                FirebaseHomeInformationRepository.hwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, Date().toString().plus(e.message)))
+                FirebaseHomeInformationRepository.addHwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, e.message, Date().toString()))
                 Timber.e(e, "Error readValue HwUnitI2CPCF8574ATSensor")
                 null
             }

@@ -6,16 +6,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.navigation.findNavController
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
-import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentHwUnitListItemBinding
-import com.krisbiketeam.smarthomeraspbpi3.ui.HwUnitListFragmentDirections
-import com.krisbiketeam.smarthomeraspbpi3.ui.HwUnitListFragment
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnitLog
+import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentHwUnitErrorEventListItemBinding
+import com.krisbiketeam.smarthomeraspbpi3.ui.HwUnitErrorEventListFragmentDirections
+import com.krisbiketeam.smarthomeraspbpi3.ui.HwUnitErrorEventListFragment
 import timber.log.Timber
 
 /**
- * Adapter for the [RecyclerView] in [HwUnitListFragment].
+ * Adapter for the [RecyclerView] in [HwUnitErrorEventListFragment].
  */
-class HwUnitListAdapter : ListAdapter<HwUnit, HwUnitListAdapter.ViewHolder>(HwUnitListAdapterDiffCallback()) {
+class HwUnitErrorEventListAdapter : ListAdapter<HwUnitLog<Any>, HwUnitErrorEventListAdapter.ViewHolder>(HwUnitErrorEventListAdapterDiffCallback()) {
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val hwUnit = getItem(position)
         holder.apply {
@@ -25,24 +25,22 @@ class HwUnitListAdapter : ListAdapter<HwUnit, HwUnitListAdapter.ViewHolder>(HwUn
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        return ViewHolder(FragmentHwUnitListItemBinding.inflate(
+        return ViewHolder(FragmentHwUnitErrorEventListItemBinding.inflate(
                 LayoutInflater.from(parent.context), parent, false))
     }
 
     private fun createOnClickListener(hwUnitName: String): View.OnClickListener {
         return View.OnClickListener {view ->
             Timber.d("onClick")
-            view.findNavController().navigate(
-                    HwUnitListFragmentDirections.actionHwUnitListFragmentToAddEditHwUnitFragment(
-                            hwUnitName))
+            view.findNavController().navigate(HwUnitErrorEventListFragmentDirections.actionHwUnitErrorEventListFragmentToAddEditHwUnitFragment(hwUnitName))
         }
     }
 
     class ViewHolder(
-            private val binding: FragmentHwUnitListItemBinding
+            private val binding: FragmentHwUnitErrorEventListItemBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(listener: View.OnClickListener, item: HwUnit) {
+        fun bind(listener: View.OnClickListener, item: HwUnitLog<Any>) {
             binding.apply {
                 clickListener = listener
                 hwUnit = item

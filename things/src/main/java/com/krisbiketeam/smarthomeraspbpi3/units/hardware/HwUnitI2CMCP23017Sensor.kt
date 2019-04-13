@@ -47,7 +47,7 @@ open class HwUnitI2CMCP23017Sensor(name: String,
             }
             HwUnitI2CMCP23017.increaseUseCount(pinName, address)
         } catch (e: Exception) {
-            FirebaseHomeInformationRepository.hwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, Date().toString().plus(e.message)))
+            FirebaseHomeInformationRepository.addHwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, e.message, Date().toString()))
             Timber.e(e, "Error connect HwUnitI2CMCP23017Sensor")
         }
     }

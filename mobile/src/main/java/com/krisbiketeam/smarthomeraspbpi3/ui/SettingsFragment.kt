@@ -32,6 +32,18 @@ class SettingsFragment : PreferenceFragmentCompat() {
                     Navigation.findNavController(it, R.id.home_nav_fragment).navigate(direction)
                     return true
                 }
+                getString(R.string.settings_hw_unit_list_fragment_key) -> {
+                    Timber.d("onPreferenceTreeClick go to HwUnitList")
+                    val direction = SettingsFragmentDirections.actionSettingsFragmentToHwUnitListFragment()
+                    Navigation.findNavController(it, R.id.home_nav_fragment).navigate(direction)
+                    return true
+                }
+                getString(R.string.settings_hw_unit_error_event_list_fragment_key) -> {
+                    Timber.d("onPreferenceTreeClick go to HwUnitErrorEventList")
+                    val direction = SettingsFragmentDirections.actionSettingsFragmentToHwUnitErrorEventListFragment()
+                    Navigation.findNavController(it, R.id.home_nav_fragment).navigate(direction)
+                    return true
+                }
                 else -> {
                     return super.onPreferenceTreeClick(preference)
                 }

@@ -22,7 +22,7 @@ class HwUnitI2CTempMCP9808Sensor(name: String,
                                  private val refreshRate: Long? = REFRESH_RATE,
                                  override var device: AutoCloseable? = null) : HwUnitI2C<Float>, Sensor<Float> {
 
-    override val hwUnit: HwUnit = HwUnit(name, location, BoardConfig.TEMP_SENSOR_MCP9808, pinName, ConnectionType.I2C, softAddress)
+    override val hwUnit: HwUnit = HwUnit(name, location, BoardConfig.TEMP_SENSOR_MCP9808, pinName, ConnectionType.I2C, softAddress, refreshRate = refreshRate)
     override var unitValue: Float? = null
     override var valueUpdateTime: String = ""
 
@@ -44,11 +44,7 @@ class HwUnitI2CTempMCP9808Sensor(name: String,
             while (isActive) {
                 // Cancel will not stop non suspending oneShotReadValue function
                 oneShotReadValue()
-                if (unitValue != Float.MAX_VALUE) {
-                    delay(refreshRate ?: REFRESH_RATE)
-                } else{
-                    job?.cancel()
-                }
+                delay(refreshRate ?: REFRESH_RATE)
             }
         }
     }
@@ -80,7 +76,7 @@ class HwUnitI2CTempMCP9808Sensor(name: String,
                 }
             }
         } catch (e: Exception){
-            FirebaseHomeInformationRepository.hwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, Date().toString().plus(e.message)))
+            FirebaseHomeInformationRepository.addHwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, e.message, Date().toString()))
             Timber.e(e,"Error oneShotReadValue HwUnitI2CTempMCP9808Sensor on: $hwUnit")
             unitValue = Float.MAX_VALUE
         }
@@ -97,7 +93,7 @@ class HwUnitI2CTempMCP9808Sensor(name: String,
                 Timber.d("temperature:$unitValue")
             }
         } catch (e: Exception){
-            FirebaseHomeInformationRepository.hwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, Date().toString().plus(e.message)))
+            FirebaseHomeInformationRepository.addHwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, e.message, Date().toString()))
             Timber.e(e,"Error readValue HwUnitI2CTempMCP9808Sensor on: $hwUnit")
             return Float.MAX_VALUE
         }

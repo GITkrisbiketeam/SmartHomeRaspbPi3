@@ -49,7 +49,7 @@ open class HwUnitGpioSensor(name: String,
                 setEdgeTriggerType(Gpio.EDGE_BOTH)
                 setActiveType(activeType)
             } catch (e: IOException) {
-                FirebaseHomeInformationRepository.hwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, Date().toString()))
+                FirebaseHomeInformationRepository.addHwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, e.message, Date().toString()))
                 Timber.e(e,"Error initializing PeripheralIO API on: $hwUnit")
             }
         }
@@ -66,7 +66,7 @@ open class HwUnitGpioSensor(name: String,
         try {
             gpio?.registerGpioCallback(mGpioCallback)
         } catch (e: IOException) {
-            FirebaseHomeInformationRepository.hwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, Date().toString().plus(e.message)))
+            FirebaseHomeInformationRepository.addHwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, e.message, Date().toString()))
             Timber.e(e,"Error registerListener PeripheralIO API on: $hwUnit")
         }
     }
@@ -86,7 +86,7 @@ open class HwUnitGpioSensor(name: String,
         unitValue = try {
             gpio?.value
         } catch (e: IOException) {
-            FirebaseHomeInformationRepository.hwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, Date().toString().plus(e.message)))
+            FirebaseHomeInformationRepository.addHwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, e.message, Date().toString()))
             Timber.e(e,"Error getting Value PeripheralIO API on: $hwUnit")
             // Set null value on error
             null

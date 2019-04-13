@@ -50,10 +50,6 @@ class RoomDetailFragment : Fragment() {
             subscribeUi(adapter)
         }
 
-        roomDetailViewModel.room.observe(viewLifecycleOwner, Observer {
-
-        })
-
         roomDetailViewModel.isEditMode.observe(viewLifecycleOwner, Observer {
             activity?.invalidateOptionsMenu()
         })
@@ -128,13 +124,11 @@ class RoomDetailFragment : Fragment() {
         super.onPrepareOptionsMenu(menu)
         when (roomDetailViewModel.isEditMode.value) {
             true -> {
-                menu.findItem((R.id.action_discard))?.isVisible = true
-                menu.findItem((R.id.action_save))?.isVisible = true
+                menu.findItem((R.id.action_finish))?.isVisible = true
                 menu.findItem((R.id.action_edit))?.isVisible = false
             }
             else -> {
-                menu.findItem((R.id.action_discard))?.isVisible = false
-                menu.findItem((R.id.action_save))?.isVisible = false
+                menu.findItem((R.id.action_finish))?.isVisible = false
                 menu.findItem((R.id.action_edit))?.isVisible = true
             }
         }
@@ -147,10 +141,7 @@ class RoomDetailFragment : Fragment() {
                 roomDetailViewModel.isEditMode.value = true
                 return true
             }
-            R.id.action_save -> {
-                return true
-            }
-            R.id.action_discard -> {
+           R.id.action_finish -> {
                 roomDetailViewModel.isEditMode.value = false
                 return true
             }

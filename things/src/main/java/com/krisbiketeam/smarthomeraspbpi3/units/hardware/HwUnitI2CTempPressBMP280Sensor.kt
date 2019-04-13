@@ -25,7 +25,7 @@ class HwUnitI2CTempPressBMP280Sensor(name: String,
                                      private val refreshRate: Long? = REFRESH_RATE,
                                      override var device: AutoCloseable? = null) : HwUnitI2C<TemperatureAndPressure>, Sensor<TemperatureAndPressure> {
 
-    override val hwUnit: HwUnit = HwUnit(name, location, BoardConfig.TEMP_PRESS_SENSOR_BMP280, pinName, ConnectionType.I2C, softAddress)
+    override val hwUnit: HwUnit = HwUnit(name, location, BoardConfig.TEMP_PRESS_SENSOR_BMP280, pinName, ConnectionType.I2C, softAddress, refreshRate = refreshRate)
     override var unitValue: TemperatureAndPressure? = null
     override var valueUpdateTime: String = ""
 
@@ -46,12 +46,8 @@ class HwUnitI2CTempPressBMP280Sensor(name: String,
             // We could also check for true as suspending delay() method is cancellable
             while (isActive) {
                 readValue()
-                if (unitValue?.temperature != Float.MAX_VALUE) {
-                    hwUnitListener?.onUnitChanged(hwUnit, unitValue, valueUpdateTime)
-                    delay(refreshRate ?: REFRESH_RATE)
-                } else{
-                    job?.cancel()
-                }
+                hwUnitListener?.onUnitChanged(hwUnit, unitValue, valueUpdateTime)
+                delay(refreshRate ?: REFRESH_RATE)
             }
         }
     }
@@ -82,7 +78,7 @@ class HwUnitI2CTempPressBMP280Sensor(name: String,
                 Timber.d("temperature:$unitValue")
             }
         } catch (e: Exception){
-            FirebaseHomeInformationRepository.hwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, Date().toString().plus(e.message)))
+            FirebaseHomeInformationRepository.addHwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, e.message, Date().toString()))
             Timber.e(e,"Error readValue HwUnitI2CTempMCP9808Sensor on: $hwUnit")
             return TemperatureAndPressure(Float.MAX_VALUE, Float.MAX_VALUE)
         }

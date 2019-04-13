@@ -8,8 +8,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.navigation.findNavController
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.UnitTask
-import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentHomeUnitDetailUnitListItemBinding
-import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentHomeUnitDetailUnitListItemAddBinding
+import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentHomeUnitDetailUnitTaskListItemBinding
+import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentHomeUnitDetailUnitTaskListItemAddBinding
 import com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitDetailFragment
 import com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitDetailFragmentDirections
 import timber.log.Timber
@@ -32,10 +32,13 @@ class UnitTaskListAdapter(private val unitName: String,
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        return if (viewType == VIEW_TYPE_NORMAL) ViewHolder(FragmentHomeUnitDetailUnitListItemBinding.inflate(
-                LayoutInflater.from(parent.context), parent, false))
-        else ViewHolder(FragmentHomeUnitDetailUnitListItemAddBinding.inflate(
-                LayoutInflater.from(parent.context), parent, false))
+        return if (viewType == VIEW_TYPE_NORMAL) {
+            ViewHolder(FragmentHomeUnitDetailUnitTaskListItemBinding.inflate(
+                    LayoutInflater.from(parent.context), parent, false))
+        } else {
+            ViewHolder(FragmentHomeUnitDetailUnitTaskListItemAddBinding.inflate(
+                    LayoutInflater.from(parent.context), parent, false))
+        }
     }
 
     private fun createOnClickListener(taskName: String): View.OnClickListener {
@@ -51,17 +54,17 @@ class UnitTaskListAdapter(private val unitName: String,
 
     class ViewHolder(
             private val binding: ViewDataBinding
-    ) : androidx.recyclerview.widget.RecyclerView.ViewHolder(binding.root) {
+    ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(listener: View.OnClickListener, item: UnitTask) {
             when (binding){
-                is FragmentHomeUnitDetailUnitListItemBinding -> {
+                is FragmentHomeUnitDetailUnitTaskListItemBinding -> {
                     binding.apply {
                         clickListener = listener
                         unitTask = item
                     }
                 }
-                is FragmentHomeUnitDetailUnitListItemAddBinding -> {
+                is FragmentHomeUnitDetailUnitTaskListItemAddBinding -> {
                     binding.apply {
                         clickListener = listener
                     }

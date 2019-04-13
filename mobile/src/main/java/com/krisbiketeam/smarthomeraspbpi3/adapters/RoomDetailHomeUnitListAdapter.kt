@@ -15,7 +15,7 @@ import timber.log.Timber
 /**
  * Adapter for the [RecyclerView] in [RoomListFragment].
  */
-class RoomDetailHomeUnitListAdapter : androidx.recyclerview.widget.RecyclerView.Adapter<RoomDetailHomeUnitListAdapter.ViewHolder>() {
+class RoomDetailHomeUnitListAdapter : RecyclerView.Adapter<RoomDetailHomeUnitListAdapter.ViewHolder>() {
     val homeUnits: MutableList<HomeUnit<Any>> = mutableListOf()
 
     override fun getItemCount(): Int {
@@ -56,7 +56,7 @@ class RoomDetailHomeUnitListAdapter : androidx.recyclerview.widget.RecyclerView.
 
     class ViewHolder(
             private val binding: FragmentRoomDetailListItemBinding
-    ) : androidx.recyclerview.widget.RecyclerView.ViewHolder(binding.root) {
+    ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(listener: View.OnClickListener, item: HomeUnit<Any>) {
             binding.apply {

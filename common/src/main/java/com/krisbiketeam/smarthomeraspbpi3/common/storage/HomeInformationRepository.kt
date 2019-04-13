@@ -17,7 +17,7 @@ interface HomeInformationRepository {
     /**
      *  Adds given @see[HwUnitLog] to the hw Error lg @see[HW_ERROR_INFORMATION_BASE] list in DB
      */
-    fun hwUnitErrorEvent(hwUnitError: HwUnitLog<out Any>)
+    fun addHwUnitErrorEvent(hwUnitError: HwUnitLog<out Any>)
 
     fun writeNewUser(name: String, email: String)
 
@@ -132,6 +132,11 @@ interface HomeInformationRepository {
      * Clear all hw Error entries from DB
      */
     fun clearHwErrors()
+
+    /**
+     * Clear hw Error Event entry from DB
+     */
+    fun clearHwErrorEvent(hwUnitName: String)
 }
 
 object FirebaseHomeInformationRepository : HomeInformationRepository {
@@ -171,7 +176,7 @@ object FirebaseHomeInformationRepository : HomeInformationRepository {
         referenceLog.push().setValue(hwUnitLog)
     }
 
-    override fun hwUnitErrorEvent(hwUnitError: HwUnitLog<out Any>) {
+    override fun addHwUnitErrorEvent(hwUnitError: HwUnitLog<out Any>) {
         referenceHwError.child(hwUnitError.name).setValue(hwUnitError)
     }
 
@@ -225,6 +230,10 @@ object FirebaseHomeInformationRepository : HomeInformationRepository {
 
     override fun clearHwErrors() {
         referenceHwError.removeValue()
+    }
+
+    override fun clearHwErrorEvent(hwUnitName: String) {
+        referenceHwError.child(hwUnitName).removeValue()
     }
 
     override fun homeUnitListLiveData(unitType: String): HomeUnitListLiveData {

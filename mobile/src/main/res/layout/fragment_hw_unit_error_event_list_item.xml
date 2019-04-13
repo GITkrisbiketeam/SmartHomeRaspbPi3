@@ -12,7 +12,7 @@
 
         <variable
             name="hwUnit"
-            type="com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit" />
+            type="com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnitLog" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -31,8 +31,20 @@
             android:textAppearance="?attr/textAppearanceListItem"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/room_item_image"
-            tools:text="HwUnit"/>
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="HwUnit" />
+        <TextView
+            android:id="@+id/error_message"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@{hwUnit.logMessage}"
+            android:textAppearance="?attr/textAppearanceListItemSecondary"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/hw_unit_title"
+            tools:text="Error Message" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+
 </layout>

@@ -303,6 +303,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
                         FirebaseHomeInformationRepository.logUnitEvent(HwUnitLog(
                                 BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_1,
                                 "Raspberry Pi",
+                                BoardConfig.IO_EXTENDER_PCF8474AT_INPUT,
                                 BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_1_PIN.name,
                                 ConnectionType.GPIO,
                                 value = true))
@@ -326,6 +327,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
                         FirebaseHomeInformationRepository.logUnitEvent(HwUnitLog(
                                 BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_2,
                                 "Raspberry Pi",
+                                BoardConfig.IO_EXTENDER_PCF8474AT_INPUT,
                                 BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_2_PIN.name,
                                 ConnectionType.GPIO,
                                 value = true))
@@ -349,6 +351,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
                         FirebaseHomeInformationRepository.logUnitEvent(HwUnitLog(
                                 BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_3,
                                 "Raspberry Pi",
+                                BoardConfig.IO_EXTENDER_PCF8474AT_INPUT,
                                 BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_3_PIN.name,
                                 ConnectionType.GPIO,
                                 value = true))
@@ -370,6 +373,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
                 FirebaseHomeInformationRepository.logUnitEvent(HwUnitLog(
                         BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_1,
                         "Raspberry Pi",
+                        BoardConfig.IO_EXTENDER_PCF8474AT_INPUT,
                         BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_1_PIN.name,
                         ConnectionType.GPIO,
                         value = false))
@@ -379,6 +383,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
                 FirebaseHomeInformationRepository.logUnitEvent(HwUnitLog(
                         BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_2,
                         "Raspberry Pi",
+                        BoardConfig.IO_EXTENDER_PCF8474AT_INPUT,
                         BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_2_PIN.name,
                         ConnectionType.GPIO,
                         value = false))
@@ -388,6 +393,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
                 FirebaseHomeInformationRepository.logUnitEvent(HwUnitLog(
                         BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_3,
                         "Raspberry Pi",
+                        BoardConfig.IO_EXTENDER_PCF8474AT_INPUT,
                         BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_3_PIN.name,
                         ConnectionType.GPIO,
                         value = false))

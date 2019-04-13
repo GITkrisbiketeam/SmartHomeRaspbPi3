@@ -13,6 +13,7 @@ class HomeUnitsLiveData(private val databaseReference: DatabaseReference, privat
         LiveData<Pair<ChildEventType, HomeUnit<Any>>>() {
 
     private val unitsList: List<MyChildEventListener> = HOME_STORAGE_UNITS.map { MyChildEventListener(it) }
+    private val homeUnitsList: MutableMap<String, HomeUnit<out Any>> = mutableMapOf()
 
     private val typeIndicatorMap: HashMap<String, GenericTypeIndicator<out HomeUnit<out Any>>> = hashMapOf(
             HOME_LIGHTS to object : GenericTypeIndicator<HomeUnit<LightType>>() {},
@@ -38,7 +39,10 @@ class HomeUnitsLiveData(private val databaseReference: DatabaseReference, privat
                         // We need to create new SecureStorage unit as the one returned from GenericTypeIndicator is covariant
                         //value = ChildEventType.NODE_ACTION_ADDED to HomeUnit(it.name, it.type, it.room, it.hwUnitName, it.value, it.unitsTasks)//HomeUnit<Any>(it)
                         value = ChildEventType.NODE_ACTION_ADDED to it.makeInvariant()
+                    } else if (homeUnitsList.containsKey(it.name)) {
+                        value = ChildEventType.NODE_ACTION_DELETED to it.makeInvariant()
                     }
+                    homeUnitsList[it.name] = it
                 }
             }
         }
@@ -54,8 +58,16 @@ class HomeUnitsLiveData(private val databaseReference: DatabaseReference, privat
                     Timber.d("onChildChanged (roomName=$roomName)(unit.room=${it.room})")
                     if (roomName == null || roomName == it.room) {
                         //value = ChildEventType.NODE_ACTION_CHANGED to HomeUnit(it.name, it.type, it.room, it.hwUnitName, it.value, it.unitsTasks)
-                        value = ChildEventType.NODE_ACTION_CHANGED to it.makeInvariant()
+                        value = if(homeUnitsList[it.name]?.room == roomName) {
+                            ChildEventType.NODE_ACTION_CHANGED to it.makeInvariant()
+                        } else {
+                            ChildEventType.NODE_ACTION_ADDED to it.makeInvariant()
+                        }
+                    } else if (homeUnitsList.containsKey(it.name)) {
+                        value = ChildEventType.NODE_ACTION_DELETED to it.makeInvariant()
                     }
+                    // Update HomeUnit on the list
+                    homeUnitsList[it.name] = it
                 }
             }
         }
@@ -75,6 +87,7 @@ class HomeUnitsLiveData(private val databaseReference: DatabaseReference, privat
                         //value = ChildEventType.NODE_ACTION_DELETED to HomeUnit(it.name, it.type, it.room, it.hwUnitName, it.value, it.unitsTasks)
                         value = ChildEventType.NODE_ACTION_DELETED to it.makeInvariant()
                     }
+                    homeUnitsList.remove(it.name)
                 }
             }
         }

@@ -32,7 +32,7 @@ class HwUnitI2CMCP23017Actuator(name: String,
             }
             HwUnitI2CMCP23017.increaseUseCount(pinName, address)
         } catch (e: Exception) {
-            FirebaseHomeInformationRepository.hwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, Date().toString().plus(e.message)))
+            FirebaseHomeInformationRepository.addHwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, e.message, Date().toString()))
             Timber.e(e, "Error connect HwUnitI2CMCP23017Actuator")
         }
     }
@@ -43,7 +43,7 @@ class HwUnitI2CMCP23017Actuator(name: String,
         try {
            HwUnitI2CMCP23017.decreaseUseCount(pinName, address)
         } catch (e: Exception) {
-            FirebaseHomeInformationRepository.hwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, Date().toString().plus(e.message)))
+            FirebaseHomeInformationRepository.addHwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, e.message, Date().toString()))
             Timber.e(e, "Error close HwUnitI2CMCP23017Actuator")
         }
     }
@@ -55,7 +55,7 @@ class HwUnitI2CMCP23017Actuator(name: String,
                 (device as MCP23017).setState(ioPin,
                     if (value) PinState.HIGH else PinState.LOW)
             } catch(e: Exception){
-                FirebaseHomeInformationRepository.hwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, Date().toString().plus(e.message)))
+                FirebaseHomeInformationRepository.addHwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, e.message, Date().toString()))
                 Timber.e(e, "Error setValue HwUnitI2CMCP23017Actuator")
             }
         } else {

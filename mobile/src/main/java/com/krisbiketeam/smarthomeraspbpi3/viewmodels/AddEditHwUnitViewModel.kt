@@ -25,10 +25,10 @@ class AddEditHwUnitViewModel(
 
     private val hwUnitLiveData = if(hwUnitName.isNotEmpty()) homeRepository.hwUnitLiveData(hwUnitName) else null
 
-    val typeItemPosition = if(hwUnitLiveData == null) {
+    val typeItemPosition = if (hwUnitLiveData == null) {
         MutableLiveData()
     } else {
-        Transformations.map(hwUnitLiveData) { hwUnit ->
+        Transformations.map(Transformations.distinctUntilChanged(hwUnitLiveData)) { hwUnit ->
             Timber.d("init typeItemPosition : ${typeList.indexOfFirst { it == hwUnit.type }}")
             typeList.indexOfFirst {
                 it == hwUnit.type
@@ -36,7 +36,7 @@ class AddEditHwUnitViewModel(
         } as MutableLiveData<Int>
     }
     val typeList = BoardConfig.IO_HW_UNIT_TYPE_LIST
-    val type = Transformations.map(typeItemPosition) { typePos ->
+    val type = Transformations.map(Transformations.distinctUntilChanged(typeItemPosition)) { typePos ->
         if (typePos in 0 until typeList.size) {
             Timber.d("type getValue position: $typePos val: ${typeList[typePos]}")
             typeList[typePos]
@@ -62,10 +62,11 @@ class AddEditHwUnitViewModel(
             }
         } as MutableLiveData<Int>
     }
-    val pinNameList: MutableLiveData<List<String>> = Transformations.map(type) { type ->
+    val pinNameList: MutableLiveData<List<String>> = Transformations.map(Transformations.distinctUntilChanged(type)) { type ->
         Timber.d("init pinNameList type: $type")
         when (type) {
             BoardConfig.TEMP_SENSOR_TMP102,
+            BoardConfig.TEMP_SENSOR_MCP9808,
             BoardConfig.TEMP_PRESS_SENSOR_BMP280,
             BoardConfig.IO_EXTENDER_MCP23017_INPUT,
             BoardConfig.IO_EXTENDER_MCP23017_OUTPUT,
@@ -102,10 +103,11 @@ class AddEditHwUnitViewModel(
         }
 
     //This should be automatically populated by selecting type
-    val connectionType = Transformations.map(type) { type ->
+    val connectionType = Transformations.map(Transformations.distinctUntilChanged(type)) { type ->
         Timber.d("init connectionType type: $type")
         when (type) {
             BoardConfig.TEMP_SENSOR_TMP102,
+            BoardConfig.TEMP_SENSOR_MCP9808,
             BoardConfig.TEMP_PRESS_SENSOR_BMP280,
             BoardConfig.IO_EXTENDER_MCP23017_INPUT,
             BoardConfig.IO_EXTENDER_MCP23017_OUTPUT,
@@ -121,48 +123,54 @@ class AddEditHwUnitViewModel(
 
     // This is only valid for I2C type HwUnits
     // This softAddress should be strictly linked to [pinInterrupt] as this pair makes a physical MCP23017 unit
-    val softAddressPosition = if(hwUnitLiveData == null) {
+    val softAddressPosition = if (hwUnitLiveData == null) {
         MutableLiveData()
     } else {
-        Transformations.switchMap(hwUnitLiveData) { hwUnit ->
-            Transformations.map(softAddressList) { softAddressList ->
+        Transformations.switchMap(Transformations.distinctUntilChanged(hwUnitLiveData)) { hwUnit ->
+            Transformations.map(Transformations.distinctUntilChanged(softAddressList)) { softAddressList ->
                 softAddressList.indexOfFirst {
                     it == hwUnit.softAddress
                 }
             }
         } as MutableLiveData<Int>
     }
-    val softAddressList: MutableLiveData<List<Int>> = Transformations.map(type) { type ->
-        Timber.d("init softAddressList type: $type")
-        when (type) {
-            BoardConfig.TEMP_SENSOR_TMP102 ->
-                BoardConfig.TEMP_SENSOR_TMP102_ADDR_LIST
-            BoardConfig.TEMP_PRESS_SENSOR_BMP280 ->
-                BoardConfig.TEMP_PRESS_SENSOR_BMP280_ADDR_LIST
-            BoardConfig.IO_EXTENDER_MCP23017_INPUT,
-            BoardConfig.IO_EXTENDER_MCP23017_OUTPUT ->
-                BoardConfig.IO_EXTENDER_MCP23017_ADDR_LIST
-            else ->
-                emptyList()
-        }.also {
-            // if adding new Hw Unit select last empty dummy position
-            if (hwUnitLiveData == null) {softAddressPosition.value = it.size}
-        }
-    } as MutableLiveData<List<Int>>
-    val softAddress: MutableLiveData<Int?> = Transformations.switchMap(softAddressPosition) { softAddressPos ->
-        Transformations.map(softAddressList) { softAddrList ->
-            if (softAddressPos in 0 until softAddrList.size) {
-                Timber.d("softAddress getValue position: $softAddressPos val: ${softAddrList[softAddressPos]}")
-                softAddrList[softAddressPos]
-            } else {
-                Timber.d("softAddress getValue position: $softAddressPos val: null")
-                null
-            }
-        }
-    } as MutableLiveData<Int?>
+    val softAddressList: MutableLiveData<List<Int>> =
+            Transformations.map(Transformations.distinctUntilChanged(type)) { type ->
+                Timber.d("init softAddressList type: $type")
+                when (type) {
+                    BoardConfig.TEMP_SENSOR_TMP102 ->
+                        BoardConfig.TEMP_SENSOR_TMP102_ADDR_LIST
+                    BoardConfig.TEMP_SENSOR_MCP9808 ->
+                        BoardConfig.TEMP_SENSOR_MCP9808_ADDR_LIST
+                    BoardConfig.TEMP_PRESS_SENSOR_BMP280 ->
+                        BoardConfig.TEMP_PRESS_SENSOR_BMP280_ADDR_LIST
+                    BoardConfig.IO_EXTENDER_MCP23017_INPUT,
+                    BoardConfig.IO_EXTENDER_MCP23017_OUTPUT ->
+                        BoardConfig.IO_EXTENDER_MCP23017_ADDR_LIST
+                    else ->
+                        emptyList()
+                }.also {
+                    // if adding new Hw Unit select last empty dummy position
+                    if (hwUnitLiveData == null) {
+                        softAddressPosition.value = it.size
+                    }
+                }
+            } as MutableLiveData<List<Int>>
+    val softAddress: MutableLiveData<Int?> =
+            Transformations.switchMap(Transformations.distinctUntilChanged(softAddressPosition)) { softAddressPos ->
+                Transformations.map(Transformations.distinctUntilChanged(softAddressList)) { softAddrList ->
+                    if (softAddressPos in 0 until softAddrList.size) {
+                        Timber.d("softAddress getValue position: $softAddressPos val: ${softAddrList[softAddressPos]}")
+                        softAddrList[softAddressPos]
+                    } else {
+                        Timber.d("softAddress getValue position: $softAddressPos val: null")
+                        null
+                    }
+                }
+            } as MutableLiveData<Int?>
 
     // This is only valid for IO_Extender type HwUnits
-    val ioPinList = Transformations.switchMap(type) { type ->
+    val ioPinList = Transformations.switchMap(Transformations.distinctUntilChanged(type)) { type ->
         Timber.d("init ioPinList type: $type")
         when (type) {
             BoardConfig.IO_EXTENDER_MCP23017_OUTPUT,
@@ -212,7 +220,7 @@ class AddEditHwUnitViewModel(
 
     // This is only valid for IO_Extender Input type HwUnits BoardConfig.IO_EXTENDER_INT_PIN_LIST
     // This pinInterrupt should be strictly linked to [softAddress] as this pair makes a physical MCP23017 unit
-    val pinInterruptList: MutableLiveData<List<Pair<String, Boolean>>> = Transformations.switchMap(type) { hwType ->
+    val pinInterruptList: MutableLiveData<List<Pair<String, Boolean>>> = Transformations.switchMap(Transformations.distinctUntilChanged(type)) { hwType ->
         Timber.d("init pinInterruptList hwType: $hwType")
         when (hwType) {
             BoardConfig.IO_EXTENDER_MCP23017_INPUT -> {
@@ -314,10 +322,11 @@ class AddEditHwUnitViewModel(
             unit.softAddress == softAddress.value &&
             unit.pinInterrupt == pinInterrupt &&
             unit.ioPin == ioPin &&
-            unit.internalPullUp == internalPullUp.value
+            unit.internalPullUp == internalPullUp.value &&
+            unit.refreshRate == refreshRate.value
         } ?: name.value.isNullOrEmpty()
         /*?: type.value.isNullOrEmpty()
-        ?: room.value.isNullOrEmpty()
+        ?: roomName.value.isNullOrEmpty()
         ?: hwUnitName.value.isNullOrEmpty()*/
         ?: true
     }
@@ -337,10 +346,28 @@ class AddEditHwUnitViewModel(
             hwUnitLiveData.value?.let { unit ->
                 name.value = unit.name
                 location.value = unit.location
-                type.value = unit.type
+                typeItemPosition.value = typeList.indexOfFirst {
+                    it == unit.type
+                }
                 pinName = unit.pinName
                 // connectionType  is automatically populated by type LiveData
-                softAddress.value = unit.softAddress
+                // TODO: how to handle it like type
+                softAddressPosition.value = when (unit.type) {
+                    BoardConfig.TEMP_SENSOR_TMP102 ->
+                        BoardConfig.TEMP_SENSOR_TMP102_ADDR_LIST
+                    BoardConfig.TEMP_SENSOR_MCP9808 ->
+                        BoardConfig.TEMP_SENSOR_MCP9808_ADDR_LIST
+                    BoardConfig.TEMP_PRESS_SENSOR_BMP280 ->
+                        BoardConfig.TEMP_PRESS_SENSOR_BMP280_ADDR_LIST
+                    BoardConfig.IO_EXTENDER_MCP23017_INPUT,
+                    BoardConfig.IO_EXTENDER_MCP23017_OUTPUT ->
+                        BoardConfig.IO_EXTENDER_MCP23017_ADDR_LIST
+                    else ->
+                        emptyList()
+                }.indexOfFirst {
+                    it == unit.softAddress
+                }
+                //softAddress.value = unit.softAddress
                 pinInterrupt = unit.pinInterrupt
                 ioPin = unit.ioPin
                 internalPullUp.value = unit.internalPullUp
@@ -439,7 +466,8 @@ class AddEditHwUnitViewModel(
                                         softAddress = softAddress.value,
                                         pinInterrupt = pinInterrupt,
                                         ioPin = ioPin,
-                                        internalPullUp = internalPullUp.value)
+                                        internalPullUp = internalPullUp.value,
+                                        refreshRate = refreshRate.value)
                         )
                     }
                 }
