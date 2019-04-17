@@ -52,7 +52,7 @@
                         </option>
                         <option name="myPositions">
                           <map>
-                            <entry key="hw_unit_error_event_list_fragment_to_add_edit_hw_unit_fragment">
+                            <entry key="action_hw_unit_error_event_list_fragment_to_add_edit_hw_unit_fragment">
                               <value>
                                 <LayoutPositions />
                               </value>

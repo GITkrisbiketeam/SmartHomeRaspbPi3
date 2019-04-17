@@ -11,6 +11,7 @@ const val HOME_INFORMATION_BASE = "home"
 const val USER_INFORMATION_BASE = "users"
 
 const val HOME_ROOMS = "rooms"
+const val HOME_ACTUATORS = "actuators"
 const val HOME_LIGHTS = "lights"
 const val HOME_LIGHT_SWITCHES = "light_switches"
 const val HOME_REED_SWITCHES = "reed_switches"

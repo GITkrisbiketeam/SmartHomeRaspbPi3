@@ -17,6 +17,21 @@
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
             app:popExitAnim="@anim/slide_out_right" />
+
+        <action
+            android:id="@+id/action_room_list_fragment_to_new_room_dialog_fragment"
+            app:destination="@id/new_room_dialog_fragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/new_room_dialog_fragment"
+        android:name="com.krisbiketeam.smarthomeraspbpi3.ui.NewRoomFragmentDialog"
+        android:label="@string/new_room_dialog_title"
+        tools:layout="@layout/fragment_new_room_dialog_fragment">
     </fragment>
 
     <fragment

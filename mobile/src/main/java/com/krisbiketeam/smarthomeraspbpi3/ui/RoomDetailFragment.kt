@@ -117,11 +117,9 @@ class RoomDetailFragment : Fragment() {
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.menu_room_detail, menu)
-        super.onCreateOptionsMenu(menu, inflater)
     }
 
     override fun onPrepareOptionsMenu(menu: Menu) {
-        super.onPrepareOptionsMenu(menu)
         when (roomDetailViewModel.isEditMode.value) {
             true -> {
                 menu.findItem((R.id.action_finish))?.isVisible = true

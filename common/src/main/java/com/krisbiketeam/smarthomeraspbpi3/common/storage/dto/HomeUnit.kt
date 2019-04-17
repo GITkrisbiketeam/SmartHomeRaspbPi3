@@ -5,6 +5,8 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.*
 
 typealias LightType = Boolean
 typealias Light = HomeUnit<LightType>
+typealias ActuatorType = Boolean
+typealias Actuator = HomeUnit<LightType>
 typealias LightSwitchType = Boolean
 typealias LightSwitch = HomeUnit<LightSwitchType>
 typealias ReedSwitchType = Boolean
@@ -20,6 +22,7 @@ typealias Blind = HomeUnit<BlindType>
 
 val homeUnitTypeIndicatorMap: HashMap<String, Class<out Any>> = hashMapOf(
         HOME_LIGHTS to LightType::class.java,
+        HOME_ACTUATORS to ActuatorType::class.java,
         HOME_LIGHT_SWITCHES to LightSwitchType::class.java,
         HOME_REED_SWITCHES to ReedSwitchType::class.java,
         HOME_MOTIONS to MotionType::class.java,
@@ -30,6 +33,7 @@ val homeUnitTypeIndicatorMap: HashMap<String, Class<out Any>> = hashMapOf(
 
 val HOME_STORAGE_UNITS: List<String> = listOf(
         HOME_LIGHTS,
+        HOME_ACTUATORS,
         HOME_LIGHT_SWITCHES,
         HOME_REED_SWITCHES,
         HOME_MOTIONS,

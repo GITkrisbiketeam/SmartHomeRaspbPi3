@@ -46,7 +46,7 @@ class Home : Sensor.HwUnitListener<Any> {
                             applyFunction(value)
                             FirebaseHomeInformationRepository.saveHomeUnit(this)
                             if (firebaseNotify) {
-                                Timber.d("homeUnitsDataObserver notify with FCM Message")
+                                Timber.d("booleanApplyFunction notify with FCM Message")
                                 FirebaseHomeInformationRepository.notifyHomeUnitEvent(this)
                             }
                         }
@@ -65,27 +65,27 @@ class Home : Sensor.HwUnitListener<Any> {
                 if (this.name == task.homeUnitName){
                     task.delay
                 } else {
-                    homeUnitList[task.homeUnitName]?.run {
-                        Timber.d("booleanApplyFunction task: $task for homeUnit: $this")
-                        value = newVal
+                    homeUnitList[task.homeUnitName]?.apply {
+                        Timber.d("sensorApplyFunction task: $task for homeUnit: $this")
                         hardwareUnitList[hwUnitName]?.let { taskHwUnit ->
-                            Timber.d("booleanApplyFunction taskHwUnit: $taskHwUnit")
+                            Timber.d("sensorApplyFunction taskHwUnit: $taskHwUnit")
                             if (taskHwUnit is Actuator) {
-                                Timber.d("homeUnitsDataObserver taskHwUnit setValue value: $value")
+                                value = newVal
+                                Timber.d("sensorApplyFunction taskHwUnit setValue value: $value")
                                 taskHwUnit.setValue(value)
+                                applyFunction(value)
+                                FirebaseHomeInformationRepository.saveHomeUnit(this)
+                                if (firebaseNotify) {
+                                    Timber.d("sensorApplyFunction notify with FCM Message")
+                                    FirebaseHomeInformationRepository.notifyHomeUnitEvent(this)
+                                }
                             }
-                        }
-                        applyFunction(value)
-                        FirebaseHomeInformationRepository.saveHomeUnit(this)
-                        if (firebaseNotify) {
-                            Timber.d("homeUnitsDataObserver notify with FCM Message")
-                            FirebaseHomeInformationRepository.notifyHomeUnitEvent(this)
                         }
                     }
                 }
             }
         } else {
-            Timber.e("booleanApplyFunction new value is not Boolean or is null")
+            Timber.e("sensorApplyFunction new value is not Boolean or is null")
         }
     }
 
@@ -173,6 +173,7 @@ class Home : Sensor.HwUnitListener<Any> {
                     Timber.d("homeUnitsDataObserver NODE_ACTION_ADDED EXISTING $existingUnit ; NEW  $homeUnit")
                     when (homeUnit.type) {
                         HOME_LIGHTS,
+                        HOME_ACTUATORS,
                         HOME_LIGHT_SWITCHES,
                         HOME_REED_SWITCHES,
                         HOME_MOTIONS -> {

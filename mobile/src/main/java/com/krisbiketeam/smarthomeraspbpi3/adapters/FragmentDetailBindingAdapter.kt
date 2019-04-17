@@ -1,18 +1,15 @@
 package com.krisbiketeam.smarthomeraspbpi3.adapters
 
-import androidx.databinding.BindingAdapter
-import androidx.databinding.InverseBindingAdapter
-import androidx.databinding.InverseBindingListener
-import androidx.constraintlayout.widget.Group
-import com.google.android.material.floatingactionbutton.FloatingActionButton
-import androidx.appcompat.widget.AppCompatSpinner
-import androidx.recyclerview.widget.DividerItemDecoration
-import androidx.recyclerview.widget.RecyclerView
-import androidx.appcompat.widget.SwitchCompat
 import android.text.TextUtils
 import android.view.View
-import android.widget.AdapterView
 import android.widget.ProgressBar
+import androidx.appcompat.widget.AppCompatSpinner
+import androidx.appcompat.widget.SwitchCompat
+import androidx.constraintlayout.widget.Group
+import androidx.databinding.BindingAdapter
+import androidx.recyclerview.widget.DividerItemDecoration
+import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.krisbiketeam.smarthomeraspbpi3.common.MyLiveDataState
 import timber.log.Timber
 
@@ -65,15 +62,9 @@ fun bindEntriesData(spinner: AppCompatSpinner, entries: List<Any>?) {
     // This is for dynamic entries list, like form ViewModel LiveData
     Timber.d("bindEntriesData entries: $entries tag: ${spinner.tag}")
     if (entries != null) {
-        //Add empty first element to list
-        //Add empty element to list to  be able to show blank not selected item
         spinner.apply {
             val spinAdapter = SpinnerAdapter(spinner.context, SpinnerType.DEFAULT, entries)
-            //var pos = spinAdapter.getPosition(spinner.tag)
             adapter = spinAdapter
-            //Timber.d("bindEntriesData pos: $pos spinner.tag: $tag spinner.count: $count")
-            //if (pos !in 0 .. adapter.count) pos = count
-            //setSelection(pos, false)
         }
     }
 }
@@ -85,11 +76,7 @@ fun bindEntriesUsedData(spinner: AppCompatSpinner, entries: List<Pair<String, Bo
     if (entries != null) {
         spinner.apply {
             val spinAdapter = SpinnerAdapter(spinner.context, SpinnerType.ENTRIES_USED, entries)
-            //var pos = spinAdapter.getPosition(spinner.tag)
             adapter = spinAdapter
-            //Timber.d("bindEntriesUsedData pos: $pos spinner.tag: $tag spinner.count: $count")
-            //if (pos !in 0 .. adapter.count) pos = count
-            //setSelection(pos, false)
         }
     }
 }
@@ -99,65 +86,10 @@ fun bindEntriesWithEmptyData(spinner: AppCompatSpinner, entries: List<Any>?) {
     // This is for dynamic entries list, like form ViewModel LiveData
     Timber.d("bindEntriesWithEmptyData entries: $entries tag: ${spinner.tag}")
     if (entries != null) {
-        //Add empty first element to list
-        //Add empty element to list to  be able to show blank not selected item
         spinner.apply {
             val spinAdapter = SpinnerAdapter(spinner.context, SpinnerType.WITH_EMPTY, entries)
-            //var pos = spinAdapter.getPosition(spinner.tag)
             adapter = spinAdapter
-            //Timber.d("bindEntriesUsedData pos: $pos spinner.tag: $tag spinner.count: $count")
-            //if (pos !in 0 .. adapter.count) pos = count-1
-            //setSelection(pos, false)
         }
-    }
-}
-
-@BindingAdapter("selectedValue", "selectedValueAttrChanged", requireAll=false)
-fun bindSpinnerData(spinner: AppCompatSpinner, newSelectedValue: Any?, newTextAttrChanged: InverseBindingListener) {
-    Timber.d("selectedValue BindingAdapter newSelectedValue: $newSelectedValue")
-    spinner.apply {
-        onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
-
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                Timber.d("selectedValue $newSelectedValue onItemSelected : $position")
-                newSelectedValue?.let {
-                    newTextAttrChanged.onChange()
-                }
-            }
-        }
-        tag = newSelectedValue?.let{it} ?: ""
-        // This is for static entries list
-        if (newSelectedValue != null && adapter != null) {
-            Timber.d("selectedValue $newSelectedValue count : ${adapter.count}")
-            for (i in 0 until adapter.count) {
-                Timber.d("adapter.getItem(i) ${adapter.getItem(i)}")
-                if (adapter.getItem(i) == newSelectedValue) {
-                    setSelection(i, false)
-                    break
-                }
-            }
-        }
-    }
-}
-
-@InverseBindingAdapter(attribute = "selectedValue", event = "selectedValueAttrChanged")
-fun captureSelectedValue(spinner: AppCompatSpinner): Any? {
-    Timber.d("selectedValue InverseBindingAdapter ${spinner.selectedItem}")
-    return when (spinner.selectedItem ) {
-        is String -> (spinner.selectedItem as String).run {
-            Timber.d("selectedValue InverseBindingAdapter String ${this}")
-            if (isEmpty()) null else this
-        }
-        is Int -> (spinner.selectedItem as Int).run {
-            Timber.d("selectedValue InverseBindingAdapter String ${this}")
-            if (this == Int.MIN_VALUE) null else this
-        }
-        is Pair<*,*> -> (spinner.selectedItem as Pair<*,*>).run {
-            Timber.d("selectedValue InverseBindingAdapter Pair ${this}")
-            if((first as String).isEmpty()) null else this.first
-        }
-        else -> null
     }
 }
 
@@ -168,22 +100,3 @@ fun bindSetChecked(switch: SwitchCompat, value: Any?) {
         switch.isChecked = value
     }
 }
-
-/*@BindingAdapter("setChecked", "setCheckedAttrChanged", requireAll=false)
-fun bindSetChecked(switch: SwitchCompat, value: Any?, attrChanged: InverseBindingListener) {
-    Timber.d("setSwitch BindingAdapter value: $value attrChanged: $attrChanged")
-    *//*switch.setOnCheckedChangeListener { buttonView, isChecked ->
-        Timber.d("setSwitch isChecked : $isChecked")
-        attrChanged.onChange()
-    }*//*
-    if (value is Boolean) {
-        switch.setChecked(value)
-    }
-}
-
-
-@InverseBindingAdapter(attribute = "setChecked", event = "setCheckedAttrChanged")
-fun inverseBindSetChecked(switch: SwitchCompat): Any? {
-    Timber.d("setSwitch InverseBindingAdapter ${switch.isChecked}")
-    return switch.isChecked
-}*/

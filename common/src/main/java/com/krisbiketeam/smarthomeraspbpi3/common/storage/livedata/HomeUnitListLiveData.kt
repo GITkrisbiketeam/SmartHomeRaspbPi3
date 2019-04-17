@@ -7,8 +7,8 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.homeUnitTypeIndicat
 import timber.log.Timber
 
 
-class HomeUnitListLiveData(private val databaseReference: DatabaseReference, private val firebaseTable: String) : LiveData<List<HomeUnit<Any>>>() {
-    private val clazz = homeUnitTypeIndicatorMap[firebaseTable]
+class HomeUnitListLiveData(private val databaseReference: DatabaseReference, private val unitType: String) : LiveData<List<HomeUnit<Any>>>() {
+    private val clazz = homeUnitTypeIndicatorMap[unitType]
     private val typeIndicator  = object : GenericTypeIndicator<HomeUnit<Any>>() {}
 
     private val homeUnitListener: ValueEventListener = object: ValueEventListener {
@@ -34,11 +34,11 @@ class HomeUnitListLiveData(private val databaseReference: DatabaseReference, pri
 
     override fun onActive() {
         Timber.d("onActive")
-        databaseReference.child(firebaseTable).addValueEventListener(homeUnitListener)
+        databaseReference.child(unitType).addValueEventListener(homeUnitListener)
     }
 
     override fun onInactive() {
         Timber.d("onInactive")
-        databaseReference.child(firebaseTable).removeEventListener(homeUnitListener)
+        databaseReference.child(unitType).removeEventListener(homeUnitListener)
     }
 }

@@ -6,6 +6,9 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.HomeInformationReposito
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HOME_STORAGE_UNITS
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.UnitTask
 import com.krisbiketeam.smarthomeraspbpi3.R
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_ACTUATORS
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_BLINDS
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_LIGHTS
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomDetailFragment
 import com.krisbiketeam.smarthomeraspbpi3.ui.UnitTaskFragment
 import timber.log.Timber
@@ -43,7 +46,12 @@ class UnitTaskViewModel(
         Timber.d("init homeUnitList isEditMode edit: $edit")
         if (edit) {
             MediatorLiveData<MutableList<String>>().apply {
-                HOME_STORAGE_UNITS.forEach { type ->
+                HOME_STORAGE_UNITS.filter {
+                    when(it){
+                        HOME_LIGHTS, HOME_BLINDS, HOME_ACTUATORS -> true
+                        else -> false
+                    }
+                }.forEach { type ->
                     addSource(homeRepository.homeUnitListLiveData(type)) { homeUnitList ->
                         value = value ?: ArrayList()
                         value?.addAll(homeUnitList?.map { it.name } ?: emptyList())

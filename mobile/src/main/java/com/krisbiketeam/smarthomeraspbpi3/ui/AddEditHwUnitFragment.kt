@@ -42,7 +42,7 @@ class AddEditHwUnitFragment : Fragment() {
                 showTimePicker()
             }
         }
-        addEditHwUnitViewModel.isEditMode.observe(viewLifecycleOwner, Observer { isEditMode ->
+        addEditHwUnitViewModel.isEditMode.observe(viewLifecycleOwner, Observer {
             activity?.invalidateOptionsMenu()
             // Animate Layout edit mode change
             TransitionManager.beginDelayedTransition(rootBinding.root as ViewGroup, Fade())

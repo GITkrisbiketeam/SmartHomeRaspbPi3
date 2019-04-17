@@ -66,7 +66,6 @@
             android:layout_marginTop="@dimen/margin_small"
             android:textAppearance="?attr/textAppearanceListItem"
             android:text="@{String.valueOf(homeUnit.value)}"
-            android:visibility="@{FirebaseTablesKt.HOME_LIGHTS.equals(homeUnit.type) || FirebaseTablesKt.HOME_BLINDS.equals(homeUnit.type) ? View.VISIBLE : View.VISIBLE}"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/home_unit_item_image"
             app:layout_constraintTop_toBottomOf="@+id/home_unit_item_title"
@@ -78,7 +77,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:setChecked="@{homeUnit.value}"
-            android:visibility="@{FirebaseTablesKt.HOME_LIGHTS.equals(homeUnit.type) || FirebaseTablesKt.HOME_BLINDS.equals(homeUnit.type) ? View.VISIBLE : View.GONE}"
+            android:visibility="@{FirebaseTablesKt.HOME_LIGHTS.equals(homeUnit.type) || FirebaseTablesKt.HOME_ACTUATORS.equals(homeUnit.type) || FirebaseTablesKt.HOME_BLINDS.equals(homeUnit.type) ? View.VISIBLE : View.GONE}"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/home_unit_item_title"
             app:layout_constraintBottom_toBottomOf="parent" />

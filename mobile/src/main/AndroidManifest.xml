@@ -40,7 +40,8 @@
 
         <activity
             android:name=".ui.HomeActivity"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/AppTheme.NoActionBar"
+            android:windowSoftInputMode="adjustResize"/>
         <activity android:name=".LoadActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
