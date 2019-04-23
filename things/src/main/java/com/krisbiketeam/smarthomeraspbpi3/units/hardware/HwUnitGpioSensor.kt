@@ -10,7 +10,6 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnitLog
 import com.krisbiketeam.smarthomeraspbpi3.units.HwUnitGpio
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
 import timber.log.Timber
-import java.io.IOException
 import java.util.*
 
 open class HwUnitGpioSensor(name: String,
@@ -48,7 +47,7 @@ open class HwUnitGpioSensor(name: String,
                 setDirection(Gpio.DIRECTION_IN)
                 setEdgeTriggerType(Gpio.EDGE_BOTH)
                 setActiveType(activeType)
-            } catch (e: IOException) {
+            } catch (e: Exception) {
                 FirebaseHomeInformationRepository.addHwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, e.message, Date().toString()))
                 Timber.e(e,"Error initializing PeripheralIO API on: $hwUnit")
             }
@@ -65,7 +64,7 @@ open class HwUnitGpioSensor(name: String,
         hwUnitListener = listener
         try {
             gpio?.registerGpioCallback(mGpioCallback)
-        } catch (e: IOException) {
+        } catch (e: Exception) {
             FirebaseHomeInformationRepository.addHwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, e.message, Date().toString()))
             Timber.e(e,"Error registerListener PeripheralIO API on: $hwUnit")
         }
@@ -85,7 +84,7 @@ open class HwUnitGpioSensor(name: String,
     fun readValue(gpio: Gpio?): Boolean? {
         unitValue = try {
             gpio?.value
-        } catch (e: IOException) {
+        } catch (e: Exception) {
             FirebaseHomeInformationRepository.addHwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, e.message, Date().toString()))
             Timber.e(e,"Error getting Value PeripheralIO API on: $hwUnit")
             // Set null value on error

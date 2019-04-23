@@ -1,7 +1,6 @@
 package com.krisbiketeam.smarthomeraspbpi3.units
 
 import timber.log.Timber
-import java.io.IOException
 
 interface HwUnitI2C <T> : BaseUnit<T> {
     var device: AutoCloseable?
@@ -10,7 +9,7 @@ interface HwUnitI2C <T> : BaseUnit<T> {
     override fun close() {
         try {
             device?.close()
-        } catch (e: IOException) {
+        } catch (e: Exception) {
             Timber.e(e,"Error closing PeripheralIO API on: $hwUnit")
             throw (Exception("Error close HwUnitI2C", e))
         } finally {

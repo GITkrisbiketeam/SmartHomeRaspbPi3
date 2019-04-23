@@ -8,7 +8,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 import timber.log.Timber
-import java.io.IOException
 import java.lang.Exception
 
 private const val TMP102_EXTENDED_MODE_BIT_SHIFT = 4
@@ -100,7 +99,7 @@ class TMP102(bus: String? = null, address: Int = DEFAULT_I2C_GND_ADDRESS) : Auto
          * Set TMP102  in Extended Mode where 13-bits of Temperature register are read.
          *
          * @param extended true if we want to read 13 bit temperature register (Extended Mode)
-         * @throws IOException
+         * @throws Exception
          */
         set(extended) {
             mConfig = if (extended) {
@@ -175,7 +174,7 @@ class TMP102(bus: String? = null, address: Int = DEFAULT_I2C_GND_ADDRESS) : Auto
          * Set TMP102 in ShutDown Mode where device gets into sleep mode after temp read
          *
          * @param shutdown true if we want to switch to SD (ShutDown) mode
-         * @throws IOException
+         * @throws Exception
          */
         set(shutdown) {
             mConfig = if (shutdown) {
@@ -208,7 +207,7 @@ class TMP102(bus: String? = null, address: Int = DEFAULT_I2C_GND_ADDRESS) : Auto
      * Create a new TMP102 sensor driver connected to the given I2c device.
      *
      * @param device I2C device of the sensor.
-     * @throws IOException
+     * @throws Exception
      */
     @VisibleForTesting
     internal constructor(device: I2cDevice, config: Int) : this() {
@@ -225,7 +224,7 @@ class TMP102(bus: String? = null, address: Int = DEFAULT_I2C_GND_ADDRESS) : Auto
         Timber.d("close")
         try {
             mDevice?.close()
-        } catch (e: IOException){
+        } catch (e: Exception){
             throw Exception("Error closing TMP102", e)
         } finally {
             mDevice = null
@@ -237,16 +236,16 @@ class TMP102(bus: String? = null, address: Int = DEFAULT_I2C_GND_ADDRESS) : Auto
      * Read the current temperature.
      *
      * @return the current temperature in degrees Celsius
-     * @throws IOException
+     * @throws Exception
      */
-    @Throws(IOException::class)
+    @Throws(Exception::class)
     fun readTemperature(): Float? = calculateTemperature(readSample16(TMP102_REG_TEMP))
 
     /**
      * Read the current temperature in SD (ShutDown) mode. Callback will be triggered after temp read is completed
-     * @throws IOException
+     * @throws Exception
      */
-    @Throws(IOException::class)
+    @Throws(Exception::class)
     fun readOneShotTemperature(onResult: (Float?)-> Unit) {
         if (shutdownMode) {
             synchronized(mBuffer) {
@@ -276,9 +275,9 @@ class TMP102(bus: String? = null, address: Int = DEFAULT_I2C_GND_ADDRESS) : Auto
 
     /**
      * Reads 16 bits from the given address.
-     * @throws IOException
+     * @throws Exception
      */
-    @Throws(IOException::class)
+    @Throws(Exception::class)
     private fun readSample16(address: Int): Int? {
         synchronized(mBuffer) {
             // Reading a byte buffer instead of a short to avoid having to deal with
@@ -291,7 +290,7 @@ class TMP102(bus: String? = null, address: Int = DEFAULT_I2C_GND_ADDRESS) : Auto
         }
     }
 
-    @Throws(IOException::class)
+    @Throws(Exception::class)
     private fun writeSample16(address: Int, data: Int) {
         synchronized(mBuffer) {
             //msb

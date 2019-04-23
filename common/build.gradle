@@ -34,12 +34,12 @@ android {
 dependencies {
     compileOnly "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
     compileOnly "com.jakewharton.timber:timber:$timberVersion"
-    compileOnly 'androidx.lifecycle:lifecycle-extensions:2.1.0-alpha01'
+    compileOnly 'androidx.lifecycle:lifecycle-extensions:2.1.0-alpha04'
 
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinxCoroutinesAndroid"
 
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    implementation 'androidx.appcompat:appcompat:1.1.0-alpha01'
+    implementation 'androidx.appcompat:appcompat:1.1.0-alpha04'
 
     implementation "com.google.firebase:firebase-core:$firebaseCoreVersion"
     implementation "com.google.firebase:firebase-database:$firebaseDatabaseVersion"

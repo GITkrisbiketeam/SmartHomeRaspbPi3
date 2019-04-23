@@ -8,7 +8,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 import timber.log.Timber
-import java.io.IOException
 
 /**
  * bit 0 - Alert Mod.: Alert Output Mode bit; R/W-0
@@ -263,7 +262,7 @@ class MCP9808(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS) : Aut
          * Set TMP102 in ShutDown Mode where device gets into sleep mode after temp read
          *
          * @param shutdown true if we want to switch to SD (ShutDown) mode
-         * @throws IOException
+         * @throws Exception
          */
         set(shutdown) {
             mConfig = if (shutdown) {
@@ -308,7 +307,7 @@ class MCP9808(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS) : Aut
         Timber.d("close")
         try {
             mDevice?.close()
-        } catch (e: IOException) {
+        } catch (e: Exception) {
             throw Exception("Error closing MCP9808", e)
         } finally {
             mDevice = null
@@ -320,17 +319,17 @@ class MCP9808(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS) : Aut
      * Read the current temperature.
      *
      * @return the current temperature in degrees Celsius
-     * @throws IOException
+     * @throws Exception
      */
-    @Throws(IOException::class)
+    @Throws(Exception::class)
     fun readTemperature(): Float? = calculateTemperature(readSample16(MCO9808_REG_TEMP))
 
     /**
      * Read the current temperature in SD (ShutDown) mode. Callback will be triggered after temp
      * read is completed
-     * @throws IOException
+     * @throws Exception
      */
-    @Throws(IOException::class)
+    @Throws(Exception::class)
     fun readOneShotTemperature(onResult: (Float?)-> Unit) {
         if (shutdownMode) {
             synchronized(mBuffer) {
@@ -357,9 +356,9 @@ class MCP9808(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS) : Aut
 
     /**
      * Reads 16 bits from the given address.
-     * @throws IOException
+     * @throws Exception
      */
-    @Throws(IOException::class)
+    @Throws(Exception::class)
     private fun readSample16(address: Int): Int? {
         synchronized(mBuffer) {
             // Reading a byte buffer instead of a short to avoid having to deal with
@@ -372,7 +371,7 @@ class MCP9808(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS) : Aut
         }
     }
 
-    @Throws(IOException::class)
+    @Throws(Exception::class)
     private fun writeSample16(address: Int, data: Int) {
         synchronized(mBuffer) {
             //msb

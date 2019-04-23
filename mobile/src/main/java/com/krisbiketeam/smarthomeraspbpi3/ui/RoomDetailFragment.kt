@@ -60,6 +60,13 @@ class RoomDetailFragment : Fragment() {
     }
 
     private fun subscribeUi(adapter: RoomDetailHomeUnitListAdapter) {
+        roomDetailViewModel.homeUnitsMap.observe(viewLifecycleOwner, Observer<MutableMap<String, HomeUnit<Any?>>> { homeUnitsMap ->
+            Timber.d("subscribeUi homeUnitsMap: $homeUnitsMap")
+            adapter.submitList(homeUnitsMap.values.toList())
+        })
+    }
+
+    /*private fun subscribeUi(adapter: RoomDetailHomeUnitListAdapter) {
         roomDetailViewModel.homeUnits.observe(viewLifecycleOwner, Observer<Pair<ChildEventType, HomeUnit<Any>>> { pair ->
             pair?.let { (action, unit) ->
                 Timber.d("subscribeUi action: $action; unit: $unit")
@@ -113,7 +120,7 @@ class RoomDetailFragment : Fragment() {
         }
         add(homeUnit)
         return size - 1
-    }
+    }*/
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.menu_room_detail, menu)

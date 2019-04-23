@@ -17,17 +17,21 @@ class RoomDetailViewModel(
 
     val isEditMode: MutableLiveData<Boolean> = MutableLiveData(false)
     val room= homeRepository.roomLiveData(roomName)
-    val homeUnits = homeRepository.homeUnitsLiveData(roomName)
+
     val roomName = MutableLiveData<String>("")
-    private val homeUnits2: LiveData<MutableList<HomeUnit<Any?>>> = Transformations.switchMap(room) { room ->
-        val mediator = MediatorLiveData<MutableList<HomeUnit<Any?>>>()
-        // TODO: add other types or change Room types to list and make similar to UnitTaskViewModel
-        room.blinds.forEach {blindName ->
-            mediator.addSource(homeRepository.homeUnitLiveData("blinds", blindName)) {
-                mediator.value?.add(it)
+    val homeUnitsMap = Transformations.switchMap(room) { room ->
+        MediatorLiveData<MutableMap<String, HomeUnit<Any?>>>().apply {
+            room.homeUnits.keys.forEach { type ->
+                room.homeUnits[type]?.forEach { homeUnitName ->
+                    addSource(homeRepository.homeUnitLiveData(type, homeUnitName)) {
+                        value = value ?: mutableMapOf()
+                        value?.put(it.name, it)
+                        postValue(value)
+                    }
+                }
             }
         }
-        mediator
+
     }
 
     init {
@@ -37,7 +41,7 @@ class RoomDetailViewModel(
     fun saveNewRoomName(){
         roomName.value?.let {newRoomName ->
             room.value?.let {room ->
-                homeUnits2.value?.let {homeUnits ->
+                homeUnitsMap.value?.let {homeUnitsMap ->
                     //TODO
                     /*val oldRoomName = room.name
                     room.name = newRoomName

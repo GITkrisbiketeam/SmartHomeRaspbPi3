@@ -55,6 +55,7 @@ class UnitTaskViewModel(
                     addSource(homeRepository.homeUnitListLiveData(type)) { homeUnitList ->
                         value = value ?: ArrayList()
                         value?.addAll(homeUnitList?.map { it.name } ?: emptyList())
+                        postValue(value)
                     }
                 }
             }

@@ -41,14 +41,14 @@ public class HwBaseUnitGpioSensorTest {
 /*
 
     @Test
-    public void close() throws IOException {
+    public void close() throws Exception {
         HwUnitGpioSensor gpio = new HwUnitGpioNoiseSensor(mGpio, Gpio.ACTIVE_LOW);
         gpio.close();
         Mockito.verify(mGpio).close();
     }
 
     @Test
-    public void close_safeToCallTwice() throws IOException {
+    public void close_safeToCallTwice() throws Exception {
         HwUnitGpioNoiseSensor gpio = new HwUnitGpioNoiseSensor(mGpio, Gpio.ACTIVE_LOW);
         gpio.close();
         gpio.close(); // should not throw
@@ -71,7 +71,7 @@ public class HwBaseUnitGpioSensorTest {
     }
 
     @Test
-    public void getValue() throws IOException {
+    public void getValue() throws Exception {
         PowerMockito.when(mGpio.getValue()).thenReturn(Boolean.TRUE);
         HwUnitGpioNoiseSensor gpio = new HwUnitGpioNoiseSensor(mGpio, Gpio.ACTIVE_LOW);
         assertEquals(gpio.readValue(), Boolean.TRUE);

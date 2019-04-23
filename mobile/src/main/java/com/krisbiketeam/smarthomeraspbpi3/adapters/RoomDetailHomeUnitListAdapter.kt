@@ -1,10 +1,11 @@
 package com.krisbiketeam.smarthomeraspbpi3.adapters
 
-import androidx.recyclerview.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.navigation.findNavController
+import androidx.recyclerview.widget.ListAdapter
+import androidx.recyclerview.widget.RecyclerView
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentRoomDetailListItemBinding
@@ -15,18 +16,13 @@ import timber.log.Timber
 /**
  * Adapter for the [RecyclerView] in [RoomListFragment].
  */
-class RoomDetailHomeUnitListAdapter : RecyclerView.Adapter<RoomDetailHomeUnitListAdapter.ViewHolder>() {
-    val homeUnits: MutableList<HomeUnit<Any>> = mutableListOf()
 
-    override fun getItemCount(): Int {
-        return homeUnits.size
-    }
-
+class RoomDetailHomeUnitListAdapter : ListAdapter<HomeUnit<Any?>, RoomDetailHomeUnitListAdapter.ViewHolder>(RoomDetailHomeUnitListAdapterDiffCallback()) {
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val unit = homeUnits[position]
+        val homeUnit = getItem(position)
         holder.apply {
-            bind(createOnClickListener(unit), unit)
-            itemView.tag = unit.name
+            bind(createOnClickListener(homeUnit), homeUnit)
+            itemView.tag = homeUnit
         }
     }
 
@@ -35,7 +31,7 @@ class RoomDetailHomeUnitListAdapter : RecyclerView.Adapter<RoomDetailHomeUnitLis
                 LayoutInflater.from(parent.context), parent, false))
     }
 
-    private fun createOnClickListener(item: HomeUnit<Any>): View.OnClickListener {
+    private fun createOnClickListener(item: HomeUnit<Any?>): View.OnClickListener {
         return View.OnClickListener { view ->
             Timber.d("onClick item: $item")
             val direction = RoomDetailFragmentDirections.actionRoomDetailFragmentToHomeUnitDetailFragment(item.room, item.name, item.type)
@@ -43,22 +39,11 @@ class RoomDetailHomeUnitListAdapter : RecyclerView.Adapter<RoomDetailHomeUnitLis
         }
     }
 
-    fun getItemIdx(unit: HomeUnit<Any>): Int {
-        var idx = -1
-        homeUnits.forEachIndexed { index, homeUnit ->
-            if (homeUnit.name == unit.name) {
-                idx = index
-                return@forEachIndexed
-            }
-        }
-        return idx
-    }
-
     class ViewHolder(
             private val binding: FragmentRoomDetailListItemBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(listener: View.OnClickListener, item: HomeUnit<Any>) {
+        fun bind(listener: View.OnClickListener, item: HomeUnit<Any?>) {
             binding.apply {
                 clickListener = listener
                 homeUnit = item

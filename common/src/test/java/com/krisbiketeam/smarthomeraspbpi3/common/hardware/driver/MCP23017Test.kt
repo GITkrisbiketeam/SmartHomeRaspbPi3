@@ -15,8 +15,6 @@ import org.powermock.api.mockito.PowerMockito
 import org.powermock.core.classloader.annotations.PrepareForTest
 import org.powermock.modules.junit4.PowerMockRunner
 
-import java.io.IOException
-
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.mockito.Matchers.anyInt
@@ -42,7 +40,7 @@ class MCP23017Test {
     }
 
     @Test
-    @Throws(IOException::class)
+    @Throws(Exception::class)
     fun getMode_gpio_A() {
         PowerMockito.mockStatic(Log::class.java)
         PowerMockito.`when`(mI2c.readRegByte(anyInt())).thenReturn(0b10000000.toByte())
@@ -53,7 +51,7 @@ class MCP23017Test {
     }
 
     @Test
-    @Throws(IOException::class)
+    @Throws(Exception::class)
     fun getMode_gpio_B() {
         PowerMockito.mockStatic(Log::class.java)
         PowerMockito.`when`(mI2c.readRegByte(anyInt())).thenReturn(0.toByte())
@@ -64,7 +62,7 @@ class MCP23017Test {
     }
 
     @Test
-    @Throws(IOException::class)
+    @Throws(Exception::class)
     fun getMode_notSet() {
         PowerMockito.mockStatic(Log::class.java)
         PowerMockito.`when`(mI2c.readRegByte(anyInt())).thenReturn(0.toByte())
@@ -75,7 +73,7 @@ class MCP23017Test {
     }
 
     @Test
-    @Throws(IOException::class)
+    @Throws(Exception::class)
     fun getPullResistance_gpio_A() {
         PowerMockito.mockStatic(Log::class.java)
         PowerMockito.`when`(mI2c.readRegByte(anyInt())).thenReturn(0.toByte())
@@ -86,7 +84,7 @@ class MCP23017Test {
     }
 
     @Test
-    @Throws(IOException::class)
+    @Throws(Exception::class)
     fun getPullResistance_gpio_B() {
         PowerMockito.mockStatic(Log::class.java)
         PowerMockito.`when`(mI2c.readRegByte(anyInt())).thenReturn(0.toByte())
@@ -97,7 +95,7 @@ class MCP23017Test {
     }
 
     @Test
-    @Throws(IOException::class)
+    @Throws(Exception::class)
     fun getPullResistance_notSet() {
         PowerMockito.mockStatic(Log::class.java)
         PowerMockito.`when`(mI2c.readRegByte(anyInt())).thenReturn(0.toByte())

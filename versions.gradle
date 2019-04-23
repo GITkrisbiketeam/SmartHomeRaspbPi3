@@ -17,8 +17,8 @@ ext {
 
     firebaseCoreVersion = '16.0.8'
     firebaseDatabaseVersion = '16.1.0'
-    firebaseAuthVersion = '16.2.0'
-    firebaseMessaging = '17.4.0'
+    firebaseAuthVersion = '16.2.1'
+    firebaseMessaging = '17.6.0'
     
     supportLibraryVersion = '28.0.0'
     contraintLayoutVersion = '1.1.3'

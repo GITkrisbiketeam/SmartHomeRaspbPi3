@@ -10,7 +10,6 @@ import com.google.android.things.pio.PeripheralManager
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver.MCP23017Pin.*
 import kotlinx.coroutines.*
 import timber.log.Timber
-import java.io.IOException
 import java.util.*
 
 /// Registers all are 8 bit long
@@ -130,7 +129,7 @@ class MCP23017(bus: String? = null,
         if (bus != null) {
             try {
                 connectI2c(PeripheralManager.getInstance()?.openI2cDevice(bus, address))
-            } catch (e: IOException) {
+            } catch (e: Exception) {
                 Timber.e(e,"init error connecting I2C")
                 close()
                 throw (Exception("Error init MCP23017", e))
@@ -143,7 +142,7 @@ class MCP23017(bus: String? = null,
         mDevice = device
     }
 
-    @Throws(IOException::class)
+    @Throws(Exception::class)
     private fun connectI2c(device: I2cDevice?) {
         mDevice = device
 
@@ -157,7 +156,7 @@ class MCP23017(bus: String? = null,
         resetToDefaults()
     }
 
-    @Throws(IOException::class)
+    @Throws(Exception::class)
     private fun connectGpio() {
         if (intGpio != null && mGpioInt == null) {
             val manager = PeripheralManager.getInstance()
@@ -225,7 +224,7 @@ class MCP23017(bus: String? = null,
 
         try {
             mDevice?.close()
-        } catch (e: IOException){
+        } catch (e: Exception){
             Timber.e("close i2c exception: $e")
             throw (Exception("Error closing MCP23017", e))
         } finally {
@@ -235,7 +234,7 @@ class MCP23017(bus: String? = null,
         mGpioInt?.unregisterGpioCallback(mIntCallback)
         try {
             mGpioInt?.close()
-        } catch (e: IOException){
+        } catch (e: Exception){
             Timber.e("close mGpioInt exception: $e")
             throw (Exception("Error closing MCP23017 mGpioInt", e))
         } finally {
@@ -244,13 +243,13 @@ class MCP23017(bus: String? = null,
     }
 
 
-    @Throws(IOException::class)
+    @Throws(Exception::class)
     private fun readRegister(reg: Int): Int? = mDevice?.readRegByte(reg)?.toInt()?.and(0xff)
 
-    @Throws(IOException::class)
+    @Throws(Exception::class)
     private fun writeRegister(reg: Int, regVal: Int) = mDevice?.writeRegByte(reg, regVal.toByte())
 
-    @Throws(IOException::class)
+    @Throws(Exception::class)
     private fun resetToDefaults() {
         // set all default pins directions
         writeRegister(REGISTER_IODIR_A, 0)
@@ -300,7 +299,7 @@ class MCP23017(bus: String? = null,
         }
     }
 
-    @Throws(IOException::class)
+    @Throws(Exception::class)
     private fun setModeA(pin: Pin, mode: PinMode) {
         // determine register and pin address
         val pinAddress = pin.address - GPIO_A_OFFSET
@@ -320,7 +319,7 @@ class MCP23017(bus: String? = null,
         writeRegister(REGISTER_GPINTEN_A, currentDirectionA)
     }
 
-    @Throws(IOException::class)
+    @Throws(Exception::class)
     private fun setModeB(pin: Pin, mode: PinMode) {
         // determine register and pin address
         val pinAddress = pin.address - GPIO_B_OFFSET
@@ -357,7 +356,7 @@ class MCP23017(bus: String? = null,
     }
 
     // Set Output state functions
-    @Throws(IOException::class)
+    @Throws(Exception::class)
     fun setState(pin: Pin, state: PinState) {
         // determine A or B port based on pin address
         if (pin.address < GPIO_B_OFFSET) {
@@ -367,7 +366,7 @@ class MCP23017(bus: String? = null,
         }
     }
 
-    @Throws(IOException::class)
+    @Throws(Exception::class)
     private fun setStateA(pin: Pin, state: PinState) {
         // determine pin address
         val pinAddress = pin.address - GPIO_A_OFFSET
@@ -383,7 +382,7 @@ class MCP23017(bus: String? = null,
         writeRegister(REGISTER_GPIO_A, currentStatesA)
     }
 
-    @Throws(IOException::class)
+    @Throws(Exception::class)
     private fun setStateB(pin: Pin, state: PinState) {
         // determine pin address
         val pinAddress = pin.address - GPIO_B_OFFSET
@@ -400,7 +399,7 @@ class MCP23017(bus: String? = null,
     }
 
     // Get Input state functions
-    @Throws(IOException::class)
+    @Throws(Exception::class)
     fun getState(pin: Pin): PinState {
         // determine A or B port based on pin address
         return if (pin.address < GPIO_B_OFFSET) {
@@ -410,7 +409,7 @@ class MCP23017(bus: String? = null,
         }
     }
 
-    @Throws(IOException::class)
+    @Throws(Exception::class)
     private fun getStateA(pin: Pin): PinState {
         currentStatesA = readRegister(REGISTER_GPIO_A) ?: currentStatesA
 
@@ -422,7 +421,7 @@ class MCP23017(bus: String? = null,
         return if (currentStatesA and pinAddress == pinAddress) PinState.HIGH else PinState.LOW
     }
 
-    @Throws(IOException::class)
+    @Throws(Exception::class)
     private fun getStateB(pin: Pin): PinState {
         currentStatesB = readRegister(REGISTER_GPIO_B) ?: currentStatesB
 
@@ -434,7 +433,7 @@ class MCP23017(bus: String? = null,
     }
 
     // PullUps resistors mode functions for input Pins
-    @Throws(IOException::class)
+    @Throws(Exception::class)
     fun setPullResistance(pin: Pin, resistance: PinPullResistance) {
         // determine A or B port based on pin address
         if (pin.address < GPIO_B_OFFSET) {
@@ -444,7 +443,7 @@ class MCP23017(bus: String? = null,
         }
     }
 
-    @Throws(IOException::class)
+    @Throws(Exception::class)
     private fun setPullResistanceA(pin: Pin, resistance: PinPullResistance) {
         // determine pin address
         val pinAddress = pin.address - GPIO_A_OFFSET
@@ -461,7 +460,7 @@ class MCP23017(bus: String? = null,
         writeRegister(REGISTER_GPPU_A, currentPullupA)
     }
 
-    @Throws(IOException::class)
+    @Throws(Exception::class)
     private fun setPullResistanceB(pin: Pin, resistance: PinPullResistance) {
         // determine pin address
         val pinAddress = pin.address - GPIO_B_OFFSET
@@ -511,7 +510,7 @@ class MCP23017(bus: String? = null,
         return pinListeners?.remove(listener) ?: false
     }
 
-    @Throws(IOException::class)
+    @Throws(Exception::class)
     private fun checkInterrupt() {
         Timber.v("checkInterrupt")
 

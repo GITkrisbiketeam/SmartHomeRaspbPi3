@@ -9,7 +9,6 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnitLog
 import com.krisbiketeam.smarthomeraspbpi3.units.Actuator
 import com.krisbiketeam.smarthomeraspbpi3.units.HwUnitGpio
 import timber.log.Timber
-import java.io.IOException
 import java.util.*
 
 class HwUnitGpioActuator(name: String,
@@ -27,7 +26,7 @@ class HwUnitGpioActuator(name: String,
             unitValue = value
             try {
                 gpio?.value = value
-            } catch (e: IOException) {
+            } catch (e: Exception) {
                 FirebaseHomeInformationRepository.addHwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, e.message, Date().toString()))
                 Timber.e(e,"Error updating GPIO value on $hwUnit")
             }
@@ -45,7 +44,7 @@ class HwUnitGpioActuator(name: String,
             try {
                 setDirection(Gpio.DIRECTION_OUT_INITIALLY_LOW)
                 setActiveType(activeType)
-            } catch (e: IOException) {
+            } catch (e: Exception) {
                 FirebaseHomeInformationRepository.addHwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, e.message, Date().toString()))
                 Timber.e(e,"Error initializing PeripheralIO API on: $hwUnit")
             }

@@ -10,7 +10,6 @@ import com.google.android.things.pio.PeripheralManager
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver.PCF8574ATPin.*
 import kotlinx.coroutines.*
 import timber.log.Timber
-import java.io.IOException
 import java.util.*
 
 /**
@@ -81,7 +80,7 @@ class PCF8574AT(bus: String? = null,
         if (bus != null) {
             try {
                 connectI2c(PeripheralManager.getInstance()?.openI2cDevice(bus, address))
-            } catch (e: IOException) {
+            } catch (e: Exception) {
                 Timber.e(e,"init error connecting I2C")
                 close()
                 throw (Exception("Error init PCF8574AT", e))
@@ -94,7 +93,7 @@ class PCF8574AT(bus: String? = null,
         mDevice = device
     }
 
-    @Throws(IOException::class)
+    @Throws(Exception::class)
     private fun connectI2c(device: I2cDevice?) {
         mDevice = device
 
@@ -105,7 +104,7 @@ class PCF8574AT(bus: String? = null,
         resetToDefaults()
     }
 
-    @Throws(IOException::class)
+    @Throws(Exception::class)
     private fun connectGpio() {
         if (intGpio != null && mGpioInt == null) {
             val manager = PeripheralManager.getInstance()
@@ -169,7 +168,7 @@ class PCF8574AT(bus: String? = null,
 
         try {
             mDevice?.close()
-        } catch (e: IOException){
+        } catch (e: Exception){
             Timber.e("close i2c exception: $e")
             throw (Exception("Error closing PCF8574AT", e))
         } finally {
@@ -179,7 +178,7 @@ class PCF8574AT(bus: String? = null,
         mGpioInt?.unregisterGpioCallback(mIntCallback)
         try {
             mGpioInt?.close()
-        } catch (e: IOException){
+        } catch (e: Exception){
             Timber.e("close mGpioInt exception: $e")
             throw (Exception("Error closing PCF8574AT mGpioInt", e))
         } finally {
@@ -188,21 +187,21 @@ class PCF8574AT(bus: String? = null,
     }
 
 
-    @Throws(IOException::class)
+    @Throws(Exception::class)
     private fun readRegister(): Int? {
         val byteArray = ByteArray(1)
         mDevice?.read(byteArray, 1)
         return byteArray[0].toInt().and(0xff)
     }
 
-    @Throws(IOException::class)
+    @Throws(Exception::class)
     private fun writeRegister(regVal: Int) {
         val buffer = ByteArray(1)
         buffer[0] = regVal.toByte()
         mDevice?.write(buffer, 1)
     }
 
-    @Throws(IOException::class)
+    @Throws(Exception::class)
     private fun resetToDefaults() {
         writeRegister( 0xFF)
     }
@@ -242,7 +241,7 @@ class PCF8574AT(bus: String? = null,
     }
 
     // Set Output state functions
-    @Throws(IOException::class)
+    @Throws(Exception::class)
     fun setState(pin: Pin, state: PinState) {
         // determine pin address
         val pinAddress = pin.address
@@ -263,7 +262,7 @@ class PCF8574AT(bus: String? = null,
     }
 
     // Get Input state functions
-    @Throws(IOException::class)
+    @Throws(Exception::class)
     fun getState(pin: Pin): PinState {
         currentStates = readRegister() ?: currentStates
 
@@ -293,7 +292,7 @@ class PCF8574AT(bus: String? = null,
         return pinListeners?.remove(listener) ?: false
     }
 
-    @Throws(IOException::class)
+    @Throws(Exception::class)
     private fun checkInterrupt() {
         Timber.v("checkInterrupt")
 

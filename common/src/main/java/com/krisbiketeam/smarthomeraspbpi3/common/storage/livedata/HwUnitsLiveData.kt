@@ -20,10 +20,10 @@ class HwUnitsLiveData(private val databaseReference: DatabaseReference) : LiveDa
         override fun onChildAdded(dataSnapshot: DataSnapshot, previousChildName: String?) {
             // A new value has been added, add it to the displayed list
             val key = dataSnapshot.key
-            val room = dataSnapshot.getValue(HwUnit::class.java)
-            Timber.d("onChildAdded (key=$key)(room=$room)")
-            room?.let {
-                value = ChildEventType.NODE_ACTION_ADDED to room
+            val hwUnit = dataSnapshot.getValue(HwUnit::class.java)
+            Timber.d("onChildAdded (key=$key)(hwUnit=$hwUnit)")
+            hwUnit?.let {
+                value = ChildEventType.NODE_ACTION_ADDED to hwUnit
             }
         }
 
@@ -31,10 +31,10 @@ class HwUnitsLiveData(private val databaseReference: DatabaseReference) : LiveDa
             // A value has changed, use the key to determine if we are displaying this
             // value and if so displayed the changed value.
             val key = dataSnapshot.key
-            val room = dataSnapshot.getValue(HwUnit::class.java)
-            Timber.d("onChildChanged (key=$key)(room=$room)")
-            room?.let {
-                value = ChildEventType.NODE_ACTION_CHANGED to room
+            val hwUnit = dataSnapshot.getValue(HwUnit::class.java)
+            Timber.d("onChildChanged (key=$key)(hwUnit=$hwUnit)")
+            hwUnit?.let {
+                value = ChildEventType.NODE_ACTION_CHANGED to hwUnit
             }
         }
 
@@ -42,10 +42,10 @@ class HwUnitsLiveData(private val databaseReference: DatabaseReference) : LiveDa
             // A value has changed, use the key to determine if we are displaying this
             // value and if so remove it.
             val key = dataSnapshot.key
-            val room = dataSnapshot.getValue(HwUnit::class.java)
-            Timber.d("onChildRemoved (key=$key)(room=$room)")
-            room?.let {
-                value = ChildEventType.NODE_ACTION_DELETED to room
+            val hwUnit = dataSnapshot.getValue(HwUnit::class.java)
+            Timber.d("onChildRemoved (key=$key)(hwUnit=$hwUnit)")
+            hwUnit?.let {
+                value = ChildEventType.NODE_ACTION_DELETED to hwUnit
             }
         }
 

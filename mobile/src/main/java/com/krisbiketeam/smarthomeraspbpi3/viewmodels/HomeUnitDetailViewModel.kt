@@ -172,6 +172,7 @@ class HomeUnitDetailViewModel(
                                 Timber.d("init homeUnitList homeUnitListLiveData homeUnitList: $homeUnitList")
                                 value = value ?: ArrayList()
                                 value?.addAll(homeUnitList?: emptyList())
+                                postValue(value)
                             }
                         }
                     }

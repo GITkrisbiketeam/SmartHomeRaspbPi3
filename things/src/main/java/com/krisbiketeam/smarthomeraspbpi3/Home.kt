@@ -454,7 +454,12 @@ class Home : Sensor.HwUnitListener<Any> {
         var light = Light("New Light", HOME_LIGHTS, roomName, BoardConfig.IO_EXTENDER_MCP23017_NEW_OUT_B7) as HomeUnit<Any>
         homeUnitList[light.name] = light
 
-        var room = Room(roomName, 0, reedSwitch = listOf(reedSwitch.name), temperatures = listOf(temp.name), lights = listOf(light.name))
+        var homeUnits = mutableMapOf<String, MutableList<String>>()
+        homeUnits[HOME_LIGHTS] = mutableListOf(light.name)
+        homeUnits[HOME_TEMPERATURES] = mutableListOf(temp.name)
+        homeUnits[HOME_REED_SWITCHES] = mutableListOf(reedSwitch.name)
+
+        var room = Room(roomName, 0, homeUnits)
         rooms[room.name] = room
     }
 
