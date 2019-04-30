@@ -25,14 +25,12 @@ class HomeUnitDetailFragment : Fragment() {
                 arguments?.let { HomeUnitDetailFragmentArgs.fromBundle(it).homeUnitType} ?: "")
     }
 
-    private lateinit var rootBinding: FragmentHomeUnitDetailBinding
-
     override fun onCreateView(
             inflater: LayoutInflater,
             container: ViewGroup?,
             savedInstanceState: Bundle?
     ): View? {
-        rootBinding = DataBindingUtil.inflate<FragmentHomeUnitDetailBinding>(
+        val rootBinding = DataBindingUtil.inflate<FragmentHomeUnitDetailBinding>(
                 inflater, R.layout.fragment_home_unit_detail, container, false).apply {
             viewModel = homeUnitDetailViewModel
             setLifecycleOwner(this@HomeUnitDetailFragment)
@@ -111,7 +109,9 @@ class HomeUnitDetailFragment : Fragment() {
                                 findNavController().navigateUp()
                             }
                         }
-                    } ?: Snackbar.make(rootBinding.root, messageId, Snackbar.LENGTH_SHORT).show()
+                    } ?: view?.run {
+                        Snackbar.make(this, messageId, Snackbar.LENGTH_SHORT).show()
+                    }
                 } else {
                     //hmm, this should not happen
                     Timber.e("action_save we got empty message This should not happen")

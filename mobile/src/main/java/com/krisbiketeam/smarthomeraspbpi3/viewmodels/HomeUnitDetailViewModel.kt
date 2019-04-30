@@ -89,7 +89,7 @@ class HomeUnitDetailViewModel(
                         roomNames[roomNamePos]
                     } else {
                         Timber.d("roomName getValue position: $roomNamePos val: null")
-                        null
+                        ""
                     }
                 }
             }
@@ -166,7 +166,7 @@ class HomeUnitDetailViewModel(
             Transformations.switchMap(Transformations.distinctUntilChanged(isEditMode)) { edit ->
                 Timber.d("init homeUnitList isEditMode edit: $edit")
                 if (edit)
-                    MediatorLiveData<MutableList<HomeUnit<Any>>>().apply {
+                    MediatorLiveData<MutableList<HomeUnit<Any?>>>().apply {
                         HOME_STORAGE_UNITS.forEach { type ->
                             addSource(homeRepository.homeUnitListLiveData(type)) { homeUnitList ->
                                 Timber.d("init homeUnitList homeUnitListLiveData homeUnitList: $homeUnitList")
@@ -177,7 +177,7 @@ class HomeUnitDetailViewModel(
                         }
                     }
                 else MediatorLiveData()
-            } as MediatorLiveData<MutableList<HomeUnit<Any>>>
+            } as MediatorLiveData<MutableList<HomeUnit<Any?>>>
 
     init {
         Timber.d("init unitName: $unitName unitType: $unitType roomName: $roomName")

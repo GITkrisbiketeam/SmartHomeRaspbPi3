@@ -40,7 +40,7 @@ class RoomListAdapter : ListAdapter<Room, RoomListAdapter.ViewHolder>(RoomListAd
 
     class ViewHolder(
         private val binding: FragmentRoomListItemBinding
-    ) : androidx.recyclerview.widget.RecyclerView.ViewHolder(binding.root) {
+    ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(listener: View.OnClickListener, item: Room) {
             binding.apply {

@@ -4,6 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <data>
+        <import type="android.view.View" />
+
         <variable
             name="viewModel"
             type="com.krisbiketeam.smarthomeraspbpi3.viewmodels.RoomDetailViewModel" />
@@ -30,10 +32,11 @@
                 android:fitsSystemWindows="true"
                 app:contentScrim="?attr/colorPrimary"
                 app:layout_scrollFlags="scroll|exitUntilCollapsed"
+                app:titleEnabled="@{!viewModel.isEditMode}"
                 app:title="@{viewModel.room.name}"
                 app:toolbarId="@+id/toolbar">
 
-                <ImageView
+                <androidx.appcompat.widget.AppCompatImageView
                     android:id="@+id/detail_image"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
@@ -43,6 +46,16 @@
                     android:src="@drawable/ic_launcher_foreground"
                     app:layout_collapseMode="parallax" />
                 <!--app:imageFromUrl="@{viewModel.roomName.imageUrl}"-->
+
+                <androidx.appcompat.widget.AppCompatEditText
+                    android:id="@+id/title_edit_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="@dimen/margin_normal"
+                    android:layout_gravity="bottom|start"
+                    android:text="@{viewModel.roomName}"
+                    android:visibility="@{viewModel.isEditMode ? View.VISIBLE : View.GONE}"
+                    app:layout_collapseMode="parallax" />
 
                 <androidx.appcompat.widget.Toolbar
                     android:id="@+id/detail_toolbar"

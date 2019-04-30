@@ -1,35 +1,29 @@
 package com.krisbiketeam.smarthomeraspbpi3.viewmodels
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Transformations
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.*
+import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.HomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.Room
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.livedata.RoomListLiveData
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomListFragment
-import timber.log.Timber
 
 
 /**
  * The ViewModel for [RoomListFragment].
  */
-class NewRoomDialogViewModel(private val homeRepository: HomeInformationRepository) : ViewModel() {
+class NewRoomDialogViewModel(private val appl: Application, private val homeRepository: HomeInformationRepository) : AndroidViewModel(appl) {
 
-    private val roomList: RoomListLiveData
-    val roomName = MutableLiveData<String>("")
+    private val roomList = homeRepository.roomListLiveData()
+    val roomName = MutableLiveData<String?>("")
 
-    init {
-        Timber.d("init")
-        roomList = homeRepository.roomListLiveData()
-    }
-
-    fun nameAlreadyUsed(): LiveData<Boolean> {
-        return Transformations.switchMap(Transformations.distinctUntilChanged(roomList)) { roomList ->
-            Transformations.map(roomName) { newRoomName ->
+    var saveMessage: LiveData<String?> = Transformations.switchMap(Transformations.distinctUntilChanged(roomList)) { roomList ->
+        Transformations.map(roomName) { newRoomName ->
+            when {
+                newRoomName?.trim()?.isEmpty() != false -> appl.getString(R.string.new_room_empty_name)
                 roomList.find { room ->
                     room.name == newRoomName
-                } != null
+                } != null -> appl.getString(R.string.new_room_name_already_used)
+                else -> null
             }
         }
     }

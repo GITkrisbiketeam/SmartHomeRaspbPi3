@@ -7,11 +7,14 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import com.krisbiketeam.smarthomeraspbpi3.R
-import com.krisbiketeam.smarthomeraspbpi3.adapters.RoomListAdapter
+import com.krisbiketeam.smarthomeraspbpi3.adapters.RoomHomeUnitListAdapter
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.Room
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentRoomListBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.RoomListViewModel
 import org.koin.android.viewmodel.ext.android.viewModel
 import timber.log.Timber
+
 
 class RoomListFragment : Fragment() {
 
@@ -30,9 +33,9 @@ class RoomListFragment : Fragment() {
                 val direction = RoomListFragmentDirections.actionRoomListFragmentToNewRoomDialogFragment()
                 findNavController().navigate(direction)
             }
-            val adapter = RoomListAdapter()
+            val adapter = RoomHomeUnitListAdapter()
             roomList.adapter = adapter
-            subscribeUi(adapter)
+            subscribeRoomHomeUnitList(adapter)
         }
         roomListViewModel.isEditMode.observe(viewLifecycleOwner, Observer {
             activity?.invalidateOptionsMenu()
@@ -73,10 +76,21 @@ class RoomListFragment : Fragment() {
         }
     }
 
+    private fun subscribeRoomHomeUnitList(adapter: RoomHomeUnitListAdapter) {
+        roomListViewModel.roomHomeUnitsMap.observe(viewLifecycleOwner, Observer<MutableMap<String, Any>> { roomHomeUnitsMap ->
+            Timber.d("subscribeUi roomHomeUnitsMap: $roomHomeUnitsMap")
+            val roomHomeUnitListSorted = roomHomeUnitsMap.values.sortedWith(Comparator { a, b ->
+                when {
+                    a is Room && b is HomeUnit<*> -> -1
+                    a is HomeUnit<*> && b is Room -> 1
+                    a is HomeUnit<*> && b is String -> 1
+                    a is Room && b is String -> -1
+                    else -> 0
+                }
+            }
 
-    private fun subscribeUi(adapter: RoomListAdapter) {
-        roomListViewModel.roomList.observe(viewLifecycleOwner, Observer { rooms ->
-            rooms?.let{adapter.submitList(rooms)}
+            )
+            adapter.submitList(roomHomeUnitListSorted)
         })
     }
 }

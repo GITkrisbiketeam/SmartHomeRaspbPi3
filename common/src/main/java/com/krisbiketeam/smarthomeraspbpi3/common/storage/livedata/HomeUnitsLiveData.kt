@@ -10,20 +10,20 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.*
 
 //TODO: We should somehow only register for units from given roomName if present
 class HomeUnitsLiveData(private val databaseReference: DatabaseReference, private val roomName: String? = null) :
-        LiveData<Pair<ChildEventType, HomeUnit<Any>>>() {
+        LiveData<Pair<ChildEventType, HomeUnit<Any?>>>() {
 
     private val unitsList: List<MyChildEventListener> = HOME_STORAGE_UNITS.map { MyChildEventListener(it) }
-    private val homeUnitsList: MutableMap<String, HomeUnit<out Any>> = mutableMapOf()
+    private val homeUnitsList: MutableMap<String, HomeUnit<out Any?>> = mutableMapOf()
 
-    private val typeIndicatorMap: HashMap<String, GenericTypeIndicator<out HomeUnit<out Any>>> = hashMapOf(
-            HOME_LIGHTS to object : GenericTypeIndicator<HomeUnit<LightType>>() {},
-            HOME_ACTUATORS to object : GenericTypeIndicator<HomeUnit<ActuatorType>>() {},
-            HOME_LIGHT_SWITCHES to object : GenericTypeIndicator<HomeUnit<LightSwitchType>>() {},
-            HOME_REED_SWITCHES to object : GenericTypeIndicator<HomeUnit<ReedSwitchType>>() {},
-            HOME_MOTIONS to object : GenericTypeIndicator<HomeUnit<MotionType>>() {},
-            HOME_TEMPERATURES to object : GenericTypeIndicator<HomeUnit<TemperatureType>>() {},
-            HOME_PRESSURES to object : GenericTypeIndicator<HomeUnit<PressureType>>() {},
-            HOME_BLINDS to object : GenericTypeIndicator<HomeUnit<BlindType>>() {}
+    private val typeIndicatorMap: HashMap<String, GenericTypeIndicator<out HomeUnit<out Any?>>> = hashMapOf(
+            HOME_LIGHTS to object : GenericTypeIndicator<HomeUnit<LightType?>>() {},
+            HOME_ACTUATORS to object : GenericTypeIndicator<HomeUnit<ActuatorType?>>() {},
+            HOME_LIGHT_SWITCHES to object : GenericTypeIndicator<HomeUnit<LightSwitchType?>>() {},
+            HOME_REED_SWITCHES to object : GenericTypeIndicator<HomeUnit<ReedSwitchType?>>() {},
+            HOME_MOTIONS to object : GenericTypeIndicator<HomeUnit<MotionType?>>() {},
+            HOME_TEMPERATURES to object : GenericTypeIndicator<HomeUnit<TemperatureType?>>() {},
+            HOME_PRESSURES to object : GenericTypeIndicator<HomeUnit<PressureType?>>() {},
+            HOME_BLINDS to object : GenericTypeIndicator<HomeUnit<BlindType?>>() {}
     )
 
     inner class MyChildEventListener(val childNode: String) : ChildEventListener {

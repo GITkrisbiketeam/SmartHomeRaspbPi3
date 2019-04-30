@@ -15,7 +15,7 @@ enum class SpinnerType {
     WITH_EMPTY
 }
 
-class SpinnerAdapter(context: Context, val type: SpinnerType, val entries: List<Any>) :
+class SpinnerAdapter(context: Context, val type: SpinnerType, entries: List<Any>) :
         ArrayAdapter<Any>(context, android.R.layout.simple_spinner_item, android.R.id.text1,
                 entries.toMutableList().apply {
                     when {

@@ -18,7 +18,7 @@ import org.koin.dsl.module.module
 
 val myModule: Module = module {
     viewModel { RoomListViewModel(FirebaseHomeInformationRepository) }
-    viewModel { NewRoomDialogViewModel(FirebaseHomeInformationRepository) }
+    viewModel { NewRoomDialogViewModel(androidApplication(), FirebaseHomeInformationRepository) }
     viewModel { (roomName: String) -> RoomDetailViewModel(FirebaseHomeInformationRepository, roomName) }
     viewModel { (roomName: String, homeUnitName: String, homeUnitType:String) -> HomeUnitDetailViewModel(FirebaseHomeInformationRepository, roomName, homeUnitName, homeUnitType) }
     viewModel { (taskName: String, homeUnitName: String, homeUnitType:String) -> UnitTaskViewModel(FirebaseHomeInformationRepository, taskName, homeUnitName, homeUnitType) }

@@ -26,12 +26,17 @@ interface HomeInformationRepository {
     /**
      *  Adds given @see[HomeUnit] to the log @see[NOTIFICATION_INFORMATION_BASE] list in DB
      */
-    fun notifyHomeUnitEvent(homeUnit: HomeUnit<out Any>)
+    fun notifyHomeUnitEvent(homeUnit: HomeUnit<out Any?>)
 
     /**
      *  Saves/updates given @see[Room] in DB
      */
-    fun saveRoom(room: Room)
+    fun saveRoom(room: Room): Task<Void>
+
+    /**
+     *  Deletes given @see[Room] from DB
+     */
+    fun deleteRoom(room: Room): Task<Void>
 
     /**
      *  Saves/updates given @see[HomeUnit] in DB
@@ -180,7 +185,7 @@ object FirebaseHomeInformationRepository : HomeInformationRepository {
         referenceHwError.child(hwUnitError.name).setValue(hwUnitError)
     }
 
-    override fun notifyHomeUnitEvent(homeUnit: HomeUnit<out Any>) {
+    override fun notifyHomeUnitEvent(homeUnit: HomeUnit<out Any?>) {
         referenceNotifications.push().setValue(homeUnit.makeNotification())
     }
 
@@ -194,8 +199,12 @@ object FirebaseHomeInformationRepository : HomeInformationRepository {
                 .child(token).setValue(true)
     }
 
-    override fun saveRoom(room: Room) {
-        referenceHome.child(HOME_ROOMS).child(room.name).setValue(room)
+    override fun saveRoom(room: Room): Task<Void> {
+        return referenceHome.child(HOME_ROOMS).child(room.name).setValue(room)
+    }
+
+    override fun deleteRoom(room: Room): Task<Void> {
+        return referenceHome.child(HOME_ROOMS).child(room.name).removeValue()
     }
 
     override fun <T> saveHomeUnit(homeUnit: HomeUnit<T>): Task<Void> {

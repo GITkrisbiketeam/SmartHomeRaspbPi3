@@ -131,6 +131,7 @@
 
     <string name="new_room_enter_title">Enter new room title:</string>
     <string name="new_room_name_already_used">This Room name is already used.</string>
+    <string name="new_room_empty_name">Room name cannot be empty</string>
 
 
 </resources>

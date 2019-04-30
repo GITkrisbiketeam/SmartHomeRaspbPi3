@@ -8,10 +8,6 @@
 
         <import type="java.lang.String" />
 
-        <import type="androidx.navigation.Navigation" />
-
-        <import type="com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitDetailFragmentDirections" />
-
         <variable
             name="viewModel"
             type="com.krisbiketeam.smarthomeraspbpi3.viewmodels.HomeUnitDetailViewModel" />
@@ -143,7 +139,7 @@
                         android:prompt="@string/add_edit_home_unit_text_room_spinner_prompt"
                         android:spinnerMode="dialog"
                         android:visibility="@{safeUnbox(viewModel.isEditMode) ? View.VISIBLE : View.GONE}"
-                        app:entries="@{viewModel.roomNameList}"
+                        app:entriesWithEmpty="@{viewModel.roomNameList}"
                         android:selectedItemPosition="@={viewModel.roomNameItemPosition}" />
 
                     <TextView

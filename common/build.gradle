@@ -32,14 +32,14 @@ android {
 }
 
 dependencies {
-    compileOnly "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
-    compileOnly "com.jakewharton.timber:timber:$timberVersion"
-    compileOnly 'androidx.lifecycle:lifecycle-extensions:2.1.0-alpha04'
+    implementation  "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
+    implementation  "com.jakewharton.timber:timber:$timberVersion"
+    implementation  "androidx.lifecycle:lifecycle-extensions:$androidxLifecycleExtensionsVersion"
 
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinxCoroutinesAndroid"
 
-    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    implementation 'androidx.appcompat:appcompat:1.1.0-alpha04'
+    implementation "androidx.legacy:legacy-support-v4:$androidxLegacySupportV4"
+    implementation "androidx.appcompat:appcompat:$androidxAppcompatVersion"
 
     implementation "com.google.firebase:firebase-core:$firebaseCoreVersion"
     implementation "com.google.firebase:firebase-database:$firebaseDatabaseVersion"
@@ -51,7 +51,7 @@ dependencies {
     implementation "com.squareup.moshi:moshi:$moshiVersion"
 
     implementation "com.google.android.things.contrib:driver-bmx280:$bmx280Version"
-    compileOnly "com.google.android.things:androidthings:$thingsVersion"
+    implementation "com.google.android.things:androidthings:$thingsVersion"
 
     testImplementation "junit:junit:$junitVersion"
     testImplementation 'com.google.android.things:androidthings:1.0'

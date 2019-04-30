@@ -25,7 +25,7 @@ class Home : Sensor.HwUnitListener<Any> {
 
     private var rooms: MutableMap<String, Room> = HashMap()
 
-    private val homeUnitList: MutableMap<String, HomeUnit<Any>> = HashMap()
+    private val homeUnitList: MutableMap<String, HomeUnit<Any?>> = HashMap()
 
     private val hardwareUnitList: MutableMap<String, BaseUnit<Any>> = HashMap()
 
@@ -138,7 +138,7 @@ class Home : Sensor.HwUnitListener<Any> {
         }
     }
 
-    private val homeUnitsDataObserver = Observer<Pair<ChildEventType, HomeUnit<Any>>> { pair ->
+    private val homeUnitsDataObserver = Observer<Pair<ChildEventType, HomeUnit<Any?>>> { pair ->
         Timber.d("homeUnitsDataObserver changed: $pair")
         pair?.let { (action, homeUnit) ->
             when (action) {
@@ -445,13 +445,13 @@ class Home : Sensor.HwUnitListener<Any> {
         rooms[room.name] = room*/
         var roomName = "New"
 
-        val temp = Temperature("Bathroom 1 Temp MCP9808", HOME_TEMPERATURES, roomName, BoardConfig.TEMP_SENSOR_MCP9808) as HomeUnit<Any>
+        val temp = Temperature("Bathroom 1 Temp MCP9808", HOME_TEMPERATURES, roomName, BoardConfig.TEMP_SENSOR_MCP9808) as HomeUnit<Any?>
         homeUnitList[temp.name] = temp
 
-        var reedSwitch = ReedSwitch("New Reed Switch", HOME_REED_SWITCHES, roomName, BoardConfig.IO_EXTENDER_MCP23017_NEW_IN_B0) as HomeUnit<Any>
+        var reedSwitch = ReedSwitch("New Reed Switch", HOME_REED_SWITCHES, roomName, BoardConfig.IO_EXTENDER_MCP23017_NEW_IN_B0) as HomeUnit<Any?>
         homeUnitList[reedSwitch.name] = reedSwitch
 
-        var light = Light("New Light", HOME_LIGHTS, roomName, BoardConfig.IO_EXTENDER_MCP23017_NEW_OUT_B7) as HomeUnit<Any>
+        var light = Light("New Light", HOME_LIGHTS, roomName, BoardConfig.IO_EXTENDER_MCP23017_NEW_OUT_B7) as HomeUnit<Any?>
         homeUnitList[light.name] = light
 
         var homeUnits = mutableMapOf<String, MutableList<String>>()
@@ -459,7 +459,7 @@ class Home : Sensor.HwUnitListener<Any> {
         homeUnits[HOME_TEMPERATURES] = mutableListOf(temp.name)
         homeUnits[HOME_REED_SWITCHES] = mutableListOf(reedSwitch.name)
 
-        var room = Room(roomName, 0, homeUnits)
+        var room = Room(roomName, 0)
         rooms[room.name] = room
     }
 
