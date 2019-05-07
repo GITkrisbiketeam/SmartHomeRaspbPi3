@@ -94,9 +94,9 @@ class RoomDetailFragment : Fragment() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         // If showing progress do not allow app bar actions
-        /*if (homeUnitDetailViewModel.showProgress.value == true) {
+        if (roomDetailViewModel.showProgress.value == true) {
             return false
-        }*/
+        }
         return when (item.itemId) {
             R.id.action_edit -> {
                 Timber.e("onOptionsItemSelected EDIT : ${roomDetailViewModel.isEditMode}")

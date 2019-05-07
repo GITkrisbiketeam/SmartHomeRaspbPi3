@@ -12,7 +12,6 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_LIG
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomDetailFragment
 import com.krisbiketeam.smarthomeraspbpi3.ui.UnitTaskFragment
 import timber.log.Timber
-import java.lang.Thread.sleep
 
 
 /**
@@ -261,7 +260,6 @@ class UnitTaskViewModel(
             showProgress.value = true
             homeRepository.deleteUnitTask(unitType, unitName, unit)
         }?.addOnCompleteListener {
-            sleep(1000)
             Timber.d("Task completed")
             showProgress.value = false
         }
@@ -281,7 +279,6 @@ class UnitTaskViewModel(
                 }
             }
         } ?: doSaveChanges()?.addOnCompleteListener {
-            sleep(1000)
             Timber.d("Task completed")
             showProgress.value = false
         }

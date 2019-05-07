@@ -36,7 +36,7 @@ interface HomeInformationRepository {
     /**
      *  Deletes given @see[Room] from DB
      */
-    fun deleteRoom(room: Room): Task<Void>
+    fun deleteRoom(roomName: String): Task<Void>
 
     /**
      *  Saves/updates given @see[HomeUnit] in DB
@@ -203,8 +203,8 @@ object FirebaseHomeInformationRepository : HomeInformationRepository {
         return referenceHome.child(HOME_ROOMS).child(room.name).setValue(room)
     }
 
-    override fun deleteRoom(room: Room): Task<Void> {
-        return referenceHome.child(HOME_ROOMS).child(room.name).removeValue()
+    override fun deleteRoom(roomName: String): Task<Void> {
+        return referenceHome.child(HOME_ROOMS).child(roomName).removeValue()
     }
 
     override fun <T> saveHomeUnit(homeUnit: HomeUnit<T>): Task<Void> {

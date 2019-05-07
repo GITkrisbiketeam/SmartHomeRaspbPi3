@@ -423,7 +423,6 @@ class AddEditHwUnitViewModel(
             showProgress.value = true
             homeRepository.deleteHardwareUnit(unit)
         }?.addOnCompleteListener {
-            Thread.sleep(1000)
             Timber.d("Task completed")
             showProgress.value = false
         }
@@ -443,7 +442,6 @@ class AddEditHwUnitViewModel(
                 }
             }
         } ?: doSaveChanges()?.addOnCompleteListener {
-            Thread.sleep(1000)
             Timber.d("Task completed")
             showProgress.value = false
         }

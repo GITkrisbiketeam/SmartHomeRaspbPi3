@@ -26,6 +26,7 @@ class RoomDetailViewModel(
     val isEditMode: MutableLiveData<Boolean> = MutableLiveData(false)
     val room = homeRepository.roomLiveData(roomName)
     val roomName = MutableLiveData<String>(roomName)
+    val showProgress = MutableLiveData<Boolean>(false)
 
     private val roomList = homeRepository.roomListLiveData()
     val homeUnitsMap = Transformations.switchMap(room) { room ->
@@ -71,7 +72,7 @@ class RoomDetailViewModel(
     }
     fun actionDeleteHomeUnit(): Task<Void> {
         Timber.d("deleteHomeUnit room.name: ${room.value?.name} ")
-        //showProgress.value = true
+        showProgress.value = true
         return homeUnitsMap.value?.values?.let { homeUnitList ->
             Tasks.whenAll(homeUnitList.map { homeUnit ->
                 homeUnit.run {
@@ -80,30 +81,35 @@ class RoomDetailViewModel(
                 }
             }).continueWithTask {
                 room.value?.let { room ->
-                    homeRepository.deleteRoom(room)
+                    homeRepository.deleteRoom(room.name)
                 } ?: it
             }.addOnCompleteListener {
-                Thread.sleep(1000)
                 Timber.d("Task completed")
-                //showProgress.value = false
+                showProgress.value = false
             }
-        } ?: Tasks.call { } as Task<Void>
+        } ?: Tasks.call { showProgress.value = false } as Task<Void>
     }
 
-    fun saveChanges(): Task<Unit> {
-        /*roomName.value?.let {newRoomName ->
-            room.value?.let {room ->
-                homeUnitsMap.value?.let {homeUnitsMap ->
-                    homeUnitsMap.values.filter {
-                        it.room != newRoomName
-                    }.forEach {
-                        it.room = newRoomName
-                        homeRepository.saveHomeUnit(it)
+    fun saveChanges(): Task<Void> {
+        showProgress.value = true
+        return roomName.value?.let { newRoomName ->
+            homeUnitsMap.value?.values?.let { homeUnitList ->
+                Tasks.whenAll(homeUnitList.map { homeUnit ->
+                    homeUnit.run {
+                        room = newRoomName
+                        homeRepository.saveHomeUnit(this)
                     }
+                }).continueWithTask {
+                    room.value?.let { room ->
+                        val oldRoomName = room.name
+                        homeRepository.saveRoom(room.apply { name = newRoomName })
+                                .continueWithTask { homeRepository.deleteRoom(oldRoomName) }
+                    } ?: it
+                }.addOnCompleteListener {
+                    Timber.d("Task completed")
+                    showProgress.value = false
                 }
-                homeRepository.saveRoom(room.apply { name = newRoomName })
-            } ?: homeRepository.saveRoom(Room(newRoomName))
-        }*/
-        return Tasks.call {}
+            }
+        }?: Tasks.call { showProgress.value = false } as Task<Void>
     }
 }

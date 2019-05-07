@@ -9,7 +9,6 @@ import com.krisbiketeam.smarthomeraspbpi3.adapters.UnitTaskListAdapter
 import com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitDetailFragment
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomDetailFragment
 import timber.log.Timber
-import java.lang.Thread.sleep
 
 
 /**
@@ -324,7 +323,6 @@ class HomeUnitDetailViewModel(
             showProgress.value = true
             homeRepository.deleteHomeUnit(unit)
         }?.addOnCompleteListener {
-            sleep(1000)
             Timber.d("Task completed")
             showProgress.value = false
         }
@@ -344,7 +342,6 @@ class HomeUnitDetailViewModel(
                 }
             }
         } ?: doSaveChanges()?.addOnCompleteListener {
-            sleep(1000)
             Timber.d("Task completed")
             showProgress.value = false
         }
