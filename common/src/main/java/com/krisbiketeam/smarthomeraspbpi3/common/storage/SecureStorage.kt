@@ -10,11 +10,14 @@ import kotlin.reflect.KProperty
 private const val SHARED_FILE = "androidThingsExample"
 private const val EMAIL_KEY = "secureEmailKey"
 private const val PASSWORD_KEY = "securePasswordKey"
+private const val HOME_NAME_KEY = "homeNameKey"
 
 interface SecureStorage {
     fun isAuthenticated(): Boolean
     var firebaseCredentials: FirebaseCredentials
     val firebaseCredentialsLiveData: LiveData<FirebaseCredentials>
+    var homeName: String
+    val homeNameLiveData: LiveData<String>
 }
 
 // Todo: implement a encrypted secure storage since this is not secure
@@ -22,6 +25,8 @@ class NotSecureStorage(context: Context) : SecureStorage {
     private val sharedPrefs = context.getSharedPreferences(SHARED_FILE, Context.MODE_PRIVATE)
 
     override var firebaseCredentials: FirebaseCredentials by sharedPrefs.firebaseCredentials()
+
+    override var homeName: String by sharedPrefs.homeName()
 
     override val firebaseCredentialsLiveData: LiveData<FirebaseCredentials> =
             object : LiveData<FirebaseCredentials>() {
@@ -33,6 +38,25 @@ class NotSecureStorage(context: Context) : SecureStorage {
                 override fun onActive() {
                     super.onActive()
                     value = firebaseCredentials
+                    sharedPrefs.registerOnSharedPreferenceChangeListener(preferenceChangeListener)
+                }
+
+                override fun onInactive() {
+                    sharedPrefs.unregisterOnSharedPreferenceChangeListener(preferenceChangeListener)
+                    super.onInactive()
+                }
+            }
+
+    override val homeNameLiveData: LiveData<String> =
+            object : LiveData<String>() {
+                private val preferenceChangeListener =
+                        SharedPreferences.OnSharedPreferenceChangeListener { _, _ ->
+                            value = homeName
+                        }
+
+                override fun onActive() {
+                    super.onActive()
+                    value = homeName
                     sharedPrefs.registerOnSharedPreferenceChangeListener(preferenceChangeListener)
                 }
 
@@ -57,6 +81,18 @@ class NotSecureStorage(context: Context) : SecureStorage {
             override fun setValue(thisRef: Any, property: KProperty<*>, value: FirebaseCredentials) {
                 edit().putString(EMAIL_KEY, value.email).apply()
                 edit().putString(PASSWORD_KEY, value.password).apply()
+            }
+        }
+    }
+
+    private fun SharedPreferences.homeName():
+            ReadWriteProperty<Any, String> {
+        return object : ReadWriteProperty<Any, String> {
+            override fun getValue(thisRef: Any, property: KProperty<*>) =
+                    getString(HOME_NAME_KEY, "") ?: ""
+
+            override fun setValue(thisRef: Any, property: KProperty<*>, value: String) {
+                edit().putString(HOME_NAME_KEY, value).apply()
             }
         }
     }

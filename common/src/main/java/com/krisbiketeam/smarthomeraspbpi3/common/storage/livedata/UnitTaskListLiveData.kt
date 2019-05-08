@@ -6,10 +6,11 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.ValueEventListener
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.UnitTask
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_UNIT_TASKS
 import timber.log.Timber
 
 
-class UnitTaskListLiveData(private val databaseReference: DatabaseReference, private val type: String, private val name: String) : LiveData<Map<String, UnitTask>>() {
+class UnitTaskListLiveData(private val databaseReference: DatabaseReference?, private val type: String, private val name: String) : LiveData<Map<String, UnitTask>>() {
 
     private val roomsListener: ValueEventListener = object: ValueEventListener {
         override fun onDataChange(dataSnapshot: DataSnapshot) {
@@ -33,11 +34,11 @@ class UnitTaskListLiveData(private val databaseReference: DatabaseReference, pri
 
     override fun onActive() {
         Timber.d("onActive")
-        databaseReference.child(type).child(name).child("unitsTasks").addValueEventListener(roomsListener)
+        databaseReference?.child(type)?.child(name)?.child(HOME_UNIT_TASKS)?.addValueEventListener(roomsListener)
     }
 
     override fun onInactive() {
         Timber.d("onInactive")
-        databaseReference.child(type).child(name).child("unitsTasks").removeEventListener(roomsListener)
+        databaseReference?.child(type)?.child(name)?.child(HOME_UNIT_TASKS)?.removeEventListener(roomsListener)
     }
 }

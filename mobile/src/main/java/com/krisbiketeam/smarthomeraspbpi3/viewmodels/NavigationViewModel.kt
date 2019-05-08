@@ -11,14 +11,22 @@ class NavigationViewModel(
 ) : ViewModel() {
 
     val user: LiveData<String>
+    val home: LiveData<String>
 
     init {
         Timber.d("init")
-        user = Transformations.map(secureStorage.firebaseCredentialsLiveData){
-            if(it.email.isEmpty()){
+        user = Transformations.map(secureStorage.firebaseCredentialsLiveData) {
+            if (it.email.isEmpty()) {
                 "Login to Firebase"
             } else {
                 it.email
+            }
+        }
+        home = Transformations.map(secureStorage.homeNameLiveData) {
+            if (it.isEmpty()) {
+                "Setup Home"
+            } else {
+                it
             }
         }
     }

@@ -10,7 +10,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.Room
 import timber.log.Timber
 
 
-class RoomListLiveData(private val databaseReference: DatabaseReference) : LiveData<List<Room>>() {
+class RoomListLiveData(private val databaseReference: DatabaseReference?) : LiveData<List<Room>>() {
 
     private val roomsListener: ValueEventListener = object: ValueEventListener {
         override fun onDataChange(dataSnapshot: DataSnapshot) {
@@ -34,11 +34,11 @@ class RoomListLiveData(private val databaseReference: DatabaseReference) : LiveD
 
     override fun onActive() {
         Timber.d("onActive")
-        databaseReference.child(HOME_ROOMS).addValueEventListener(roomsListener)
+        databaseReference?.child(HOME_ROOMS)?.addValueEventListener(roomsListener)
     }
 
     override fun onInactive() {
         Timber.d("onInactive")
-        databaseReference.child(HOME_ROOMS).removeEventListener(roomsListener)
+        databaseReference?.child(HOME_ROOMS)?.removeEventListener(roomsListener)
     }
 }

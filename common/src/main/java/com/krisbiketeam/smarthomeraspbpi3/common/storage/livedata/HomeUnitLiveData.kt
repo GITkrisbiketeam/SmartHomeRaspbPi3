@@ -7,7 +7,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.homeUnitTypeIndicat
 import timber.log.Timber
 
 
-class HomeUnitLiveData(private val databaseReference: DatabaseReference, private val type: String, private val name: String) : LiveData<HomeUnit<Any?>>() {
+class HomeUnitLiveData(private val databaseReference: DatabaseReference?, private val type: String, private val name: String) : LiveData<HomeUnit<Any?>>() {
     private val clazz = homeUnitTypeIndicatorMap[type]
     val typeIndicator  = object : GenericTypeIndicator<HomeUnit<Any?>>() {}
 
@@ -32,11 +32,11 @@ class HomeUnitLiveData(private val databaseReference: DatabaseReference, private
 
     override fun onActive() {
         Timber.d("onActive")
-        databaseReference.child(type).child(name).addValueEventListener(homeUnitListener)
+        databaseReference?.child(type)?.child(name)?.addValueEventListener(homeUnitListener)
     }
 
     override fun onInactive() {
         Timber.d("onInactive")
-        databaseReference.child(type).child(name).removeEventListener(homeUnitListener)
+        databaseReference?.child(type)?.child(name)?.removeEventListener(homeUnitListener)
     }
 }

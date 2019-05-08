@@ -103,7 +103,7 @@ class RoomDetailViewModel(
                     room.value?.let { room ->
                         val oldRoomName = room.name
                         homeRepository.saveRoom(room.apply { name = newRoomName })
-                                .continueWithTask { homeRepository.deleteRoom(oldRoomName) }
+                                ?.continueWithTask { homeRepository.deleteRoom(oldRoomName) }
                     } ?: it
                 }.addOnCompleteListener {
                     Timber.d("Task completed")

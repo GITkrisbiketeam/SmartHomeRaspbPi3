@@ -11,7 +11,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
 import timber.log.Timber
 
 
-class HwUnitsLiveData(private val databaseReference: DatabaseReference) : LiveData<Pair<ChildEventType,HwUnit>>() {
+class HwUnitsLiveData(private val databaseReference: DatabaseReference?) : LiveData<Pair<ChildEventType,HwUnit>>() {
 
     private val eventListener: MyChildEventListener = MyChildEventListener()
 
@@ -66,11 +66,11 @@ class HwUnitsLiveData(private val databaseReference: DatabaseReference) : LiveDa
 
     override fun onActive() {
         Timber.d("onActive")
-        databaseReference.child(HOME_HW_UNITS).addChildEventListener(eventListener)
+        databaseReference?.child(HOME_HW_UNITS)?.addChildEventListener(eventListener)
     }
 
     override fun onInactive() {
         Timber.d("onInactive")
-        databaseReference.child(HOME_HW_UNITS).removeEventListener(eventListener)
+        databaseReference?.child(HOME_HW_UNITS)?.removeEventListener(eventListener)
     }
 }

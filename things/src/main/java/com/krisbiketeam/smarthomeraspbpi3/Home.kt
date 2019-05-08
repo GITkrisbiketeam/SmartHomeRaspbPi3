@@ -240,9 +240,13 @@ class Home : Sensor.HwUnitListener<Any> {
                         Timber.w("NODE_ACTION_ADDED HwUnit already exist stop old one:")
                         hwUnitStop(it)
                     }
-                    createHwUnit(value)?.let {
-                        Timber.w("NODE_ACTION_ADDED HwUnit recreated connect and eventually listen to it")
-                        hwUnitStart(it)
+                    if (hwUnitErrorEventList.contains(value.name)) {
+                        Timber.w("NODE_ACTION_ADDED HwUnit is on HwErrorList do not add it")
+                    } else {
+                        createHwUnit(value)?.let {
+                            Timber.w("NODE_ACTION_ADDED HwUnit recreated connect and eventually listen to it")
+                            hwUnitStart(it)
+                        }
                     }
                 }
                 ChildEventType.NODE_ACTION_DELETED -> {

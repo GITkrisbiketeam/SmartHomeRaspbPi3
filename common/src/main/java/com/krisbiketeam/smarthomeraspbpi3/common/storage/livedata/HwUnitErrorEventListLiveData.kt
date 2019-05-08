@@ -6,7 +6,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnitLog
 import timber.log.Timber
 
 
-class HwUnitErrorEventListLiveData(private val databaseReference: DatabaseReference) : LiveData<List<HwUnitLog<Any>>>() {
+class HwUnitErrorEventListLiveData(private val databaseReference: DatabaseReference?) : LiveData<List<HwUnitLog<Any>>>() {
 
     private val typeIndicator  = object : GenericTypeIndicator<HwUnitLog<Any>>() {}
 
@@ -32,11 +32,11 @@ class HwUnitErrorEventListLiveData(private val databaseReference: DatabaseRefere
 
     override fun onActive() {
         Timber.d("onActive")
-        databaseReference.addValueEventListener(hwUnitsListener)
+        databaseReference?.addValueEventListener(hwUnitsListener)
     }
 
     override fun onInactive() {
         Timber.d("onInactive")
-        databaseReference.removeEventListener(hwUnitsListener)
+        databaseReference?.removeEventListener(hwUnitsListener)
     }
 }

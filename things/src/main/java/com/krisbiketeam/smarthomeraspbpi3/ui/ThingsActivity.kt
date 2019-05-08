@@ -21,6 +21,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnitLog
 import com.krisbiketeam.smarthomeraspbpi3.ui.setup.FirebaseCredentialsReceiverManager
+import com.krisbiketeam.smarthomeraspbpi3.ui.setup.HomeNameReceiverManager
 import com.krisbiketeam.smarthomeraspbpi3.ui.setup.WiFiCredentialsReceiverManager
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
 import com.krisbiketeam.smarthomeraspbpi3.units.hardware.HwUnitI2CPCF8574ATActuator
@@ -50,6 +51,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
 
     private var wiFiCredentialsReceiverManager: WiFiCredentialsReceiverManager? = null
     private var firebaseCredentialsReceiverManager: FirebaseCredentialsReceiverManager? = null
+    private var homeNameReceiverManager: HomeNameReceiverManager? = null
 
 
     private lateinit var mDriver: InputDriver
@@ -193,6 +195,13 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
             startFirebaseCredentialsReceiver()
         }
 
+        //TODO: temp solution
+        FirebaseHomeInformationRepository.setHomeReference("test home")
+        if (secureStorage.homeName.isEmpty()){
+            Timber.d("No Home Name defined, starting HomeNameReceiver")
+            startHomeNameReceiver()
+        }
+
         authentication = FirebaseAuthentication()
 
         home = Home()
@@ -213,6 +222,15 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
             }
         }
         firebaseCredentialsReceiverManager?.start()
+    }
+
+    private fun startHomeNameReceiver() {
+        if (homeNameReceiverManager == null) {
+            homeNameReceiverManager = HomeNameReceiverManager(this) {
+                setHomeName()
+            }
+        }
+        homeNameReceiverManager?.start()
     }
 
     override fun onStart() {
@@ -407,6 +425,12 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
         if (secureStorage.isAuthenticated()) {
             authentication.addLoginResultListener(loginResultListener)
             authentication.login(secureStorage.firebaseCredentials)
+        }
+    }
+
+    private fun setHomeName() {
+        if (secureStorage.homeName.isNotEmpty()) {
+            FirebaseHomeInformationRepository.setHomeReference(secureStorage.homeName)
         }
     }
 }

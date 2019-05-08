@@ -10,7 +10,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_HW_
 import timber.log.Timber
 
 
-class HwUnitLiveData(private val databaseReference: DatabaseReference, private val name: String) : LiveData<HwUnit>() {
+class HwUnitLiveData(private val databaseReference: DatabaseReference?, private val name: String) : LiveData<HwUnit>() {
 
     private val homeUnitListener: ValueEventListener = object : ValueEventListener {
         override fun onDataChange(dataSnapshot: DataSnapshot) {
@@ -28,11 +28,11 @@ class HwUnitLiveData(private val databaseReference: DatabaseReference, private v
 
     override fun onActive() {
         Timber.d("onActive")
-        databaseReference.child(HOME_HW_UNITS).child(name).addValueEventListener(homeUnitListener)
+        databaseReference?.child(HOME_HW_UNITS)?.child(name)?.addValueEventListener(homeUnitListener)
     }
 
     override fun onInactive() {
         Timber.d("onInactive")
-        databaseReference.child(HOME_HW_UNITS).child(name).removeEventListener(homeUnitListener)
+        databaseReference?.child(HOME_HW_UNITS)?.child(name)?.removeEventListener(homeUnitListener)
     }
 }

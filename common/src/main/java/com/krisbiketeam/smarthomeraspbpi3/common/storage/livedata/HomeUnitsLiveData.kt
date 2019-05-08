@@ -9,7 +9,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.ChildEventType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.*
 
 //TODO: We should somehow only register for units from given roomName if present
-class HomeUnitsLiveData(private val databaseReference: DatabaseReference, private val roomName: String? = null) :
+class HomeUnitsLiveData(private val databaseReference: DatabaseReference?, private val roomName: String? = null) :
         LiveData<Pair<ChildEventType, HomeUnit<Any?>>>() {
 
     private val unitsList: List<MyChildEventListener> = HOME_STORAGE_UNITS.map { MyChildEventListener(it) }
@@ -59,7 +59,7 @@ class HomeUnitsLiveData(private val databaseReference: DatabaseReference, privat
                     Timber.d("onChildChanged (roomName=$roomName)(unit.room=${it.room})")
                     if (roomName == null || roomName == it.room) {
                         //value = ChildEventType.NODE_ACTION_CHANGED to HomeUnit(it.name, it.type, it.room, it.hwUnitName, it.value, it.unitsTasks)
-                        value = if(homeUnitsList[it.name]?.room == roomName) {
+                        value = if (roomName == null || homeUnitsList[it.name]?.room == roomName) {
                             ChildEventType.NODE_ACTION_CHANGED to it.makeInvariant()
                         } else {
                             ChildEventType.NODE_ACTION_ADDED to it.makeInvariant()
@@ -113,11 +113,11 @@ class HomeUnitsLiveData(private val databaseReference: DatabaseReference, privat
 
     override fun onActive() {
         Timber.d("onActive")
-        unitsList.forEach { databaseReference.child(it.childNode).addChildEventListener(it) }
+        unitsList.forEach { databaseReference?.child(it.childNode)?.addChildEventListener(it) }
     }
 
     override fun onInactive() {
         Timber.d("onInactive")
-        unitsList.forEach { databaseReference.child(it.childNode).removeEventListener(it) }
+        unitsList.forEach { databaseReference?.child(it.childNode)?.removeEventListener(it) }
     }
 }
