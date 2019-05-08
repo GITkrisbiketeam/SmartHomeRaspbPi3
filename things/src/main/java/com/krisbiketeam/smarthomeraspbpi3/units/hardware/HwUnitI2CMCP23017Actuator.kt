@@ -52,7 +52,7 @@ class HwUnitI2CMCP23017Actuator(name: String,
         if (value is Boolean) {
             unitValue = value
             try{
-                (device as MCP23017).setState(ioPin,
+                (device as MCP23017?)?.setState(ioPin,
                     if (value) PinState.HIGH else PinState.LOW)
             } catch(e: Exception){
                 FirebaseHomeInformationRepository.addHwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, e.message, Date().toString()))

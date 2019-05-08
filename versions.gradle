@@ -1,5 +1,5 @@
 ext {
-    targetedSDK = 27
+    targetedSDK = 28
     compileWithSDK = 28
     minSdkVersionApp = 21
     minSdkVersionThings = 27

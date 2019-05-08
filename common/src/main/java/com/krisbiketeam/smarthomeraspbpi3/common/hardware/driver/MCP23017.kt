@@ -1,7 +1,6 @@
 package com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver
 
 import android.annotation.SuppressLint
-import androidx.annotation.VisibleForTesting
 import android.view.ViewConfiguration
 import com.google.android.things.pio.Gpio
 import com.google.android.things.pio.GpioCallback
@@ -59,8 +58,8 @@ private const val MIRROR_INT_A_INT_B = 0x40
 /**
  * Driver for the MCP23017 16 bit I/O Expander.
  */
-class MCP23017(bus: String? = null,
-               address: Int = DEFAULT_I2C_000_ADDRESS,
+class MCP23017(private val bus: String? = null,
+               private val address: Int = DEFAULT_I2C_000_ADDRESS,
                var intGpio: String? = null,
                private var pollingTime: Int = NO_POLLING_TIME,
                private val debounceDelay: Int = DEBOUNCE_DELAY) : AutoCloseable {
@@ -95,7 +94,6 @@ class MCP23017(bus: String? = null,
     private var currentPullupB = 0
     private var currentConf = 0
 
-    private var mDevice: I2cDevice? = null
     private var mGpioInt: Gpio? = null
 
     private val mListeners = HashMap<Pin, MutableList<MCP23017PinStateChangeListener>>()
@@ -128,7 +126,16 @@ class MCP23017(bus: String? = null,
     init {
         if (bus != null) {
             try {
-                connectI2c(PeripheralManager.getInstance()?.openI2cDevice(bus, address))
+                lockedI2cOperation {
+                    // read initial GPIO pin states
+                    val initCurrentStatesA = readRegister(it, REGISTER_GPIO_A) ?: -1
+                    val initCurrentStatesB = readRegister(it, REGISTER_GPIO_B) ?: -1
+
+                    val initCurrentConf = readRegister(it, REGISTER_IOCON) ?: -1
+
+                    Timber.d("connect initCurrentStatesA: $initCurrentStatesA initCurrentStatesB: $initCurrentStatesB initCurrentConf: $initCurrentConf")
+                    resetToDefaults(it)
+                }
             } catch (e: Exception) {
                 Timber.e(e,"init error connecting I2C")
                 close()
@@ -136,33 +143,25 @@ class MCP23017(bus: String? = null,
             }
         }
     }
-
-    @VisibleForTesting
-    internal constructor(device: I2cDevice) : this() {
-        mDevice = device
+    private fun lockedI2cOperation(block: (I2cDevice?) -> Unit) {
+        Timber.w("lockedI2cOperation")
+        synchronized(this) {
+            Timber.w("lockedI2cOperation synchronized")
+            PeripheralManager.getInstance()?.openI2cDevice(bus, address).use {
+                block(it)
+            }
+            Timber.w("lockedI2cOperation finished")
+        }
     }
-
-    @Throws(Exception::class)
-    private fun connectI2c(device: I2cDevice?) {
-        mDevice = device
-
-        // read initial GPIO pin states
-        currentStatesA = readRegister(REGISTER_GPIO_A) ?: -1
-        currentStatesB = readRegister(REGISTER_GPIO_B) ?: -1
-
-        currentConf = readRegister(REGISTER_IOCON) ?: -1
-
-        Timber.d("connect currentStatesA: $currentStatesA currentStatesB: $currentStatesB currentConf: $currentConf")
-        resetToDefaults()
-    }
-
     @Throws(Exception::class)
     private fun connectGpio() {
         if (intGpio != null && mGpioInt == null) {
             val manager = PeripheralManager.getInstance()
             //Mirror IntA and IntB pins to single Interrupt from either A or B ports
             currentConf = currentConf.or(MIRROR_INT_A_INT_B)
-            writeRegister(REGISTER_IOCON, currentConf)
+            lockedI2cOperation {
+                writeRegister(it, REGISTER_IOCON, currentConf)
+            }
             Timber.d("connectGpio currentConf: $currentConf")
 
             Timber.d("connectGpio intGpio openGpio $intGpio")
@@ -222,15 +221,6 @@ class MCP23017(bus: String? = null,
         // if a monitor is running, then shut it down now
         stopMonitor()
 
-        try {
-            mDevice?.close()
-        } catch (e: Exception){
-            Timber.e("close i2c exception: $e")
-            throw (Exception("Error closing MCP23017", e))
-        } finally {
-            mDevice = null
-        }
-
         mGpioInt?.unregisterGpioCallback(mIntCallback)
         try {
             mGpioInt?.close()
@@ -244,38 +234,38 @@ class MCP23017(bus: String? = null,
 
 
     @Throws(Exception::class)
-    private fun readRegister(reg: Int): Int? = mDevice?.readRegByte(reg)?.toInt()?.and(0xff)
+    private fun readRegister(i2cDevice: I2cDevice?, reg: Int): Int? = i2cDevice?.readRegByte(reg)?.toInt()?.and(0xff)
 
     @Throws(Exception::class)
-    private fun writeRegister(reg: Int, regVal: Int) = mDevice?.writeRegByte(reg, regVal.toByte())
+    private fun writeRegister(i2cDevice: I2cDevice?, reg: Int, regVal: Int) = i2cDevice?.writeRegByte(reg, regVal.toByte())
 
     @Throws(Exception::class)
-    private fun resetToDefaults() {
+    private fun resetToDefaults(i2cDevice: I2cDevice?) {
         // set all default pins directions
-        writeRegister(REGISTER_IODIR_A, 0)
-        writeRegister(REGISTER_IODIR_B, 0)
+        writeRegister(i2cDevice, REGISTER_IODIR_A, 0)
+        writeRegister(i2cDevice, REGISTER_IODIR_B, 0)
 
         // set all default pin interrupts
-        writeRegister(REGISTER_GPINTEN_A, 0)
-        writeRegister(REGISTER_GPINTEN_B, 0)
+        writeRegister(i2cDevice, REGISTER_GPINTEN_A, 0)
+        writeRegister(i2cDevice, REGISTER_GPINTEN_B, 0)
 
         // set all default pin interrupt default values
-        writeRegister(REGISTER_DEFVAL_A, 0)
-        writeRegister(REGISTER_DEFVAL_B, 0)
+        writeRegister(i2cDevice, REGISTER_DEFVAL_A, 0)
+        writeRegister(i2cDevice, REGISTER_DEFVAL_B, 0)
 
         // set all default pin interrupt comparison behaviors
-        writeRegister(REGISTER_INTCON_A, 0)
-        writeRegister(REGISTER_INTCON_B, 0)
+        writeRegister(i2cDevice, REGISTER_INTCON_A, 0)
+        writeRegister(i2cDevice, REGISTER_INTCON_B, 0)
 
         // set all default pin states
-        writeRegister(REGISTER_GPIO_A, 0)
-        writeRegister(REGISTER_GPIO_B, 0)
+        writeRegister(i2cDevice, REGISTER_GPIO_A, 0)
+        writeRegister(i2cDevice, REGISTER_GPIO_B, 0)
 
         // set all default pin pull up resistors
-        writeRegister(REGISTER_GPPU_A, 0)
-        writeRegister(REGISTER_GPPU_B, 0)
+        writeRegister(i2cDevice, REGISTER_GPPU_A, 0)
+        writeRegister(i2cDevice, REGISTER_GPPU_B, 0)
 
-        writeRegister(REGISTER_IOCON, 0)
+        writeRegister(i2cDevice, REGISTER_IOCON, 0)
     }
 
     // Set Input or output mode functions
@@ -312,11 +302,13 @@ class MCP23017(bus: String? = null,
         }
         Timber.d("setModeA currentDirectionA: $currentDirectionA")
 
-        // next update direction value
-        writeRegister(REGISTER_IODIR_A, currentDirectionA)
+        lockedI2cOperation {
+            // next update direction value
+            writeRegister(it, REGISTER_IODIR_A, currentDirectionA)
 
-        // enable interrupts; interrupt on any change from previous state
-        writeRegister(REGISTER_GPINTEN_A, currentDirectionA)
+            // enable interrupts; interrupt on any change from previous state
+            writeRegister(it, REGISTER_GPINTEN_A, currentDirectionA)
+        }
     }
 
     @Throws(Exception::class)
@@ -333,11 +325,13 @@ class MCP23017(bus: String? = null,
 
         Timber.d("setModeB currentDirectionB: $currentDirectionB")
 
-        // next update direction (mode) value
-        writeRegister(REGISTER_IODIR_B, currentDirectionB)
+        lockedI2cOperation {
+            // next update direction (mode) value
+            writeRegister(it, REGISTER_IODIR_B, currentDirectionB)
 
-        // enable interrupts; interrupt on any change from previous state
-        writeRegister(REGISTER_GPINTEN_B, currentDirectionB)
+            // enable interrupts; interrupt on any change from previous state
+            writeRegister(it, REGISTER_GPINTEN_B, currentDirectionB)
+        }
     }
 
     fun getMode(pin: Pin): PinMode {
@@ -378,8 +372,10 @@ class MCP23017(bus: String? = null,
             currentStatesA and pinAddress.inv()
         }
 
-        // update state value
-        writeRegister(REGISTER_GPIO_A, currentStatesA)
+        lockedI2cOperation {
+            // update state value
+            writeRegister(it, REGISTER_GPIO_A, currentStatesA)
+        }
     }
 
     @Throws(Exception::class)
@@ -394,8 +390,10 @@ class MCP23017(bus: String? = null,
             currentStatesB and pinAddress.inv()
         }
 
-        // update state value
-        writeRegister(REGISTER_GPIO_B, currentStatesB)
+        lockedI2cOperation {
+            // update state value
+            writeRegister(it, REGISTER_GPIO_B, currentStatesB)
+        }
     }
 
     // Get Input state functions
@@ -411,7 +409,9 @@ class MCP23017(bus: String? = null,
 
     @Throws(Exception::class)
     private fun getStateA(pin: Pin): PinState {
-        currentStatesA = readRegister(REGISTER_GPIO_A) ?: currentStatesA
+        lockedI2cOperation {
+            currentStatesA = readRegister(it, REGISTER_GPIO_A) ?: currentStatesA
+        }
 
         // determine pin address
         val pinAddress = pin.address - GPIO_A_OFFSET
@@ -423,7 +423,9 @@ class MCP23017(bus: String? = null,
 
     @Throws(Exception::class)
     private fun getStateB(pin: Pin): PinState {
-        currentStatesB = readRegister(REGISTER_GPIO_B) ?: currentStatesB
+        lockedI2cOperation {
+            currentStatesB = readRegister(it, REGISTER_GPIO_B) ?: currentStatesB
+        }
 
         // determine pin address
         val pinAddress = pin.address - GPIO_B_OFFSET
@@ -456,8 +458,10 @@ class MCP23017(bus: String? = null,
         }
         Timber.d("setPullResistanceA currentPullupA: $currentPullupA")
 
-        // next update pull up resistor value
-        writeRegister(REGISTER_GPPU_A, currentPullupA)
+        lockedI2cOperation {
+            // next update pull up resistor value
+            writeRegister(it, REGISTER_GPPU_A, currentPullupA)
+        }
     }
 
     @Throws(Exception::class)
@@ -473,8 +477,10 @@ class MCP23017(bus: String? = null,
         }
         Timber.d("setPullResistanceB currentPullupB: $currentPullupB")
 
-        // next update pull up resistor value
-        writeRegister(REGISTER_GPPU_B, currentPullupB)
+        lockedI2cOperation {
+            // next update pull up resistor value
+            writeRegister(it, REGISTER_GPPU_B, currentPullupB)
+        }
     }
 
     fun getPullResistance(pin: Pin): PinPullResistance {
@@ -514,50 +520,50 @@ class MCP23017(bus: String? = null,
     private fun checkInterrupt() {
         Timber.v("checkInterrupt")
 
-        // only process for interrupts if a pin on port A is configured as an
-        // input pin
-        if (currentDirectionA > 0) {
-            // process interrupts for port A
-            val pinInterruptA = readRegister(REGISTER_INTF_A) ?: -1
-            Timber.v("checkInterrupt pinInterruptA:$pinInterruptA")
-
-            // validate that there is at least one interrupt active on port A
-            if (pinInterruptA > 0) {
-                //TODO: We should think of reading INTCAP instead of GPIO to eliminate noise on
-                // input and not loose other interrupt while reading GPIO
-                // read the current pin states on port A
-                val pinInterruptCapState = readRegister(REGISTER_INTCAP_A)
-                Timber.v("checkInterrupt pinInterruptCapState:$pinInterruptCapState")
-                val pinInterruptRegState = readRegister(REGISTER_GPIO_A)
-                Timber.v("checkInterrupt pinInterruptRegState:$pinInterruptRegState")
-
-                // loop over the available pins on port B
-                for (pin in MCP23017Pin.ALL_A_PINS) {
-                    evaluatePinForChangeA(pin, pinInterruptRegState)
+        var pinInterruptRegStateA: Int? = null
+        var pinInterruptRegStateB: Int? = null
+        lockedI2cOperation {
+            // only process for interrupts if a pin on port A is configured as an
+            // input pin
+            if (currentDirectionA > 0) {
+                // process interrupts for port A
+                val pinInterruptA = readRegister(it, REGISTER_INTF_A) ?: -1
+                Timber.v("checkInterrupt pinInterruptA:$pinInterruptA")
+                // validate that there is at least one interrupt active on port A
+                if (pinInterruptA > 0) {
+                    //TODO: We should think of reading INTCAP instead of GPIO to eliminate noise on
+                    // input and not loose other interrupt while reading GPIO
+                    // read the current pin states on port A
+                    val pinInterruptCapStateA = readRegister(it, REGISTER_INTCAP_A)
+                    Timber.v("checkInterrupt pinInterruptCapStateA:$pinInterruptCapStateA")
+                    pinInterruptRegStateA = readRegister(it, REGISTER_GPIO_A)
+                    Timber.v("checkInterrupt pinInterruptRegStateA:$pinInterruptRegStateA")
+                }
+            }
+            // only process for interrupts if a pin on port B is configured as an
+            // input pin
+            if (currentDirectionB > 0) {
+                // process interrupts for port B
+                val pinInterruptB = readRegister(it, REGISTER_INTF_B) ?: -1
+                Timber.v("checkInterrupt pinInterruptB:$pinInterruptB")
+                // validate that there is at least one interrupt active on port B
+                if (pinInterruptB > 0) {
+                    // read the current pin states on port B
+                    val pinInterruptCapStateB = readRegister(it, REGISTER_INTCAP_B)
+                    Timber.v("checkInterrupt pinInterruptCapStateB:$pinInterruptCapStateB")
+                    pinInterruptRegStateB = readRegister(it, REGISTER_GPIO_B)
+                    Timber.v("checkInterrupt pinInterruptRegStateB:$pinInterruptRegStateB")
                 }
             }
         }
 
-        // only process for interrupts if a pin on port B is configured as an
-        // input pin
-        if (currentDirectionB > 0) {
-            // process interrupts for port B
-            val pinInterruptB = readRegister(REGISTER_INTF_B) ?: -1
-            Timber.v("checkInterrupt pinInterruptB:$pinInterruptB")
-
-            // validate that there is at least one interrupt active on port B
-            if (pinInterruptB > 0) {
-                // read the current pin states on port B
-                val pinInterruptCapState = readRegister(REGISTER_INTCAP_B)
-                Timber.v("checkInterrupt pinInterruptCapState:$pinInterruptCapState")
-                val pinInterruptRegState = readRegister(REGISTER_GPIO_B)
-                Timber.v("checkInterrupt pinInterruptRegState:$pinInterruptRegState")
-
-                // loop over the available pins on port B
-                for (pin in MCP23017Pin.ALL_B_PINS) {
-                    evaluatePinForChangeB(pin, pinInterruptRegState)
-                }
-            }
+        // loop over the available pins on port A
+        for (pin in MCP23017Pin.ALL_A_PINS) {
+            evaluatePinForChangeA(pin, pinInterruptRegStateA)
+        }
+        // loop over the available pins on port B
+        for (pin in MCP23017Pin.ALL_B_PINS) {
+            evaluatePinForChangeB(pin, pinInterruptRegStateB)
         }
     }
 
