@@ -29,7 +29,7 @@ class Home : Sensor.HwUnitListener<Any> {
 
     private val hardwareUnitList: MutableMap<String, BaseUnit<Any>> = HashMap()
 
-    private val hwUnitErrorEventList: MutableMap<String, Triple<String, Int, BaseUnit<Any>>> = HashMap()
+    private val hwUnitErrorEventList: MutableMap<String, Triple<String, Int, BaseUnit<Any>?>> = HashMap()
 
     private var booleanApplyFunction: HomeUnit<in Boolean>.(Any?) -> Unit = { newVal: Any? ->
         Timber.d("booleanApplyFunction newVal: $newVal this: $this")
@@ -221,7 +221,7 @@ class Home : Sensor.HwUnitListener<Any> {
             when (action) {
                 ChildEventType.NODE_ACTION_CHANGED -> {
                     hardwareUnitList[value.name]?.let {
-                        Timber.w("NODE_ACTION_CHANGEDHwUnit already exist stop existing one")
+                        Timber.w("NODE_ACTION_CHANGED HwUnit already exist stop existing one")
                         hwUnitStop(it)
                     }
                     if (hwUnitErrorEventList.contains(value.name)) {
@@ -242,9 +242,14 @@ class Home : Sensor.HwUnitListener<Any> {
                     }
                     if (hwUnitErrorEventList.contains(value.name)) {
                         Timber.w("NODE_ACTION_ADDED HwUnit is on HwErrorList do not add it")
+                        hwUnitErrorEventList.compute(value.name) { _, triple ->
+                            triple?.run {
+                                Triple(triple.first, triple.second, createHwUnit(value))
+                            }
+                        }
                     } else {
                         createHwUnit(value)?.let {
-                            Timber.w("NODE_ACTION_ADDED HwUnit recreated connect and eventually listen to it")
+                            Timber.w("NODE_ACTION_ADDED HwUnit connect and eventually listen to it")
                             hwUnitStart(it)
                         }
                     }
@@ -329,7 +334,7 @@ class Home : Sensor.HwUnitListener<Any> {
                     value?.run {
                         if (hwUnitErrorEvent.localtime != first){
                             val count = second.inc()
-                            if (count > 3) {
+                            if (count >= 3) {
                                 val result = hardwareUnitList.remove(key)
                                 result?.let {
                                     hwUnitStop(result)
@@ -340,15 +345,22 @@ class Home : Sensor.HwUnitListener<Any> {
                         } else {
                             value
                         }
-                    } ?: hardwareUnitList[hwUnitErrorEvent.name]?.let { hwUnit ->
-                        Triple(hwUnitErrorEvent.localtime, 0, hwUnit)
+                    } ?: run {
+                        Triple(hwUnitErrorEvent.localtime, 0, hardwareUnitList[hwUnitErrorEvent.name]?.also { _ ->
+                            // disable after first error
+                            val result = hardwareUnitList.remove(key)
+                            result?.let {
+                                hwUnitStop(result)
+                            }
+                            Timber.w("hwUnitErrorEventListDataObserver error from hwUnit: $key, remove it from hardwareUnitList result: ${result != null}")
+                        })
                     }
                 }
             }
         } else {
             val hwUnitRestoreList: MutableList<BaseUnit<Any>> = mutableListOf()
             hwUnitErrorEventList.values.forEach { (_, _, hwUnit) ->
-                hwUnitRestoreList.add(hwUnit)
+                hwUnit?.let { hwUnitRestoreList.add(hwUnit) }
             }
             hwUnitErrorEventList.clear()
             hwUnitRestoreList.forEach { hwUnit ->
