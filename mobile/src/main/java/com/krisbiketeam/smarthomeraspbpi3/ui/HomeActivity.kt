@@ -10,13 +10,17 @@ import androidx.navigation.ui.NavigationUI
 import androidx.navigation.ui.setupWithNavController
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.NotSecureStorage
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.databinding.ActivityHomeBinding
 import com.krisbiketeam.smarthomeraspbpi3.databinding.NavHeaderBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.NavigationViewModel
 import org.koin.android.viewmodel.ext.android.viewModel
+import timber.log.Timber
 
 class HomeActivity  : AppCompatActivity() {
     private lateinit var drawerLayout: DrawerLayout
+    private lateinit var secureStorage: SecureStorage
 
     private val navigationViewModel by viewModel<NavigationViewModel>()
 
@@ -43,8 +47,21 @@ class HomeActivity  : AppCompatActivity() {
         // Set up navigation menu
         binding.navigationView.setupWithNavController(navController)
 
+        secureStorage = NotSecureStorage(this)
+
         //TODO: temp solution
-        FirebaseHomeInformationRepository.setHomeReference("test home")
+        //FirebaseHomeInformationRepository.setHomeReference("test home")
+        if (secureStorage.homeName.isEmpty()){
+            Timber.d("No Home Name defined, starting HomeSettingsFragment")
+            navController.navigate(R.id.home_settings_fragment)
+        } else {
+            FirebaseHomeInformationRepository.setHomeReference(secureStorage.homeName)
+        }
+
+        if (!secureStorage.isAuthenticated()) {
+            Timber.d("No Home Name defined, starting HomeSettingsFragment")
+            navController.navigate(R.id.login_settings_fragment)
+        }
     }
 
     override fun onSupportNavigateUp(): Boolean {

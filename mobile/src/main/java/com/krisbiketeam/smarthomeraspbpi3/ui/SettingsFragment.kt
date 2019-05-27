@@ -32,6 +32,12 @@ class SettingsFragment : PreferenceFragmentCompat() {
                     Navigation.findNavController(it, R.id.home_nav_fragment).navigate(direction)
                     return true
                 }
+                getString(R.string.settings_home_fragment_key) -> {
+                    Timber.d("onPreferenceTreeClick go to HomeSettings")
+                    val direction = SettingsFragmentDirections.actionSettingsFragmentToHomeSettingsFragment()
+                    Navigation.findNavController(it, R.id.home_nav_fragment).navigate(direction)
+                    return true
+                }
                 getString(R.string.settings_hw_unit_list_fragment_key) -> {
                     Timber.d("onPreferenceTreeClick go to HwUnitList")
                     val direction = SettingsFragmentDirections.actionSettingsFragmentToHwUnitListFragment()

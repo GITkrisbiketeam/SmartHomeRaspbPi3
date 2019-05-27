@@ -13,6 +13,12 @@
         android:title="Login to Firebase" />
 
     <Preference
+        android:fragment="com.krisbiketeam.smarthomeraspbpi3.ui.HomeSettingsFragment"
+        android:key="@string/settings_home_fragment_key"
+        android:persistent="false"
+        android:title="Setup Home" />
+
+    <Preference
         android:fragment="com.krisbiketeam.smarthomeraspbpi3.ui.HwUnitListFragment"
         android:key="@string/settings_hw_unit_list_fragment_key"
         android:persistent="false"

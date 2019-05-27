@@ -45,10 +45,9 @@ class WiFiCredentialsReceiverManager(activity: Activity, networkConnectionMonito
             Timber.e("init savedNetwork ssid: ${it.SSID}")
         }
 
-        Timber.e("init isWifiConnectedVal: ${networkConnectionMonitor.isWifiConnectedVal}")
-        Timber.e("init isWifiConnected(): ${networkConnectionMonitor.isWifiConnected()}")
+        Timber.e("init isWifiConnected: ${networkConnectionMonitor.isWifiConnected}")
 
-        if (networkConnectionMonitor.isWifiConnected()) {
+        if (networkConnectionMonitor.isNetworkConnected) {
             Timber.d("init we are already connected")
         }
 

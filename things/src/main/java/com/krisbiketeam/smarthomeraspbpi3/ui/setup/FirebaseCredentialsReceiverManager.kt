@@ -8,6 +8,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.NotSecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import com.squareup.moshi.Moshi
 import timber.log.Timber
+import java.io.IOException
 
 
 class FirebaseCredentialsReceiverManager(activity: Activity, gotCredentials: () -> Unit) {
@@ -28,14 +29,20 @@ class FirebaseCredentialsReceiverManager(activity: Activity, gotCredentials: () 
     private val dataReceiverListener = object : NearbyService.DataReceiverListener {
         override fun onDataReceived(data: ByteArray?) {
             Timber.d("Received data: $data")
-            data?.run { val jsonString = String(data)
+            data?.run {
+                val jsonString = String(data)
                 Timber.d("Data as String $jsonString")
                 val adapter = moshi.adapter(FirebaseCredentials::class.java)
-                val credentials = adapter.fromJson(jsonString)
-                Timber.d("Data as credentials $credentials")
-                credentials?.run {
-                    secureStorage.firebaseCredentials = credentials
-                    gotCredentials()
+                val credentials: FirebaseCredentials?
+                try {
+                    credentials = adapter.fromJson(jsonString)
+                    Timber.d("Data as credentials $credentials")
+                    credentials?.run {
+                        secureStorage.firebaseCredentials = credentials
+                        gotCredentials()
+                    }
+                } catch (e: IOException) {
+                    Timber.d("Received Data could not be cast to FirebaseCredentials")
                 }
             }
         }

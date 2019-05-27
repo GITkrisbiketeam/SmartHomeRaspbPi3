@@ -7,9 +7,10 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.NotSecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import com.squareup.moshi.Moshi
 import timber.log.Timber
+import java.io.IOException
 
 
-class HomeNameReceiverManager(activity: Activity, gotCredentials: () -> Unit) {
+class HomeNameReceiverManager(activity: Activity, gotHomeName: () -> Unit) {
 
     private val moshi = Moshi.Builder().build()
     private var nearbyService: NearbyService
@@ -27,14 +28,20 @@ class HomeNameReceiverManager(activity: Activity, gotCredentials: () -> Unit) {
     private val dataReceiverListener = object : NearbyService.DataReceiverListener {
         override fun onDataReceived(data: ByteArray?) {
             Timber.d("Received data: $data")
-            data?.run { val jsonString = String(data)
+            data?.run {
+                val jsonString = String(data)
                 Timber.d("Data as String $jsonString")
                 val adapter = moshi.adapter(String::class.java)
-                val homeName = adapter.fromJson(jsonString)
-                Timber.d("Data as homeName $homeName")
-                homeName?.run {
-                    secureStorage.homeName = homeName
-                    gotCredentials()
+                val homeName: String?
+                try {
+                    homeName = adapter.fromJson(jsonString)
+                    Timber.d("Data as homeName $homeName")
+                    homeName?.run {
+                        secureStorage.homeName = homeName
+                        gotHomeName()
+                    }
+                } catch (e: IOException) {
+                    Timber.d("Received Data could not be cast to String")
                 }
             }
         }

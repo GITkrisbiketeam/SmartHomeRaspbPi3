@@ -202,6 +202,10 @@ class NearbyServiceProvider(private val context: Context, private val moshi: Mos
                 val adapter = moshi.adapter(FirebaseCredentials::class.java)
                 dataToBeSent = adapter.toJson(data)
             }
+            is String -> {
+                val adapter = moshi.adapter(String::class.java)
+                dataToBeSent = adapter.toJson(data)
+            }
         }
 
         startDiscovery()

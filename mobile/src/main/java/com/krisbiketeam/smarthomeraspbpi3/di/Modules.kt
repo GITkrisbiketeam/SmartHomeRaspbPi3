@@ -24,6 +24,7 @@ val myModule: Module = module {
     viewModel { (taskName: String, homeUnitName: String, homeUnitType:String) -> UnitTaskViewModel(FirebaseHomeInformationRepository, taskName, homeUnitName, homeUnitType) }
     viewModel { WifiSettingsViewModel(get()) }
     viewModel { LoginSettingsViewModel(get(), get()) }
+    viewModel { HomeSettingsViewModel(get()) }
     viewModel { NavigationViewModel(get()) }
     viewModel { (hwUnitName: String) -> AddEditHwUnitViewModel(FirebaseHomeInformationRepository, hwUnitName) }
     viewModel { HwUnitListViewModel(FirebaseHomeInformationRepository) }

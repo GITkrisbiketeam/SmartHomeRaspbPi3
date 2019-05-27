@@ -1,6 +1,8 @@
 package com.krisbiketeam.smarthomeraspbpi3.ui
 
+import android.app.Activity
 import android.content.Context
+import android.net.wifi.WifiConfiguration
 import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.view.KeyEvent
@@ -13,7 +15,11 @@ import com.krisbiketeam.smarthomeraspbpi3.Home
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.Authentication
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.FirebaseAuthentication
+import com.krisbiketeam.smarthomeraspbpi3.common.auth.FirebaseCredentials
+import com.krisbiketeam.smarthomeraspbpi3.common.auth.WifiCredentials
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig
+import com.krisbiketeam.smarthomeraspbpi3.common.nearby.NearbyService
+import com.krisbiketeam.smarthomeraspbpi3.common.nearby.NearbyServiceProvider
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.ConnectionType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.NotSecureStorage
@@ -27,12 +33,19 @@ import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
 import com.krisbiketeam.smarthomeraspbpi3.units.hardware.HwUnitI2CPCF8574ATActuator
 import com.krisbiketeam.smarthomeraspbpi3.units.hardware.HwUnitI2CPCF8574ATSensor
 import com.krisbiketeam.smarthomeraspbpi3.utils.ConsoleLoggerTree
+import com.squareup.moshi.Moshi
+import kotlinx.coroutines.*
 import timber.log.Timber
+import java.io.IOException
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.suspendCoroutine
 
 // Driver parameters
 private const val DRIVER_NAME = "PCF8574AT Button Driver"
 
-class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
+class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, CoroutineScope {
     private lateinit var authentication: Authentication
     private lateinit var secureStorage: SecureStorage
     private lateinit var networkConnectionMonitor: NetworkConnectionMonitor
@@ -55,6 +68,11 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
 
 
     private lateinit var mDriver: InputDriver
+
+    private lateinit var connectAndSetupJob: Job
+
+    override val coroutineContext: CoroutineContext
+        get() = Dispatchers.Main
 
     init {
         Timber.d("init")
@@ -164,12 +182,13 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
 
         secureStorage = NotSecureStorage(this)
 
+        authentication = FirebaseAuthentication()
+
         networkConnectionMonitor = NetworkConnectionMonitor(this)
 
         val wifiManager = getSystemService(Context.WIFI_SERVICE) as WifiManager
 
-        Timber.e("onCreate isNetworkConnectedVal: ${networkConnectionMonitor.isNetworkConnectedVal}")
-        Timber.e("onCreate isNetworkConnected(): ${networkConnectionMonitor.isNetworkConnected()}")
+        Timber.e("onCreate isNetworkConnected: ${networkConnectionMonitor.isNetworkConnected}")
 
         ledA.setValue(false)
         ledB.setValue(false)
@@ -177,35 +196,53 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
         led1.setValue(false)
         led2.setValue(false)
 
-        if (!networkConnectionMonitor.isNetworkConnected()) {
-            if (!wifiManager.isWifiEnabled) {
-                Timber.d("Wifi not enabled try enable it")
-                val enabled = wifiManager.setWifiEnabled(true)
-                Timber.d("Wifi enabled? $enabled")
-            }
-            Timber.d("Not connected to WiFi, starting WiFiCredentialsReceiver")
-
-            startWiFiCredentialsReceiver()
-        } else {
-            led1.setValue(true)
-        }
-
-        if (!secureStorage.isAuthenticated()) {
-            Timber.d("Not authenticated, starting FirebaseCredentialsReceiver")
-            startFirebaseCredentialsReceiver()
-        }
-
-        //TODO: temp solution
-        FirebaseHomeInformationRepository.setHomeReference("test home")
-        if (secureStorage.homeName.isEmpty()){
-            Timber.d("No Home Name defined, starting HomeNameReceiver")
-            startHomeNameReceiver()
-        }
-
-        authentication = FirebaseAuthentication()
-
-        home = Home()
+        //home = Home()
         //home.saveToRepository()
+
+        //FirebaseHomeInformationRepository.setHomeReference("test home")
+
+        connectAndSetupJob = launch{
+            if (networkConnectionMonitor.isNetworkConnected) {
+                led1.setValue(true)
+            } else {
+                if (!wifiManager.isWifiEnabled) {
+                    Timber.d("Wifi not enabled try enable it")
+                    val enabled = wifiManager.setWifiEnabled(true)
+                    Timber.d("Wifi enabled? $enabled")
+                }
+                Timber.d("Not connected to WiFi, starting WiFiCredentialsReceiver")
+                //startWiFiCredentialsReceiver()
+                waitForWifiCredentials(this@ThingsActivity)?.let {wifiCredentials ->
+                    addWiFi(wifiManager, wifiCredentials)
+                }
+            }
+
+            if (secureStorage.isAuthenticated()) {
+                Timber.d("Login Firebase:${secureStorage.firebaseCredentials.email}")
+                loginFirebase()
+            } else {
+                Timber.d("Not authenticated, starting FirebaseCredentialsReceiver")
+                //startFirebaseCredentialsReceiver()
+                waitForFirebaseCredentials(this@ThingsActivity)?.let {credentials ->
+                    secureStorage.firebaseCredentials = credentials
+                    loginFirebase()
+                } ?: Timber.e("Could not get FirebaseCredentials")
+            }
+
+            if (secureStorage.homeName.isNotEmpty()) {
+                Timber.d("Set Home Name:${secureStorage.homeName}")
+                FirebaseHomeInformationRepository.setHomeReference(secureStorage.homeName)
+            } else {
+                Timber.d("No Home Name defined, starting HomeNameReceiver")
+                //startHomeNameReceiver()
+                waitForHomeName(this@ThingsActivity)?.let {homeName ->
+                    secureStorage.homeName = homeName
+                    FirebaseHomeInformationRepository.setHomeReference(secureStorage.homeName)
+                } ?: Timber.e("Could not get HomeName")
+            }
+
+            Timber.d("connectAndSetupJob finished")
+        }
     }
 
     private fun startWiFiCredentialsReceiver() {
@@ -218,7 +255,11 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
     private fun startFirebaseCredentialsReceiver() {
         if (firebaseCredentialsReceiverManager == null) {
             firebaseCredentialsReceiverManager = FirebaseCredentialsReceiverManager(this) {
-                loginFirebase()
+                if (secureStorage.isAuthenticated()) {
+                    loginFirebase()
+                } else {
+                    Timber.e("startFirebaseCredentialsReceiver result still not authenticated")
+                }
             }
         }
         firebaseCredentialsReceiverManager?.start()
@@ -227,16 +268,121 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
     private fun startHomeNameReceiver() {
         if (homeNameReceiverManager == null) {
             homeNameReceiverManager = HomeNameReceiverManager(this) {
-                setHomeName()
+                if (secureStorage.homeName.isNotEmpty()) {
+                    FirebaseHomeInformationRepository.setHomeReference(secureStorage.homeName)
+                } else {
+                    Timber.e("startHomeNameReceiver result homeName still not setup")
+                }
             }
         }
         homeNameReceiverManager?.start()
     }
 
+    private suspend fun waitForWifiCredentials(activity: Activity): WifiCredentials? =
+            suspendCoroutine { cont ->
+                val moshi = Moshi.Builder().build()
+                val nearbyService = NearbyServiceProvider(activity, moshi)
+                if (!nearbyService.isActive()) {
+                    nearbyService.dataReceivedListener(object : NearbyService.DataReceiverListener {
+                        override fun onDataReceived(data: ByteArray?) {
+                            Timber.d("waitForWifiCredentials Received data: $data")
+                            data?.run {
+                                val jsonString = String(data)
+                                Timber.d("waitForWifiCredentials Data as String $jsonString")
+                                val adapter = moshi.adapter(WifiCredentials::class.java)
+                                val wifiCredentials: WifiCredentials?
+                                try {
+                                    wifiCredentials = adapter.fromJson(jsonString)
+                                    Timber.d("waitForWifiCredentials Data as wifiCredentials $wifiCredentials")
+                                    wifiCredentials?.run {
+                                        cont.resume(wifiCredentials)
+                                    }
+                                } catch (e: IOException) {
+                                    cont.resumeWithException(e)
+                                    Timber.d("waitForWifiCredentials Received Data could not be cast to WifiCredentials")
+                                } finally {
+                                    nearbyService.stop()
+                                }
+                            }
+                        }
+                    })
+                } else {
+                    Timber.d("waitForWifiCredentials start we are already listening for credentials")
+                    cont.resume(null)
+                }
+            }
+
+    private suspend fun waitForFirebaseCredentials(activity: Activity): FirebaseCredentials? =
+            suspendCoroutine { cont ->
+                val moshi = Moshi.Builder().build()
+                val nearbyService = NearbyServiceProvider(activity, moshi)
+                if (!nearbyService.isActive()) {
+                    nearbyService.dataReceivedListener(object : NearbyService.DataReceiverListener {
+                        override fun onDataReceived(data: ByteArray?) {
+                            Timber.d("waitForFirebaseCredentials Received data: $data")
+                            data?.run {
+                                val jsonString = String(data)
+                                Timber.d("waitForFirebaseCredentials Data as String $jsonString")
+                                val adapter = moshi.adapter(FirebaseCredentials::class.java)
+                                val credentials: FirebaseCredentials?
+                                try {
+                                    credentials = adapter.fromJson(jsonString)
+                                    Timber.d("waitForFirebaseCredentials Data as credentials $credentials")
+                                    credentials?.run {
+                                        cont.resume(credentials)
+                                    }
+                                } catch (e: IOException) {
+                                    cont.resumeWithException(e)
+                                    Timber.d("waitForFirebaseCredentials Received Data could not be cast to FirebaseCredentials")
+                                } finally {
+                                    nearbyService.stop()
+                                }
+                            }
+                        }
+                    })
+                } else {
+                    Timber.d("waitForFirebaseCredentials start we are already listening for credentials")
+                    cont.resume(null)
+                }
+            }
+
+    private suspend fun waitForHomeName(activity: Activity): String? =
+            suspendCoroutine { cont ->
+                val moshi = Moshi.Builder().build()
+                val nearbyService = NearbyServiceProvider(activity, moshi)
+                if (!nearbyService.isActive()) {
+                    nearbyService.dataReceivedListener(object : NearbyService.DataReceiverListener {
+                        override fun onDataReceived(data: ByteArray?) {
+                            Timber.d("waitForHomeName Received data: $data")
+                            data?.run {
+                                val jsonString = String(data)
+                                Timber.d("waitForHomeName Data as String $jsonString")
+                                val adapter = moshi.adapter(String::class.java)
+                                val homeName: String?
+                                try {
+                                    homeName = adapter.fromJson(jsonString)
+                                    Timber.d("waitForHomeName Data as homeName $homeName")
+                                    homeName?.run {
+                                        cont.resume(homeName)
+                                    }
+                                } catch (e: IOException) {
+                                    cont.resumeWithException(e)
+                                    Timber.d("waitForHomeName Received Data could not be cast to FirebaseCredentials")
+                                } finally {
+                                    nearbyService.stop()
+                                }
+                            }
+                        }
+                    })
+                } else {
+                    Timber.d("waitForHomeName start we are already listening for credentials")
+                    cont.resume(null)
+                }
+            }
+
     override fun onStart() {
         Timber.d("onStart")
         super.onStart()
-        loginFirebase()
 
         networkConnectionMonitor.startListen(networkConnectionListener)
 
@@ -244,7 +390,15 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
         buttonBInputDriver.registerListener(this)
         buttonCInputDriver.registerListener(this)
 
-        home.start()
+        launch {
+            connectAndSetupJob.join()
+            Timber.d("onStart home.start()")
+            home = Home()
+            home.start()
+        }
+        if(connectAndSetupJob.isCompleted){
+            home.start()
+        }
     }
 
     override fun onStop() {
@@ -256,7 +410,9 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
         buttonBInputDriver.unregisterListener()
         buttonCInputDriver.unregisterListener()
 
-        home.stop()
+        if(connectAndSetupJob.isCompleted){
+            home.stop()
+        }
         super.onStop()
     }
 
@@ -272,6 +428,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
         buttonBInputDriver.close()
         buttonCInputDriver.close()
         UserDriverManager.getInstance().unregisterInputDriver(mDriver)
+        connectAndSetupJob.cancel()
         super.onDestroy()
     }
 
@@ -422,15 +579,37 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
     }
 
     private fun loginFirebase() {
-        if (secureStorage.isAuthenticated()) {
-            authentication.addLoginResultListener(loginResultListener)
-            authentication.login(secureStorage.firebaseCredentials)
-        }
+        authentication.addLoginResultListener(loginResultListener)
+        authentication.login(secureStorage.firebaseCredentials)
     }
 
-    private fun setHomeName() {
-        if (secureStorage.homeName.isNotEmpty()) {
-            FirebaseHomeInformationRepository.setHomeReference(secureStorage.homeName)
+    private fun addWiFi(wifiManager: WifiManager, wifiCredentials: WifiCredentials) {
+
+        // only WPA is supported right now
+        val wifiConfiguration = WifiConfiguration()
+        wifiConfiguration.SSID = String.format("\"%s\"", wifiCredentials.ssid)
+        wifiConfiguration.preSharedKey = String.format("\"%s\"", wifiCredentials.password)
+
+        val existingConfig = wifiManager.configuredNetworks?.firstOrNull{ wifiConfiguration.SSID == it.SSID }
+        if (existingConfig != null) {
+            Timber.d("This WiFi was already added update it. Existing: $existingConfig new one: $wifiConfiguration")
+            existingConfig.preSharedKey = wifiConfiguration.preSharedKey
+            val networkId = wifiManager.updateNetwork(existingConfig)
+            if (networkId != -1) {
+                Timber.d("successful update wifiConfig")
+                wifiManager.enableNetwork(networkId, true)
+            } else {
+                Timber.w("error updating wifiConfig")
+            }
+        } else {
+            Timber.d("This adding new configuration $wifiConfiguration")
+            val networkId = wifiManager.addNetwork(wifiConfiguration)
+            if (networkId != -1) {
+                Timber.d("successful added wifiConfig")
+                wifiManager.enableNetwork(networkId, true)
+            } else {
+                Timber.w("error adding wifiConfig")
+            }
         }
     }
 }

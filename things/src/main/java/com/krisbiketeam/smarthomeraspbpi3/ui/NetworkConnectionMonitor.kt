@@ -25,12 +25,12 @@ class NetworkConnectionMonitor(activity: Activity) : ConnectivityManager.Network
     private var networkConnectionListener: NetworkConnectionListener? = null
 
     //TODO: will this work properly???
-    val isWifiConnectedVal get() = connectivityManager.
+    val isWifiConnected get() = connectivityManager.
             getNetworkCapabilities(connectivityManager.activeNetwork)?.
             hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true
 
     //TODO: will this work properly???
-    val isNetworkConnectedVal get() = connectivityManager.activeNetworkInfo?.isConnected ?: false
+    val isNetworkConnected get() = connectivityManager.activeNetworkInfo?.isConnected ?: false
 
     fun startListen(listener: NetworkConnectionListener) {
         networkConnectionListener = listener
@@ -40,17 +40,6 @@ class NetworkConnectionMonitor(activity: Activity) : ConnectivityManager.Network
     fun stopListen() {
         connectivityManager.unregisterNetworkCallback(this)
         networkConnectionListener = null
-    }
-
-    //TODO: see {@link isNetworkConnectedVal}
-    fun isNetworkConnected(): Boolean {
-        return connectivityManager.activeNetworkInfo?.isConnected ?: false
-    }
-
-    //TODO: see {@link isWifiConnectedVal}
-    fun isWifiConnected(): Boolean {
-        return connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
-                ?: false
     }
 
     override fun onUnavailable() {

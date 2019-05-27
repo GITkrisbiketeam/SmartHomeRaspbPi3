@@ -23,11 +23,13 @@
     <string name="settings_title">Settings</string>
     <string name="settings_wifi_fragment_key">wifi_screen_key</string>
     <string name="settings_login_fragment_key">login_screen_key</string>
+    <string name="settings_home_fragment_key">home_screen_key</string>
     <string name="settings_hw_unit_list_fragment_key">hw_unit_list_key</string>
     <string name="settings_hw_unit_error_event_list_fragment_key">hw_unit_error_event_list_key</string>
 
     <string name="settings_wifi_title">WiFi Connect</string>
     <string name="settings_login_title">Firebase Login</string>
+    <string name="settings_home_title">Setup Home</string>
     <string name="settings_login_remote_device_login_checkbox_text">Remote Device Login</string>
 
     <string name="navigation_drawer_header_content_description">navigation_drawer_header_content_description</string>
@@ -132,6 +134,9 @@
     <string name="new_room_enter_title">Enter new room title:</string>
     <string name="new_room_name_already_used">This Room name is already used.</string>
     <string name="new_room_empty_name">Room name cannot be empty</string>
+    <string name="home_name">Home name</string>
+    <string name="save_home_name">Save Home name</string>
+    <string name="cannot_setup_home_name">Could not setup remote Home Name</string>
 
 
 </resources>

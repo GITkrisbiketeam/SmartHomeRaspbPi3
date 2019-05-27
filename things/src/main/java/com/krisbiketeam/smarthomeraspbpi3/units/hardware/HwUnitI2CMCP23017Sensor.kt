@@ -64,7 +64,7 @@ open class HwUnitI2CMCP23017Sensor(name: String,
     override fun registerListener(listener: Sensor.HwUnitListener<Boolean>) {
         Timber.d("registerListener")
         hwUnitListener = listener
-        (device as MCP23017).run {
+        (device as MCP23017?)?.run {
             val result = registerPinListener(ioPin, mMCP23017Callback)
             Timber.d("registerListener registerPinListener?: $result")
         }
@@ -72,7 +72,7 @@ open class HwUnitI2CMCP23017Sensor(name: String,
 
     override fun unregisterListener() {
         Timber.d("unregisterListener")
-        (device as MCP23017).run {
+        (device as MCP23017?)?.run {
             val result = unRegisterPinListener(ioPin, mMCP23017Callback)
             Timber.d("registerListener unRegisterPinListener?: $result")
         }
@@ -80,7 +80,7 @@ open class HwUnitI2CMCP23017Sensor(name: String,
     }
 
     override fun readValue(): Boolean? {
-        unitValue = (device as MCP23017).run {
+        unitValue = (device as MCP23017?)?.run {
             getState(ioPin) == PinState.HIGH
         }
 
