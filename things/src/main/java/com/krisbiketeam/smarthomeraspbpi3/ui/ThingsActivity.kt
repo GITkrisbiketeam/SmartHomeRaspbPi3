@@ -26,9 +26,6 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.NotSecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnitLog
-import com.krisbiketeam.smarthomeraspbpi3.ui.setup.FirebaseCredentialsReceiverManager
-import com.krisbiketeam.smarthomeraspbpi3.ui.setup.HomeNameReceiverManager
-import com.krisbiketeam.smarthomeraspbpi3.ui.setup.WiFiCredentialsReceiverManager
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
 import com.krisbiketeam.smarthomeraspbpi3.units.hardware.HwUnitI2CPCF8574ATActuator
 import com.krisbiketeam.smarthomeraspbpi3.units.hardware.HwUnitI2CPCF8574ATSensor
@@ -40,15 +37,17 @@ import java.io.IOException
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
-import kotlin.coroutines.suspendCoroutine
 
 // Driver parameters
 private const val DRIVER_NAME = "PCF8574AT Button Driver"
+private const val NEARBY_TIMEOUT = 60000L        // 60 sec
+private const val NEARBY_BLINK_DELAY = 1000L        // 1 sec
 
 class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, CoroutineScope {
     private lateinit var authentication: Authentication
     private lateinit var secureStorage: SecureStorage
     private lateinit var networkConnectionMonitor: NetworkConnectionMonitor
+    private lateinit var wifiManager: WifiManager
 
     private lateinit var home: Home
     private val ledA: HwUnitI2CPCF8574ATActuator
@@ -62,14 +61,10 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
     private var buttonBInputDriver: HwUnitI2CPCF8574ATSensor
     private var buttonCInputDriver: HwUnitI2CPCF8574ATSensor
 
-    private var wiFiCredentialsReceiverManager: WiFiCredentialsReceiverManager? = null
-    private var firebaseCredentialsReceiverManager: FirebaseCredentialsReceiverManager? = null
-    private var homeNameReceiverManager: HomeNameReceiverManager? = null
-
 
     private lateinit var mDriver: InputDriver
 
-    private lateinit var connectAndSetupJob: Job
+    private var connectAndSetupJob: Job? = null
 
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Main
@@ -186,7 +181,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
 
         networkConnectionMonitor = NetworkConnectionMonitor(this)
 
-        val wifiManager = getSystemService(Context.WIFI_SERVICE) as WifiManager
+        wifiManager = getSystemService(Context.WIFI_SERVICE) as WifiManager
 
         Timber.e("onCreate isNetworkConnected: ${networkConnectionMonitor.isNetworkConnected}")
 
@@ -196,7 +191,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
         led1.setValue(false)
         led2.setValue(false)
 
-        //home = Home()
+        home = Home()
         //home.saveToRepository()
 
         //FirebaseHomeInformationRepository.setHomeReference("test home")
@@ -211,10 +206,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
                     Timber.d("Wifi enabled? $enabled")
                 }
                 Timber.d("Not connected to WiFi, starting WiFiCredentialsReceiver")
-                //startWiFiCredentialsReceiver()
-                waitForWifiCredentials(this@ThingsActivity)?.let {wifiCredentials ->
-                    addWiFi(wifiManager, wifiCredentials)
-                }
+                startWiFiCredentialsReceiver()
             }
 
             if (secureStorage.isAuthenticated()) {
@@ -222,11 +214,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
                 loginFirebase()
             } else {
                 Timber.d("Not authenticated, starting FirebaseCredentialsReceiver")
-                //startFirebaseCredentialsReceiver()
-                waitForFirebaseCredentials(this@ThingsActivity)?.let {credentials ->
-                    secureStorage.firebaseCredentials = credentials
-                    loginFirebase()
-                } ?: Timber.e("Could not get FirebaseCredentials")
+                startFirebaseCredentialsReceiver()
             }
 
             if (secureStorage.homeName.isNotEmpty()) {
@@ -234,52 +222,62 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
                 FirebaseHomeInformationRepository.setHomeReference(secureStorage.homeName)
             } else {
                 Timber.d("No Home Name defined, starting HomeNameReceiver")
-                //startHomeNameReceiver()
-                waitForHomeName(this@ThingsActivity)?.let {homeName ->
-                    secureStorage.homeName = homeName
-                    FirebaseHomeInformationRepository.setHomeReference(secureStorage.homeName)
-                } ?: Timber.e("Could not get HomeName")
+                startHomeNameReceiver()
             }
 
             Timber.d("connectAndSetupJob finished")
         }
     }
 
-    private fun startWiFiCredentialsReceiver() {
-        if (wiFiCredentialsReceiverManager == null) {
-            wiFiCredentialsReceiverManager = WiFiCredentialsReceiverManager(this, networkConnectionMonitor)
+    private suspend fun startWiFiCredentialsReceiver() {
+        val blinkJob = blinkLed(ledA, this)
+        try {
+            withTimeout(NEARBY_TIMEOUT) {
+                waitForWifiCredentials(this@ThingsActivity)?.let {wifiCredentials ->
+                    Timber.e("waitForWifiCredentials returned:$wifiCredentials")
+                    addWiFi(wifiManager, wifiCredentials)
+                } ?: Timber.e("Could not get WifiCredentials")
+            }
+        } finally {
+            Timber.e("waitForWifiCredentials timeout or finished")
+            blinkJob.cancelAndJoin()
         }
-        wiFiCredentialsReceiverManager?.start()
     }
 
-    private fun startFirebaseCredentialsReceiver() {
-        if (firebaseCredentialsReceiverManager == null) {
-            firebaseCredentialsReceiverManager = FirebaseCredentialsReceiverManager(this) {
-                if (secureStorage.isAuthenticated()) {
+    private suspend fun startFirebaseCredentialsReceiver() {
+        val blinkJob = blinkLed(ledB, this)
+        try {
+            withTimeout(NEARBY_TIMEOUT) {
+                waitForFirebaseCredentials(this@ThingsActivity)?.let {credentials ->
+                    Timber.e("waitForFirebaseCredentials returned:$credentials")
+                    secureStorage.firebaseCredentials = credentials
                     loginFirebase()
-                } else {
-                    Timber.e("startFirebaseCredentialsReceiver result still not authenticated")
-                }
+                } ?: Timber.e("Could not get FirebaseCredentials")
             }
+        } finally {
+            Timber.e("waitForFirebaseCredentials timeout or finished")
+            blinkJob.cancelAndJoin()
         }
-        firebaseCredentialsReceiverManager?.start()
     }
 
-    private fun startHomeNameReceiver() {
-        if (homeNameReceiverManager == null) {
-            homeNameReceiverManager = HomeNameReceiverManager(this) {
-                if (secureStorage.homeName.isNotEmpty()) {
+    private suspend fun startHomeNameReceiver() {
+        val blinkJob = blinkLed(ledC, this)
+        try {
+            withTimeout(NEARBY_TIMEOUT) {
+                waitForHomeName(this@ThingsActivity)?.let { homeName ->
+                    Timber.e("waitForHomeName returned:$homeName")
+                    secureStorage.homeName = homeName
                     FirebaseHomeInformationRepository.setHomeReference(secureStorage.homeName)
-                } else {
-                    Timber.e("startHomeNameReceiver result homeName still not setup")
-                }
+                } ?: Timber.e("Could not get HomeName")
             }
+        } finally {
+            Timber.e("waitForHomeName timeout or finished")
+            blinkJob.cancelAndJoin()
         }
-        homeNameReceiverManager?.start()
     }
 
     private suspend fun waitForWifiCredentials(activity: Activity): WifiCredentials? =
-            suspendCoroutine { cont ->
+            suspendCancellableCoroutine { cont ->
                 val moshi = Moshi.Builder().build()
                 val nearbyService = NearbyServiceProvider(activity, moshi)
                 if (!nearbyService.isActive()) {
@@ -310,10 +308,14 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
                     Timber.d("waitForWifiCredentials start we are already listening for credentials")
                     cont.resume(null)
                 }
+                cont.invokeOnCancellation {
+                    Timber.d("waitForWifiCredentials canceled")
+                    nearbyService.stop()
+                }
             }
 
     private suspend fun waitForFirebaseCredentials(activity: Activity): FirebaseCredentials? =
-            suspendCoroutine { cont ->
+            suspendCancellableCoroutine { cont ->
                 val moshi = Moshi.Builder().build()
                 val nearbyService = NearbyServiceProvider(activity, moshi)
                 if (!nearbyService.isActive()) {
@@ -344,10 +346,14 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
                     Timber.d("waitForFirebaseCredentials start we are already listening for credentials")
                     cont.resume(null)
                 }
+                cont.invokeOnCancellation {
+                    Timber.d("waitForFirebaseCredentials canceled")
+                    nearbyService.stop()
+                }
             }
 
     private suspend fun waitForHomeName(activity: Activity): String? =
-            suspendCoroutine { cont ->
+            suspendCancellableCoroutine  { cont ->
                 val moshi = Moshi.Builder().build()
                 val nearbyService = NearbyServiceProvider(activity, moshi)
                 if (!nearbyService.isActive()) {
@@ -378,6 +384,10 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
                     Timber.d("waitForHomeName start we are already listening for credentials")
                     cont.resume(null)
                 }
+                cont.invokeOnCancellation {
+                    Timber.d("waitForHomeName canceled")
+                    nearbyService.stop()
+                }
             }
 
     override fun onStart() {
@@ -390,14 +400,14 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
         buttonBInputDriver.registerListener(this)
         buttonCInputDriver.registerListener(this)
 
-        launch {
-            connectAndSetupJob.join()
-            Timber.d("onStart home.start()")
-            home = Home()
+        if (connectAndSetupJob?.isCompleted == true) {
             home.start()
-        }
-        if(connectAndSetupJob.isCompleted){
-            home.start()
+        } else {
+            launch {
+                connectAndSetupJob?.join()
+                Timber.d("onStart home.start()")
+                home.start()
+            }
         }
     }
 
@@ -410,9 +420,9 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
         buttonBInputDriver.unregisterListener()
         buttonCInputDriver.unregisterListener()
 
-        if(connectAndSetupJob.isCompleted){
-            home.stop()
-        }
+
+        connectAndSetupJob?.cancel()
+        home.stop()
         super.onStop()
     }
 
@@ -428,7 +438,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
         buttonBInputDriver.close()
         buttonCInputDriver.close()
         UserDriverManager.getInstance().unregisterInputDriver(mDriver)
-        connectAndSetupJob.cancel()
+        connectAndSetupJob?.cancel()
         super.onDestroy()
     }
 
@@ -489,8 +499,12 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
                     }
                     50 -> {
                         Timber.d("onKeyDown very long press")
-                        startWiFiCredentialsReceiver()
                         ledA.setValue(false)
+                        connectAndSetupJob?.cancel()
+                        connectAndSetupJob = launch {
+                            startWiFiCredentialsReceiver()
+                            Timber.e("startWiFiCredentialsReceiver finished")
+                        }
                         return true
                     }
                 }
@@ -513,8 +527,12 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
                     }
                     50 -> {
                         Timber.d("onKeyDown very long press")
-                        startFirebaseCredentialsReceiver()
                         ledB.setValue(false)
+                        connectAndSetupJob?.cancel()
+                        connectAndSetupJob = launch{
+                            startFirebaseCredentialsReceiver()
+                            Timber.e("startFirebaseCredentialsReceiver finished")
+                        }
                         return true
                     }
                 }
@@ -533,6 +551,18 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
                         ledC.setValue(true)
                         // start listen for LongKeyPress event
                         event.startTracking()
+                        return true
+                    }
+                    50 -> {
+                        Timber.d("onKeyDown very long press")
+                        ledC.setValue(false)
+                        connectAndSetupJob?.cancel()
+                        connectAndSetupJob = launch{
+                            home.stop()
+                            startHomeNameReceiver()
+                            home.start()
+                            Timber.e("startHomeNameReceiver finished")
+                        }
                         return true
                     }
                 }
@@ -610,6 +640,22 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
             } else {
                 Timber.w("error adding wifiConfig")
             }
+        }
+    }
+
+    private fun blinkLed(led: HwUnitI2CPCF8574ATActuator, scope: CoroutineScope): Job {
+        return scope.launch {
+            try {
+                repeat((NEARBY_TIMEOUT/NEARBY_BLINK_DELAY).toInt()) {
+                    Timber.d("blinkLed ${led.unitValue}")
+                    led.setValue(led.unitValue?.not() ?: false)
+                    delay(NEARBY_BLINK_DELAY)
+                }
+            } finally {
+                Timber.d("blinkLed canceled or finished")
+                led.setValue(false)
+            }
+
         }
     }
 }

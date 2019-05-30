@@ -7,6 +7,9 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.ChildEventType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.*
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.*
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.livedata.HomeUnitsLiveData
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.livedata.HwUnitErrorEventListLiveData
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.livedata.HwUnitsLiveData
 import com.krisbiketeam.smarthomeraspbpi3.units.Actuator
 import com.krisbiketeam.smarthomeraspbpi3.units.BaseUnit
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
@@ -17,11 +20,11 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 
 class Home : Sensor.HwUnitListener<Any> {
-    private var homeUnitsLiveData = FirebaseHomeInformationRepository.homeUnitsLiveData()
+    private var homeUnitsLiveData: HomeUnitsLiveData? = null
 
-    private var hwUnitsLiveData = FirebaseHomeInformationRepository.hwUnitsLiveData()
+    private var hwUnitsLiveData: HwUnitsLiveData? = null
 
-    private var hwUnitErrorEventListLiveData = FirebaseHomeInformationRepository.hwUnitErrorEventListLiveData()
+    private var hwUnitErrorEventListLiveData: HwUnitErrorEventListLiveData? = null
 
     private var rooms: MutableMap<String, Room> = HashMap()
 
@@ -99,16 +102,22 @@ class Home : Sensor.HwUnitListener<Any> {
 
     fun start() {
         Timber.e("start; hardwareUnitList.size: ${hardwareUnitList.size}")
-        homeUnitsLiveData.observeForever(homeUnitsDataObserver)
-        hwUnitsLiveData.observeForever(hwUnitsDataObserver)
-        hwUnitErrorEventListLiveData.observeForever(hwUnitErrorEventListDataObserver)
+        homeUnitsLiveData = FirebaseHomeInformationRepository.homeUnitsLiveData().apply {
+            observeForever(homeUnitsDataObserver)
+        }
+        hwUnitsLiveData = FirebaseHomeInformationRepository.hwUnitsLiveData().apply {
+            observeForever(hwUnitsDataObserver)
+        }
+        hwUnitErrorEventListLiveData = FirebaseHomeInformationRepository.hwUnitErrorEventListLiveData().apply {
+            observeForever(hwUnitErrorEventListDataObserver)
+        }
     }
 
     fun stop() {
         Timber.e("stop; hardwareUnitList.size: ${hardwareUnitList.size}")
-        homeUnitsLiveData.removeObserver(homeUnitsDataObserver)
-        hwUnitsLiveData.removeObserver(hwUnitsDataObserver)
-        hwUnitErrorEventListLiveData.removeObserver(hwUnitErrorEventListDataObserver)
+        homeUnitsLiveData?.removeObserver(homeUnitsDataObserver)
+        hwUnitsLiveData?.removeObserver(hwUnitsDataObserver)
+        hwUnitErrorEventListLiveData?.removeObserver(hwUnitErrorEventListDataObserver)
 
         hardwareUnitList.values.forEach(this::hwUnitStop)
     }
