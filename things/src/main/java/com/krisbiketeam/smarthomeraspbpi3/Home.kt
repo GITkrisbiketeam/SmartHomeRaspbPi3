@@ -128,12 +128,19 @@ class Home : Sensor.HwUnitListener<Any> {
         if (unit is Sensor) {
             GlobalScope.launch(Dispatchers.Default) {
                 val readVal = unit.readValue()
-                Timber.w("hwUnitStart $readVal ${unit.unitValue}")
+                Timber.w("hwUnitStart readVal:$readVal unit.unitValue:${unit.unitValue}")
                 unit.registerListener(this@Home)
                 hardwareUnitList[unit.hwUnit.name] = unit
+                onUnitChanged(unit.hwUnit, readVal, unit.valueUpdateTime)
             }
-        } else {
+        } else if (unit is Actuator){
             hardwareUnitList[unit.hwUnit.name] = unit
+            homeUnitList.values.filter {
+                it.hwUnitName == unit.hwUnit.name
+            }.forEach { homeUnit ->
+                Timber.d("hwUnitStart update value based on homeUnitValue, setValue value: ${homeUnit.value}")
+                unit.setValue(homeUnit.value)
+            }
         }
     }
 
@@ -203,7 +210,7 @@ class Home : Sensor.HwUnitListener<Any> {
                                 Timber.d("homeUnitsDataObserver NODE_ACTION_ADDED baseUnit setValue value: ${homeUnit.value}")
                                 baseUnit.setValue(homeUnit.value)
 
-                            } else if(baseUnit is Sensor){
+                            } else if (baseUnit is Sensor){
                                 homeUnit.value = baseUnit.unitValue
                                 FirebaseHomeInformationRepository.saveHomeUnit(homeUnit)
                             }

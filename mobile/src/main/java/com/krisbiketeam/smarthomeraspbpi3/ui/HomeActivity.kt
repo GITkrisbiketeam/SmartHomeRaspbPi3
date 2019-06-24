@@ -49,8 +49,6 @@ class HomeActivity  : AppCompatActivity() {
 
         secureStorage = NotSecureStorage(this)
 
-        //TODO: temp solution
-        //FirebaseHomeInformationRepository.setHomeReference("test home")
         if (secureStorage.homeName.isEmpty()){
             Timber.d("No Home Name defined, starting HomeSettingsFragment")
             navController.navigate(R.id.home_settings_fragment)
