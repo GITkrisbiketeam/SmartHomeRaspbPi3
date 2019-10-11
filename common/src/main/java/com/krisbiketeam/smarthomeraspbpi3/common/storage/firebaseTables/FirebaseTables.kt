@@ -19,6 +19,8 @@ const val HOME_MOTIONS = "motions"
 const val HOME_TEMPERATURES = "temperatures"
 const val HOME_PRESSURES = "pressures"
 const val HOME_BLINDS = "blinds"
+const val HOME_PREFERENCES = "preferences"
+
 
 const val HOME_UNIT_TASKS = "unitsTasks"
 

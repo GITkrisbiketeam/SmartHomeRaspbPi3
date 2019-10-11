@@ -134,7 +134,17 @@ interface HomeInformationRepository {
      */
     fun hwUnitErrorEventListLiveData(): HwUnitErrorEventListLiveData
 
-        /**
+    /**
+     *  Sets Firebase homePreference key/Value
+     */
+    fun setHomePreference(key: String, value: Any?)
+
+    /**
+     *  Gets Firebase homePreference Value for given key
+     */
+    fun getHomePreference(key: String) : DatabaseReference?
+
+    /**
      * Clear all Logs entries from DB
      */
     fun clearLog()
@@ -306,6 +316,15 @@ object FirebaseHomeInformationRepository : HomeInformationRepository {
 
     override fun hwUnitErrorEventListLiveData(): HwUnitErrorEventListLiveData {
         return hwUnitErrorEventListLiveData
+    }
+
+    override fun setHomePreference(key: String, value: Any?) {
+        referenceHome?.child(HOME_PREFERENCES)?.child(key)?.setValue(value)
+
+    }
+
+    override fun getHomePreference(key: String) : DatabaseReference? {
+        return referenceHome?.child(HOME_PREFERENCES)?.child(key)
     }
 
 }

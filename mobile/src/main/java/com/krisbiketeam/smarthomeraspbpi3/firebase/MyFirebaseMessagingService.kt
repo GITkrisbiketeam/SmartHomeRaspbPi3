@@ -55,7 +55,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
      * @param remoteMessage Object representing the message received from Firebase Cloud Messaging.
      */
     // [START receive_message]
-    override fun onMessageReceived(remoteMessage: RemoteMessage?) {
+    override fun onMessageReceived(remoteMessage: RemoteMessage) {
         // Not getting messages here? See why this may be: https://goo.gl/39bRNJ
         Timber.d("onMessageReceived message: $remoteMessage")
         // [START_EXCLUDE]
@@ -69,8 +69,8 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         // [END_EXCLUDE]
 
         // Check if message contains a data payload.
-        if (remoteMessage?.data?.size != 0) {
-            Timber.d("Message data payload: ${remoteMessage?.data}")
+        if (remoteMessage.data.isNotEmpty()) {
+            Timber.d("Message data payload: ${remoteMessage.data}")
 
             if (/* Check if data needs to be processed by long running job */ true) {
                 // For long-running tasks (10 seconds or more) use Firebase Job Dispatcher.
@@ -83,7 +83,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         }
 
         // Check if message contains a notification payload.
-        remoteMessage?.notification?.let {
+        remoteMessage.notification?.let {
             Timber.d("Message Notification Body: ${it.body}")
         }
 
@@ -96,12 +96,12 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
      * the previous token had been compromised. Note that this is called when the InstanceID token
      * is initially generated so this is where you would retrieve the token.
      */
-    override fun onNewToken(token: String?) {
+    override fun onNewToken(token: String) {
         Timber.d("onNewToken token: $token")
         // If you want to send messages to this application instance or
         // manage this apps subscriptions on the server side, send the
         // Instance ID token to your app server.
-        token?.let {
+        token.let {
             secureStorage.firebaseCredentials.email.let { email ->
                 if (email.isNotEmpty()) sendRegistrationToServer(email, token)
             }
@@ -109,7 +109,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     }
 
 
-    override fun onMessageSent(s: String?) {
+    override fun onMessageSent(s: String) {
         Timber.d("onMessageSent s: $s")
         super.onMessageSent(s)
     }
@@ -119,7 +119,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         super.onDeletedMessages()
     }
 
-    override fun onSendError(s: String?, exception: Exception?) {
+    override fun onSendError(s: String, exception: Exception) {
         Timber.d("onSendError s: $s, exception: $exception")
         super.onSendError(s, exception)
     }

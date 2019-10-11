@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
     <Preference
-        android:fragment="com.krisbiketeam.smarthomeraspbpi3.ui.WifiSettingsFragment"
-        android:key="@string/settings_wifi_fragment_key"
-        android:persistent="false"
-        android:title="Setup remote device WiFI" />
+        app:fragment="com.krisbiketeam.smarthomeraspbpi3.ui.WifiSettingsFragment"
+        app:key="@string/settings_wifi_fragment_key"
+        app:persistent="false"
+        app:title="Setup remote device WiFI" />
 
     <Preference
         android:fragment="com.krisbiketeam.smarthomeraspbpi3.ui.LoginSettingsFragment"
@@ -29,4 +30,11 @@
         android:key="@string/settings_hw_unit_error_event_list_fragment_key"
         android:persistent="false"
         android:title="@string/hw_unit_error_event_list_title" />
+
+    <SwitchPreferenceCompat
+        app:key="alarmEnabledKey"
+        app:title="Enable/Disable Alarm"
+        app:summaryOn="Alarm enabled"
+        app:summaryOff="Alarm disabled"/>
+
 </PreferenceScreen>

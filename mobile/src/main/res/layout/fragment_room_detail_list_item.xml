@@ -6,7 +6,6 @@
 
     <data>
         <import type="android.view.View" />
-        <import type="java.lang.Boolean" />
         <import type="com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.FirebaseTablesKt" />
         <import type="com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository" />
 

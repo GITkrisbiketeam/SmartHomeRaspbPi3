@@ -14,6 +14,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         // Load the preferences from an XML resource
         setPreferencesFromResource(R.xml.settings_fragment_preference, rootKey)
+        preferenceManager
     }
 
     override fun onPreferenceTreeClick(preference: Preference?): Boolean {

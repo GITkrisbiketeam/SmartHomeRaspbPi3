@@ -9,8 +9,6 @@
 
         <import type="android.text.TextUtils" />
 
-        <import type="java.lang.Long" />
-
         <import type="com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig" />
 
         <import type="com.krisbiketeam.smarthomeraspbpi3.common.storage.ConnectionType" />
@@ -104,7 +102,7 @@
                     android:layout_width="0dp"
                     android:layout_height="0dp"
                     android:visibility="@{TextUtils.isEmpty(viewModel.type) ? View.GONE : View.VISIBLE}"
-                    app:constraint_referenced_ids="hw_unit_name_title, hw_unit_name, hw_unit_location_title, hw_unit_location, hw_unit_pin_name_spinner_title, hw_unit_pin_name_spinner" />
+                    app:constraint_referenced_ids="hw_unit_name_title,hw_unit_name,hw_unit_location_title,hw_unit_location,hw_unit_pin_name_spinner_title,hw_unit_pin_name_spinner" />
 
                 <TextView
                     android:id="@+id/hw_unit_name_title"
@@ -171,7 +169,7 @@
                     android:layout_width="0dp"
                     android:layout_height="0dp"
                     android:visibility="@{viewModel.connectionType == ConnectionType.I2C ? View.VISIBLE : View.GONE}"
-                    app:constraint_referenced_ids="hw_unit_soft_address_spinner_title, hw_unit_soft_address_spinner" />
+                    app:constraint_referenced_ids="hw_unit_soft_address_spinner_title,hw_unit_soft_address_spinner" />
                 <TextView
                     android:id="@+id/hw_unit_soft_address_spinner_title"
                     android:layout_width="match_parent"
@@ -197,7 +195,7 @@
                     android:layout_width="0dp"
                     android:layout_height="0dp"
                     android:visibility="@{viewModel.type == BoardConfig.IO_EXTENDER_MCP23017_OUTPUT || viewModel.type == BoardConfig.IO_EXTENDER_MCP23017_INPUT ? View.VISIBLE : View.GONE}"
-                    app:constraint_referenced_ids="hw_unit_pin_extender_io_pin_spinner_title, hw_unit_pin_extender_io_pin_spinner" />
+                    app:constraint_referenced_ids="hw_unit_pin_extender_io_pin_spinner_title,hw_unit_pin_extender_io_pin_spinner" />
                 <TextView
                     android:id="@+id/hw_unit_pin_extender_io_pin_spinner_title"
                     android:layout_width="match_parent"
@@ -241,7 +239,7 @@
                     android:layout_width="0dp"
                     android:layout_height="0dp"
                     android:visibility="@{viewModel.softAddress == 0 || viewModel.type != BoardConfig.IO_EXTENDER_MCP23017_INPUT ? View.GONE : View.VISIBLE}"
-                    app:constraint_referenced_ids="hw_unit_pin_interrupt_spinner_title, hw_unit_pin_interrupt_spinner" />
+                    app:constraint_referenced_ids="hw_unit_pin_interrupt_spinner_title,hw_unit_pin_interrupt_spinner" />
                 <TextView
                     android:id="@+id/hw_unit_pin_interrupt_spinner_title"
                     android:layout_width="match_parent"
@@ -268,7 +266,7 @@
                     android:layout_width="0dp"
                     android:layout_height="0dp"
                     android:visibility="@{viewModel.type == BoardConfig.TEMP_SENSOR_MCP9808 || viewModel.type == BoardConfig.TEMP_SENSOR_TMP102 || viewModel.type == BoardConfig.TEMP_PRESS_SENSOR_BMP280 ? View.VISIBLE : View.GONE}"
-                    app:constraint_referenced_ids="hw_unit_sensor_refresh_rate_title, hw_unit_sensor_refresh_rate" />
+                    app:constraint_referenced_ids="hw_unit_sensor_refresh_rate_title,hw_unit_sensor_refresh_rate" />
 
                 <TextView
                     android:id="@+id/hw_unit_sensor_refresh_rate_title"

@@ -12,6 +12,7 @@ class NavigationViewModel(
 
     val user: LiveData<String>
     val home: LiveData<String>
+    val alarm: LiveData<String>
 
     init {
         Timber.d("init")
@@ -27,6 +28,13 @@ class NavigationViewModel(
                 "Setup Home"
             } else {
                 it
+            }
+        }
+        alarm = Transformations.map(secureStorage.alarmEnabledLiveData) {
+            if (it) {
+                "enabled"
+            } else {
+                "disabled"
             }
         }
     }
