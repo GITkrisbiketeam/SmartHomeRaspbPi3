@@ -67,13 +67,12 @@ class HwUnitI2CTempTMP102Sensor(name: String,
             // use block automatically closes resources referenced to tmp102
             val tmp102 = TMP102(pinName, softAddress)
             tmp102.shutdownMode = true
-            tmp102.use {
-                it.readOneShotTemperature {value ->
-                    unitValue = value
-                    valueUpdateTime = Date().toString()
-                    Timber.d("temperature:$unitValue")
-                    hwUnitListener?.onUnitChanged(hwUnit, unitValue, valueUpdateTime)
-                }
+            tmp102.readOneShotTemperature { value ->
+                unitValue = value
+                valueUpdateTime = Date().toString()
+                Timber.d("temperature:$unitValue")
+                hwUnitListener?.onUnitChanged(hwUnit, unitValue, valueUpdateTime)
+                tmp102.close()
             }
         } catch (e: Exception){
             FirebaseHomeInformationRepository.addHwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, e.message, Date().toString()))

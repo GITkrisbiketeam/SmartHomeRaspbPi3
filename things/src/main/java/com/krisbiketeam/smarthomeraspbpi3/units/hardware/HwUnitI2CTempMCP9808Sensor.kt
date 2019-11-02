@@ -67,13 +67,12 @@ class HwUnitI2CTempMCP9808Sensor(name: String,
             // use block automatically closes resources referenced to mcp9808
             val mcp9808 = MCP9808(pinName, softAddress)
             mcp9808.shutdownMode = true
-            mcp9808.use {
-                it.readOneShotTemperature {value ->
-                    unitValue = value
-                    valueUpdateTime = Date().toString()
-                    Timber.d("temperature:$unitValue")
-                    hwUnitListener?.onUnitChanged(hwUnit, unitValue, valueUpdateTime)
-                }
+            mcp9808.readOneShotTemperature { value ->
+                unitValue = value
+                valueUpdateTime = Date().toString()
+                Timber.d("temperature:$unitValue")
+                hwUnitListener?.onUnitChanged(hwUnit, unitValue, valueUpdateTime)
+                mcp9808.close()
             }
         } catch (e: Exception){
             FirebaseHomeInformationRepository.addHwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, e.message, Date().toString()))
