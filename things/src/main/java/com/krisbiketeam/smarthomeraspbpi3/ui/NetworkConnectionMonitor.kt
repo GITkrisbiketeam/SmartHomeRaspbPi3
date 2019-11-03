@@ -6,6 +6,7 @@ import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
+import timber.log.Timber
 
 interface NetworkConnectionListener {
     fun onNetworkAvailable(available: Boolean)
@@ -17,6 +18,8 @@ class NetworkConnectionMonitor(activity: Activity) : ConnectivityManager.Network
             .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
             .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
             .addTransportType(NetworkCapabilities.TRANSPORT_ETHERNET)
+            .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            .addCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
             .build()
 
     private val connectivityManager: ConnectivityManager =
@@ -24,13 +27,14 @@ class NetworkConnectionMonitor(activity: Activity) : ConnectivityManager.Network
 
     private var networkConnectionListener: NetworkConnectionListener? = null
 
-    //TODO: will this work properly???
-    val isWifiConnected get() = connectivityManager.
-            getNetworkCapabilities(connectivityManager.activeNetwork)?.
-            hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true
-
-    //TODO: will this work properly???
-    val isNetworkConnected get() = connectivityManager.activeNetworkInfo?.isConnected ?: false
+    val isNetworkConnected =
+            connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)?.run {
+                (hasTransport(NetworkCapabilities.TRANSPORT_WIFI) || hasTransport(
+                        NetworkCapabilities.TRANSPORT_CELLULAR) || hasTransport(
+                        NetworkCapabilities.TRANSPORT_ETHERNET)) && hasCapability(
+                        NetworkCapabilities.NET_CAPABILITY_INTERNET) && hasCapability(
+                        NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+            }?: false
 
     fun startListen(listener: NetworkConnectionListener) {
         networkConnectionListener = listener
@@ -42,11 +46,18 @@ class NetworkConnectionMonitor(activity: Activity) : ConnectivityManager.Network
         networkConnectionListener = null
     }
 
+    override fun onLost(network: Network?) {
+        Timber.e("onLost network: $network")
+        networkConnectionListener?.onNetworkAvailable(false)
+    }
+
     override fun onUnavailable() {
+        Timber.e("onUnavailable")
         networkConnectionListener?.onNetworkAvailable(false)
     }
 
     override fun onAvailable(network: Network?) {
+        Timber.v("onAvailable network: $network")
         networkConnectionListener?.onNetworkAvailable(true)
     }
 }

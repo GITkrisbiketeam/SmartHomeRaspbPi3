@@ -205,8 +205,13 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
                     val enabled = wifiManager.setWifiEnabled(true)
                     Timber.d("Wifi enabled? $enabled")
                 }
-                Timber.d("Not connected to WiFi, starting WiFiCredentialsReceiver")
-                startWiFiCredentialsReceiver()
+                waitForNetworkAvailable().let { connected ->
+                    Timber.e("WiFi is finally connected?: $connected")
+                    if (!connected) {
+                        Timber.d("Not connected to WiFi, starting WiFiCredentialsReceiver")
+                        startWiFiCredentialsReceiver()
+                    }
+                }
             }
 
             if (secureStorage.isAuthenticated()) {
@@ -251,7 +256,12 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
                 waitForFirebaseCredentials(this@ThingsActivity)?.let {credentials ->
                     Timber.e("waitForFirebaseCredentials returned:$credentials")
                     secureStorage.firebaseCredentials = credentials
-                    loginFirebase()
+                    waitForNetworkAvailable().let { connected ->
+                        Timber.e("waitForFirebaseCredentials connected:$connected")
+                        if (connected) {
+                            loginFirebase()
+                        }
+                    }
                 } ?: Timber.e("Could not get FirebaseCredentials")
             }
         } finally {
@@ -389,6 +399,21 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
                     nearbyService.stop()
                 }
             }
+
+    private suspend fun waitForNetworkAvailable(): Boolean = suspendCancellableCoroutine { connected ->
+        val netMonitor = NetworkConnectionMonitor(this)
+        netMonitor.startListen(object : NetworkConnectionListener {
+            override fun onNetworkAvailable(available: Boolean) {
+                Timber.w("waitForNetworkAvailable onNetworkAvailable $available")
+                netMonitor.stopListen()
+                connected.resume(available)
+            }
+        })
+        connected.invokeOnCancellation {
+            Timber.w("waitForNetworkAvailable canceled")
+            netMonitor.stopListen()
+        }
+    }
 
     override fun onStart() {
         Timber.d("onStart")
