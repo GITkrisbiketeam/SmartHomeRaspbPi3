@@ -46,7 +46,7 @@ class HwUnitI2CTempPressBMP280Sensor(name: String,
             // We could also check for true as suspending delay() method is cancellable
             while (isActive) {
                 readValue()
-                hwUnitListener?.onUnitChanged(hwUnit, unitValue, valueUpdateTime)
+                hwUnitListener?.onHwUnitChanged(hwUnit, unitValue, valueUpdateTime)
                 delay(refreshRate ?: REFRESH_RATE)
             }
         }

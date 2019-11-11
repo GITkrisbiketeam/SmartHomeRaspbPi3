@@ -28,7 +28,7 @@ open class HwUnitGpioSensor(name: String,
         override fun onGpioEdge(gpio: Gpio): Boolean {
             readValue(gpio)
             Timber.v("onGpioEdge gpio.readValue(): $hwUnit.value on: $hwUnit")
-            hwUnitListener?.onUnitChanged(hwUnit, unitValue, valueUpdateTime)
+            hwUnitListener?.onHwUnitChanged(hwUnit, unitValue, valueUpdateTime)
 
             // Continue listening for more interrupts
             return true

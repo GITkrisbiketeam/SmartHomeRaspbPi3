@@ -32,7 +32,7 @@ open class HwUnitI2CMCP23017Sensor(name: String,
             Timber.d("onPinStateChanged pin: ${pin.name} state: $state")
             unitValue = state == PinState.HIGH
             valueUpdateTime = Date().toString()
-            hwUnitListener?.onUnitChanged(hwUnit, unitValue, valueUpdateTime)
+            hwUnitListener?.onHwUnitChanged(hwUnit, unitValue, valueUpdateTime)
 
         }
     }

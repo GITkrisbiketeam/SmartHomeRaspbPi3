@@ -29,9 +29,7 @@ class HwUnitGpioNoiseSensor(name: String,
     internal// Clear any pending events
     var debounceDelay = ViewConfiguration.getTapTimeout().toLong()
         set(delay) {
-            if (delay < 0) {
-                throw IllegalArgumentException("Debounce delay cannot be negative.")
-            }
+            require(delay >= 0) { "Debounce delay cannot be negative." }
             removeDebounceCallback()
             field = delay
         }
@@ -73,7 +71,7 @@ class HwUnitGpioNoiseSensor(name: String,
         unitValue = event
         valueUpdateTime = Date().toString()
         Timber.d("performSensorEvent event: $event on: $hwUnit")
-        hwUnitListener?.onUnitChanged(hwUnit, unitValue, valueUpdateTime)
+        hwUnitListener?.onHwUnitChanged(hwUnit, unitValue, valueUpdateTime)
                 ?: Timber.w("listener not registered on: $hwUnit")
 
     }

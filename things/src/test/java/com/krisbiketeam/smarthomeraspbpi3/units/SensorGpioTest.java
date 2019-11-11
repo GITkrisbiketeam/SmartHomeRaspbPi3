@@ -87,9 +87,9 @@ public class SensorGpioTest {
 
         // Perform button events and check the listener is called
         gpio.performSensorEvent(Boolean.TRUE);
-        Mockito.verify(mockListener, times(1)).onUnitChanged(gpio, Boolean.TRUE);
+        Mockito.verify(mockListener, times(1)).onHwUnitChanged(gpio, Boolean.TRUE);
         gpio.performSensorEvent(Boolean.FALSE);
-        Mockito.verify(mockListener, times(1)).onUnitChanged(gpio, Boolean.FALSE);
+        Mockito.verify(mockListener, times(1)).onHwUnitChanged(gpio, Boolean.FALSE);
 
         // Remove listener
         gpio.unregisterListener();

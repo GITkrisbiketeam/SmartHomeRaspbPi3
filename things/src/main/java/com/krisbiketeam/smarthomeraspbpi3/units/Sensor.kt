@@ -19,6 +19,6 @@ interface Sensor<T> : BaseUnit<T> {
          *
          * @param hwUnit the HwUnitLog for which the event occurred
          */
-        fun onUnitChanged(hwUnit: HwUnit, unitValue: T?, updateTime: String)
+        fun onHwUnitChanged(hwUnit: HwUnit, unitValue: T?, updateTime: String)
     }
 }

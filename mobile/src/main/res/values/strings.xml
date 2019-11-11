@@ -137,6 +137,7 @@
     <string name="home_name">Home name</string>
     <string name="save_home_name">Save Home name</string>
     <string name="cannot_setup_home_name">Could not setup remote Home Name</string>
+    <string name="nav_header_alarm_state_title">Alarm state:</string>
 
 
 </resources>

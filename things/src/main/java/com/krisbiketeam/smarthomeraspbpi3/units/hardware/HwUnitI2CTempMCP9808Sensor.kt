@@ -71,7 +71,7 @@ class HwUnitI2CTempMCP9808Sensor(name: String,
                 unitValue = value
                 valueUpdateTime = Date().toString()
                 Timber.d("temperature:$unitValue")
-                hwUnitListener?.onUnitChanged(hwUnit, unitValue, valueUpdateTime)
+                hwUnitListener?.onHwUnitChanged(hwUnit, unitValue, valueUpdateTime)
                 mcp9808.close()
             }
         } catch (e: Exception){

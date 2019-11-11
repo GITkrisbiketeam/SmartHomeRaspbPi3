@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout
-    xmlns:android="http://schemas.android.com/apk/res/android">
+        xmlns:tools="http://schemas.android.com/tools"
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        >
 
     <data>
         <variable
@@ -8,42 +11,77 @@
             type="com.krisbiketeam.smarthomeraspbpi3.viewmodels.NavigationViewModel" />
     </data>
 
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/navigation_drawer_header_height"
-        android:background="?attr/colorPrimaryDark"
-        android:gravity="bottom"
-        android:orientation="vertical"
-        android:padding="@dimen/navigation_drawer_header_padding"
-        android:theme="@style/ThemeOverlay.AppCompat.Dark">
+    <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/colorPrimaryDark"
+            android:gravity="bottom"
+            android:padding="@dimen/navigation_drawer_header_padding"
+            android:theme="@style/ThemeOverlay.AppCompat.Dark"
+            >
 
         <!-- TODO: add actual logo once available -->
         <ImageView
-            android:layout_width="@dimen/navigation_drawer_image_width"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:src="@drawable/ic_launcher_foreground"
-            android:contentDescription="@string/navigation_drawer_header_content_description" />
+                android:id="@+id/imageView"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/navigation_drawer_image_width"
+                android:layout_gravity="center"
+                android:contentDescription="@string/navigation_drawer_header_content_description"
+                android:src="@drawable/ic_launcher_foreground"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                />
 
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="top|center_horizontal"
-            android:text="@{viewModel.home}"
-            android:textAppearance="@style/TextAppearance.AppCompat.Body1"/>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|end"
-            android:text="@{viewModel.alarm}"
-            android:textAppearance="@style/TextAppearance.AppCompat.Body1"/>
+                android:id="@+id/navHeaderHomeName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@{viewModel.home}"
+                android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/imageView"
+                tools:text="Home"
+                />
 
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|center_horizontal"
-            android:text="@{viewModel.user}"
-            android:textAppearance="@style/TextAppearance.AppCompat.Body1"/>
+                android:id="@+id/navHeaderUserName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@{viewModel.user}"
+                android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/navHeaderHomeName"
+                tools:text="User name"
+                />
 
-    </FrameLayout>
+        <TextView
+                android:id="@+id/navHeaderAlarmStateTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="8dp"
+                android:text="@string/nav_header_alarm_state_title"
+                android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+                app:layout_constraintEnd_toStartOf="@+id/navHeaderAlarmState"
+                app:layout_constraintHorizontal_chainStyle="packed"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/navHeaderUserName"
+                />
+
+        <TextView
+                android:id="@+id/navHeaderAlarmState"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@{viewModel.alarm}"
+                android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/navHeaderAlarmStateTitle"
+                app:layout_constraintTop_toTopOf="@+id/navHeaderAlarmStateTitle"
+                tools:text="enabled"
+                />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

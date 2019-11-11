@@ -191,7 +191,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
         led1.setValue(false)
         led2.setValue(false)
 
-        home = Home()
+        home = Home(secureStorage)
         //home.saveToRepository()
 
         //FirebaseHomeInformationRepository.setHomeReference("test home")
@@ -467,8 +467,8 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
         super.onDestroy()
     }
 
-    override fun onUnitChanged(hwUnit: HwUnit, unitValue: Boolean?, updateTime: String) {
-        Timber.d("onUnitChanged hwUnit: $hwUnit ; unitValue: $unitValue ; updateTime: $updateTime")
+    override fun onHwUnitChanged(hwUnit: HwUnit, unitValue: Boolean?, updateTime: String) {
+        Timber.d("onHwUnitChanged hwUnit: $hwUnit ; unitValue: $unitValue ; updateTime: $updateTime")
         unitValue?.let {
 
             val keyCode = when(hwUnit.ioPin){
