@@ -1,28 +1,35 @@
 package com.krisbiketeam.smarthomeraspbpi3.ui
 
-import androidx.lifecycle.Observer
-import androidx.databinding.DataBindingUtil
-import androidx.databinding.OnRebindCallback
-import androidx.databinding.ViewDataBinding
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.wifi.WifiManager
 import android.os.Bundle
-import androidx.transition.TransitionManager
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.widget.TextView
+import androidx.databinding.DataBindingUtil
+import androidx.databinding.OnRebindCallback
+import androidx.databinding.ViewDataBinding
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
 import androidx.navigation.Navigation
+import androidx.transition.TransitionManager
+import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.MyLiveDataState
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.WifiCredentials
-import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentSettingsWifiBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.WifiSettingsViewModel
 import org.koin.android.viewmodel.ext.android.viewModel
+import org.koin.core.parameter.parametersOf
 import timber.log.Timber
 
 class WifiSettingsFragment : Fragment() {
-    private val wifiSettingsViewModel by viewModel<WifiSettingsViewModel>()
+    private val wifiSettingsViewModel by viewModel<WifiSettingsViewModel> {
+        parametersOf(context?.getSystemService(Context.WIFI_SERVICE) as WifiManager,
+                     context?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager)
+    }
 
     private lateinit var binding: FragmentSettingsWifiBinding
 
@@ -43,6 +50,9 @@ class WifiSettingsFragment : Fragment() {
                 }
                 false
             })
+            wifiSettingsViewModel.password.observe(viewLifecycleOwner, Observer {
+                binding.passwordLayout.error = null
+            })
 
             wifiConnectButton.setOnClickListener { attemptRemoteConnect() }
 
@@ -57,8 +67,10 @@ class WifiSettingsFragment : Fragment() {
                 }
             })
 
-            setLifecycleOwner(this@WifiSettingsFragment)
+            lifecycleOwner = this@WifiSettingsFragment
         }
+
+
 
         wifiSettingsViewModel.nearByState.observe(viewLifecycleOwner, Observer { pair ->
             pair?.let { (state, data) ->
@@ -68,7 +80,7 @@ class WifiSettingsFragment : Fragment() {
                         if (data is Exception) {
                             Timber.e(data, "Request failed")
                         }
-                        binding.password.error = getString(R.string.error_incorrect_password)
+                        binding.passwordLayout.error = getString(R.string.error_incorrect_password)
                         binding.password.requestFocus()
                     }
 
@@ -91,7 +103,7 @@ class WifiSettingsFragment : Fragment() {
 
     private fun attemptRemoteConnect() {
         binding.ssid.error = null
-        binding.password.error = null
+        binding.passwordLayout.error = null
 
         val ssidStr = binding.ssid.text.toString()
         val passwordStr = binding.password.text.toString()
@@ -100,7 +112,7 @@ class WifiSettingsFragment : Fragment() {
         var focusView: View? = null
 
         if (!isPasswordValid(passwordStr)) {
-            binding.password.error = getString(R.string.error_invalid_password)
+            binding.passwordLayout.error = getString(R.string.error_invalid_password)
             focusView = binding.password
             cancel = true
         }

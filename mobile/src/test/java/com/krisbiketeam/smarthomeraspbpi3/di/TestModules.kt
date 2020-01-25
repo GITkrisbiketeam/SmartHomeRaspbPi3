@@ -1,5 +1,7 @@
 package com.krisbiketeam.smarthomeraspbpi3.di
 
+import android.net.ConnectivityManager
+import android.net.wifi.WifiManager
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.Authentication
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.AuthenticationLiveData
 import com.krisbiketeam.smarthomeraspbpi3.common.nearby.NearbyService
@@ -11,7 +13,7 @@ import org.koin.dsl.module.module
 import org.mockito.Mockito.mock
 
 val testModule = module {
-    viewModel { WifiSettingsViewModel(get()) }
+    viewModel { WifiSettingsViewModel(get(), mock(WifiManager::class.java), mock(ConnectivityManager::class.java)) }
     single { NearbyServiceLiveData(mock(NearbyService::class.java)) }
 
     viewModel { LoginSettingsViewModel(get(), get()) }

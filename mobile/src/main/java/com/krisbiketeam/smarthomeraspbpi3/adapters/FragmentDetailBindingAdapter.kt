@@ -2,14 +2,20 @@ package com.krisbiketeam.smarthomeraspbpi3.adapters
 
 import android.text.TextUtils
 import android.view.View
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.ListView
 import android.widget.ProgressBar
 import androidx.appcompat.widget.AppCompatSpinner
 import androidx.appcompat.widget.SwitchCompat
 import androidx.constraintlayout.widget.Group
 import androidx.databinding.BindingAdapter
+import androidx.databinding.InverseBindingAdapter
+import androidx.databinding.InverseBindingListener
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.textview.MaterialAutoCompleteTextView
 import com.krisbiketeam.smarthomeraspbpi3.common.MyLiveDataState
 import timber.log.Timber
 
@@ -62,10 +68,7 @@ fun bindEntriesData(spinner: AppCompatSpinner, entries: List<Any>?) {
     // This is for dynamic entries list, like form ViewModel LiveData
     Timber.d("bindEntriesData entries: $entries tag: ${spinner.tag}")
     if (entries != null) {
-        spinner.apply {
-            val spinAdapter = SpinnerAdapter(spinner.context, SpinnerType.DEFAULT, entries)
-            adapter = spinAdapter
-        }
+        spinner.adapter = SpinnerAdapter(spinner.context, SpinnerType.DEFAULT, entries)
     }
 }
 
@@ -74,10 +77,7 @@ fun bindEntriesUsedData(spinner: AppCompatSpinner, entries: List<Pair<String, Bo
     // This is for dynamic entries list, like form ViewModel LiveData
     Timber.d("bindEntriesUsedData entries: $entries tag: ${spinner.tag}")
     if (entries != null) {
-        spinner.apply {
-            val spinAdapter = SpinnerAdapter(spinner.context, SpinnerType.ENTRIES_USED, entries)
-            adapter = spinAdapter
-        }
+        spinner.adapter = SpinnerAdapter(spinner.context, SpinnerType.ENTRIES_USED, entries)
     }
 }
 
@@ -86,10 +86,48 @@ fun bindEntriesWithEmptyData(spinner: AppCompatSpinner, entries: List<Any>?) {
     // This is for dynamic entries list, like form ViewModel LiveData
     Timber.d("bindEntriesWithEmptyData entries: $entries tag: ${spinner.tag}")
     if (entries != null) {
-        spinner.apply {
-            val spinAdapter = SpinnerAdapter(spinner.context, SpinnerType.WITH_EMPTY, entries)
-            adapter = spinAdapter
+        spinner.adapter = SpinnerAdapter(spinner.context, SpinnerType.WITH_EMPTY, entries)
+    }
+}
+
+@BindingAdapter("valueAttrChanged")
+fun MaterialAutoCompleteTextView.setListener(listener: InverseBindingListener?) {
+    this.onItemSelectedListener = if (listener != null) {
+        object : AdapterView.OnItemSelectedListener {
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+                listener.onChange()
+            }
+
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                listener.onChange()
+            }
         }
+    } else {
+        null
+    }
+}
+
+
+@get:InverseBindingAdapter(attribute = "value")
+@set:BindingAdapter("value")
+var MaterialAutoCompleteTextView.selectedValue: Any?
+    get() = if (listSelection != ListView.INVALID_POSITION) adapter.getItem(listSelection) else null
+    set(value) {
+        val newValue = value ?: adapter.getItem(0)
+        setText(newValue.toString(), true)
+        if (adapter is ArrayAdapter<*>) {
+            val position = (adapter as ArrayAdapter<Any?>).getPosition(newValue)
+            listSelection = position
+        }
+    }
+
+
+@BindingAdapter("entriesAutoComplete")
+fun bindEntriesAutoCompleteData(autoCompleteTextView: MaterialAutoCompleteTextView, entries: List<Any>?) {
+    // This is for dynamic entries list, like form ViewModel LiveData
+    Timber.d("bindEntriesData entriesAutoComplete: $entries tag: ${autoCompleteTextView.tag}")
+    if (entries != null) {
+        autoCompleteTextView.setAdapter (ArrayAdapter(autoCompleteTextView.context, android.R.layout.simple_spinner_item, android.R.id.text1, entries))
     }
 }
 

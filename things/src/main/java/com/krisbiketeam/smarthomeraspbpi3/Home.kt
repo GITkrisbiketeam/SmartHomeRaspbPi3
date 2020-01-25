@@ -50,7 +50,6 @@ class Home(private val secureStorage: SecureStorage) : Sensor.HwUnitListener<Any
                             taskHwUnit.setValue(value)
                             applyFunction(value)
                             FirebaseHomeInformationRepository.saveHomeUnit(this)
-                            Timber.e("booleanApplyFunction notify? $firebaseNotify alarm enabled? ${secureStorage.alarmEnabled} alarm enabled LiveData ?${alarmEnabledLiveData.value}")
                             if (firebaseNotify && secureStorage.alarmEnabled) {
                                 Timber.d("booleanApplyFunction notify with FCM Message")
                                 FirebaseHomeInformationRepository.notifyHomeUnitEvent(this)
@@ -66,7 +65,7 @@ class Home(private val secureStorage: SecureStorage) : Sensor.HwUnitListener<Any
 
     private var sensorApplyFunction: HomeUnit<in Boolean>.(Any?) -> Unit = { newVal: Any? ->
         Timber.d("sensorApplyFunction newVal: $newVal this: $this")
-        if (newVal is Boolean) {
+        if (newVal is Float) {
             unitsTasks.values.forEach { task ->
                 if (this.name == task.homeUnitName){
                     task.delay

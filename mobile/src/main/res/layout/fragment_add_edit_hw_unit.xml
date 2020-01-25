@@ -83,7 +83,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/add_edit_hw_unit_type_spinner_title"
-                    android:textColor="@color/colorPrimaryDark"
+                    android:textColor="@color/colorSecondary"
                     app:layout_constraintTop_toTopOf="parent" />
                 <androidx.appcompat.widget.AppCompatSpinner
                     android:id="@+id/hw_unit_type_spinner"
@@ -110,7 +110,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/margin_normal"
                     android:text="@string/add_edit_hw_unit_name_title"
-                    android:textColor="@color/colorPrimaryDark"
+                    android:textColor="@color/colorSecondary"
                     app:layout_constraintTop_toBottomOf="@+id/hw_unit_type_spinner" />
                 <EditText
                     android:id="@+id/hw_unit_name"
@@ -130,7 +130,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/margin_normal"
                     android:text="@string/add_edit_hw_unit_location_title"
-                    android:textColor="@color/colorPrimaryDark"
+                    android:textColor="@color/colorSecondary"
                     app:layout_constraintTop_toBottomOf="@+id/hw_unit_name" />
                 <EditText
                     android:id="@+id/hw_unit_location"
@@ -150,7 +150,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/margin_normal"
                     android:text="@string/add_edit_hw_unit_pin_name_title"
-                    android:textColor="@color/colorPrimaryDark"
+                    android:textColor="@color/colorSecondary"
                     app:layout_constraintTop_toBottomOf="@id/hw_unit_location" />
                 <androidx.appcompat.widget.AppCompatSpinner
                     android:id="@+id/hw_unit_pin_name_spinner"
@@ -176,7 +176,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/margin_normal"
                     android:text="@string/add_edit_hw_unit_soft_address_title"
-                    android:textColor="@color/colorPrimaryDark"
+                    android:textColor="@color/colorSecondary"
                     app:layout_constraintTop_toBottomOf="@id/hw_unit_pin_name_spinner" />
                 <androidx.appcompat.widget.AppCompatSpinner
                     android:id="@+id/hw_unit_soft_address_spinner"
@@ -202,7 +202,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/margin_normal"
                     android:text="@string/add_edit_hw_unit_pin_extender_io_pin_spinner_title"
-                    android:textColor="@color/colorPrimaryDark"
+                    android:textColor="@color/colorSecondary"
                     app:layout_constraintTop_toBottomOf="@id/hw_unit_soft_address_spinner" />
                 <androidx.appcompat.widget.AppCompatSpinner
                     android:id="@+id/hw_unit_pin_extender_io_pin_spinner"
@@ -230,7 +230,7 @@
                     android:layout_marginTop="@dimen/margin_normal"
                     android:clickable="@{viewModel.isEditMode}"
                     android:text="@string/add_edit_hw_unit_pin_pull_up_title"
-                    android:textColor="@color/colorPrimaryDark"
+                    android:textColor="@color/colorSecondary"
                     app:layout_constraintTop_toBottomOf="@id/hw_unit_pin_extender_io_pin_spinner"
                     app:setChecked="@{viewModel.internalPullUp}" />
 
@@ -246,7 +246,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/margin_normal"
                     android:text="@string/add_edit_hw_unit_pin_interrupt_title"
-                    android:textColor="@color/colorPrimaryDark"
+                    android:textColor="@color/colorSecondary"
                     app:layout_constraintTop_toBottomOf="@id/hw_unit_pin_extender_io_pin_spinner" />
 
                 <androidx.appcompat.widget.AppCompatSpinner
@@ -274,7 +274,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/margin_normal"
                     android:text="@string/add_edit_hw_unit_refresh_rate_title"
-                    android:textColor="@color/colorPrimaryDark"
+                    android:textColor="@color/colorSecondary"
                     app:layout_constraintTop_toBottomOf="@id/hw_unit_soft_address_spinner" />
 
                 <TextView

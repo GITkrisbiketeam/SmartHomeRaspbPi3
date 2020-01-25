@@ -14,7 +14,7 @@
     <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?attr/colorPrimaryDark"
+            android:background="?attr/colorSecondary"
             android:gravity="bottom"
             android:padding="@dimen/navigation_drawer_header_padding"
             android:theme="@style/ThemeOverlay.AppCompat.Dark"

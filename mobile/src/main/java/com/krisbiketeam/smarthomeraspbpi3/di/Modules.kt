@@ -1,5 +1,7 @@
 package com.krisbiketeam.smarthomeraspbpi3.di
 
+import android.net.ConnectivityManager
+import android.net.wifi.WifiManager
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.Authentication
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.AuthenticationLiveData
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.FirebaseAuthentication
@@ -22,7 +24,7 @@ val myModule: Module = module {
     viewModel { (roomName: String) -> RoomDetailViewModel(FirebaseHomeInformationRepository, roomName) }
     viewModel { (roomName: String, homeUnitName: String, homeUnitType:String) -> HomeUnitDetailViewModel(FirebaseHomeInformationRepository, roomName, homeUnitName, homeUnitType) }
     viewModel { (taskName: String, homeUnitName: String, homeUnitType:String) -> UnitTaskViewModel(FirebaseHomeInformationRepository, taskName, homeUnitName, homeUnitType) }
-    viewModel { WifiSettingsViewModel(get()) }
+    viewModel { (wifiManager: WifiManager, connectivityManager: ConnectivityManager) -> WifiSettingsViewModel(get(), wifiManager, connectivityManager) }
     viewModel { LoginSettingsViewModel(get(), get()) }
     viewModel { HomeSettingsViewModel(get()) }
     viewModel { NavigationViewModel(get()) }

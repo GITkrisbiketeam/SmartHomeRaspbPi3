@@ -30,7 +30,7 @@
              notification message. See README(https://goo.gl/6BKBk7) for more. -->
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_color"
-            android:resource="@color/colorAccent" />
+            android:resource="@color/colorSecondary" />
         <!-- [END fcm_default_icon] -->
         <!-- [START fcm_default_channel] -->
         <meta-data
@@ -40,7 +40,6 @@
 
         <activity
             android:name=".ui.HomeActivity"
-            android:theme="@style/AppTheme.NoActionBar"
             android:windowSoftInputMode="adjustResize"/>
         <activity android:name=".LoadActivity">
             <intent-filter>

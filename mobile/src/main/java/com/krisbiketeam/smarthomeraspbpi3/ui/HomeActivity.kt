@@ -6,7 +6,9 @@ import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.Navigation
+import androidx.navigation.findNavController
 import androidx.navigation.ui.NavigationUI
+import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
@@ -35,14 +37,15 @@ class HomeActivity  : AppCompatActivity() {
                 layoutInflater, R.layout.nav_header, binding.navigationView, false).apply {
             binding.navigationView.addHeaderView(root)
             viewModel = navigationViewModel
-            setLifecycleOwner(this@HomeActivity)
+            lifecycleOwner = this@HomeActivity
         }
 
-        val navController = Navigation.findNavController(this, R.id.home_nav_fragment)
+        setSupportActionBar(binding.toolbar)
+
+        val navController = findNavController(R.id.home_nav_fragment)
 
         // Set up ActionBar
-        setSupportActionBar(binding.toolbar)
-        NavigationUI.setupActionBarWithNavController(this, navController, drawerLayout)
+        setupActionBarWithNavController(navController, drawerLayout)
 
         // Set up navigation menu
         binding.navigationView.setupWithNavController(navController)
