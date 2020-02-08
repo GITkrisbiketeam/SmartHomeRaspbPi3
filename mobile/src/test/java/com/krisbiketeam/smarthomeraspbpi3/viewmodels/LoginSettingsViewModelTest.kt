@@ -6,6 +6,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.MyLiveDataState
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.FirebaseCredentials
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.WifiCredentials
 import com.krisbiketeam.smarthomeraspbpi3.di.testModule
+import com.krisbiketeam.smarthomeraspbpi3.viewmodels.settings.LoginSettingsViewModel
 import org.junit.*
 import org.koin.standalone.StandAloneContext
 import org.koin.standalone.inject

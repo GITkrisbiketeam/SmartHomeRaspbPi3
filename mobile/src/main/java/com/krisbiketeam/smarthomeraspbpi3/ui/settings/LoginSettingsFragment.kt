@@ -1,4 +1,4 @@
-package com.krisbiketeam.smarthomeraspbpi3.ui
+package com.krisbiketeam.smarthomeraspbpi3.ui.settings
 
 import androidx.lifecycle.Observer
 import androidx.databinding.DataBindingUtil
@@ -18,7 +18,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.auth.FirebaseCredentials
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentSettingsLoginBinding
-import com.krisbiketeam.smarthomeraspbpi3.viewmodels.LoginSettingsViewModel
+import com.krisbiketeam.smarthomeraspbpi3.viewmodels.settings.LoginSettingsViewModel
 import org.koin.android.ext.android.inject
 import org.koin.android.viewmodel.ext.android.viewModel
 import timber.log.Timber
@@ -30,14 +30,12 @@ class LoginSettingsFragment : Fragment() {
     private val secureStorage: SecureStorage by inject()
 
 
-    override fun onCreateView(
-            inflater: LayoutInflater,
-            container: ViewGroup?,
-            savedInstanceState: Bundle?
-    ): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
+                              savedInstanceState: Bundle?): View? {
 
-        binding = DataBindingUtil.inflate<FragmentSettingsLoginBinding>(
-                inflater, R.layout.fragment_settings_login, container, false).apply {
+        binding = DataBindingUtil.inflate<FragmentSettingsLoginBinding>(inflater,
+                                                                        R.layout.fragment_settings_login,
+                                                                        container, false).apply {
             viewModel = loginSettingsViewModel
 
             password.setOnEditorActionListener(TextView.OnEditorActionListener { _, id, _ ->
@@ -47,15 +45,16 @@ class LoginSettingsFragment : Fragment() {
                 }
                 false
             })
-
+            loginSettingsViewModel.password.observe(viewLifecycleOwner, Observer {
+                binding.passwordLayout.error = null
+            })
             loginConnectButton.setOnClickListener { attemptLogin() }
 
             addOnRebindCallback(object : OnRebindCallback<ViewDataBinding>() {
                 override fun onPreBind(binding: ViewDataBinding?): Boolean {
                     Timber.d("onPreBind")
-                    binding?.let{
-                        TransitionManager.beginDelayedTransition(
-                                binding.root as ViewGroup)
+                    binding?.let {
+                        TransitionManager.beginDelayedTransition(binding.root as ViewGroup)
                     }
                     return super.onPreBind(binding)
                 }
@@ -68,13 +67,13 @@ class LoginSettingsFragment : Fragment() {
             pair?.let { (state, data) ->
                 Timber.d("loginState changed state: $state data: $data")
                 when (state) {
-                    MyLiveDataState.ERROR -> {
-                        binding.password.error = getString(R.string.error_incorrect_password)
+                    MyLiveDataState.ERROR      -> {
+                        binding.passwordLayout.error = getString(R.string.error_incorrect_password)
                         binding.password.requestFocus()
                     }
-                    MyLiveDataState.INIT -> Unit
+                    MyLiveDataState.INIT       -> Unit
                     MyLiveDataState.CONNECTING -> Unit
-                    MyLiveDataState.DONE -> {
+                    MyLiveDataState.DONE       -> {
                         if (data is FirebaseCredentials) {
                             secureStorage.firebaseCredentials = data
                         }
@@ -90,8 +89,8 @@ class LoginSettingsFragment : Fragment() {
     }
 
     private fun attemptLogin() {
-        binding.email.error = null
-        binding.password.error = null
+        binding.emailLayout.error = null
+        binding.passwordLayout.error = null
 
         val emailStr = binding.email.text.toString()
         val passwordStr = binding.password.text.toString()
@@ -100,17 +99,17 @@ class LoginSettingsFragment : Fragment() {
         var focusView: View? = null
 
         if (!isPasswordValid(passwordStr)) {
-            binding.password.error = getString(R.string.error_invalid_password)
+            binding.passwordLayout.error = getString(R.string.error_invalid_password)
             focusView = binding.password
             cancel = true
         }
 
         if (emailStr.isEmpty()) {
-            binding.email.error = getString(R.string.error_field_required)
+            binding.emailLayout.error = getString(R.string.error_field_required)
             focusView = binding.email
             cancel = true
         } else if (!isEmailValid(emailStr)) {
-            binding.email.error = getString(R.string.error_invalid_email)
+            binding.emailLayout.error = getString(R.string.error_invalid_email)
             focusView = binding.email
             cancel = true
         }

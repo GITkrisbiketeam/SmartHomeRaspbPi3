@@ -5,10 +5,10 @@ ext {
     minSdkVersionThings = 27
 
     // Languages
-    kotlinVersion = '1.3.31'
+    kotlinVersion = '1.3.61'
 
     // ClassPath
-    gradlePluginVersion = '3.5.0'
+    gradlePluginVersion = '3.5.3'
     googleServicesClassVersion = '4.2.0'
 
     // Google

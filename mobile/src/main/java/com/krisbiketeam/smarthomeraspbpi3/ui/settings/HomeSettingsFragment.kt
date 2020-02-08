@@ -1,4 +1,4 @@
-package com.krisbiketeam.smarthomeraspbpi3.ui
+package com.krisbiketeam.smarthomeraspbpi3.ui.settings
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -17,7 +17,7 @@ import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.MyLiveDataState
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentSettingsHomeBinding
-import com.krisbiketeam.smarthomeraspbpi3.viewmodels.HomeSettingsViewModel
+import com.krisbiketeam.smarthomeraspbpi3.viewmodels.settings.HomeSettingsViewModel
 import org.koin.android.ext.android.inject
 import org.koin.android.viewmodel.ext.android.viewModel
 import timber.log.Timber
@@ -29,14 +29,12 @@ class HomeSettingsFragment : Fragment() {
 
     private val secureStorage: SecureStorage by inject()
 
-    override fun onCreateView(
-            inflater: LayoutInflater,
-            container: ViewGroup?,
-            savedInstanceState: Bundle?
-    ): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
+                              savedInstanceState: Bundle?): View? {
 
-        binding = DataBindingUtil.inflate<FragmentSettingsHomeBinding>(
-                inflater, R.layout.fragment_settings_home, container, false).apply {
+        binding = DataBindingUtil.inflate<FragmentSettingsHomeBinding>(inflater,
+                                                                       R.layout.fragment_settings_home,
+                                                                       container, false).apply {
             viewModel = homeSettingsViewModel
 
             homeName.setOnEditorActionListener(TextView.OnEditorActionListener { _, id, _ ->
@@ -46,6 +44,9 @@ class HomeSettingsFragment : Fragment() {
                 }
                 false
             })
+            homeSettingsViewModel.homeName.observe(viewLifecycleOwner, Observer {
+                binding.homeNameLayout.error = null
+            })
 
             loginConnectButton.setOnClickListener { setupHomeName() }
 
@@ -53,8 +54,7 @@ class HomeSettingsFragment : Fragment() {
                 override fun onPreBind(binding: ViewDataBinding?): Boolean {
                     Timber.d("onPreBind")
                     binding?.let {
-                        TransitionManager.beginDelayedTransition(
-                                binding.root as ViewGroup)
+                        TransitionManager.beginDelayedTransition(binding.root as ViewGroup)
                     }
                     return super.onPreBind(binding)
                 }
@@ -67,19 +67,19 @@ class HomeSettingsFragment : Fragment() {
             pair?.let { (state, data) ->
 
                 when (state) {
-                    MyLiveDataState.ERROR -> {
+                    MyLiveDataState.ERROR      -> {
                         if (data is Exception) {
                             Timber.e(data, "Request failed")
                         }
-                        binding.homeName.error = getString(R.string.cannot_setup_home_name)
+                        binding.homeNameLayout.error = getString(R.string.cannot_setup_home_name)
                         binding.homeName.requestFocus()
                     }
 
-                    MyLiveDataState.INIT -> {
+                    MyLiveDataState.INIT       -> {
                     }
                     MyLiveDataState.CONNECTING -> {
                     }
-                    MyLiveDataState.DONE -> {
+                    MyLiveDataState.DONE       -> {
                         activity?.let {
                             Navigation.findNavController(it, R.id.home_nav_fragment).navigateUp()
                         }
@@ -92,21 +92,13 @@ class HomeSettingsFragment : Fragment() {
     }
 
     private fun setupHomeName() {
-        binding.homeName.error = null
+        binding.homeNameLayout.error = null
 
         val homeNameStr = binding.homeName.text.toString()
 
-        var cancel = false
-        var focusView: View? = null
-
         if (homeNameStr.isEmpty()) {
-            binding.homeName.error = getString(R.string.error_field_required)
-            focusView = binding.homeName
-            cancel = true
-        }
-
-        if (cancel) {
-            focusView?.requestFocus()
+            binding.homeNameLayout.error = getString(R.string.error_field_required)
+            binding.homeName.requestFocus()
         } else {
             secureStorage.homeName = homeNameStr
             homeSettingsViewModel.setupHomeName(homeNameStr)

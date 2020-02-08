@@ -151,7 +151,7 @@
 
     <fragment
         android:id="@+id/settings_fragment"
-        android:name="com.krisbiketeam.smarthomeraspbpi3.ui.SettingsFragment"
+        android:name="com.krisbiketeam.smarthomeraspbpi3.ui.settings.SettingsFragment"
         android:label="@string/settings_title">
 
         <action
@@ -197,19 +197,19 @@
 
     <fragment
         android:id="@+id/wifi_settings_fragment"
-        android:name="com.krisbiketeam.smarthomeraspbpi3.ui.WifiSettingsFragment"
+        android:name="com.krisbiketeam.smarthomeraspbpi3.ui.settings.WifiSettingsFragment"
         android:label="@string/settings_wifi_title"
         tools:layout="@layout/fragment_settings_wifi" />
 
     <fragment
         android:id="@+id/login_settings_fragment"
-        android:name="com.krisbiketeam.smarthomeraspbpi3.ui.LoginSettingsFragment"
+        android:name="com.krisbiketeam.smarthomeraspbpi3.ui.settings.LoginSettingsFragment"
         android:label="@string/settings_login_title"
         tools:layout="@layout/fragment_settings_login" />
 
     <fragment
         android:id="@+id/home_settings_fragment"
-        android:name="com.krisbiketeam.smarthomeraspbpi3.ui.HomeSettingsFragment"
+        android:name="com.krisbiketeam.smarthomeraspbpi3.ui.settings.HomeSettingsFragment"
         android:label="@string/settings_home_title"
         tools:layout="@layout/fragment_settings_home" />
 

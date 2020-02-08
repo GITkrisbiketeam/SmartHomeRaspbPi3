@@ -1,4 +1,4 @@
-package com.krisbiketeam.smarthomeraspbpi3.viewmodels
+package com.krisbiketeam.smarthomeraspbpi3.viewmodels.settings
 
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
@@ -10,14 +10,15 @@ import com.krisbiketeam.smarthomeraspbpi3.common.nearby.NearbyServiceLiveData
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.firebase.getFirebaseAppToken
 import com.krisbiketeam.smarthomeraspbpi3.firebase.sendRegistrationToServer
-import com.krisbiketeam.smarthomeraspbpi3.ui.WifiSettingsFragment
+import com.krisbiketeam.smarthomeraspbpi3.ui.settings.WifiSettingsFragment
 import timber.log.Timber
 
 
 /**
  * The ViewModel used in [WifiSettingsFragment].
  */
-class LoginSettingsViewModel(private val authentication: AuthenticationLiveData, private val nearByState: NearbyServiceLiveData) : ViewModel() {
+class LoginSettingsViewModel(private val authentication: AuthenticationLiveData,
+                             private val nearByState: NearbyServiceLiveData) : ViewModel() {
     var email: MutableLiveData<String> = MutableLiveData()
     var password: MutableLiveData<String> = MutableLiveData()
     var remoteLogin: MutableLiveData<Boolean> = MutableLiveData()
@@ -30,10 +31,12 @@ class LoginSettingsViewModel(private val authentication: AuthenticationLiveData,
         loginState.addSource(authentication) { pair ->
             Timber.d("authenticationLivedata changed: $pair")
             pair?.let { (state, data) ->
-                Timber.d("authenticationLivedata remoteLogin.value: ${remoteLogin.value} data: $data state: $state")
+                Timber.d(
+                        "authenticationLivedata remoteLogin.value: ${remoteLogin.value} data: $data state: $state")
                 var updateValue = true
                 if (state == MyLiveDataState.DONE && data is FirebaseCredentials) {
-                    FirebaseHomeInformationRepository.writeNewUser(data.email.substringBefore("@"), data.email)
+                    FirebaseHomeInformationRepository.writeNewUser(data.email.substringBefore("@"),
+                                                                   data.email)
                     updateValue = false
                     getFirebaseAppToken { token ->
                         Timber.d("getFirebaseAppToken token: $token")

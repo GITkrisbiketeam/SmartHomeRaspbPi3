@@ -9,7 +9,7 @@
 
         <variable
                 name="viewModel"
-                type="com.krisbiketeam.smarthomeraspbpi3.viewmodels.WifiSettingsViewModel"
+                type="com.krisbiketeam.smarthomeraspbpi3.viewmodels.settings.WifiSettingsViewModel"
                 />
     </data>
 

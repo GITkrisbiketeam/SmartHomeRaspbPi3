@@ -6,13 +6,16 @@
             This is the name that users will see when interacting with this channel.
             It should describe the category of notifications that will be sent through this channel
          -->
-    <string name="default_notification_channel_name" translatable="true" tools:keep="@string/default_notification_channel_name">RSPi3</string>
-    <string name="default_notification_channel_id" translatable="false">fcm_default_channel</string>
+    <string name="default_notification_channel_name"
+            translatable="true"
+            tools:keep="@string/default_notification_channel_name">RSPi3</string>
+    <string name="default_notification_channel_id"
+            translatable="false">fcm_default_channel</string>
 
     <!-- Strings related to email -->
     <string name="prompt_email">Email</string>
     <string name="prompt_wifi">SSID Name</string>
-    <string name="prompt_password">Password (optional)</string>
+    <string name="prompt_password">Password</string>
     <string name="action_sign_in">Sign in or register</string>
     <string name="action_sign_in_short">Sign in</string>
     <string name="error_invalid_email">This email address is invalid</string>
@@ -100,8 +103,10 @@
     <string name="unit_task_text_name_title">Name:</string>
     <string name="unit_task_text_home_unit_name_title">Home Unit Name:</string>
     <string name="unit_task_text_home_unit_select_spinner_prompt">Select Home Unit</string>
-    <string name="unit_task_text_hw_unit_name_title" tools:keep="@string/unit_task_text_hw_unit_name_title">Hw Unit Name:</string>
-    <string name="unit_task_text_hw_unit_select_spinner_prompt" tools:keep="@string/unit_task_text_hw_unit_select_spinner_prompt">Select Hw Unit</string>
+    <string name="unit_task_text_hw_unit_name_title"
+            tools:keep="@string/unit_task_text_hw_unit_name_title">Hw Unit Name:</string>
+    <string name="unit_task_text_hw_unit_select_spinner_prompt"
+            tools:keep="@string/unit_task_text_hw_unit_select_spinner_prompt">Select Hw Unit</string>
     <string name="unit_task_empty_name_unit_or_hw">Empty Unit Task, please fill in required fields</string>
     <string name="unit_task_empty_home_unit_name">Empty Home Unit Name, please fill in required fields</string>
 

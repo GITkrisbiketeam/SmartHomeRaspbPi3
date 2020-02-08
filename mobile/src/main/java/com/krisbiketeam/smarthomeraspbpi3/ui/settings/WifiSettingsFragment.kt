@@ -1,4 +1,4 @@
-package com.krisbiketeam.smarthomeraspbpi3.ui
+package com.krisbiketeam.smarthomeraspbpi3.ui.settings
 
 import android.content.Context
 import android.net.ConnectivityManager
@@ -20,7 +20,7 @@ import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.MyLiveDataState
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.WifiCredentials
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentSettingsWifiBinding
-import com.krisbiketeam.smarthomeraspbpi3.viewmodels.WifiSettingsViewModel
+import com.krisbiketeam.smarthomeraspbpi3.viewmodels.settings.WifiSettingsViewModel
 import org.koin.android.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
 import timber.log.Timber
@@ -33,14 +33,12 @@ class WifiSettingsFragment : Fragment() {
 
     private lateinit var binding: FragmentSettingsWifiBinding
 
-    override fun onCreateView(
-            inflater: LayoutInflater,
-            container: ViewGroup?,
-            savedInstanceState: Bundle?
-    ): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
+                              savedInstanceState: Bundle?): View? {
 
-        binding = DataBindingUtil.inflate<FragmentSettingsWifiBinding>(
-                inflater, R.layout.fragment_settings_wifi, container, false).apply {
+        binding = DataBindingUtil.inflate<FragmentSettingsWifiBinding>(inflater,
+                                                                       R.layout.fragment_settings_wifi,
+                                                                       container, false).apply {
             viewModel = wifiSettingsViewModel
 
             password.setOnEditorActionListener(TextView.OnEditorActionListener { _, id, _ ->
@@ -60,8 +58,7 @@ class WifiSettingsFragment : Fragment() {
                 override fun onPreBind(binding: ViewDataBinding?): Boolean {
                     Timber.d("onPreBind")
                     binding?.let {
-                        TransitionManager.beginDelayedTransition(
-                                binding.root as ViewGroup)
+                        TransitionManager.beginDelayedTransition(binding.root as ViewGroup)
                     }
                     return super.onPreBind(binding)
                 }
@@ -76,7 +73,7 @@ class WifiSettingsFragment : Fragment() {
             pair?.let { (state, data) ->
 
                 when (state) {
-                    MyLiveDataState.ERROR -> {
+                    MyLiveDataState.ERROR      -> {
                         if (data is Exception) {
                             Timber.e(data, "Request failed")
                         }
@@ -84,11 +81,11 @@ class WifiSettingsFragment : Fragment() {
                         binding.password.requestFocus()
                     }
 
-                    MyLiveDataState.INIT -> {
+                    MyLiveDataState.INIT       -> {
                     }
                     MyLiveDataState.CONNECTING -> {
                     }
-                    MyLiveDataState.DONE -> {
+                    MyLiveDataState.DONE       -> {
                         activity?.let {
                             Navigation.findNavController(it, R.id.home_nav_fragment).navigateUp()
                         }

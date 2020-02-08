@@ -1,40 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+<PreferenceScreen
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        >
     <Preference
-        app:fragment="com.krisbiketeam.smarthomeraspbpi3.ui.WifiSettingsFragment"
-        app:key="@string/settings_wifi_fragment_key"
-        app:persistent="false"
-        app:title="Setup remote device WiFI" />
+            app:fragment="com.krisbiketeam.smarthomeraspbpi3.ui.WifiSettingsFragment"
+            app:key="@string/settings_wifi_fragment_key"
+            app:persistent="false"
+            app:title="Setup remote device WiFI"
+            />
 
     <Preference
-        android:fragment="com.krisbiketeam.smarthomeraspbpi3.ui.LoginSettingsFragment"
-        android:key="@string/settings_login_fragment_key"
-        android:persistent="false"
-        android:title="Login to Firebase" />
+            android:fragment="com.krisbiketeam.smarthomeraspbpi3.ui.settings.LoginSettingsFragment"
+            android:key="@string/settings_login_fragment_key"
+            android:persistent="false"
+            android:title="Login to Firebase"
+            />
 
     <Preference
-        android:fragment="com.krisbiketeam.smarthomeraspbpi3.ui.HomeSettingsFragment"
-        android:key="@string/settings_home_fragment_key"
-        android:persistent="false"
-        android:title="Setup Home" />
+            android:fragment="com.krisbiketeam.smarthomeraspbpi3.ui.settings.HomeSettingsFragment"
+            android:key="@string/settings_home_fragment_key"
+            android:persistent="false"
+            android:title="Setup Home"
+            />
 
     <Preference
-        android:fragment="com.krisbiketeam.smarthomeraspbpi3.ui.HwUnitListFragment"
-        android:key="@string/settings_hw_unit_list_fragment_key"
-        android:persistent="false"
-        android:title="@string/hw_unit_list_title" />
+            android:fragment="com.krisbiketeam.smarthomeraspbpi3.ui.HwUnitListFragment"
+            android:key="@string/settings_hw_unit_list_fragment_key"
+            android:persistent="false"
+            android:title="@string/hw_unit_list_title"
+            />
 
     <Preference
-        android:fragment="com.krisbiketeam.smarthomeraspbpi3.ui.HwUnitErrorEventListFragment"
-        android:key="@string/settings_hw_unit_error_event_list_fragment_key"
-        android:persistent="false"
-        android:title="@string/hw_unit_error_event_list_title" />
+            android:fragment="com.krisbiketeam.smarthomeraspbpi3.ui.HwUnitErrorEventListFragment"
+            android:key="@string/settings_hw_unit_error_event_list_fragment_key"
+            android:persistent="false"
+            android:title="@string/hw_unit_error_event_list_title"
+            />
 
     <SwitchPreferenceCompat
-        app:key="alarmEnabledKey"
-        app:title="Enable/Disable Alarm"
-        app:summaryOn="Alarm enabled"
-        app:summaryOff="Alarm disabled"/>
+            app:key="alarmEnabledKey"
+            app:summaryOff="Alarm disabled"
+            app:summaryOn="Alarm enabled"
+            app:title="Enable/Disable Alarm"
+            />
 
 </PreferenceScreen>

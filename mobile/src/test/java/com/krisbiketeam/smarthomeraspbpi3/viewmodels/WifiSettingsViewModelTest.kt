@@ -5,6 +5,7 @@ import androidx.lifecycle.Observer
 import com.krisbiketeam.smarthomeraspbpi3.common.MyLiveDataState
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.WifiCredentials
 import com.krisbiketeam.smarthomeraspbpi3.di.testModule
+import com.krisbiketeam.smarthomeraspbpi3.viewmodels.settings.WifiSettingsViewModel
 import org.junit.*
 import org.koin.standalone.StandAloneContext
 import org.koin.standalone.inject

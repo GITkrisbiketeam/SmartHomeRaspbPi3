@@ -45,12 +45,10 @@ fun stateBasedVisibility(view: View, pair: Pair<MyLiveDataState, Any>?) {
     Timber.d("stateBasedVisibility pair: $pair; view: $view")
     pair?.let {
         when (it.first) {
-            MyLiveDataState.CONNECTING -> {
+            MyLiveDataState.CONNECTING                                        -> {
                 view.visibility = if (view is ProgressBar) View.VISIBLE else View.GONE
             }
-            MyLiveDataState.INIT,
-            MyLiveDataState.ERROR,
-            MyLiveDataState.DONE -> {
+            MyLiveDataState.INIT, MyLiveDataState.ERROR, MyLiveDataState.DONE -> {
                 view.visibility = if (view is ProgressBar) View.GONE else View.VISIBLE
             }
         }
@@ -60,8 +58,18 @@ fun stateBasedVisibility(view: View, pair: Pair<MyLiveDataState, Any>?) {
 @BindingAdapter("addDivider")
 fun addDivider(recyclerView: RecyclerView, add: Boolean?) {
     Timber.d("addDivider recyclerView: $recyclerView; view: $add")
-    if (add == null || add) recyclerView.addItemDecoration(DividerItemDecoration(recyclerView.context, DividerItemDecoration.VERTICAL))
+    if (add == null || add) recyclerView.addItemDecoration(
+            DividerItemDecoration(recyclerView.context, DividerItemDecoration.VERTICAL))
 }
+
+@BindingAdapter("setChecked")
+fun bindSetChecked(switch: SwitchCompat, value: Any?) {
+    Timber.d("setSwitch BindingAdapter value: $value")
+    if (value is Boolean) {
+        switch.isChecked = value
+    }
+}
+
 
 @BindingAdapter("entries")
 fun bindEntriesData(spinner: AppCompatSpinner, entries: List<Any>?) {
@@ -90,6 +98,7 @@ fun bindEntriesWithEmptyData(spinner: AppCompatSpinner, entries: List<Any>?) {
     }
 }
 
+
 @BindingAdapter("valueAttrChanged")
 fun MaterialAutoCompleteTextView.setListener(listener: InverseBindingListener?) {
     this.onItemSelectedListener = if (listener != null) {
@@ -98,7 +107,8 @@ fun MaterialAutoCompleteTextView.setListener(listener: InverseBindingListener?) 
                 listener.onChange()
             }
 
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int,
+                                        id: Long) {
                 listener.onChange()
             }
         }
@@ -106,7 +116,6 @@ fun MaterialAutoCompleteTextView.setListener(listener: InverseBindingListener?) 
         null
     }
 }
-
 
 @get:InverseBindingAdapter(attribute = "value")
 @set:BindingAdapter("value")
@@ -121,20 +130,14 @@ var MaterialAutoCompleteTextView.selectedValue: Any?
         }
     }
 
-
 @BindingAdapter("entriesAutoComplete")
-fun bindEntriesAutoCompleteData(autoCompleteTextView: MaterialAutoCompleteTextView, entries: List<Any>?) {
+fun bindEntriesAutoCompleteData(autoCompleteTextView: MaterialAutoCompleteTextView,
+                                entries: List<Any>?) {
     // This is for dynamic entries list, like form ViewModel LiveData
     Timber.d("bindEntriesData entriesAutoComplete: $entries tag: ${autoCompleteTextView.tag}")
     if (entries != null) {
-        autoCompleteTextView.setAdapter (ArrayAdapter(autoCompleteTextView.context, android.R.layout.simple_spinner_item, android.R.id.text1, entries))
-    }
-}
-
-@BindingAdapter("setChecked")
-fun bindSetChecked(switch: SwitchCompat, value: Any?) {
-    Timber.d("setSwitch BindingAdapter value: $value")
-    if (value is Boolean) {
-        switch.isChecked = value
+        autoCompleteTextView.setAdapter(
+                ArrayAdapter(autoCompleteTextView.context, android.R.layout.simple_spinner_item,
+                             android.R.id.text1, entries))
     }
 }
