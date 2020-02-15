@@ -40,7 +40,7 @@ class RoomDetailFragment : Fragment() {
         val binding: FragmentRoomDetailBinding = DataBindingUtil.inflate<FragmentRoomDetailBinding>(
                 inflater, R.layout.fragment_room_detail, container, false).apply {
             viewModel = roomDetailViewModel
-            setLifecycleOwner(this@RoomDetailFragment)
+            lifecycleOwner = this@RoomDetailFragment
             fab.setOnClickListener {
                 val direction = RoomDetailFragmentDirections.actionRoomDetailFragmentToHomeUnitDetailFragment(
                         roomDetailViewModel.room.value?.name ?: "", "", "")

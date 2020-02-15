@@ -33,7 +33,7 @@ class UnitTaskFragment : Fragment() {
         rootBinding = DataBindingUtil.inflate<FragmentUnitTaskBinding>(
                 inflater, R.layout.fragment_unit_task, container, false).apply {
             viewModel = unitTaskViewModel
-            setLifecycleOwner(this@UnitTaskFragment)
+            lifecycleOwner = this@UnitTaskFragment
         }
 
         unitTaskViewModel.isEditMode.observe(viewLifecycleOwner, Observer { isEditMode ->

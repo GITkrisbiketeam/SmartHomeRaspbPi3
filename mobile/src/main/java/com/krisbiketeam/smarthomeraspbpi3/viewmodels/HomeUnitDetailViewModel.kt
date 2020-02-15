@@ -43,7 +43,7 @@ class HomeUnitDetailViewModel(
     }
     val typeList = HOME_STORAGE_UNITS
     var type = Transformations.map(Transformations.distinctUntilChanged(typeItemPosition)) { typePos ->
-        if (typePos in 0 until typeList.size) {
+        if (typePos in typeList.indices) {
             Timber.d("type getValue position: $typePos val: ${typeList[typePos]}")
             typeList[typePos]
         } else {
@@ -83,7 +83,7 @@ class HomeUnitDetailViewModel(
         if (isEdit) {
             Transformations.switchMap(Transformations.distinctUntilChanged(roomNameList)) { roomNames ->
                 Transformations.map(Transformations.distinctUntilChanged(roomNameItemPosition)) { roomNamePos ->
-                    if (roomNamePos in 0 until roomNames.size) {
+                    if (roomNamePos in roomNames.indices) {
                         Timber.d("roomName getValue position: $roomNamePos val: ${roomNames[roomNamePos]}")
                         roomNames[roomNamePos]
                     } else {
@@ -136,7 +136,7 @@ class HomeUnitDetailViewModel(
         if (isEdit) {
             Transformations.switchMap(Transformations.distinctUntilChanged(hwUnitNameList)) { hwUnits ->
                 Transformations.map(Transformations.distinctUntilChanged(hwUnitNameItemPosition)) { hwUnitNamePos ->
-                    if (hwUnitNamePos in 0 until hwUnits.size) {
+                    if (hwUnitNamePos in hwUnits.indices) {
                         Timber.d("hwUnitName getValue position: $hwUnitNamePos val: ${hwUnits[hwUnitNamePos].first}")
                         hwUnits[hwUnitNamePos].first
                     } else {

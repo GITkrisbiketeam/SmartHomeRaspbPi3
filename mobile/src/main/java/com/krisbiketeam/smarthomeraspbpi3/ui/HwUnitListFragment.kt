@@ -24,7 +24,7 @@ class HwUnitListFragment : Fragment() {
         val binding = DataBindingUtil.inflate<FragmentHwUnitListBinding>(
                 inflater, R.layout.fragment_hw_unit_list, container, false).apply {
             viewModel = hwUnitListViewModel
-            setLifecycleOwner(this@HwUnitListFragment)
+            lifecycleOwner = this@HwUnitListFragment
         }
 
         hwUnitListViewModel.apply {

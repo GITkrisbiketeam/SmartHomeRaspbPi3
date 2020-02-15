@@ -37,7 +37,7 @@ class AddEditHwUnitFragment : Fragment() {
         rootBinding = DataBindingUtil.inflate<FragmentAddEditHwUnitBinding>(
                 inflater, R.layout.fragment_add_edit_hw_unit, container, false).apply {
             viewModel = addEditHwUnitViewModel
-            setLifecycleOwner(this@AddEditHwUnitFragment)
+            lifecycleOwner = this@AddEditHwUnitFragment
             hwUnitSensorRefreshRate.setOnClickListener {
                 showTimePicker()
             }

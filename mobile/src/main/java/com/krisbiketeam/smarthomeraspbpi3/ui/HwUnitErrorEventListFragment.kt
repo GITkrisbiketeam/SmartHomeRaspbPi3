@@ -24,7 +24,7 @@ class HwUnitErrorEventListFragment : Fragment() {
         val binding = DataBindingUtil.inflate<FragmentHwUnitErrorEventListBinding>(
                 inflater, R.layout.fragment_hw_unit_error_event_list, container, false).apply {
             viewModel = hwUnitErrorEventListViewModel
-            setLifecycleOwner(this@HwUnitErrorEventListFragment)
+            lifecycleOwner = this@HwUnitErrorEventListFragment
         }
 
         hwUnitErrorEventListViewModel.apply {

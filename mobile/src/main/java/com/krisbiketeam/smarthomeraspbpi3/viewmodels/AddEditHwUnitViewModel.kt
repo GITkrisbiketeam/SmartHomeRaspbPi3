@@ -37,7 +37,7 @@ class AddEditHwUnitViewModel(
     }
     val typeList = BoardConfig.IO_HW_UNIT_TYPE_LIST
     val type = Transformations.map(Transformations.distinctUntilChanged(typeItemPosition)) { typePos ->
-        if (typePos in 0 until typeList.size) {
+        if (typePos in typeList.indices) {
             Timber.d("type getValue position: $typePos val: ${typeList[typePos]}")
             typeList[typePos]
         } else {
@@ -159,7 +159,7 @@ class AddEditHwUnitViewModel(
     val softAddress: MutableLiveData<Int?> =
             Transformations.switchMap(Transformations.distinctUntilChanged(softAddressPosition)) { softAddressPos ->
                 Transformations.map(Transformations.distinctUntilChanged(softAddressList)) { softAddrList ->
-                    if (softAddressPos in 0 until softAddrList.size) {
+                    if (softAddressPos in softAddrList.indices) {
                         Timber.d("softAddress getValue position: $softAddressPos val: ${softAddrList[softAddressPos]}")
                         softAddrList[softAddressPos]
                     } else {

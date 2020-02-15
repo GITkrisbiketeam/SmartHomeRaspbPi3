@@ -24,7 +24,7 @@ class NewRoomFragmentDialog : Fragment() {
         val binding: FragmentNewRoomDialogFragmentBinding = DataBindingUtil.inflate<FragmentNewRoomDialogFragmentBinding>(
                 inflater, R.layout.fragment_new_room_dialog_fragment, container, false).apply {
             viewModel = newRoomViewModel
-            setLifecycleOwner(this@NewRoomFragmentDialog)
+            lifecycleOwner = this@NewRoomFragmentDialog
             cancelButton.setOnClickListener {
                 findNavController().navigateUp()
             }

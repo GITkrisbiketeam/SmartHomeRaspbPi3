@@ -33,7 +33,7 @@ class HomeUnitDetailFragment : Fragment() {
         val rootBinding = DataBindingUtil.inflate<FragmentHomeUnitDetailBinding>(
                 inflater, R.layout.fragment_home_unit_detail, container, false).apply {
             viewModel = homeUnitDetailViewModel
-            setLifecycleOwner(this@HomeUnitDetailFragment)
+            lifecycleOwner = this@HomeUnitDetailFragment
         }
 
         homeUnitDetailViewModel.isEditMode.observe(viewLifecycleOwner, Observer { isEditMode ->

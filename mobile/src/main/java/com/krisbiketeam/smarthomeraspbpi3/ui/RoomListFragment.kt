@@ -28,7 +28,7 @@ class RoomListFragment : Fragment() {
         val binding: FragmentRoomListBinding = DataBindingUtil.inflate<FragmentRoomListBinding>(
                 inflater, R.layout.fragment_room_list, container, false).apply {
             viewModel = roomListViewModel
-            setLifecycleOwner(this@RoomListFragment)
+            lifecycleOwner = this@RoomListFragment
             fab.setOnClickListener {
                 val direction = RoomListFragmentDirections.actionRoomListFragmentToNewRoomDialogFragment()
                 findNavController().navigate(direction)

@@ -15,10 +15,8 @@ import androidx.navigation.Navigation
 import androidx.transition.TransitionManager
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.MyLiveDataState
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentSettingsHomeBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.settings.HomeSettingsViewModel
-import org.koin.android.ext.android.inject
 import org.koin.android.viewmodel.ext.android.viewModel
 import timber.log.Timber
 
@@ -58,7 +56,7 @@ class HomeSettingsFragment : Fragment() {
                 }
             })
 
-            setLifecycleOwner(this@HomeSettingsFragment)
+            lifecycleOwner = this@HomeSettingsFragment
         }
 
         homeSettingsViewModel.nearByState.observe(viewLifecycleOwner, Observer { pair ->
