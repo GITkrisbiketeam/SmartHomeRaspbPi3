@@ -41,6 +41,7 @@
                 >
 
             <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                     android:id="@+id/homeNameLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -48,14 +49,15 @@
                     app:hintEnabled="true"
                     >
 
-                <com.google.android.material.textfield.TextInputEditText
+                <com.google.android.material.textview.MaterialAutoCompleteTextView
                         android:id="@+id/homeName"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:inputType="textAutoComplete"
+                        android:inputType="text"
                         android:maxLines="1"
                         android:singleLine="true"
                         android:text="@={viewModel.homeName}"
+                        app:entriesAutoComplete="@{viewModel.homeNameList}"
                         />
 
             </com.google.android.material.textfield.TextInputLayout>

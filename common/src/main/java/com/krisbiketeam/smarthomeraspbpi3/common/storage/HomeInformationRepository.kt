@@ -385,4 +385,6 @@ object FirebaseHomeInformationRepository : HomeInformationRepository {
 
     override fun lastHomeOnlineTime(): LiveData<Long?> = FirebaseDBLiveData(
             referenceHome?.child(HOME_LAST_ONLINE_TIME)).getObjectLiveData()
+
+    fun getHomes(): LiveData<List<String>> = HomesListLiveData(FirebaseDatabase.getInstance().reference.child(HOME_INFORMATION_BASE))
 }

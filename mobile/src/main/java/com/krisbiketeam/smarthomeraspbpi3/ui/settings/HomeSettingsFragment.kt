@@ -27,8 +27,6 @@ class HomeSettingsFragment : Fragment() {
 
     private lateinit var binding: FragmentSettingsHomeBinding
 
-    private val secureStorage: SecureStorage by inject()
-
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
 
@@ -100,7 +98,6 @@ class HomeSettingsFragment : Fragment() {
             binding.homeNameLayout.error = getString(R.string.error_field_required)
             binding.homeName.requestFocus()
         } else {
-            secureStorage.homeName = homeNameStr
             homeSettingsViewModel.setupHomeName(homeNameStr)
         }
     }

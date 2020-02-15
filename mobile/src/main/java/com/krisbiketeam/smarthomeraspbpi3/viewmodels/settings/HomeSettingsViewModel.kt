@@ -1,10 +1,12 @@
 package com.krisbiketeam.smarthomeraspbpi3.viewmodels.settings
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.krisbiketeam.smarthomeraspbpi3.common.MyLiveDataState
 import com.krisbiketeam.smarthomeraspbpi3.common.nearby.NearbyServiceLiveData
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.ui.settings.WifiSettingsFragment
 import timber.log.Timber
 
@@ -12,20 +14,23 @@ import timber.log.Timber
 /**
  * The ViewModel used in [WifiSettingsFragment].
  */
-class HomeSettingsViewModel(val nearByState: NearbyServiceLiveData) : ViewModel() {
+class HomeSettingsViewModel(val nearByState: NearbyServiceLiveData, private val secureStorage: SecureStorage) : ViewModel() {
     var homeName: MutableLiveData<String> = MutableLiveData()
     var remoteHomeSetup: MutableLiveData<Boolean> = MutableLiveData()
+
+    var homeNameList: LiveData<List<String>> = FirebaseHomeInformationRepository.getHomes()
 
     init {
         Timber.d("init")
         remoteHomeSetup.value = false
     }
 
-    fun setupHomeName(data: String) {
+    fun setupHomeName(homeName: String) {
         Timber.d("setupHomeName")
-        FirebaseHomeInformationRepository.setHomeReference(data)
+        FirebaseHomeInformationRepository.setHomeReference(homeName)
+        secureStorage.homeName = homeName
         if (remoteHomeSetup.value == true) {
-            nearByState.value = Pair(MyLiveDataState.CONNECTING, data)
+            nearByState.value = Pair(MyLiveDataState.CONNECTING, homeName)
         } else {
             nearByState.value = Pair(MyLiveDataState.DONE, Unit)
         }

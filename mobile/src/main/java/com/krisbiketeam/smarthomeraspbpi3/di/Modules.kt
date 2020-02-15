@@ -22,7 +22,7 @@ import org.koin.dsl.module.Module
 import org.koin.dsl.module.module
 
 val myModule: Module = module {
-    viewModel { RoomListViewModel(FirebaseHomeInformationRepository) }
+    viewModel { RoomListViewModel(FirebaseHomeInformationRepository, get()) }
     viewModel { NewRoomDialogViewModel(androidApplication(), FirebaseHomeInformationRepository) }
     viewModel { (roomName: String) ->
         RoomDetailViewModel(FirebaseHomeInformationRepository, roomName)
@@ -38,7 +38,7 @@ val myModule: Module = module {
         WifiSettingsViewModel(get(), wifiManager, connectivityManager)
     }
     viewModel { LoginSettingsViewModel(get(), get()) }
-    viewModel { HomeSettingsViewModel(get()) }
+    viewModel { HomeSettingsViewModel(get(), get()) }
     viewModel { NavigationViewModel(get(), FirebaseHomeInformationRepository) }
     viewModel { (hwUnitName: String) ->
         AddEditHwUnitViewModel(FirebaseHomeInformationRepository, hwUnitName)

@@ -120,10 +120,11 @@ fun MaterialAutoCompleteTextView.setListener(listener: InverseBindingListener?) 
 @get:InverseBindingAdapter(attribute = "value")
 @set:BindingAdapter("value")
 var MaterialAutoCompleteTextView.selectedValue: Any?
-    get() = if (listSelection != ListView.INVALID_POSITION) adapter.getItem(listSelection) else null
+    get() = if (listSelection != ListView.INVALID_POSITION) adapter?.getItem(listSelection) else text
     set(value) {
-        val newValue = value ?: adapter.getItem(0)
-        setText(newValue.toString(), true)
+        val newValue =
+                value ?: adapter?.getItem(if (adapter.count > 0) 0 else ListView.INVALID_POSITION)
+            setText(newValue?.toString(), true)
         if (adapter is ArrayAdapter<*>) {
             val position = (adapter as ArrayAdapter<Any?>).getPosition(newValue)
             listSelection = position

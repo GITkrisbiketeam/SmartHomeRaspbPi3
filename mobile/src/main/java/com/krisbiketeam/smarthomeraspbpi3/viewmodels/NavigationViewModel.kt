@@ -41,18 +41,20 @@ class NavigationViewModel(secureStorage: SecureStorage, homeRepository: HomeInfo
                 "disabled"
             }
         }
-        online = Transformations.switchMap(homeRepository.isHomeOnline()) {
-            if (it == true) {
-                MutableLiveData("Online")
-            } else {
-                Transformations.map(homeRepository.lastHomeOnlineTime()) { time ->
-                    if (time != null) {
+        online = Transformations.switchMap(secureStorage.homeNameLiveData) {
+            Transformations.switchMap(homeRepository.isHomeOnline()) {
+                if (it == true) {
+                    MutableLiveData("Online")
+                } else {
+                    Transformations.map(homeRepository.lastHomeOnlineTime()) { time ->
+                        if (time != null) {
 
-                        val formattedDate: String =
-                                DateFormat.getDateTimeInstance().format(Date(time))
-                        "Offline since: $formattedDate"
-                    } else {
-                        "Offline"
+                            val formattedDate: String =
+                                    DateFormat.getDateTimeInstance().format(Date(time))
+                            "Offline since: $formattedDate"
+                        } else {
+                            "Offline"
+                        }
                     }
                 }
             }

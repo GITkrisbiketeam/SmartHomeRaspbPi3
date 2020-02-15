@@ -50,7 +50,7 @@ class Home(private val secureStorage: SecureStorage) : Sensor.HwUnitListener<Any
                             taskHwUnit.setValue(value)
                             applyFunction(value)
                             FirebaseHomeInformationRepository.saveHomeUnit(this)
-                            if (firebaseNotify && secureStorage.alarmEnabled) {
+                            if (firebaseNotify && alarmEnabled) {
                                 Timber.d("booleanApplyFunction notify with FCM Message")
                                 FirebaseHomeInformationRepository.notifyHomeUnitEvent(this)
                             }
@@ -80,7 +80,7 @@ class Home(private val secureStorage: SecureStorage) : Sensor.HwUnitListener<Any
                                 taskHwUnit.setValue(value)
                                 applyFunction(value)
                                 FirebaseHomeInformationRepository.saveHomeUnit(this)
-                                if (firebaseNotify && secureStorage.alarmEnabled) {
+                                if (firebaseNotify && alarmEnabled) {
                                     Timber.d("sensorApplyFunction notify with FCM Message")
                                     FirebaseHomeInformationRepository.notifyHomeUnitEvent(this)
                                 }
@@ -147,7 +147,7 @@ class Home(private val secureStorage: SecureStorage) : Sensor.HwUnitListener<Any
 
                                     homeUnit.applyFunction(homeUnit.value)
 
-                                    if (homeUnit.firebaseNotify && secureStorage.alarmEnabled) {
+                                    if (homeUnit.firebaseNotify && alarmEnabled) {
                                         Timber.d("homeUnitsDataObserver NODE_ACTION_CHANGED notify with FCM Message")
                                         FirebaseHomeInformationRepository.notifyHomeUnitEvent(homeUnit)
                                     }
@@ -327,7 +327,7 @@ class Home(private val secureStorage: SecureStorage) : Sensor.HwUnitListener<Any
                 }
                 applyFunction(value)
                 FirebaseHomeInformationRepository.saveHomeUnit(this)
-                if (firebaseNotify  && secureStorage.alarmEnabled) {
+                if (firebaseNotify  && alarmEnabled) {
                     Timber.d("onHwUnitChanged notify with FCM Message")
                     FirebaseHomeInformationRepository.notifyHomeUnitEvent(this)
                 }
