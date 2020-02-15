@@ -2,11 +2,15 @@ package com.krisbiketeam.smarthomeraspbpi3.ui
 
 import android.app.Activity
 import android.content.Context
+import android.content.Context.WIFI_SERVICE
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
+import android.net.wifi.WifiManager
+import android.text.format.Formatter
 import timber.log.Timber
+
 
 interface NetworkConnectionListener {
     fun onNetworkAvailable(available: Boolean)
@@ -14,16 +18,17 @@ interface NetworkConnectionListener {
 
 class NetworkConnectionMonitor(activity: Activity) : ConnectivityManager.NetworkCallback() {
 
-    private val networkRequest: NetworkRequest = NetworkRequest.Builder()
-            .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
-            .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
-            .addTransportType(NetworkCapabilities.TRANSPORT_ETHERNET)
-            .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-            .addCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
-            .build()
+    private val networkRequest: NetworkRequest =
+            NetworkRequest.Builder().addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+                    .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
+                    .addTransportType(NetworkCapabilities.TRANSPORT_ETHERNET)
+                    .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                    .addCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED).build()
 
     private val connectivityManager: ConnectivityManager =
             activity.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+
+    private val wifiManager = activity.getSystemService(WIFI_SERVICE) as WifiManager
 
     private var networkConnectionListener: NetworkConnectionListener? = null
 
@@ -34,7 +39,7 @@ class NetworkConnectionMonitor(activity: Activity) : ConnectivityManager.Network
                         NetworkCapabilities.TRANSPORT_ETHERNET)) && hasCapability(
                         NetworkCapabilities.NET_CAPABILITY_INTERNET) && hasCapability(
                         NetworkCapabilities.NET_CAPABILITY_VALIDATED)
-            }?: false
+            } ?: false
 
     fun startListen(listener: NetworkConnectionListener) {
         networkConnectionListener = listener
@@ -56,8 +61,11 @@ class NetworkConnectionMonitor(activity: Activity) : ConnectivityManager.Network
         networkConnectionListener?.onNetworkAvailable(false)
     }
 
+    @Suppress("DEPRECATION")
     override fun onAvailable(network: Network?) {
-        Timber.v("onAvailable network: $network")
+        val ipAddress = wifiManager.connectionInfo.ipAddress
+        val formattedIpAddress = Formatter.formatIpAddress(ipAddress)
+        Timber.v("onAvailable network: $network ipAddress: $formattedIpAddress")
         networkConnectionListener?.onNetworkAvailable(true)
     }
 }

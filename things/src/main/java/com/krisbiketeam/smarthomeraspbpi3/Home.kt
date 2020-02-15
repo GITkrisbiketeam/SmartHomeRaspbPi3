@@ -13,7 +13,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.livedata.HomeUnitsLiveD
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.livedata.HwUnitErrorEventListLiveData
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.livedata.HwUnitsLiveData
 import com.krisbiketeam.smarthomeraspbpi3.units.Actuator
-import com.krisbiketeam.smarthomeraspbpi3.units.BaseUnit
+import com.krisbiketeam.smarthomeraspbpi3.units.BaseHwUnit
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
 import com.krisbiketeam.smarthomeraspbpi3.units.hardware.*
 import kotlinx.coroutines.Dispatchers
@@ -27,11 +27,11 @@ class Home(private val secureStorage: SecureStorage) : Sensor.HwUnitListener<Any
 
 
     private var hwUnitsLiveData: HwUnitsLiveData? = null
-    private val hwUnitsList: MutableMap<String, BaseUnit<Any>> = HashMap()
+    private val hwUnitsList: MutableMap<String, BaseHwUnit<Any>> = HashMap()
 
 
     private var hwUnitErrorEventListLiveData: HwUnitErrorEventListLiveData? = null
-    private val hwUnitErrorEventList: MutableMap<String, Triple<String, Int, BaseUnit<Any>?>> = HashMap()
+    private val hwUnitErrorEventList: MutableMap<String, Triple<String, Int, BaseHwUnit<Any>?>> = HashMap()
 
     private val alarmEnabledLiveData: LiveData<Boolean> = secureStorage.alarmEnabledLiveData
     private var alarmEnabled: Boolean = secureStorage.alarmEnabled
@@ -248,6 +248,11 @@ class Home(private val secureStorage: SecureStorage) : Sensor.HwUnitListener<Any
                         hwUnitStop(it)
                     }
                     val result = hwUnitsList.remove(value.name)
+                    if (hwUnitErrorEventList.contains(value.name)) {
+                        Timber.w("hwUnitsDataObserver NODE_ACTION_DELETED remove from ErrorEventList value: ${value.name}")
+                        hwUnitErrorEventList.remove(value.name)
+                        FirebaseHomeInformationRepository.clearHwErrorEvent(value.name)
+                    }
                     Timber.d("hwUnitsDataObserver HwUnit NODE_ACTION_DELETED: $result")
 
                 }
@@ -290,7 +295,7 @@ class Home(private val secureStorage: SecureStorage) : Sensor.HwUnitListener<Any
                 }
             }
         } else {
-            val hwUnitRestoreList: MutableList<BaseUnit<Any>> = mutableListOf()
+            val hwUnitRestoreList: MutableList<BaseHwUnit<Any>> = mutableListOf()
             hwUnitErrorEventList.values.forEach { (_, _, hwUnit) ->
                 hwUnit?.let { hwUnitRestoreList.add(hwUnit) }
             }
@@ -330,7 +335,7 @@ class Home(private val secureStorage: SecureStorage) : Sensor.HwUnitListener<Any
         }
     }
 
-    private fun createHwUnit(hwUnit: HwUnit): BaseUnit<Any>? {
+    private fun createHwUnit(hwUnit: HwUnit): BaseHwUnit<Any>? {
         return when (hwUnit.type) {
             BoardConfig.TEMP_SENSOR_TMP102 -> {
                 HwUnitI2CTempTMP102Sensor(
@@ -338,7 +343,7 @@ class Home(private val secureStorage: SecureStorage) : Sensor.HwUnitListener<Any
                         hwUnit.location,
                         hwUnit.pinName,
                         hwUnit.softAddress ?: 0,
-                        hwUnit.refreshRate) as BaseUnit<Any>
+                        hwUnit.refreshRate) as BaseHwUnit<Any>
             }
             BoardConfig.TEMP_SENSOR_MCP9808 -> {
                 HwUnitI2CTempMCP9808Sensor(
@@ -346,7 +351,7 @@ class Home(private val secureStorage: SecureStorage) : Sensor.HwUnitListener<Any
                         hwUnit.location,
                         hwUnit.pinName,
                         hwUnit.softAddress ?: 0,
-                        hwUnit.refreshRate) as BaseUnit<Any>
+                        hwUnit.refreshRate) as BaseHwUnit<Any>
             }
             BoardConfig.TEMP_PRESS_SENSOR_BMP280 -> {
                 HwUnitI2CTempPressBMP280Sensor(
@@ -354,7 +359,7 @@ class Home(private val secureStorage: SecureStorage) : Sensor.HwUnitListener<Any
                         hwUnit.location,
                         hwUnit.pinName,
                         hwUnit.softAddress ?: 0,
-                        hwUnit.refreshRate) as BaseUnit<Any>
+                        hwUnit.refreshRate) as BaseHwUnit<Any>
             }
             BoardConfig.IO_EXTENDER_MCP23017_INPUT -> {
                 MCP23017Pin.Pin.values().find {
@@ -367,7 +372,7 @@ class Home(private val secureStorage: SecureStorage) : Sensor.HwUnitListener<Any
                             hwUnit.softAddress ?: 0,
                             hwUnit.pinInterrupt ?: "",
                             ioPin,
-                            hwUnit.internalPullUp ?: false) as BaseUnit<Any>
+                            hwUnit.internalPullUp ?: false) as BaseHwUnit<Any>
                 }
             }
             BoardConfig.IO_EXTENDER_MCP23017_OUTPUT -> {
@@ -380,14 +385,14 @@ class Home(private val secureStorage: SecureStorage) : Sensor.HwUnitListener<Any
                             hwUnit.pinName,
                             hwUnit.softAddress ?: 0,
                             hwUnit.pinInterrupt ?: "",
-                            ioPin) as BaseUnit<Any>
+                            ioPin) as BaseHwUnit<Any>
                 }
             }
             else -> null
         }
     }
 
-    private fun hwUnitStart(unit: BaseUnit<Any>) {
+    private fun hwUnitStart(unit: BaseHwUnit<Any>) {
         Timber.v("hwUnitStart connect unit: ${unit.hwUnit}")
         unit.connect()
         if (unit is Sensor) {
@@ -409,7 +414,7 @@ class Home(private val secureStorage: SecureStorage) : Sensor.HwUnitListener<Any
         }
     }
 
-    private fun hwUnitStop(unit: BaseUnit<Any>) {
+    private fun hwUnitStop(unit: BaseHwUnit<Any>) {
         Timber.v("hwUnitStop close unit: ${unit.hwUnit}")
         try {
             // close will automatically unregister listener

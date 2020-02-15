@@ -2,7 +2,7 @@ package com.krisbiketeam.smarthomeraspbpi3.units
 
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
 
-interface Sensor<T> : BaseUnit<T> {
+interface Sensor<T> : BaseHwUnit<T> {
 
     fun registerListener(listener: HwUnitListener<T>)
 

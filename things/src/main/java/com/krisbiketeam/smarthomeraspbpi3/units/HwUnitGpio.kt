@@ -4,7 +4,7 @@ import com.google.android.things.pio.Gpio
 import com.google.android.things.pio.PeripheralManager
 import timber.log.Timber
 
-interface HwUnitGpio<T> : BaseUnit<T> {
+interface HwUnitGpio<T> : BaseHwUnit<T> {
     var gpio: Gpio?
 
     override fun connect() {

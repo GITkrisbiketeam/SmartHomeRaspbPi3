@@ -2,7 +2,7 @@ package com.krisbiketeam.smarthomeraspbpi3.units
 
 import timber.log.Timber
 
-interface HwUnitI2C <T> : BaseUnit<T> {
+interface HwUnitI2C <T> : BaseHwUnit<T> {
     var device: AutoCloseable?
 
     @Throws(Exception::class)
