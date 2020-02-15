@@ -33,35 +33,33 @@ class HomeActivity  : AppCompatActivity() {
                 R.layout.activity_home)
         drawerLayout = binding.drawerLayout
 
-        DataBindingUtil.inflate<NavHeaderBinding>(
-                layoutInflater, R.layout.nav_header, binding.navigationView, false).apply {
-            binding.navigationView.addHeaderView(root)
-            viewModel = navigationViewModel
-            lifecycleOwner = this@HomeActivity
-        }
-
-        setSupportActionBar(binding.toolbar)
-
         val navController = findNavController(R.id.home_nav_fragment)
 
-        // Set up ActionBar
-        setupActionBarWithNavController(navController, drawerLayout)
 
         // Set up navigation menu
         binding.navigationView.setupWithNavController(navController)
 
+        // Set up ActionBar
+        setSupportActionBar(binding.toolbar)
+        setupActionBarWithNavController(navController, drawerLayout)
+
         secureStorage = NotSecureStorage(this)
 
-        if (secureStorage.homeName.isEmpty()){
+        if (!secureStorage.isAuthenticated()) {
+            Timber.d("No Home Name defined, starting HomeSettingsFragment")
+            navController.navigate(R.id.login_settings_fragment)
+        } else if (secureStorage.homeName.isEmpty()){
             Timber.d("No Home Name defined, starting HomeSettingsFragment")
             navController.navigate(R.id.home_settings_fragment)
         } else {
             FirebaseHomeInformationRepository.setHomeReference(secureStorage.homeName)
         }
 
-        if (!secureStorage.isAuthenticated()) {
-            Timber.d("No Home Name defined, starting HomeSettingsFragment")
-            navController.navigate(R.id.login_settings_fragment)
+        DataBindingUtil.inflate<NavHeaderBinding>(
+                layoutInflater, R.layout.nav_header, binding.navigationView, false).apply {
+            binding.navigationView.addHeaderView(root)
+            viewModel = navigationViewModel
+            lifecycleOwner = this@HomeActivity
         }
     }
 

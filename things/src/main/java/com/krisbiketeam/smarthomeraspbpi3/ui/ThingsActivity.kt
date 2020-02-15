@@ -225,6 +225,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
             if (secureStorage.homeName.isNotEmpty()) {
                 Timber.d("Set Home Name:${secureStorage.homeName}")
                 FirebaseHomeInformationRepository.setHomeReference(secureStorage.homeName)
+                FirebaseHomeInformationRepository.startHomeToFirebaseConnectionActiveMonitor()
             } else {
                 Timber.d("No Home Name defined, starting HomeNameReceiver")
                 startHomeNameReceiver()

@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout
-        xmlns:tools="http://schemas.android.com/tools"
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
         >
 
     <data>
+
         <variable
-            name="viewModel"
-            type="com.krisbiketeam.smarthomeraspbpi3.viewmodels.NavigationViewModel" />
+                name="viewModel"
+                type="com.krisbiketeam.smarthomeraspbpi3.viewmodels.NavigationViewModel"
+                />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -82,6 +84,19 @@
                 app:layout_constraintStart_toEndOf="@+id/navHeaderAlarmStateTitle"
                 app:layout_constraintTop_toTopOf="@+id/navHeaderAlarmStateTitle"
                 tools:text="enabled"
+                />
+
+        <TextView
+                android:id="@+id/navHeaderOnlineState"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@{viewModel.online}"
+                android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/navHeaderAlarmStateTitle"
+                tools:text="Online"
                 />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

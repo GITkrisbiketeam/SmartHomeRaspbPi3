@@ -20,6 +20,8 @@ const val HOME_TEMPERATURES = "temperatures"
 const val HOME_PRESSURES = "pressures"
 const val HOME_BLINDS = "blinds"
 const val HOME_PREFERENCES = "preferences"
+const val HOME_ONLINE = "online"
+const val HOME_LAST_ONLINE_TIME = "lastOnline"
 
 
 const val HOME_UNIT_TASKS = "unitsTasks"

@@ -1,8 +1,8 @@
 package com.krisbiketeam.smarthomeraspbpi3.common.storage
 
+import androidx.lifecycle.LiveData
 import com.google.android.gms.tasks.Task
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.*
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.*
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.*
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.livedata.*
@@ -87,7 +87,7 @@ interface HomeInformationRepository {
     /**
      * get instance of @see[HomeUnitLiveData] for listening to changes in given HomeUnit in DB
      */
-    fun homeUnitLiveData(unitType: String, unitName:String): HomeUnitLiveData
+    fun homeUnitLiveData(unitType: String, unitName: String): HomeUnitLiveData
 
     /**
      * get instance of @see[HomeUnitsLiveData] for listening to changes in entries in DB
@@ -122,7 +122,7 @@ interface HomeInformationRepository {
     /**
      * get instance of @see[UnitTaskListLiveData] for listening to changes in specific HomeUnit UnitTask List entry in DB
      */
-    fun unitTaskListLiveData(unitType: String, unitName:String): UnitTaskListLiveData
+    fun unitTaskListLiveData(unitType: String, unitName: String): UnitTaskListLiveData
 
     /**
      * get instance of @see[UnitTaskListLiveData] for listening to changes in specific HomeUnit UnitTask List entry in DB
@@ -142,7 +142,7 @@ interface HomeInformationRepository {
     /**
      *  Gets Firebase homePreference Value for given key
      */
-    fun getHomePreference(key: String) : DatabaseReference?
+    fun getHomePreference(key: String): DatabaseReference?
 
     /**
      * Clear all Logs entries from DB
@@ -158,6 +158,21 @@ interface HomeInformationRepository {
      * Clear hw Error Event entry from DB
      */
     fun clearHwErrorEvent(hwUnitName: String)
+
+    /**
+     * start monitoring for Firebase Connection active
+     */
+    fun startHomeToFirebaseConnectionActiveMonitor()
+
+    /**
+     * Checks if Home Module is online
+     */
+    fun isHomeOnline(): LiveData<Boolean?>
+
+    /**
+     * Checks when Home Module was last online
+     */
+    fun lastHomeOnlineTime(): LiveData<Long?>
 }
 
 object FirebaseHomeInformationRepository : HomeInformationRepository {
@@ -168,11 +183,11 @@ object FirebaseHomeInformationRepository : HomeInformationRepository {
     // Reference for all log related events
     private var referenceHwError: DatabaseReference? = null
     // Reference for all users
-    private val referenceUsers = FirebaseDatabase.getInstance()
-            .reference.child(USER_INFORMATION_BASE)
+    private val referenceUsers =
+            FirebaseDatabase.getInstance().reference.child(USER_INFORMATION_BASE)
     // Reference for all notifications
-    private val referenceNotifications = FirebaseDatabase.getInstance()
-            .reference.child(NOTIFICATION_INFORMATION_BASE)
+    private val referenceNotifications =
+            FirebaseDatabase.getInstance().reference.child(NOTIFICATION_INFORMATION_BASE)
 
     private var homeUnitsLiveData = HomeUnitsLiveData(null)
 
@@ -193,9 +208,10 @@ object FirebaseHomeInformationRepository : HomeInformationRepository {
     }
 
     override fun setHomeReference(homeName: String) {
-        referenceHome = FirebaseDatabase.getInstance().reference.child(HOME_INFORMATION_BASE).child(homeName)
-        referenceLog = FirebaseDatabase.getInstance().reference.child(HOME_INFORMATION_BASE).child(homeName).child(LOG_INFORMATION_BASE)
-        referenceHwError = FirebaseDatabase.getInstance().reference.child(HOME_INFORMATION_BASE).child(homeName).child(HW_ERROR_INFORMATION_BASE)
+        referenceHome = FirebaseDatabase.getInstance().reference.child(HOME_INFORMATION_BASE)
+                .child(homeName)
+        referenceLog = referenceHome?.child(LOG_INFORMATION_BASE)
+        referenceHwError = referenceHome?.child(HW_ERROR_INFORMATION_BASE)
 
         homeUnitsLiveData = HomeUnitsLiveData(referenceHome)
         hwUnitsLiveData = HwUnitsLiveData(referenceHome)
@@ -254,12 +270,16 @@ object FirebaseHomeInformationRepository : HomeInformationRepository {
         return referenceHome?.child(HOME_HW_UNITS)?.child(hwUnit.name)?.removeValue()
     }
 
-    override fun saveUnitTask(homeUnitType: String, homeUnitName: String, unitTask: UnitTask): Task<Void>? {
-        return referenceHome?.child(homeUnitType)?.child(homeUnitName)?.child(HOME_UNIT_TASKS)?.child(unitTask.name)?.setValue(unitTask)
+    override fun saveUnitTask(homeUnitType: String, homeUnitName: String,
+                              unitTask: UnitTask): Task<Void>? {
+        return referenceHome?.child(homeUnitType)?.child(homeUnitName)?.child(HOME_UNIT_TASKS)
+                ?.child(unitTask.name)?.setValue(unitTask)
     }
 
-    override fun deleteUnitTask(homeUnitType: String, homeUnitName: String, unitTask: UnitTask): Task<Void>? {
-        return referenceHome?.child(homeUnitType)?.child(homeUnitName)?.child(HOME_UNIT_TASKS)?.child(unitTask.name)?.removeValue()
+    override fun deleteUnitTask(homeUnitType: String, homeUnitName: String,
+                                unitTask: UnitTask): Task<Void>? {
+        return referenceHome?.child(homeUnitType)?.child(homeUnitName)?.child(HOME_UNIT_TASKS)
+                ?.child(unitTask.name)?.removeValue()
     }
 
     override fun clearLog() {
@@ -286,7 +306,7 @@ object FirebaseHomeInformationRepository : HomeInformationRepository {
         return HomeUnitsLiveData(referenceHome, roomName)
     }
 
-    override fun homeUnitLiveData(unitType: String, unitName:String): HomeUnitLiveData {
+    override fun homeUnitLiveData(unitType: String, unitName: String): HomeUnitLiveData {
         return HomeUnitLiveData(referenceHome, unitType, unitName)
     }
 
@@ -310,7 +330,7 @@ object FirebaseHomeInformationRepository : HomeInformationRepository {
         return RoomLiveData(referenceHome, roomName)
     }
 
-    override fun unitTaskListLiveData(unitType: String, unitName:String): UnitTaskListLiveData {
+    override fun unitTaskListLiveData(unitType: String, unitName: String): UnitTaskListLiveData {
         return UnitTaskListLiveData(referenceHome, unitType, unitName)
     }
 
@@ -323,8 +343,46 @@ object FirebaseHomeInformationRepository : HomeInformationRepository {
 
     }
 
-    override fun getHomePreference(key: String) : DatabaseReference? {
+    override fun getHomePreference(key: String): DatabaseReference? {
         return referenceHome?.child(HOME_PREFERENCES)?.child(key)
     }
 
+    override fun startHomeToFirebaseConnectionActiveMonitor() {
+        referenceHome?.run {
+            // Since I can connect from multiple devices, we store each connection instance separately
+            // any time that connectionsRef's value is null (i.e. has no children) I am offline
+            val myConnectionsRef = child(HOME_ONLINE)
+
+            // Stores the timestamp of my last disconnect (the last time I was seen online)
+            val lastOnlineRef = child(HOME_LAST_ONLINE_TIME)
+            val connectedRef = FirebaseDatabase.getInstance().getReference(".info/connected")
+            connectedRef.addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val connected = snapshot.getValue(Boolean::class.java) ?: false
+                    Timber.w("Firebase Online Connected? $connected")
+                    if (connected) {
+                        // When this device disconnects, remove it
+                        myConnectionsRef.onDisconnect().removeValue()
+
+                        // When I disconnect, update the last time I was seen online
+                        lastOnlineRef.onDisconnect().setValue(ServerValue.TIMESTAMP)
+
+                        // Add this device to my connections list
+                        // this value could contain info about the device or a timestamp too
+                        myConnectionsRef.setValue(java.lang.Boolean.TRUE)
+                    }
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    Timber.w("Listener was cancelled at .info/connected")
+                }
+            })
+        }
+    }
+
+    override fun isHomeOnline(): LiveData<Boolean?> = FirebaseDBLiveData(
+            referenceHome?.child(HOME_ONLINE)).getObjectLiveData()
+
+    override fun lastHomeOnlineTime(): LiveData<Long?> = FirebaseDBLiveData(
+            referenceHome?.child(HOME_LAST_ONLINE_TIME)).getObjectLiveData()
 }

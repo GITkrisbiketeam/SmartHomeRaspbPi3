@@ -1,18 +1,22 @@
 package com.krisbiketeam.smarthomeraspbpi3.viewmodels
 
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.HomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import timber.log.Timber
+import java.text.DateFormat
+import java.util.*
 
-class NavigationViewModel(
-        secureStorage: SecureStorage
-) : ViewModel() {
+class NavigationViewModel(secureStorage: SecureStorage, homeRepository: HomeInformationRepository) :
+        ViewModel() {
 
     val user: LiveData<String>
     val home: LiveData<String>
     val alarm: LiveData<String>
+    val online: LiveData<String>
 
     init {
         Timber.d("init")
@@ -35,6 +39,22 @@ class NavigationViewModel(
                 "enabled"
             } else {
                 "disabled"
+            }
+        }
+        online = Transformations.switchMap(homeRepository.isHomeOnline()) {
+            if (it == true) {
+                MutableLiveData("Online")
+            } else {
+                Transformations.map(homeRepository.lastHomeOnlineTime()) { time ->
+                    if (time != null) {
+
+                        val formattedDate: String =
+                                DateFormat.getDateTimeInstance().format(Date(time))
+                        "Offline since: $formattedDate"
+                    } else {
+                        "Offline"
+                    }
+                }
             }
         }
     }

@@ -39,7 +39,7 @@ val myModule: Module = module {
     }
     viewModel { LoginSettingsViewModel(get(), get()) }
     viewModel { HomeSettingsViewModel(get()) }
-    viewModel { NavigationViewModel(get()) }
+    viewModel { NavigationViewModel(get(), FirebaseHomeInformationRepository) }
     viewModel { (hwUnitName: String) ->
         AddEditHwUnitViewModel(FirebaseHomeInformationRepository, hwUnitName)
     }
