@@ -33,11 +33,12 @@ class HwUnitI2CTempTMP102Sensor(name: String, location: String, private val pinN
     }
 
     @Throws(Exception::class)
-    override fun registerListener(listener: Sensor.HwUnitListener<Float>) {
+    override fun registerListener(listener: Sensor.HwUnitListener<Float>,
+                                  exceptionHandler: CoroutineExceptionHandler) {
         Timber.d("registerListener")
         hwUnitListener = listener
         job?.cancel()
-        job = GlobalScope.launch {
+        job = GlobalScope.plus(exceptionHandler).launch(Dispatchers.IO) {
             // We could also check for true as suspending delay() method is cancellable
             while (isActive) {
                 // Cancel will not stop non suspending oneShotReadValue function

@@ -3,6 +3,7 @@ package com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver
 import androidx.annotation.VisibleForTesting
 import com.google.android.things.pio.I2cDevice
 import com.google.android.things.pio.PeripheralManager
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -249,7 +250,7 @@ class TMP102(bus: String? = null, address: Int = DEFAULT_I2C_GND_ADDRESS) : Auto
     fun readOneShotTemperature(onResult: (Float?)-> Unit) {
         if (shutdownMode) {
             synchronized(mBuffer) {
-                GlobalScope.launch {
+                GlobalScope.launch(Dispatchers.IO) {
                     // Write OneShot bit to config to wakeup device for one shot read temp
                     mConfig = mConfig or (1 shl TMP102_ONE_SHOT_BIT_SHIFT)
                     writeSample16(TMP102_REG_CONF, mConfig)

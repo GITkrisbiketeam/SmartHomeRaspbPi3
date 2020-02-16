@@ -59,7 +59,7 @@ class PCF8574AT(bus: String? = null,
         if (debounceDelay != NO_DEBOUNCE_DELAY) {
             Timber.d("mIntCallback onGpioEdge ${gpio.value}")
             debounceIntCallbackJob?.cancel()
-            debounceIntCallbackJob = GlobalScope.launch {
+            debounceIntCallbackJob = GlobalScope.launch(Dispatchers.IO) {
                 delay(debounceDelay.toLong())
                 try {
                     checkInterrupt()
@@ -135,7 +135,7 @@ class PCF8574AT(bus: String? = null,
     private fun startMonitor(){
         if (pollingTime != NO_POLLING_TIME) {
             // if the monitor has not been started, then start it now
-            monitorJob = GlobalScope.launch {
+            monitorJob = GlobalScope.launch(Dispatchers.IO) {
                 // We could also check for true as suspending delay() method is cancellable
                 while (isActive) {
                     try {

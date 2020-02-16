@@ -7,6 +7,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.ConnectionType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
 import com.krisbiketeam.smarthomeraspbpi3.units.HwUnitGpio
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
+import kotlinx.coroutines.CoroutineExceptionHandler
 import timber.log.Timber
 import java.util.*
 
@@ -55,7 +56,8 @@ open class HwUnitGpioSensor(name: String, location: String, pinName: String,
     }
 
     @Throws(Exception::class)
-    override fun registerListener(listener: Sensor.HwUnitListener<Boolean>) {
+    override fun registerListener(listener: Sensor.HwUnitListener<Boolean>,
+                                  exceptionHandler: CoroutineExceptionHandler) {
         Timber.d("registerListener")
         hwUnitListener = listener
         gpio?.registerGpioCallback(mGpioCallback)

@@ -7,6 +7,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.ConnectionType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
 import com.krisbiketeam.smarthomeraspbpi3.units.HwUnitI2C
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
+import kotlinx.coroutines.CoroutineExceptionHandler
 import timber.log.Timber
 import java.util.*
 
@@ -51,7 +52,8 @@ open class HwUnitI2CPCF8574ATSensor(name: String, location: String, private val 
         HwUnitI2CPCF8574AT.decreaseUseCount(pinName, address)
     }
 
-    override fun registerListener(listener: Sensor.HwUnitListener<Boolean>) {
+    override fun registerListener(listener: Sensor.HwUnitListener<Boolean>,
+                                  exceptionHandler: CoroutineExceptionHandler) {
         Timber.d("registerListener")
         hwUnitListener = listener
         (device as PCF8574AT).run {

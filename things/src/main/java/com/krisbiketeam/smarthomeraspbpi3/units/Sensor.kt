@@ -1,10 +1,11 @@
 package com.krisbiketeam.smarthomeraspbpi3.units
 
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
+import kotlinx.coroutines.CoroutineExceptionHandler
 
 interface Sensor<T> : BaseHwUnit<T> {
 
-    fun registerListener(listener: HwUnitListener<T>)
+    fun registerListener(listener: HwUnitListener<T>, exceptionHandler: CoroutineExceptionHandler = CoroutineExceptionHandler{_,_ -> })
 
     fun unregisterListener()
 

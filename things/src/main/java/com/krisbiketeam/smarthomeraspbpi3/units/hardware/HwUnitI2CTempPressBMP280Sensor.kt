@@ -36,11 +36,12 @@ class HwUnitI2CTempPressBMP280Sensor(name: String, location: String, pinName: St
     }
 
     @Throws(Exception::class)
-    override fun registerListener(listener: Sensor.HwUnitListener<TemperatureAndPressure>) {
+    override fun registerListener(listener: Sensor.HwUnitListener<TemperatureAndPressure>,
+                                  exceptionHandler: CoroutineExceptionHandler) {
         Timber.d("registerListener")
         hwUnitListener = listener
         job?.cancel()
-        job = GlobalScope.launch {
+        job = GlobalScope.plus(exceptionHandler).launch(Dispatchers.IO) {
             // We could also check for true as suspending delay() method is cancellable
             while (isActive) {
                 try {

@@ -16,6 +16,7 @@ import com.krisbiketeam.smarthomeraspbpi3.units.Actuator
 import com.krisbiketeam.smarthomeraspbpi3.units.BaseHwUnit
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
 import com.krisbiketeam.smarthomeraspbpi3.units.hardware.*
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -342,7 +343,7 @@ class Home(secureStorage: SecureStorage,
                 } else {
                     value = unitValue
                 }
-                value?.let {newValue ->
+                value?.let { newValue ->
                     applyFunction(newValue)
                 }
                 homeInformationRepository.saveHomeUnit(this)
@@ -399,7 +400,7 @@ class Home(secureStorage: SecureStorage,
         unit.connectValueWithException()
         when (unit) {
             is Sensor   -> {
-                GlobalScope.launch(Dispatchers.Default) {
+                GlobalScope.launch(Dispatchers.IO) {
                     val readVal = unit.readValueWithException()
                     Timber.w("hwUnitStart readVal:$readVal unit.unitValue:${unit.unitValue}")
                     unit.registerListenerWithException(this@Home)
@@ -634,9 +635,7 @@ class Home(secureStorage: SecureStorage,
         try {
             setValue(value)
         } catch (e: Exception) {
-            homeInformationRepository.addHwUnitErrorEvent(
-                    HwUnitLog(hwUnit, unitValue, e.message, Date().toString()))
-            Timber.e(e, "Error updating hwUnit value on $hwUnit")
+            addHwUnitErrorEvent(e, "Error updating hwUnit value on $hwUnit")
         }
 
     }
@@ -645,9 +644,7 @@ class Home(secureStorage: SecureStorage,
         return try {
             readValue()
         } catch (e: Exception) {
-            homeInformationRepository.addHwUnitErrorEvent(
-                    HwUnitLog(hwUnit, unitValue, e.message, Date().toString()))
-            Timber.e(e, "Error reading hwUnit value on $hwUnit")
+            addHwUnitErrorEvent(e, "Error reading hwUnit value on $hwUnit")
             null
         }
     }
@@ -655,11 +652,12 @@ class Home(secureStorage: SecureStorage,
     private fun <T : Any> Sensor<T>.registerListenerWithException(
             listener: Sensor.HwUnitListener<T>) {
         try {
-            registerListener(listener)
+            registerListener(listener, CoroutineExceptionHandler { _, error ->
+                addHwUnitErrorEvent(error,
+                                    "Error registerListener CoroutineExceptionHandler hwUnit on $hwUnit")
+            })
         } catch (e: Exception) {
-            homeInformationRepository.addHwUnitErrorEvent(
-                    HwUnitLog(hwUnit, unitValue, e.message, Date().toString()))
-            Timber.e(e, "Error registerListener hwUnit on $hwUnit")
+            addHwUnitErrorEvent(e, "Error registerListener hwUnit on $hwUnit")
         }
 
     }
@@ -668,9 +666,7 @@ class Home(secureStorage: SecureStorage,
         try {
             close()
         } catch (e: Exception) {
-            homeInformationRepository.addHwUnitErrorEvent(
-                    HwUnitLog(hwUnit, unitValue, e.message, Date().toString()))
-            Timber.e(e, "Error closing hwUnit on $hwUnit")
+            addHwUnitErrorEvent(e, "Error closing hwUnit on $hwUnit")
         }
 
     }
@@ -679,10 +675,14 @@ class Home(secureStorage: SecureStorage,
         try {
             connect()
         } catch (e: Exception) {
-            homeInformationRepository.addHwUnitErrorEvent(
-                    HwUnitLog(hwUnit, unitValue, e.message, Date().toString()))
-            Timber.e(e, "Error connecting hwUnit on $hwUnit")
+            addHwUnitErrorEvent(e, "Error connecting hwUnit on $hwUnit")
         }
 
+    }
+
+    private fun <T : Any> BaseHwUnit<T>.addHwUnitErrorEvent(e: Throwable, logMessage: String) {
+        homeInformationRepository.addHwUnitErrorEvent(
+                HwUnitLog(hwUnit, unitValue, e.message, Date().toString()))
+        Timber.e(e, logMessage)
     }
 }

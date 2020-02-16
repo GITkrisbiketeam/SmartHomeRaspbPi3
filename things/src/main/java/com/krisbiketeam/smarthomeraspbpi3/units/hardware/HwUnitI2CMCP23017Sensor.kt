@@ -7,6 +7,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.ConnectionType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
 import com.krisbiketeam.smarthomeraspbpi3.units.HwUnitI2C
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
+import kotlinx.coroutines.CoroutineExceptionHandler
 import timber.log.Timber
 import java.util.*
 
@@ -56,7 +57,8 @@ open class HwUnitI2CMCP23017Sensor(name: String, location: String, private val p
         }
     }
 
-    override fun registerListener(listener: Sensor.HwUnitListener<Boolean>) {
+    override fun registerListener(listener: Sensor.HwUnitListener<Boolean>,
+                                  exceptionHandler: CoroutineExceptionHandler) {
         Timber.d("registerListener")
         hwUnitListener = listener
         (device as MCP23017?)?.run {
