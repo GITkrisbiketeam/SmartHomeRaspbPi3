@@ -29,7 +29,7 @@ interface SecureStorage {
 }
 
 // Todo: implement a encrypted secure storage since this is not secure
-class NotSecureStorage(context: Context) : SecureStorage {
+class NotSecureStorage(context: Context, homeInformationRepository: HomeInformationRepository) : SecureStorage {
     private val sharedPrefs = context.getSharedPreferences(SHARED_FILE, Context.MODE_PRIVATE)
     private val prefs = PreferenceManager.getDefaultSharedPreferences(context)
 
@@ -81,7 +81,7 @@ class NotSecureStorage(context: Context) : SecureStorage {
             object  : LiveData<Boolean>() {
                 private val preferenceChangeListener =
                         SharedPreferences.OnSharedPreferenceChangeListener { _, _ ->
-                            FirebaseHomeInformationRepository.setHomePreference(ALARM_ENABLED_KEY, alarmEnabled)
+                            homeInformationRepository.setHomePreference(ALARM_ENABLED_KEY, alarmEnabled)
                         }
 
                 private val alarmListener: ValueEventListener = object : ValueEventListener {
@@ -103,13 +103,13 @@ class NotSecureStorage(context: Context) : SecureStorage {
                 override fun onActive() {
                     super.onActive()
                     value = alarmEnabled
-                    FirebaseHomeInformationRepository.getHomePreference(ALARM_ENABLED_KEY)?.addValueEventListener(alarmListener)
+                    homeInformationRepository.getHomePreference(ALARM_ENABLED_KEY)?.addValueEventListener(alarmListener)
                     prefs.registerOnSharedPreferenceChangeListener(preferenceChangeListener)
                 }
 
                 override fun onInactive() {
                     prefs.unregisterOnSharedPreferenceChangeListener(preferenceChangeListener)
-                    FirebaseHomeInformationRepository.getHomePreference(ALARM_ENABLED_KEY)?.removeEventListener(alarmListener)
+                    homeInformationRepository.getHomePreference(ALARM_ENABLED_KEY)?.removeEventListener(alarmListener)
                     super.onInactive()
                 }
             }

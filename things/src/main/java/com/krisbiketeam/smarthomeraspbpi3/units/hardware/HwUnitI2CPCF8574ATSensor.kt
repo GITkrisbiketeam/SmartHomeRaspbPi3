@@ -2,25 +2,23 @@ package com.krisbiketeam.smarthomeraspbpi3.units.hardware
 
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver.PCF8574AT
+import com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver.PCF8574ATPin.*
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.ConnectionType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
-import com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver.PCF8574ATPin.*
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnitLog
 import com.krisbiketeam.smarthomeraspbpi3.units.HwUnitI2C
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
 import timber.log.Timber
 import java.util.*
 
-open class HwUnitI2CPCF8574ATSensor(name: String,
-                                    location: String,
-                                    private val pinName: String,
-                                    private val address: Int,
-                                    private val pinInterrupt: String,
+open class HwUnitI2CPCF8574ATSensor(name: String, location: String, private val pinName: String,
+                                    private val address: Int, private val pinInterrupt: String,
                                     private val ioPin: Pin,
-                                    override var device: AutoCloseable? = null) : HwUnitI2C<Boolean>, Sensor<Boolean> {
+                                    override var device: AutoCloseable? = null) :
+        HwUnitI2C<Boolean>, Sensor<Boolean> {
 
-    override val hwUnit: HwUnit = HwUnit(name, location, BoardConfig.IO_EXTENDER_PCF8474AT_INPUT, pinName, ConnectionType.I2C, address, pinInterrupt, ioPin.name)
+    override val hwUnit: HwUnit =
+            HwUnit(name, location, BoardConfig.IO_EXTENDER_PCF8474AT_INPUT, pinName,
+                   ConnectionType.I2C, address, pinInterrupt, ioPin.name)
     override var unitValue: Boolean? = null
     override var valueUpdateTime: String = ""
 
@@ -36,29 +34,21 @@ open class HwUnitI2CPCF8574ATSensor(name: String,
         }
     }
 
+    @Throws(Exception::class)
     override fun connect() {
-        try {
-            device = HwUnitI2CPCF8574AT.getPcf8574AtInstance(pinName, address).apply {
-                intGpio = pinInterrupt
-                setMode(ioPin, PinMode.DIGITAL_INPUT)
-            }
-            HwUnitI2CPCF8574AT.increaseUseCount(pinName, address)
-        } catch (e: Exception) {
-            FirebaseHomeInformationRepository.addHwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, e.message, Date().toString()))
-            Timber.e(e, "Error connect HwUnitI2CPCF8574ATSensor")
+        device = HwUnitI2CPCF8574AT.getPcf8574AtInstance(pinName, address).apply {
+            intGpio = pinInterrupt
+            setMode(ioPin, PinMode.DIGITAL_INPUT)
         }
+        HwUnitI2CPCF8574AT.increaseUseCount(pinName, address)
     }
 
+    @Throws(Exception::class)
     override fun close() {
         unregisterListener()
         // We do not want to close this device if it is used by another instance of this class
         // decreaseUseCount will close HwUnitI2C when count reaches 0
-        try {
-            HwUnitI2CPCF8574AT.decreaseUseCount(pinName, address)
-        } catch (e: Exception) {
-            FirebaseHomeInformationRepository.addHwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, e.message, Date().toString()))
-            Timber.e(e, "Error close HwUnitI2CPCF8574ATSensor")
-        }
+        HwUnitI2CPCF8574AT.decreaseUseCount(pinName, address)
     }
 
     override fun registerListener(listener: Sensor.HwUnitListener<Boolean>) {
@@ -79,15 +69,10 @@ open class HwUnitI2CPCF8574ATSensor(name: String,
         hwUnitListener = null
     }
 
+    @Throws(Exception::class)
     override fun readValue(): Boolean? {
         unitValue = (device as PCF8574AT).run {
-            try {
-                getState(ioPin) == PinState.HIGH
-            } catch (e: Exception) {
-                FirebaseHomeInformationRepository.addHwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, e.message, Date().toString()))
-                Timber.e(e, "Error readValue HwUnitI2CPCF8574ATSensor")
-                null
-            }
+            getState(ioPin) == PinState.HIGH
         }
 
         return unitValue

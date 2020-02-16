@@ -7,7 +7,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.MyLiveDataState
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.AuthenticationLiveData
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.FirebaseCredentials
 import com.krisbiketeam.smarthomeraspbpi3.common.nearby.NearbyServiceLiveData
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.HomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.firebase.getFirebaseAppToken
 import com.krisbiketeam.smarthomeraspbpi3.firebase.sendRegistrationToServer
 import com.krisbiketeam.smarthomeraspbpi3.ui.settings.WifiSettingsFragment
@@ -18,7 +18,8 @@ import timber.log.Timber
  * The ViewModel used in [WifiSettingsFragment].
  */
 class LoginSettingsViewModel(private val authentication: AuthenticationLiveData,
-                             private val nearByState: NearbyServiceLiveData) : ViewModel() {
+                             private val nearByState: NearbyServiceLiveData,
+                             private val homeInformationRepository: HomeInformationRepository) : ViewModel() {
     var email: MutableLiveData<String> = MutableLiveData()
     var password: MutableLiveData<String> = MutableLiveData()
     var remoteLogin: MutableLiveData<Boolean> = MutableLiveData()
@@ -35,13 +36,13 @@ class LoginSettingsViewModel(private val authentication: AuthenticationLiveData,
                         "authenticationLivedata remoteLogin.value: ${remoteLogin.value} data: $data state: $state")
                 var updateValue = true
                 if (state == MyLiveDataState.DONE && data is FirebaseCredentials) {
-                    FirebaseHomeInformationRepository.writeNewUser(data.email.substringBefore("@"),
+                    homeInformationRepository.writeNewUser(data.email.substringBefore("@"),
                                                                    data.email)
                     updateValue = false
                     getFirebaseAppToken { token ->
                         Timber.d("getFirebaseAppToken token: $token")
                         if (token?.let {
-                                    sendRegistrationToServer(data.email, token)
+                                    sendRegistrationToServer(homeInformationRepository, data.email, token)
                                     if (remoteLogin.value == true) {
                                         // initialize Nearby FirebaseCredentials transfer
                                         nearByState.value = Pair(MyLiveDataState.CONNECTING, data)

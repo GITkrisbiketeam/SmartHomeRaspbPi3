@@ -49,6 +49,8 @@ dependencies {
 
     implementation "androidx.lifecycle:lifecycle-extensions:$androidxLifecycleExtensionsVersion"
 
+    implementation "org.koin:koin-android:2.0.1"
+
     implementation "com.squareup.moshi:moshi:$moshiVersion"
     implementation "com.jakewharton.timber:timber:$timberVersion"
 
@@ -63,7 +65,7 @@ dependencies {
     testImplementation 'org.powermock:powermock-classloading-xstream:1.6.6'
     testImplementation 'org.powermock:powermock-api-mockito:1.6.6'
 
-    androidTestImplementation 'androidx.test:runner:1.1.1'
+    androidTestImplementation 'androidx.test:runner:1.2.0'
 }
 
 apply plugin: "com.google.gms.google-services"

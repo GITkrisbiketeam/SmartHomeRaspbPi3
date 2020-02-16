@@ -10,7 +10,7 @@ import timber.log.Timber
 /**
  * The ViewModel for [HwUnitErrorEventListFragment].
  */
-class HwUnitErrorEventListViewModel(homeRepository: HomeInformationRepository) : ViewModel() {
+class HwUnitErrorEventListViewModel(private val homeRepository: HomeInformationRepository) : ViewModel() {
 
     val hwUnitErrorEventList: LiveData<List<HwUnitLog<Any>>>
 
@@ -20,5 +20,9 @@ class HwUnitErrorEventListViewModel(homeRepository: HomeInformationRepository) :
         Timber.d("init")
 
         hwUnitErrorEventList = homeRepository.hwUnitErrorEventListLiveData()
+    }
+
+    fun clearHwErrors(){
+        homeRepository.clearHwErrors()
     }
 }

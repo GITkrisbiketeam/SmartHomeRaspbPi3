@@ -2,6 +2,7 @@ package com.krisbiketeam.smarthomeraspbpi3.di
 
 import android.net.ConnectivityManager
 import android.net.wifi.WifiManager
+import com.krisbiketeam.smarthomeraspbpi3.adapters.RoomDetailHomeUnitListAdapter
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.Authentication
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.AuthenticationLiveData
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.FirebaseAuthentication
@@ -9,6 +10,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.nearby.NearbyService
 import com.krisbiketeam.smarthomeraspbpi3.common.nearby.NearbyServiceLiveData
 import com.krisbiketeam.smarthomeraspbpi3.common.nearby.NearbyServiceProvider
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.HomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.NotSecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.*
@@ -17,41 +19,43 @@ import com.krisbiketeam.smarthomeraspbpi3.viewmodels.settings.LoginSettingsViewM
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.settings.WifiSettingsViewModel
 import com.squareup.moshi.Moshi
 import org.koin.android.ext.koin.androidApplication
-import org.koin.android.viewmodel.ext.koin.viewModel
-import org.koin.dsl.module.Module
-import org.koin.dsl.module.module
+import org.koin.android.viewmodel.dsl.viewModel
+import org.koin.core.module.Module
+import org.koin.dsl.module
+
 
 val myModule: Module = module {
-    viewModel { RoomListViewModel(FirebaseHomeInformationRepository, get()) }
-    viewModel { NewRoomDialogViewModel(androidApplication(), FirebaseHomeInformationRepository) }
+    viewModel { RoomListViewModel(get(), get()) }
+    viewModel { NewRoomDialogViewModel(androidApplication(), get()) }
     viewModel { (roomName: String) ->
-        RoomDetailViewModel(FirebaseHomeInformationRepository, roomName)
+        RoomDetailViewModel(get(), roomName)
     }
     viewModel { (roomName: String, homeUnitName: String, homeUnitType: String) ->
-        HomeUnitDetailViewModel(FirebaseHomeInformationRepository, roomName, homeUnitName,
-                                homeUnitType)
+        HomeUnitDetailViewModel(get(), roomName, homeUnitName, homeUnitType)
     }
     viewModel { (taskName: String, homeUnitName: String, homeUnitType: String) ->
-        UnitTaskViewModel(FirebaseHomeInformationRepository, taskName, homeUnitName, homeUnitType)
+        UnitTaskViewModel(get(), taskName, homeUnitName, homeUnitType)
     }
     viewModel { (wifiManager: WifiManager, connectivityManager: ConnectivityManager) ->
         WifiSettingsViewModel(get(), wifiManager, connectivityManager)
     }
-    viewModel { LoginSettingsViewModel(get(), get()) }
-    viewModel { HomeSettingsViewModel(get(), get()) }
-    viewModel { NavigationViewModel(get(), FirebaseHomeInformationRepository) }
+    viewModel { LoginSettingsViewModel(get(), get(), get()) }
+    viewModel { HomeSettingsViewModel(get(), get(), get()) }
+    viewModel { NavigationViewModel(get(), get()) }
     viewModel { (hwUnitName: String) ->
-        AddEditHwUnitViewModel(FirebaseHomeInformationRepository, hwUnitName)
+        AddEditHwUnitViewModel(get(), hwUnitName)
     }
-    viewModel { HwUnitListViewModel(FirebaseHomeInformationRepository) }
-    viewModel { HwUnitErrorEventListViewModel(FirebaseHomeInformationRepository) }
+    viewModel { HwUnitListViewModel(get()) }
+    viewModel { HwUnitErrorEventListViewModel(get()) }
 
-    single { NotSecureStorage(androidApplication()) as SecureStorage }
-    single { FirebaseAuthentication() as Authentication }
-    single { Moshi.Builder().build() as Moshi }
+    single<HomeInformationRepository> { FirebaseHomeInformationRepository() }
+    single<SecureStorage> { NotSecureStorage(androidApplication(), get()) }
+    single<Authentication> { FirebaseAuthentication() }
+    single { Moshi.Builder().build() }
 
     factory { AuthenticationLiveData(get()) }
+    factory { RoomDetailHomeUnitListAdapter(get()) }
 
     factory { NearbyServiceLiveData(get()) }
-    factory { NearbyServiceProvider(androidApplication(), get()) as NearbyService }
+    factory<NearbyService> { NearbyServiceProvider(androidApplication(), get()) }
 }

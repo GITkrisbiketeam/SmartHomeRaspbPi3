@@ -1,18 +1,16 @@
 package com.krisbiketeam.smarthomeraspbpi3.units.hardware
 
 import android.os.Handler
-import androidx.annotation.VisibleForTesting
 import android.view.ViewConfiguration
+import androidx.annotation.VisibleForTesting
 import com.google.android.things.pio.Gpio
 import com.google.android.things.pio.GpioCallback
 import timber.log.Timber
 import java.util.*
 
-class HwUnitGpioNoiseSensor(name: String,
-                            location: String,
-                            pinName: String,
-                            activeType: Int,
-                            gpio: Gpio? = null) : HwUnitGpioSensor(name, location, pinName, activeType, gpio) {
+class HwUnitGpioNoiseSensor(name: String, location: String, pinName: String, activeType: Int,
+                            gpio: Gpio? = null) :
+        HwUnitGpioSensor(name, location, pinName, activeType, gpio) {
 
     private var mDebounceHandler: Handler = Handler()
     private var mPendingCheckDebounce: CheckDebounce? = null
@@ -58,6 +56,7 @@ class HwUnitGpioNoiseSensor(name: String,
         }
     }
 
+    @Throws(Exception::class)
     override fun close() {
         removeDebounceCallback()
         super.close()
@@ -71,8 +70,8 @@ class HwUnitGpioNoiseSensor(name: String,
         unitValue = event
         valueUpdateTime = Date().toString()
         Timber.d("performSensorEvent event: $event on: $hwUnit")
-        hwUnitListener?.onHwUnitChanged(hwUnit, unitValue, valueUpdateTime)
-                ?: Timber.w("listener not registered on: $hwUnit")
+        hwUnitListener?.onHwUnitChanged(hwUnit, unitValue, valueUpdateTime) ?: Timber.w(
+                "listener not registered on: $hwUnit")
 
     }
 
@@ -94,10 +93,14 @@ class HwUnitGpioNoiseSensor(name: String,
 
         override fun run() {
             // Final check that state hasn't changed
-            if (readValue() == mTriggerState) {
-                performSensorEvent(mTriggerState)
+            try {
+                if (readValue() == mTriggerState) {
+                    performSensorEvent(mTriggerState)
+                }
+                removeDebounceCallback()
+            } catch (e: Exception) {
+                Timber.e(e, "Error readValue on $hwUnit")
             }
-            removeDebounceCallback()
         }
     }
 }

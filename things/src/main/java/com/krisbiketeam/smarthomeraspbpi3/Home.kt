@@ -5,7 +5,7 @@ import androidx.lifecycle.Observer
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver.MCP23017Pin
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.ChildEventType
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.HomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.*
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.*
@@ -20,23 +20,27 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.util.*
+import kotlin.collections.HashMap
 
-class Home(private val secureStorage: SecureStorage) : Sensor.HwUnitListener<Any> {
+class Home(secureStorage: SecureStorage,
+           private val homeInformationRepository: HomeInformationRepository) :
+        Sensor.HwUnitListener<Any> {
     private var homeUnitsLiveData: HomeUnitsLiveData? = null
     private val homeUnitsList: MutableMap<String, HomeUnit<Any?>> = HashMap()
-
 
     private var hwUnitsLiveData: HwUnitsLiveData? = null
     private val hwUnitsList: MutableMap<String, BaseHwUnit<Any>> = HashMap()
 
 
     private var hwUnitErrorEventListLiveData: HwUnitErrorEventListLiveData? = null
-    private val hwUnitErrorEventList: MutableMap<String, Triple<String, Int, BaseHwUnit<Any>?>> = HashMap()
+    private val hwUnitErrorEventList: MutableMap<String, Triple<String, Int, BaseHwUnit<Any>?>> =
+            HashMap()
 
     private val alarmEnabledLiveData: LiveData<Boolean> = secureStorage.alarmEnabledLiveData
     private var alarmEnabled: Boolean = secureStorage.alarmEnabled
 
-    private var booleanApplyFunction: HomeUnit<in Boolean>.(Any?) -> Unit = { newVal: Any? ->
+    private var booleanApplyFunction: HomeUnit<in Boolean>.(Any) -> Unit = { newVal: Any ->
         Timber.d("booleanApplyFunction newVal: $newVal this: $this")
         if (newVal is Boolean) {
             unitsTasks.values.forEach { task ->
@@ -47,12 +51,12 @@ class Home(private val secureStorage: SecureStorage) : Sensor.HwUnitListener<Any
                         if (taskHwUnit is Actuator) {
                             value = newVal
                             Timber.d("booleanApplyFunction taskHwUnit setValue value: $value")
-                            taskHwUnit.setValue(value)
-                            applyFunction(value)
-                            FirebaseHomeInformationRepository.saveHomeUnit(this)
+                            taskHwUnit.setValueWithException(newVal)
+                            applyFunction(newVal)
+                            homeInformationRepository.saveHomeUnit(this)
                             if (firebaseNotify && alarmEnabled) {
                                 Timber.d("booleanApplyFunction notify with FCM Message")
-                                FirebaseHomeInformationRepository.notifyHomeUnitEvent(this)
+                                homeInformationRepository.notifyHomeUnitEvent(this)
                             }
                         }
                     }
@@ -63,11 +67,11 @@ class Home(private val secureStorage: SecureStorage) : Sensor.HwUnitListener<Any
         }
     }
 
-    private var sensorApplyFunction: HomeUnit<in Boolean>.(Any?) -> Unit = { newVal: Any? ->
+    private var sensorApplyFunction: HomeUnit<in Boolean>.(Any) -> Unit = { newVal: Any ->
         Timber.d("sensorApplyFunction newVal: $newVal this: $this")
         if (newVal is Float) {
             unitsTasks.values.forEach { task ->
-                if (this.name == task.homeUnitName){
+                if (this.name == task.homeUnitName) {
                     task.delay
                 } else {
                     homeUnitsList[task.homeUnitName]?.apply {
@@ -77,12 +81,12 @@ class Home(private val secureStorage: SecureStorage) : Sensor.HwUnitListener<Any
                             if (taskHwUnit is Actuator) {
                                 value = newVal
                                 Timber.d("sensorApplyFunction taskHwUnit setValue value: $value")
-                                taskHwUnit.setValue(value)
-                                applyFunction(value)
-                                FirebaseHomeInformationRepository.saveHomeUnit(this)
+                                taskHwUnit.setValueWithException(newVal)
+                                applyFunction(newVal)
+                                homeInformationRepository.saveHomeUnit(this)
                                 if (firebaseNotify && alarmEnabled) {
                                     Timber.d("sensorApplyFunction notify with FCM Message")
-                                    FirebaseHomeInformationRepository.notifyHomeUnitEvent(this)
+                                    homeInformationRepository.notifyHomeUnitEvent(this)
                                 }
                             }
                         }
@@ -104,15 +108,16 @@ class Home(private val secureStorage: SecureStorage) : Sensor.HwUnitListener<Any
 
     fun start() {
         Timber.e("start; hwUnitsList.size: ${hwUnitsList.size}")
-        homeUnitsLiveData = FirebaseHomeInformationRepository.homeUnitsLiveData().apply {
+        homeUnitsLiveData = homeInformationRepository.homeUnitsLiveData().apply {
             observeForever(homeUnitsDataObserver)
         }
-        hwUnitsLiveData = FirebaseHomeInformationRepository.hwUnitsLiveData().apply {
+        hwUnitsLiveData = homeInformationRepository.hwUnitsLiveData().apply {
             observeForever(hwUnitsDataObserver)
         }
-        hwUnitErrorEventListLiveData = FirebaseHomeInformationRepository.hwUnitErrorEventListLiveData().apply {
-            observeForever(hwUnitErrorEventListDataObserver)
-        }
+        hwUnitErrorEventListLiveData =
+                homeInformationRepository.hwUnitErrorEventListLiveData().apply {
+                    observeForever(hwUnitErrorEventListDataObserver)
+                }
         alarmEnabledLiveData.observeForever {
             alarmEnabled = it
         }
@@ -137,19 +142,22 @@ class Home(private val secureStorage: SecureStorage) : Sensor.HwUnitListener<Any
                         Timber.d("homeUnitsDataObserver NODE_ACTION_CHANGED EXISTING: $this}")
                         // set previous apply function to new homeUnit
                         homeUnit.applyFunction = applyFunction
-                        hwUnitsList[homeUnit.hwUnitName]?.let { baseUnit ->
-                            Timber.d("homeUnitsDataObserver NODE_ACTION_CHANGED baseUnit: $baseUnit")
+                        hwUnitsList[homeUnit.hwUnitName]?.let { hwUnit ->
+                            Timber.d("homeUnitsDataObserver NODE_ACTION_CHANGED hwUnit: $hwUnit")
                             // Actuators can be changed from remote mobile App so apply HomeUnitState to hwUnitState if it changed
-                            if (baseUnit is Actuator) {
+                            if (hwUnit is Actuator) {
                                 if (homeUnit.value != value) {
-                                    Timber.d("homeUnitsDataObserver NODE_ACTION_CHANGED baseUnit setValue value: ${homeUnit.value}")
-                                    baseUnit.setValue(homeUnit.value)
-
-                                    homeUnit.applyFunction(homeUnit.value)
+                                    Timber.d(
+                                            "homeUnitsDataObserver NODE_ACTION_CHANGED baseUnit setValue value: ${homeUnit.value}")
+                                    homeUnit.value?.let { newValue ->
+                                        hwUnit.setValueWithException(newValue)
+                                        homeUnit.applyFunction(newValue)
+                                    }
 
                                     if (homeUnit.firebaseNotify && alarmEnabled) {
-                                        Timber.d("homeUnitsDataObserver NODE_ACTION_CHANGED notify with FCM Message")
-                                        FirebaseHomeInformationRepository.notifyHomeUnitEvent(homeUnit)
+                                        Timber.d(
+                                                "homeUnitsDataObserver NODE_ACTION_CHANGED notify with FCM Message")
+                                        homeInformationRepository.notifyHomeUnitEvent(homeUnit)
                                     }
                                 }
                             }
@@ -157,47 +165,49 @@ class Home(private val secureStorage: SecureStorage) : Sensor.HwUnitListener<Any
                         homeUnitsList[homeUnit.name] = homeUnit
                     }
                 }
-                ChildEventType.NODE_ACTION_ADDED -> {
+                ChildEventType.NODE_ACTION_ADDED   -> {
                     val existingUnit = homeUnitsList[homeUnit.name]
-                    Timber.d("homeUnitsDataObserver NODE_ACTION_ADDED EXISTING $existingUnit ; NEW  $homeUnit")
+                    Timber.d(
+                            "homeUnitsDataObserver NODE_ACTION_ADDED EXISTING $existingUnit ; NEW  $homeUnit")
                     when (homeUnit.type) {
-                        HOME_LIGHTS,
-                        HOME_ACTUATORS,
-                        HOME_LIGHT_SWITCHES,
-                        HOME_REED_SWITCHES,
-                        HOME_MOTIONS -> {
-                            Timber.d("homeUnitsDataObserver NODE_ACTION_ADDED set boolean apply function")
+                        HOME_LIGHTS, HOME_ACTUATORS, HOME_LIGHT_SWITCHES, HOME_REED_SWITCHES, HOME_MOTIONS -> {
+                            Timber.d(
+                                    "homeUnitsDataObserver NODE_ACTION_ADDED set boolean apply function")
                             homeUnit.applyFunction = booleanApplyFunction
                         }
-                        HOME_TEMPERATURES,
-                        HOME_PRESSURES -> {
-                            Timber.d("homeUnitsDataObserver NODE_ACTION_ADDED set sensor apply function")
+                        HOME_TEMPERATURES, HOME_PRESSURES                                                  -> {
+                            Timber.d(
+                                    "homeUnitsDataObserver NODE_ACTION_ADDED set sensor apply function")
                             homeUnit.applyFunction = sensorApplyFunction
                         }
                     }
                     // Set/Update HhUnit States according to HomeUnit state and vice versa
-                    hwUnitsList[homeUnit.hwUnitName]?.let { baseUnit ->
-                        Timber.d("homeUnitsDataObserver NODE_ACTION_ADDED baseUnit: $baseUnit")
-                        if (homeUnit.value != baseUnit.unitValue) {
-                            if (baseUnit is Actuator) {
-                                Timber.d("homeUnitsDataObserver NODE_ACTION_ADDED baseUnit setValue value: ${homeUnit.value}")
-                                baseUnit.setValue(homeUnit.value)
-
-                            } else if (baseUnit is Sensor){
-                                homeUnit.value = baseUnit.unitValue
-                                FirebaseHomeInformationRepository.saveHomeUnit(homeUnit)
+                    hwUnitsList[homeUnit.hwUnitName]?.let { hwUnit ->
+                        Timber.d("homeUnitsDataObserver NODE_ACTION_ADDED hwUnit: $hwUnit")
+                        if (homeUnit.value != hwUnit.unitValue) {
+                            if (hwUnit is Actuator) {
+                                Timber.d(
+                                        "homeUnitsDataObserver NODE_ACTION_ADDED baseUnit setValue value: ${homeUnit.value}")
+                                homeUnit.value?.let { value ->
+                                    hwUnit.setValueWithException(value)
+                                }
+                            } else if (hwUnit is Sensor) {
+                                homeUnit.value = hwUnit.unitValue
+                                homeInformationRepository.saveHomeUnit(homeUnit)
                             }
                         }
                     }
                     homeUnitsList[homeUnit.name] = homeUnit
                     //TODO: should we also call applyFunction ???
-                    homeUnit.applyFunction(homeUnit, homeUnit.value)
+                    homeUnit.value?.let { value ->
+                        homeUnit.applyFunction(homeUnit, value)
+                    }
                 }
                 ChildEventType.NODE_ACTION_DELETED -> {
                     val result = homeUnitsList.remove(homeUnit.name)
                     Timber.d("homeUnitsDataObserver NODE_ACTION_DELETED: $result")
                 }
-                else -> {
+                else                               -> {
                     Timber.e("homeUnitsDataObserver unsupported action: $action")
                 }
             }
@@ -214,16 +224,17 @@ class Home(private val secureStorage: SecureStorage) : Sensor.HwUnitListener<Any
                         hwUnitStop(it)
                     }
                     if (hwUnitErrorEventList.contains(value.name)) {
-                        Timber.w("hwUnitsDataObserver NODE_ACTION_CHANGED remove from ErrorEventList value: ${value.name}")
+                        Timber.w(
+                                "hwUnitsDataObserver NODE_ACTION_CHANGED remove from ErrorEventList value: ${value.name}")
                         hwUnitErrorEventList.remove(value.name)
-                        FirebaseHomeInformationRepository.clearHwErrorEvent(value.name)
+                        homeInformationRepository.clearHwErrorEvent(value.name)
                     }
                     createHwUnit(value)?.let {
                         Timber.w("HwUnit recreated connect and eventually listen to it")
                         hwUnitStart(it)
                     }
                 }
-                ChildEventType.NODE_ACTION_ADDED -> {
+                ChildEventType.NODE_ACTION_ADDED   -> {
                     // consider this unit is already present in hwUnitsList
                     hwUnitsList[value.name]?.let {
                         Timber.w("NODE_ACTION_ADDED HwUnit already exist stop old one:")
@@ -249,66 +260,72 @@ class Home(private val secureStorage: SecureStorage) : Sensor.HwUnitListener<Any
                     }
                     val result = hwUnitsList.remove(value.name)
                     if (hwUnitErrorEventList.contains(value.name)) {
-                        Timber.w("hwUnitsDataObserver NODE_ACTION_DELETED remove from ErrorEventList value: ${value.name}")
+                        Timber.w(
+                                "hwUnitsDataObserver NODE_ACTION_DELETED remove from ErrorEventList value: ${value.name}")
                         hwUnitErrorEventList.remove(value.name)
-                        FirebaseHomeInformationRepository.clearHwErrorEvent(value.name)
+                        homeInformationRepository.clearHwErrorEvent(value.name)
                     }
                     Timber.d("hwUnitsDataObserver HwUnit NODE_ACTION_DELETED: $result")
 
                 }
-                else -> {
+                else                               -> {
                     Timber.e("hwUnitsDataObserver unsupported action: $action")
                 }
             }
         }
     }
 
-    private val hwUnitErrorEventListDataObserver = Observer<List<HwUnitLog<Any>>> { errorEventList ->
-        Timber.d("hwUnitErrorEventListDataObserver errorEventList: $errorEventList; errorEventList.size: ${errorEventList.size}")
-        if (errorEventList.isNotEmpty()) {
-            errorEventList.forEach { hwUnitErrorEvent ->
-                hwUnitErrorEventList.compute(hwUnitErrorEvent.name) { key, value ->
-                    value?.run {
-                        if (hwUnitErrorEvent.localtime != first){
-                            val count = second.inc()
-                            if (count >= 3) {
-                                val result = hwUnitsList.remove(key)
-                                result?.let {
-                                    hwUnitStop(result)
+    private val hwUnitErrorEventListDataObserver =
+            Observer<List<HwUnitLog<Any>>> { errorEventList ->
+                Timber.d(
+                        "hwUnitErrorEventListDataObserver errorEventList: $errorEventList; errorEventList.size: ${errorEventList.size}")
+                if (errorEventList.isNotEmpty()) {
+                    errorEventList.forEach { hwUnitErrorEvent ->
+                        hwUnitErrorEventList.compute(hwUnitErrorEvent.name) { key, value ->
+                            value?.run {
+                                if (hwUnitErrorEvent.localtime != first) {
+                                    val count = second.inc()
+                                    if (count >= 3) {
+                                        val result = hwUnitsList.remove(key)
+                                        result?.let {
+                                            hwUnitStop(result)
+                                        }
+                                        Timber.w(
+                                                "hwUnitErrorEventListDataObserver to many errors ($count) from hwUnit: $key, remove it from hwUnitsList result: ${result != null}")
+                                    }
+                                    Triple(hwUnitErrorEvent.localtime, count, third)
+                                } else {
+                                    value
                                 }
-                                Timber.w("hwUnitErrorEventListDataObserver to many errors ($count) from hwUnit: $key, remove it from hwUnitsList result: ${result != null}")
+                            } ?: run {
+                                Triple(hwUnitErrorEvent.localtime, 0,
+                                       hwUnitsList[hwUnitErrorEvent.name]?.also { _ ->
+                                           // disable after first error
+                                           val result = hwUnitsList.remove(key)
+                                           result?.let {
+                                               hwUnitStop(result)
+                                           }
+                                           Timber.w(
+                                                   "hwUnitErrorEventListDataObserver error from hwUnit: $key, remove it from hwUnitsList result: ${result != null}")
+                                       })
                             }
-                            Triple(hwUnitErrorEvent.localtime, count, third)
-                        } else {
-                            value
                         }
-                    } ?: run {
-                        Triple(hwUnitErrorEvent.localtime, 0, hwUnitsList[hwUnitErrorEvent.name]?.also { _ ->
-                            // disable after first error
-                            val result = hwUnitsList.remove(key)
-                            result?.let {
-                                hwUnitStop(result)
-                            }
-                            Timber.w("hwUnitErrorEventListDataObserver error from hwUnit: $key, remove it from hwUnitsList result: ${result != null}")
-                        })
+                    }
+                } else {
+                    val hwUnitRestoreList: MutableList<BaseHwUnit<Any>> = mutableListOf()
+                    hwUnitErrorEventList.values.forEach { (_, _, hwUnit) ->
+                        hwUnit?.let { hwUnitRestoreList.add(hwUnit) }
+                    }
+                    hwUnitErrorEventList.clear()
+                    hwUnitRestoreList.forEach { hwUnit ->
+                        hwUnitStart(hwUnit)
                     }
                 }
             }
-        } else {
-            val hwUnitRestoreList: MutableList<BaseHwUnit<Any>> = mutableListOf()
-            hwUnitErrorEventList.values.forEach { (_, _, hwUnit) ->
-                hwUnit?.let { hwUnitRestoreList.add(hwUnit) }
-            }
-            hwUnitErrorEventList.clear()
-            hwUnitRestoreList.forEach { hwUnit ->
-                hwUnitStart(hwUnit)
-            }
-        }
-    }
 
     override fun onHwUnitChanged(hwUnit: HwUnit, unitValue: Any?, updateTime: String) {
         Timber.d("onHwUnitChanged unit: $hwUnit; unitValue: $unitValue; updateTime: $updateTime")
-        FirebaseHomeInformationRepository.logUnitEvent(HwUnitLog(hwUnit, unitValue, updateTime))
+        homeInformationRepository.logUnitEvent(HwUnitLog(hwUnit, unitValue, updateTime))
 
         homeUnitsList.values.filter {
             it.hwUnitName == hwUnit.name
@@ -325,11 +342,13 @@ class Home(private val secureStorage: SecureStorage) : Sensor.HwUnitListener<Any
                 } else {
                     value = unitValue
                 }
-                applyFunction(value)
-                FirebaseHomeInformationRepository.saveHomeUnit(this)
-                if (firebaseNotify  && alarmEnabled) {
+                value?.let {newValue ->
+                    applyFunction(newValue)
+                }
+                homeInformationRepository.saveHomeUnit(this)
+                if (firebaseNotify && alarmEnabled) {
                     Timber.d("onHwUnitChanged notify with FCM Message")
-                    FirebaseHomeInformationRepository.notifyHomeUnitEvent(this)
+                    homeInformationRepository.notifyHomeUnitEvent(this)
                 }
             }
         }
@@ -337,102 +356,86 @@ class Home(private val secureStorage: SecureStorage) : Sensor.HwUnitListener<Any
 
     private fun createHwUnit(hwUnit: HwUnit): BaseHwUnit<Any>? {
         return when (hwUnit.type) {
-            BoardConfig.TEMP_SENSOR_TMP102 -> {
-                HwUnitI2CTempTMP102Sensor(
-                        hwUnit.name,
-                        hwUnit.location,
-                        hwUnit.pinName,
-                        hwUnit.softAddress ?: 0,
-                        hwUnit.refreshRate) as BaseHwUnit<Any>
+            BoardConfig.TEMP_SENSOR_TMP102          -> {
+                HwUnitI2CTempTMP102Sensor(hwUnit.name, hwUnit.location, hwUnit.pinName,
+                                          hwUnit.softAddress ?: 0,
+                                          hwUnit.refreshRate) as BaseHwUnit<Any>
             }
-            BoardConfig.TEMP_SENSOR_MCP9808 -> {
-                HwUnitI2CTempMCP9808Sensor(
-                        hwUnit.name,
-                        hwUnit.location,
-                        hwUnit.pinName,
-                        hwUnit.softAddress ?: 0,
-                        hwUnit.refreshRate) as BaseHwUnit<Any>
+            BoardConfig.TEMP_SENSOR_MCP9808         -> {
+                HwUnitI2CTempMCP9808Sensor(hwUnit.name, hwUnit.location, hwUnit.pinName,
+                                           hwUnit.softAddress ?: 0,
+                                           hwUnit.refreshRate) as BaseHwUnit<Any>
             }
-            BoardConfig.TEMP_PRESS_SENSOR_BMP280 -> {
-                HwUnitI2CTempPressBMP280Sensor(
-                        hwUnit.name,
-                        hwUnit.location,
-                        hwUnit.pinName,
-                        hwUnit.softAddress ?: 0,
-                        hwUnit.refreshRate) as BaseHwUnit<Any>
+            BoardConfig.TEMP_PRESS_SENSOR_BMP280    -> {
+                HwUnitI2CTempPressBMP280Sensor(hwUnit.name, hwUnit.location, hwUnit.pinName,
+                                               hwUnit.softAddress ?: 0,
+                                               hwUnit.refreshRate) as BaseHwUnit<Any>
             }
-            BoardConfig.IO_EXTENDER_MCP23017_INPUT -> {
+            BoardConfig.IO_EXTENDER_MCP23017_INPUT  -> {
                 MCP23017Pin.Pin.values().find {
                     it.name == hwUnit.ioPin
                 }?.let { ioPin ->
-                    HwUnitI2CMCP23017Sensor(
-                            hwUnit.name,
-                            hwUnit.location,
-                            hwUnit.pinName,
-                            hwUnit.softAddress ?: 0,
-                            hwUnit.pinInterrupt ?: "",
-                            ioPin,
-                            hwUnit.internalPullUp ?: false) as BaseHwUnit<Any>
+                    HwUnitI2CMCP23017Sensor(hwUnit.name, hwUnit.location, hwUnit.pinName,
+                                            hwUnit.softAddress ?: 0, hwUnit.pinInterrupt ?: "",
+                                            ioPin,
+                                            hwUnit.internalPullUp ?: false) as BaseHwUnit<Any>
                 }
             }
             BoardConfig.IO_EXTENDER_MCP23017_OUTPUT -> {
                 MCP23017Pin.Pin.values().find {
                     it.name == hwUnit.ioPin
                 }?.let { ioPin ->
-                    HwUnitI2CMCP23017Actuator(
-                            hwUnit.name,
-                            hwUnit.location,
-                            hwUnit.pinName,
-                            hwUnit.softAddress ?: 0,
-                            hwUnit.pinInterrupt ?: "",
-                            ioPin) as BaseHwUnit<Any>
+                    HwUnitI2CMCP23017Actuator(hwUnit.name, hwUnit.location, hwUnit.pinName,
+                                              hwUnit.softAddress ?: 0, hwUnit.pinInterrupt ?: "",
+                                              ioPin) as BaseHwUnit<Any>
                 }
             }
-            else -> null
+            else                                    -> null
         }
     }
 
     private fun hwUnitStart(unit: BaseHwUnit<Any>) {
         Timber.v("hwUnitStart connect unit: ${unit.hwUnit}")
-        unit.connect()
-        if (unit is Sensor) {
-            GlobalScope.launch(Dispatchers.Default) {
-                val readVal = unit.readValue()
-                Timber.w("hwUnitStart readVal:$readVal unit.unitValue:${unit.unitValue}")
-                unit.registerListener(this@Home)
-                hwUnitsList[unit.hwUnit.name] = unit
-                onHwUnitChanged(unit.hwUnit, readVal, unit.valueUpdateTime)
+        unit.connectValueWithException()
+        when (unit) {
+            is Sensor   -> {
+                GlobalScope.launch(Dispatchers.Default) {
+                    val readVal = unit.readValueWithException()
+                    Timber.w("hwUnitStart readVal:$readVal unit.unitValue:${unit.unitValue}")
+                    unit.registerListenerWithException(this@Home)
+                    hwUnitsList[unit.hwUnit.name] = unit
+                    onHwUnitChanged(unit.hwUnit, readVal, unit.valueUpdateTime)
+                }
             }
-        } else if (unit is Actuator){
-            hwUnitsList[unit.hwUnit.name] = unit
-            homeUnitsList.values.filter {
-                it.hwUnitName == unit.hwUnit.name
-            }.forEach { homeUnit ->
-                Timber.d("hwUnitStart update value based on homeUnitValue, setValue value: ${homeUnit.value}")
-                unit.setValue(homeUnit.value)
+            is Actuator -> {
+                hwUnitsList[unit.hwUnit.name] = unit
+                homeUnitsList.values.filter {
+                    it.hwUnitName == unit.hwUnit.name
+                }.forEach { homeUnit ->
+                    Timber.d(
+                            "hwUnitStart update value based on homeUnitValue, setValue value: ${homeUnit.value}")
+                    homeUnit.value?.let {
+                        unit.setValueWithException(it)
+                    }
+                }
             }
         }
     }
 
     private fun hwUnitStop(unit: BaseHwUnit<Any>) {
         Timber.v("hwUnitStop close unit: ${unit.hwUnit}")
-        try {
-            // close will automatically unregister listener
-            unit.close()
-        } catch (e: Exception) {
-            Timber.e(e,"Error on PeripheralIO API")
-        }
+        // close will automatically unregister listener
+        unit.closeValueWithException()
     }
-
 
 
     // temporary Home init methods creating some units and hwUnits
     private var rooms: MutableMap<String, Room> = HashMap()
 
     fun saveToRepository() {
-        rooms.values.forEach { FirebaseHomeInformationRepository.saveRoom(it) }
-        homeUnitsList.values.forEach { FirebaseHomeInformationRepository.saveHomeUnit(it) }
-        hwUnitsList.values.forEach { FirebaseHomeInformationRepository.saveHardwareUnit(it.hwUnit) }
+        rooms.values.forEach { homeInformationRepository.saveRoom(it) }
+        homeUnitsList.values.forEach { homeInformationRepository.saveHomeUnit(it) }
+        hwUnitsList.values.forEach { homeInformationRepository.saveHardwareUnit(it.hwUnit) }
     }
 
     private fun initHomeUnitList() {
@@ -492,13 +495,16 @@ class Home(private val secureStorage: SecureStorage) : Sensor.HwUnitListener<Any
         rooms[room.name] = room*/
         var roomName = "New"
 
-        val temp = Temperature("Bathroom 1 Temp MCP9808", HOME_TEMPERATURES, roomName, BoardConfig.TEMP_SENSOR_MCP9808) as HomeUnit<Any?>
+        val temp = Temperature("Bathroom 1 Temp MCP9808", HOME_TEMPERATURES, roomName,
+                               BoardConfig.TEMP_SENSOR_MCP9808) as HomeUnit<Any?>
         homeUnitsList[temp.name] = temp
 
-        var reedSwitch = ReedSwitch("New Reed Switch", HOME_REED_SWITCHES, roomName, BoardConfig.IO_EXTENDER_MCP23017_NEW_IN_B0) as HomeUnit<Any?>
+        var reedSwitch = ReedSwitch("New Reed Switch", HOME_REED_SWITCHES, roomName,
+                                    BoardConfig.IO_EXTENDER_MCP23017_NEW_IN_B0) as HomeUnit<Any?>
         homeUnitsList[reedSwitch.name] = reedSwitch
 
-        var light = Light("New Light", HOME_LIGHTS, roomName, BoardConfig.IO_EXTENDER_MCP23017_NEW_OUT_B7) as HomeUnit<Any?>
+        var light = Light("New Light", HOME_LIGHTS, roomName,
+                          BoardConfig.IO_EXTENDER_MCP23017_NEW_OUT_B7) as HomeUnit<Any?>
         homeUnitsList[light.name] = light
 
         var homeUnits = mutableMapOf<String, MutableList<String>>()
@@ -599,27 +605,84 @@ class Home(private val secureStorage: SecureStorage) : Sensor.HwUnitListener<Any
                 BoardConfig.IO_EXTENDER_MCP23017_2_IN_A7_PIN) as Sensor<Any>
         hwUnitsList[BoardConfig.IO_EXTENDER_MCP23017_2_IN_A7] = mcpNewMotion*/
 
-        val temperatureMCP9808Sensor = HwUnitI2CTempMCP9808Sensor(BoardConfig.TEMP_SENSOR_MCP9808,
-                "Raspberry Pi",
-                BoardConfig.TEMP_SENSOR_MCP9808_PIN,
-                BoardConfig.TEMP_SENSOR_MCP9808_ADDR) as Sensor<Any>
+        val temperatureMCP9808Sensor =
+                HwUnitI2CTempMCP9808Sensor(BoardConfig.TEMP_SENSOR_MCP9808, "Raspberry Pi",
+                                           BoardConfig.TEMP_SENSOR_MCP9808_PIN,
+                                           BoardConfig.TEMP_SENSOR_MCP9808_ADDR) as Sensor<Any>
         hwUnitsList[BoardConfig.TEMP_SENSOR_MCP9808] = temperatureMCP9808Sensor
 
-        val mcpNewContactron = HwUnitI2CMCP23017Sensor(BoardConfig.IO_EXTENDER_MCP23017_NEW_IN_B0,
-                "Raspberry Pi",
-                BoardConfig.IO_EXTENDER_MCP23017_NEW_PIN,
-                BoardConfig.IO_EXTENDER_MCP23017_NEW_ADDR,
-                BoardConfig.IO_EXTENDER_MCP23017_NEW_INTA_PIN,
-                BoardConfig.IO_EXTENDER_MCP23017_NEW_IN_B0_PIN) as Sensor<Any>
+        val mcpNewContactron =
+                HwUnitI2CMCP23017Sensor(BoardConfig.IO_EXTENDER_MCP23017_NEW_IN_B0, "Raspberry Pi",
+                                        BoardConfig.IO_EXTENDER_MCP23017_NEW_PIN,
+                                        BoardConfig.IO_EXTENDER_MCP23017_NEW_ADDR,
+                                        BoardConfig.IO_EXTENDER_MCP23017_NEW_INTA_PIN,
+                                        BoardConfig.IO_EXTENDER_MCP23017_NEW_IN_B0_PIN) as Sensor<Any>
         hwUnitsList[BoardConfig.IO_EXTENDER_MCP23017_NEW_IN_B0] = mcpNewContactron
 
         val mcpNewLight = HwUnitI2CMCP23017Actuator(BoardConfig.IO_EXTENDER_MCP23017_NEW_OUT_B7,
-                "Raspberry Pi",
-                BoardConfig.IO_EXTENDER_MCP23017_NEW_PIN,
-                BoardConfig.IO_EXTENDER_MCP23017_NEW_ADDR,
-                BoardConfig.IO_EXTENDER_MCP23017_NEW_INTA_PIN,
-                BoardConfig.IO_EXTENDER_MCP23017_NEW_OUT_B7_PIN) as Actuator<Any>
+                                                    "Raspberry Pi",
+                                                    BoardConfig.IO_EXTENDER_MCP23017_NEW_PIN,
+                                                    BoardConfig.IO_EXTENDER_MCP23017_NEW_ADDR,
+                                                    BoardConfig.IO_EXTENDER_MCP23017_NEW_INTA_PIN,
+                                                    BoardConfig.IO_EXTENDER_MCP23017_NEW_OUT_B7_PIN) as Actuator<Any>
         hwUnitsList[BoardConfig.IO_EXTENDER_MCP23017_NEW_OUT_B7] = mcpNewLight
+
+    }
+
+
+    private fun <T : Any> Actuator<T>.setValueWithException(value: T) {
+        try {
+            setValue(value)
+        } catch (e: Exception) {
+            homeInformationRepository.addHwUnitErrorEvent(
+                    HwUnitLog(hwUnit, unitValue, e.message, Date().toString()))
+            Timber.e(e, "Error updating hwUnit value on $hwUnit")
+        }
+
+    }
+
+    private fun <T : Any> Sensor<T>.readValueWithException(): T? {
+        return try {
+            readValue()
+        } catch (e: Exception) {
+            homeInformationRepository.addHwUnitErrorEvent(
+                    HwUnitLog(hwUnit, unitValue, e.message, Date().toString()))
+            Timber.e(e, "Error reading hwUnit value on $hwUnit")
+            null
+        }
+    }
+
+    private fun <T : Any> Sensor<T>.registerListenerWithException(
+            listener: Sensor.HwUnitListener<T>) {
+        try {
+            registerListener(listener)
+        } catch (e: Exception) {
+            homeInformationRepository.addHwUnitErrorEvent(
+                    HwUnitLog(hwUnit, unitValue, e.message, Date().toString()))
+            Timber.e(e, "Error registerListener hwUnit on $hwUnit")
+        }
+
+    }
+
+    private fun <T : Any> BaseHwUnit<T>.closeValueWithException() {
+        try {
+            close()
+        } catch (e: Exception) {
+            homeInformationRepository.addHwUnitErrorEvent(
+                    HwUnitLog(hwUnit, unitValue, e.message, Date().toString()))
+            Timber.e(e, "Error closing hwUnit on $hwUnit")
+        }
+
+    }
+
+    private fun <T : Any> BaseHwUnit<T>.connectValueWithException() {
+        try {
+            connect()
+        } catch (e: Exception) {
+            homeInformationRepository.addHwUnitErrorEvent(
+                    HwUnitLog(hwUnit, unitValue, e.message, Date().toString()))
+            Timber.e(e, "Error connecting hwUnit on $hwUnit")
+        }
 
     }
 }

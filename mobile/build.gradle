@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
-apply plugin: 'androidx.navigation.safeargs'
+apply plugin: 'androidx.navigation.safeargs.kotlin'
 
 android {
     buildToolsVersion buildToolsVersion
@@ -54,10 +54,10 @@ dependencies {
     implementation "com.google.firebase:firebase-messaging:$firebaseMessaging"
 
     implementation "androidx.lifecycle:lifecycle-extensions:$androidxLifecycleExtensionsVersion"
-    implementation "android.arch.navigation:navigation-fragment-ktx:$navigationVersion"
-    implementation "android.arch.navigation:navigation-ui-ktx:$navigationVersion"
+    implementation "androidx.navigation:navigation-fragment-ktx:$navigationVersion"
+    implementation "androidx.navigation:navigation-ui-ktx:$navigationVersion"
 
-    implementation "org.koin:koin-android-viewmodel:1.0.2"
+    implementation "org.koin:koin-android-viewmodel:2.0.1"
 
     implementation "com.jakewharton.timber:timber:$timberVersion"
 

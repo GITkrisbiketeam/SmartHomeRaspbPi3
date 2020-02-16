@@ -13,6 +13,7 @@ import com.krisbiketeam.smarthomeraspbpi3.adapters.RoomDetailHomeUnitListAdapter
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentRoomDetailBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.RoomDetailViewModel
+import org.koin.android.ext.android.inject
 import org.koin.android.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
 import timber.log.Timber
@@ -46,7 +47,7 @@ class RoomDetailFragment : Fragment() {
                         roomDetailViewModel.room.value?.name ?: "", "", "")
                 findNavController().navigate(direction)
             }
-            val adapter = RoomDetailHomeUnitListAdapter()
+            val adapter: RoomDetailHomeUnitListAdapter by inject()
             homeUnitList.adapter = adapter
             subscribeUi(adapter)
         }

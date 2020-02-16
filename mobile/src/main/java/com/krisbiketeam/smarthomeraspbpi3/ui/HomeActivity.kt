@@ -1,36 +1,37 @@
 package com.krisbiketeam.smarthomeraspbpi3.ui
 
-import androidx.databinding.DataBindingUtil
 import android.os.Bundle
-import androidx.core.view.GravityCompat
-import androidx.drawerlayout.widget.DrawerLayout
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.GravityCompat
+import androidx.databinding.DataBindingUtil
+import androidx.drawerlayout.widget.DrawerLayout
 import androidx.navigation.Navigation
 import androidx.navigation.findNavController
 import androidx.navigation.ui.NavigationUI
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.krisbiketeam.smarthomeraspbpi3.R
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.NotSecureStorage
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.HomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.databinding.ActivityHomeBinding
 import com.krisbiketeam.smarthomeraspbpi3.databinding.NavHeaderBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.NavigationViewModel
+import org.koin.android.ext.android.inject
 import org.koin.android.viewmodel.ext.android.viewModel
 import timber.log.Timber
 
-class HomeActivity  : AppCompatActivity() {
+class HomeActivity : AppCompatActivity() {
     private lateinit var drawerLayout: DrawerLayout
-    private lateinit var secureStorage: SecureStorage
+    private val homeInformationRepository: HomeInformationRepository by inject()
+    private val secureStorage: SecureStorage by inject()
 
     private val navigationViewModel by viewModel<NavigationViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val binding: ActivityHomeBinding = DataBindingUtil.setContentView(this,
-                R.layout.activity_home)
+        val binding: ActivityHomeBinding =
+                DataBindingUtil.setContentView(this, R.layout.activity_home)
         drawerLayout = binding.drawerLayout
 
         val navController = findNavController(R.id.home_nav_fragment)
@@ -43,20 +44,18 @@ class HomeActivity  : AppCompatActivity() {
         setSupportActionBar(binding.toolbar)
         setupActionBarWithNavController(navController, drawerLayout)
 
-        secureStorage = NotSecureStorage(this)
-
         if (!secureStorage.isAuthenticated()) {
             Timber.d("No Home Name defined, starting HomeSettingsFragment")
             navController.navigate(R.id.login_settings_fragment)
-        } else if (secureStorage.homeName.isEmpty()){
+        } else if (secureStorage.homeName.isEmpty()) {
             Timber.d("No Home Name defined, starting HomeSettingsFragment")
             navController.navigate(R.id.home_settings_fragment)
         } else {
-            FirebaseHomeInformationRepository.setHomeReference(secureStorage.homeName)
+            homeInformationRepository.setHomeReference(secureStorage.homeName)
         }
 
-        DataBindingUtil.inflate<NavHeaderBinding>(
-                layoutInflater, R.layout.nav_header, binding.navigationView, false).apply {
+        DataBindingUtil.inflate<NavHeaderBinding>(layoutInflater, R.layout.nav_header,
+                                                  binding.navigationView, false).apply {
             binding.navigationView.addHeaderView(root)
             viewModel = navigationViewModel
             lifecycleOwner = this@HomeActivity
@@ -64,8 +63,8 @@ class HomeActivity  : AppCompatActivity() {
     }
 
     override fun onSupportNavigateUp(): Boolean {
-        return NavigationUI.navigateUp(
-                Navigation.findNavController(this, R.id.home_nav_fragment), drawerLayout)
+        return NavigationUI.navigateUp(Navigation.findNavController(this, R.id.home_nav_fragment),
+                                       drawerLayout)
     }
 
     override fun onBackPressed() {

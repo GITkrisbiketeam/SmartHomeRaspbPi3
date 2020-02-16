@@ -173,9 +173,14 @@ interface HomeInformationRepository {
      * Checks when Home Module was last online
      */
     fun lastHomeOnlineTime(): LiveData<Long?>
+
+    /**
+     *
+     */
+    fun getHomes(): LiveData<List<String>>
 }
 
-object FirebaseHomeInformationRepository : HomeInformationRepository {
+class FirebaseHomeInformationRepository : HomeInformationRepository {
     // Reference for all home related "Units"
     private var referenceHome: DatabaseReference? = null
     // Reference for all log related events
@@ -386,5 +391,6 @@ object FirebaseHomeInformationRepository : HomeInformationRepository {
     override fun lastHomeOnlineTime(): LiveData<Long?> = FirebaseDBLiveData(
             referenceHome?.child(HOME_LAST_ONLINE_TIME)).getObjectLiveData()
 
-    fun getHomes(): LiveData<List<String>> = HomesListLiveData(FirebaseDatabase.getInstance().reference.child(HOME_INFORMATION_BASE))
+    override fun getHomes(): LiveData<List<String>> = HomesListLiveData(
+            FirebaseDatabase.getInstance().reference.child(HOME_INFORMATION_BASE))
 }

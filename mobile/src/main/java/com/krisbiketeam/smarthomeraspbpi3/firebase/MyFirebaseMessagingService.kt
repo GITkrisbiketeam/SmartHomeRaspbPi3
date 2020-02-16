@@ -11,10 +11,10 @@ import androidx.core.app.NotificationCompat
 import com.google.firebase.iid.FirebaseInstanceId
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.LoadActivity
 import com.krisbiketeam.smarthomeraspbpi3.R
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.HomeInformationRepository
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import org.koin.android.ext.android.inject
 import timber.log.Timber
 
@@ -41,13 +41,14 @@ fun getFirebaseAppToken(tokenReceived: (String?) -> Unit) {
  *
  * @param token The new token.
  */
-fun sendRegistrationToServer(email: String, token: String) {
+fun sendRegistrationToServer(homeInformationRepository: HomeInformationRepository, email: String, token: String) {
     Timber.d("sendRegistrationToServer email: $email, token: $token")
-    FirebaseHomeInformationRepository.addUserNotiToken(email, token)
+    homeInformationRepository.addUserNotiToken(email, token)
 }
 
 class MyFirebaseMessagingService : FirebaseMessagingService() {
     private val secureStorage: SecureStorage by inject()
+    private val homeInformationRepository: HomeInformationRepository by inject()
 
     /**
      * Called when message is received.
@@ -103,7 +104,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         // Instance ID token to your app server.
         token.let {
             secureStorage.firebaseCredentials.email.let { email ->
-                if (email.isNotEmpty()) sendRegistrationToServer(email, token)
+                if (email.isNotEmpty()) sendRegistrationToServer(homeInformationRepository, email, token)
             }
         }
     }

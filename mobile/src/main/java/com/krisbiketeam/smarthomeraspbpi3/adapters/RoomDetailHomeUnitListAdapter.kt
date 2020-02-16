@@ -6,7 +6,7 @@ import android.view.ViewGroup
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.HomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentRoomDetailListItemBinding
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomDetailFragmentDirections
@@ -17,7 +17,7 @@ import timber.log.Timber
  * Adapter for the [RecyclerView] in [RoomListFragment].
  */
 
-class RoomDetailHomeUnitListAdapter : ListAdapter<HomeUnit<Any?>, RoomDetailHomeUnitListAdapter.ViewHolder>(RoomDetailHomeUnitListAdapterDiffCallback()) {
+class RoomDetailHomeUnitListAdapter(private val homeInformationRepository: HomeInformationRepository) : ListAdapter<HomeUnit<Any?>, RoomDetailHomeUnitListAdapter.ViewHolder>(RoomDetailHomeUnitListAdapterDiffCallback()) {
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val homeUnit = getItem(position)
         holder.apply {
@@ -28,7 +28,7 @@ class RoomDetailHomeUnitListAdapter : ListAdapter<HomeUnit<Any?>, RoomDetailHome
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         return ViewHolder(FragmentRoomDetailListItemBinding.inflate(
-                LayoutInflater.from(parent.context), parent, false))
+                LayoutInflater.from(parent.context), parent, false), homeInformationRepository)
     }
 
     private fun createOnClickListener(item: HomeUnit<Any?>): View.OnClickListener {
@@ -40,7 +40,8 @@ class RoomDetailHomeUnitListAdapter : ListAdapter<HomeUnit<Any?>, RoomDetailHome
     }
 
     class ViewHolder(
-            private val binding: FragmentRoomDetailListItemBinding
+            private val binding: FragmentRoomDetailListItemBinding,
+            private val homeInformationRepository: HomeInformationRepository
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(listener: View.OnClickListener, item: HomeUnit<Any?>) {
@@ -52,7 +53,7 @@ class RoomDetailHomeUnitListAdapter : ListAdapter<HomeUnit<Any?>, RoomDetailHome
                     homeUnit?.apply {
                         if (value != isChecked) {
                             value = isChecked
-                            FirebaseHomeInformationRepository.saveHomeUnit(this)
+                            homeInformationRepository.saveHomeUnit(this)
                         }
                     }
                 }

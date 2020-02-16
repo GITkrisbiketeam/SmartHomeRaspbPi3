@@ -19,14 +19,14 @@ object HwUnitI2CPCF8574AT {
     }
 
     fun increaseUseCount(bus: String, i2cAddr: Int): Int? {
-        return mcpUseCountMap.compute(getKeyHash(bus, i2cAddr)){_, v -> v?.inc() ?: 1}
+        return mcpUseCountMap.compute(getKeyHash(bus, i2cAddr)) { _, v -> v?.inc() ?: 1 }
     }
 
     @Throws(Exception::class)
     fun decreaseUseCount(bus: String, i2cAddr: Int): Int? {
-        return mcpUseCountMap.compute(getKeyHash(bus, i2cAddr)){k, v ->
+        return mcpUseCountMap.compute(getKeyHash(bus, i2cAddr)) { k, v ->
             (v?.dec() ?: 0).also {
-                if (it ==0 ){
+                if (it == 0) {
                     pcfMap.remove(k)?.close()
                 }
             }
