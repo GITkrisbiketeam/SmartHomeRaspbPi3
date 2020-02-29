@@ -70,6 +70,42 @@ fun bindSetChecked(switch: SwitchCompat, value: Any?) {
     }
 }
 
+@BindingAdapter("valueAttrChanged")
+fun AppCompatSpinner.setListener(listener: InverseBindingListener?) {
+    this.onItemSelectedListener = if (listener != null) {
+        object : AdapterView.OnItemSelectedListener {
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+                listener.onChange()
+            }
+
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int,
+                                        id: Long) {
+                listener.onChange()
+            }
+        }
+    } else {
+        null
+    }
+}
+
+@get:InverseBindingAdapter(attribute = "value")
+@set:BindingAdapter("value")
+var AppCompatSpinner.selectedValue: Any?
+    get() = if (selectedItemPosition != ListView.INVALID_POSITION){
+        adapter?.getItem(selectedItemPosition)
+    } else {
+        null
+    }
+    set(value) {
+        val newValue =
+                value ?: adapter?.getItem(adapter.count - 1)
+        //setText(newValue?.toString(), true)
+        if (adapter is ArrayAdapter<*>) {
+            val position = (adapter as ArrayAdapter<Any?>).getPosition(newValue)
+            setSelection(position)
+        }
+    }
+
 
 @BindingAdapter("entries")
 fun bindEntriesData(spinner: AppCompatSpinner, entries: List<Any>?) {

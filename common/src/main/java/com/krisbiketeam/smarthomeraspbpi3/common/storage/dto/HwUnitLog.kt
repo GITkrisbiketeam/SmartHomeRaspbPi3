@@ -34,21 +34,7 @@ data class HwUnitLog<T>(
         var localtime: String = Date().toString(),
         var servertime: Any = ServerValue.TIMESTAMP) {
 
-    constructor(hwHwUnit: HwUnit, value: T?, localtime: String) : this(
-            hwHwUnit.name,
-            hwHwUnit.location,
-            hwHwUnit.type,
-            hwHwUnit.pinName,
-            hwHwUnit.connectionType,
-            hwHwUnit.softAddress,
-            hwHwUnit.pinInterrupt,
-            hwHwUnit.ioPin,
-            hwHwUnit.internalPullUp,
-            hwHwUnit.refreshRate,
-            value,
-            null,
-            localtime)
-    constructor(hwHwUnit: HwUnit, value: T?, logMessage: String?, localtime: String) : this(
+    constructor(hwHwUnit: HwUnit, value: T? = null, logMessage: String? = null, localtime: String = Date().toString()) : this(
             hwHwUnit.name,
             hwHwUnit.location,
             hwHwUnit.type,

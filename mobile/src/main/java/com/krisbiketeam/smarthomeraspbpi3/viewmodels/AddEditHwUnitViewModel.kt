@@ -25,26 +25,15 @@ class AddEditHwUnitViewModel(
 
     private val hwUnitLiveData = if(hwUnitName.isNotEmpty()) homeRepository.hwUnitLiveData(hwUnitName) else null
 
-    val typeItemPosition = if (hwUnitLiveData == null) {
+    val typeList = BoardConfig.IO_HW_UNIT_TYPE_LIST
+    val type = if (hwUnitLiveData == null) {
         MutableLiveData()
     } else {
         Transformations.map(Transformations.distinctUntilChanged(hwUnitLiveData)) { hwUnit ->
             Timber.d("init typeItemPosition : ${typeList.indexOfFirst { it == hwUnit.type }}")
-            typeList.indexOfFirst {
-                it == hwUnit.type
-            }
-        } as MutableLiveData<Int>
+            hwUnit.type
+        } as MutableLiveData<String?>
     }
-    val typeList = BoardConfig.IO_HW_UNIT_TYPE_LIST
-    val type = Transformations.map(Transformations.distinctUntilChanged(typeItemPosition)) { typePos ->
-        if (typePos in typeList.indices) {
-            Timber.d("type getValue position: $typePos val: ${typeList[typePos]}")
-            typeList[typePos]
-        } else {
-            Timber.d("type getValue position: $typePos val: null")
-            null
-        }
-    } as MutableLiveData<String?>
 
     val name = if(hwUnitLiveData == null) MutableLiveData() else Transformations.map(hwUnitLiveData) { hwUnit -> hwUnit.name } as MutableLiveData<String>
 
@@ -297,8 +286,6 @@ class AddEditHwUnitViewModel(
         Timber.d("init hwUnitName: $hwUnitName")
 
         if (hwUnitLiveData == null){
-            typeItemPosition.value = typeList.size
-
             showProgress = MutableLiveData()
 
             showProgress.value = false
@@ -346,9 +333,7 @@ class AddEditHwUnitViewModel(
             hwUnitLiveData.value?.let { unit ->
                 name.value = unit.name
                 location.value = unit.location
-                typeItemPosition.value = typeList.indexOfFirst {
-                    it == unit.type
-                }
+                type.value = unit.type
                 pinName = unit.pinName
                 // connectionType  is automatically populated by type LiveData
                 // TODO: how to handle it like type

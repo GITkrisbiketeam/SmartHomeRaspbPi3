@@ -38,6 +38,9 @@ class Home(secureStorage: SecureStorage,
     private val hwUnitErrorEventList: MutableMap<String, Triple<String, Int, BaseHwUnit<Any>?>> =
             HashMap()
 
+    private var hwUnitRestartListLiveData: HwUnitErrorEventListLiveData? = null
+
+
     private val alarmEnabledLiveData: LiveData<Boolean> = secureStorage.alarmEnabledLiveData
     private var alarmEnabled: Boolean = secureStorage.alarmEnabled
 
@@ -119,6 +122,10 @@ class Home(secureStorage: SecureStorage,
                 homeInformationRepository.hwUnitErrorEventListLiveData().apply {
                     observeForever(hwUnitErrorEventListDataObserver)
                 }
+        hwUnitRestartListLiveData =
+                homeInformationRepository.hwUnitRestartListLiveData().apply {
+                    observeForever(hwUnitRestartListLiveDataObserver)
+                }
         alarmEnabledLiveData.observeForever {
             alarmEnabled = it
         }
@@ -129,6 +136,7 @@ class Home(secureStorage: SecureStorage,
         homeUnitsLiveData?.removeObserver(homeUnitsDataObserver)
         hwUnitsLiveData?.removeObserver(hwUnitsDataObserver)
         hwUnitErrorEventListLiveData?.removeObserver(hwUnitErrorEventListDataObserver)
+        hwUnitRestartListLiveData?.removeObserver(hwUnitRestartListLiveDataObserver)
 
         hwUnitsList.values.forEach(this::hwUnitStop)
     }
@@ -229,6 +237,7 @@ class Home(secureStorage: SecureStorage,
                                 "hwUnitsDataObserver NODE_ACTION_CHANGED remove from ErrorEventList value: ${value.name}")
                         hwUnitErrorEventList.remove(value.name)
                         homeInformationRepository.clearHwErrorEvent(value.name)
+                        homeInformationRepository.clearHwRestartEvent(value.name)
                     }
                     createHwUnit(value)?.let {
                         Timber.w("HwUnit recreated connect and eventually listen to it")
@@ -265,6 +274,7 @@ class Home(secureStorage: SecureStorage,
                                 "hwUnitsDataObserver NODE_ACTION_DELETED remove from ErrorEventList value: ${value.name}")
                         hwUnitErrorEventList.remove(value.name)
                         homeInformationRepository.clearHwErrorEvent(value.name)
+                        homeInformationRepository.clearHwRestartEvent(value.name)
                     }
                     Timber.d("hwUnitsDataObserver HwUnit NODE_ACTION_DELETED: $result")
 
@@ -319,6 +329,23 @@ class Home(secureStorage: SecureStorage,
                     }
                     hwUnitErrorEventList.clear()
                     hwUnitRestoreList.forEach { hwUnit ->
+                        hwUnitStart(hwUnit)
+                    }
+                }
+            }
+
+    private val hwUnitRestartListLiveDataObserver =
+            Observer<List<HwUnitLog<Any>>> { restartEventList ->
+                if (!restartEventList.isNullOrEmpty()) {
+                    val removedHwUnitList = restartEventList.mapNotNull { hwUnitLog ->
+                        hwUnitsList.remove(hwUnitLog.name)?.also { hwUnit ->
+                            hwUnitStop(hwUnit)
+                        }
+                    }
+                    Timber.d(
+                            "hwUnitRestartListLiveDataObserver restartEventList.size: ${restartEventList.size} ; restarted count (no error Units) ${removedHwUnitList.size}; restartEventList: $restartEventList")
+                    homeInformationRepository.clearHwRestarts()
+                    removedHwUnitList.forEach { hwUnit ->
                         hwUnitStart(hwUnit)
                     }
                 }

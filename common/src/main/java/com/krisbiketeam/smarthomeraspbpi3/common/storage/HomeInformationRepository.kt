@@ -135,6 +135,11 @@ interface HomeInformationRepository {
     fun hwUnitErrorEventListLiveData(): HwUnitErrorEventListLiveData
 
     /**
+     * get instance of @see[HwUnitErrorEventListLiveData] for listening to request to restart hw units
+     */
+    fun hwUnitRestartListLiveData(): HwUnitErrorEventListLiveData
+
+    /**
      *  Sets Firebase homePreference key/Value
      */
     fun setHomePreference(key: String, value: Any?)
@@ -178,6 +183,11 @@ interface HomeInformationRepository {
      *
      */
     fun getHomes(): LiveData<List<String>>
+
+    fun clearHwRestarts()
+    fun clearHwRestartEvent(hwUnitName: String)
+    fun addHwUnitToRestart(hwUnitError: HwUnitLog<out Any>)
+    fun addHwUnitListToRestart(hwUnitErrorList: List<HwUnitLog<out Any>>)
 }
 
 class FirebaseHomeInformationRepository : HomeInformationRepository {
@@ -185,8 +195,10 @@ class FirebaseHomeInformationRepository : HomeInformationRepository {
     private var referenceHome: DatabaseReference? = null
     // Reference for all log related events
     private var referenceLog: DatabaseReference? = null
-    // Reference for all log related events
+    // Reference for all hw error events
     private var referenceHwError: DatabaseReference? = null
+    // Reference for all hw unit restart events
+    private var referenceHwRestart: DatabaseReference? = null
     // Reference for all users
     private val referenceUsers =
             FirebaseDatabase.getInstance().reference.child(USER_INFORMATION_BASE)
@@ -204,6 +216,8 @@ class FirebaseHomeInformationRepository : HomeInformationRepository {
 
     private var hwUnitErrorEventListLiveData = HwUnitErrorEventListLiveData(null)
 
+    private var hwUnitRestartListLiveData = HwUnitErrorEventListLiveData(null)
+
     init {
         // Enable offline this causes some huge delays :(
         //FirebaseDatabase.getInstance().setPersistenceEnabled(true)
@@ -217,13 +231,14 @@ class FirebaseHomeInformationRepository : HomeInformationRepository {
                 .child(homeName)
         referenceLog = referenceHome?.child(LOG_INFORMATION_BASE)
         referenceHwError = referenceHome?.child(HW_ERROR_INFORMATION_BASE)
+        referenceHwRestart = referenceHome?.child(HW_RESTART_INFORMATION_BASE)
 
         homeUnitsLiveData = HomeUnitsLiveData(referenceHome)
         hwUnitsLiveData = HwUnitsLiveData(referenceHome)
         roomsLiveData = RoomListLiveData(referenceHome)
         hwUnitListLiveData = HwUnitListLiveData(referenceHome)
         hwUnitErrorEventListLiveData = HwUnitErrorEventListLiveData(referenceHwError)
-
+        hwUnitRestartListLiveData = HwUnitErrorEventListLiveData(referenceHwRestart)
         // Keep tracking changes even if there are not active listeners
         referenceHome?.keepSynced(true)
     }
@@ -234,6 +249,16 @@ class FirebaseHomeInformationRepository : HomeInformationRepository {
 
     override fun addHwUnitErrorEvent(hwUnitError: HwUnitLog<out Any>) {
         referenceHwError?.child(hwUnitError.name)?.setValue(hwUnitError)
+    }
+
+    override fun addHwUnitToRestart(hwUnitError: HwUnitLog<out Any>) {
+        referenceHwRestart?.child(hwUnitError.name)?.setValue(hwUnitError)
+    }
+
+
+    override fun addHwUnitListToRestart(hwUnitErrorList: List<HwUnitLog<out Any>>) {
+        val pairs = hwUnitErrorList.map {it.name to it }
+        referenceHwRestart?.setValue(pairs.toMap())
     }
 
     override fun notifyHomeUnitEvent(homeUnit: HomeUnit<out Any?>) {
@@ -299,6 +324,14 @@ class FirebaseHomeInformationRepository : HomeInformationRepository {
         referenceHwError?.child(hwUnitName)?.removeValue()
     }
 
+    override fun clearHwRestarts() {
+        referenceHwRestart?.removeValue()
+    }
+
+    override fun clearHwRestartEvent(hwUnitName: String) {
+        referenceHwRestart?.child(hwUnitName)?.removeValue()
+    }
+
     override fun homeUnitListLiveData(unitType: String): HomeUnitListLiveData {
         return HomeUnitListLiveData(referenceHome, unitType)
     }
@@ -342,6 +375,12 @@ class FirebaseHomeInformationRepository : HomeInformationRepository {
     override fun hwUnitErrorEventListLiveData(): HwUnitErrorEventListLiveData {
         return hwUnitErrorEventListLiveData
     }
+
+    override fun hwUnitRestartListLiveData(): HwUnitErrorEventListLiveData {
+        return hwUnitRestartListLiveData
+    }
+
+
 
     override fun setHomePreference(key: String, value: Any?) {
         referenceHome?.child(HOME_PREFERENCES)?.child(key)?.setValue(value)

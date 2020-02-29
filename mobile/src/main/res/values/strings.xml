@@ -47,6 +47,7 @@
     <string name="cancel">Cancel</string>
     <string name="overwrite">Overwrite</string>
     <string name="menu_clear_all">Clear All</string>
+    <string name="menu_restart_all">Restart All</string>
     <string name="menu_finish">Finish</string>
 
     <string name="menu_navigation_room_list">Room List</string>

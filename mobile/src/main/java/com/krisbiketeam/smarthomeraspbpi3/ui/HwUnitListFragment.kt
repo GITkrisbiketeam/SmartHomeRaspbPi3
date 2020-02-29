@@ -48,6 +48,10 @@ class HwUnitListFragment : Fragment() {
                 findNavController().navigate(HwUnitListFragmentDirections.actionHwUnitListFragmentToAddEditHwUnitFragment(""))
                 true
             }
+            R.id.action_restart_all -> {
+                hwUnitListViewModel.restartAllHwUnits()
+                true
+            }
             else -> super.onOptionsItemSelected(item)
         }
     }
