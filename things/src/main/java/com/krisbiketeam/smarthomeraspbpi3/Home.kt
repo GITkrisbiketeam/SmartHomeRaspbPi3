@@ -35,7 +35,7 @@ class Home(secureStorage: SecureStorage,
 
 
     private var hwUnitErrorEventListLiveData: HwUnitErrorEventListLiveData? = null
-    private val hwUnitErrorEventList: MutableMap<String, Triple<String, Int, BaseHwUnit<Any>?>> =
+    private val hwUnitErrorEventList: MutableMap<String, BaseHwUnit<Any>?> =
             HashMap()
 
     private var hwUnitRestartListLiveData: HwUnitErrorEventListLiveData? = null
@@ -252,11 +252,6 @@ class Home(secureStorage: SecureStorage,
                     }
                     if (hwUnitErrorEventList.contains(value.name)) {
                         Timber.w("NODE_ACTION_ADDED HwUnit is on HwErrorList do not add it")
-                        hwUnitErrorEventList.compute(value.name) { _, triple ->
-                            triple?.run {
-                                Triple(triple.first, triple.second, createHwUnit(value))
-                            }
-                        }
                     } else {
                         createHwUnit(value)?.let {
                             Timber.w("NODE_ACTION_ADDED HwUnit connect and eventually listen to it")
@@ -291,46 +286,27 @@ class Home(secureStorage: SecureStorage,
                 Timber.d(
                         "hwUnitErrorEventListDataObserver errorEventList: $errorEventList; errorEventList.size: ${errorEventList.size}")
                 if (errorEventList.isNotEmpty()) {
+                    var newErrorOccurred = false
                     errorEventList.forEach { hwUnitErrorEvent ->
-                        hwUnitErrorEventList.compute(hwUnitErrorEvent.name) { key, value ->
-                            value?.run {
-                                if (hwUnitErrorEvent.localtime != first) {
-                                    val count = second.inc()
-                                    if (count >= 3) {
-                                        val result = hwUnitsList.remove(key)
-                                        result?.let {
-                                            hwUnitStop(result)
-                                        }
-                                        Timber.w(
-                                                "hwUnitErrorEventListDataObserver to many errors ($count) from hwUnit: $key, remove it from hwUnitsList result: ${result != null}")
-                                    }
-                                    Triple(hwUnitErrorEvent.localtime, count, third)
-                                } else {
-                                    value
-                                }
-                            } ?: run {
-                                Triple(hwUnitErrorEvent.localtime, 0,
-                                       hwUnitsList[hwUnitErrorEvent.name]?.also { _ ->
-                                           // disable after first error
-                                           val result = hwUnitsList.remove(key)
-                                           result?.let {
-                                               hwUnitStop(result)
-                                           }
-                                           Timber.w(
-                                                   "hwUnitErrorEventListDataObserver error from hwUnit: $key, remove it from hwUnitsList result: ${result != null}")
-                                       })
+                        hwUnitErrorEventList.computeIfAbsent(hwUnitErrorEvent.name) { key ->
+                            // disable after first error
+                            hwUnitsList.remove(key)?.also {
+                                newErrorOccurred = true
+                                hwUnitStop(it)
+                                Timber.w(
+                                        "hwUnitErrorEventListDataObserver error from hwUnit: $key, remove it from hwUnitsList")
                             }
                         }
                     }
+                    if (newErrorOccurred){
+                        // If error occurred then restart All other as they can be corrupted by error in i2c
+                        Timber.w(
+                                "hwUnitErrorEventListDataObserver new error occurred restart others")
+                        restartHwUnits()
+                    }
                 } else {
-                    val hwUnitRestoreList: MutableList<BaseHwUnit<Any>> = mutableListOf()
-                    hwUnitErrorEventList.values.forEach { (_, _, hwUnit) ->
-                        hwUnit?.let { hwUnitRestoreList.add(hwUnit) }
-                    }
+                    hwUnitErrorEventList.values.forEach { hwUnit -> hwUnit?.let { hwUnitStart(it)} }
                     hwUnitErrorEventList.clear()
-                    hwUnitRestoreList.forEach { hwUnit ->
-                        hwUnitStart(hwUnit)
-                    }
                 }
             }
 
@@ -350,6 +326,15 @@ class Home(secureStorage: SecureStorage,
                     }
                 }
             }
+
+    private fun restartHwUnits() {
+        val restartHwUnitList = hwUnitsList.values.toList()
+        restartHwUnitList.forEach(this::hwUnitStop)
+        hwUnitsList.clear()
+        Timber.d(
+                "restartHwUnits restarted count (no error Units) ${restartHwUnitList.size}; removedHwUnitList: $restartHwUnitList")
+        restartHwUnitList.forEach(this::hwUnitStart)
+    }
 
     override fun onHwUnitChanged(hwUnit: HwUnit, unitValue: Any?, updateTime: String) {
         Timber.d("onHwUnitChanged unit: $hwUnit; unitValue: $unitValue; updateTime: $updateTime")
@@ -657,8 +642,7 @@ class Home(secureStorage: SecureStorage,
 
     }
 
-
-    private fun <T : Any> Actuator<T>.setValueWithException(value: T) {
+    private fun <T : Any>Actuator<T>.setValueWithException(value: T) {
         try {
             setValue(value)
         } catch (e: Exception) {
@@ -666,8 +650,7 @@ class Home(secureStorage: SecureStorage,
         }
 
     }
-
-    private fun <T : Any> Sensor<T>.readValueWithException(): T? {
+    private fun <T : Any>Sensor<T>.readValueWithException(): T? {
         return try {
             readValue()
         } catch (e: Exception) {
@@ -675,9 +658,7 @@ class Home(secureStorage: SecureStorage,
             null
         }
     }
-
-    private fun <T : Any> Sensor<T>.registerListenerWithException(
-            listener: Sensor.HwUnitListener<T>) {
+    private fun <T : Any>Sensor<T>.registerListenerWithException(listener: Sensor.HwUnitListener<T>) {
         try {
             registerListener(listener, CoroutineExceptionHandler { _, error ->
                 addHwUnitErrorEvent(error,
@@ -688,8 +669,7 @@ class Home(secureStorage: SecureStorage,
         }
 
     }
-
-    private fun <T : Any> BaseHwUnit<T>.closeValueWithException() {
+    private fun <T : Any>BaseHwUnit<T>.closeValueWithException() {
         try {
             close()
         } catch (e: Exception) {
@@ -697,8 +677,7 @@ class Home(secureStorage: SecureStorage,
         }
 
     }
-
-    private fun <T : Any> BaseHwUnit<T>.connectValueWithException() {
+    private fun <T : Any>BaseHwUnit<T>.connectValueWithException() {
         try {
             connect()
         } catch (e: Exception) {

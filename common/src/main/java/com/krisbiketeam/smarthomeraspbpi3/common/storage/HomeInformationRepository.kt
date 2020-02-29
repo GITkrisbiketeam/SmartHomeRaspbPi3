@@ -255,7 +255,6 @@ class FirebaseHomeInformationRepository : HomeInformationRepository {
         referenceHwRestart?.child(hwUnitError.name)?.setValue(hwUnitError)
     }
 
-
     override fun addHwUnitListToRestart(hwUnitErrorList: List<HwUnitLog<out Any>>) {
         val pairs = hwUnitErrorList.map {it.name to it }
         referenceHwRestart?.setValue(pairs.toMap())

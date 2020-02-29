@@ -663,7 +663,6 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
                 Timber.d("blinkLed canceled or finished")
                 led.setValueWithException(false)
             }
-
         }
     }
 
@@ -671,17 +670,14 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
         try {
             setValue(value)
         } catch (e: Exception) {
-            homeInformationRepository.addHwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, e.message, Date().toString()))
-            Timber.e(e,"Error updating hwUnit value on $hwUnit")
+            addHwUnitErrorEvent(e, "Error updating hwUnit value on $hwUnit")
         }
-
     }
     private fun <T: Any>Sensor<T>.readValueWithException(): T?{
         return try {
             readValue()
         } catch (e: Exception) {
-            homeInformationRepository.addHwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, e.message, Date().toString()))
-            Timber.e(e,"Error reading hwUnit value on $hwUnit")
+            addHwUnitErrorEvent(e, "Error reading hwUnit value on $hwUnit")
             null
         }
     }
@@ -689,27 +685,27 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
         try {
             registerListener(listener)
         } catch (e: Exception) {
-            homeInformationRepository.addHwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, e.message, Date().toString()))
-            Timber.e(e,"Error registerListener hwUnit on $hwUnit")
+            addHwUnitErrorEvent(e, "Error registerListener hwUnit on $hwUnit")
         }
-
     }
     private fun <T: Any> BaseHwUnit<T>.closeValueWithException(){
         try {
             close()
         } catch (e: Exception) {
-            homeInformationRepository.addHwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, e.message, Date().toString()))
-            Timber.e(e,"Error closing hwUnit on $hwUnit")
+            addHwUnitErrorEvent(e, "Error closing hwUnit on $hwUnit")
         }
-
     }
     private fun <T: Any> BaseHwUnit<T>.connectValueWithException(){
         try {
             connect()
         } catch (e: Exception) {
-            homeInformationRepository.addHwUnitErrorEvent(HwUnitLog(hwUnit, unitValue, e.message, Date().toString()))
-            Timber.e(e,"Error connecting hwUnit on $hwUnit")
+            addHwUnitErrorEvent(e, "Error connecting hwUnit on $hwUnit")
         }
+    }
 
+    private fun <T : Any> BaseHwUnit<T>.addHwUnitErrorEvent(e: Throwable, logMessage: String) {
+        homeInformationRepository.addHwUnitErrorEvent(
+                HwUnitLog(hwUnit, unitValue, e.message, Date().toString()))
+        Timber.e(e, logMessage)
     }
 }

@@ -65,14 +65,13 @@ class HwUnitI2CTempMCP9808Sensor(name: String, location: String, private val pin
     private fun oneShotReadValue() {
         // We do not want to block I2C buss so open device to only display some data and then immediately close it.
         // use block automatically closes resources referenced to mcp9808
-        val mcp9808 = MCP9808(pinName, softAddress)
-        mcp9808.shutdownMode = true
-        mcp9808.readOneShotTemperature { value ->
-            unitValue = value
-            valueUpdateTime = Date().toString()
-            Timber.d("temperature:$unitValue")
-            hwUnitListener?.onHwUnitChanged(hwUnit, unitValue, valueUpdateTime)
-            mcp9808.close()
+        MCP9808(pinName, softAddress).use {
+            it.readOneShotTemperature { value ->
+                unitValue = value
+                valueUpdateTime = Date().toString()
+                Timber.d("temperature:$unitValue")
+                hwUnitListener?.onHwUnitChanged(hwUnit, unitValue, valueUpdateTime)
+            }
         }
     }
 
@@ -80,8 +79,7 @@ class HwUnitI2CTempMCP9808Sensor(name: String, location: String, private val pin
     override fun readValue(): Float? {
         // We do not want to block I2C buss so open device to only display some data and then immediately close it.
         // use block automatically closes resources referenced to tmp102
-        val mcp9808 = MCP9808(pinName, softAddress)
-        mcp9808.use {
+        MCP9808(pinName, softAddress).use {
             unitValue = it.readTemperature()
             valueUpdateTime = Date().toString()
             Timber.d("temperature:$unitValue")
