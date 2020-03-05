@@ -8,7 +8,6 @@ import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.net.wifi.WifiManager
-import android.text.format.Formatter
 import timber.log.Timber
 
 
@@ -27,8 +26,6 @@ class NetworkConnectionMonitor(activity: Activity) : ConnectivityManager.Network
 
     private val connectivityManager: ConnectivityManager =
             activity.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-
-    private val wifiManager = activity.getSystemService(WIFI_SERVICE) as WifiManager
 
     private var networkConnectionListener: NetworkConnectionListener? = null
 
@@ -63,9 +60,6 @@ class NetworkConnectionMonitor(activity: Activity) : ConnectivityManager.Network
 
     @Suppress("DEPRECATION")
     override fun onAvailable(network: Network?) {
-        val ipAddress = wifiManager.connectionInfo.ipAddress
-        val formattedIpAddress = Formatter.formatIpAddress(ipAddress)
-        Timber.v("onAvailable network: $network ipAddress: $formattedIpAddress")
         networkConnectionListener?.onNetworkAvailable(true)
     }
 }

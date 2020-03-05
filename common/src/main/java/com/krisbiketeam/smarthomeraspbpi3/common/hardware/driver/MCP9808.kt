@@ -118,6 +118,7 @@ private const val MCO9808_CONF_SHDN_BIT_SHIFT =         8
 private const val MCO9808_CONF_HYST_BIT_SHIFT = 9
 private const val MCO9808_CONF_HYST_MASK = 0x600
 
+private const val MCO9808_REG_SIGNED_TEMP_MASK = 0x1FFF
 private const val MCO9808_REG_TEMP_MASK = 0x0FFF
 private const val MCO9808_REG_TEMP_SIGN_BIT = 0x1000
 private const val MCO9808_REG_TEMP_SIGN_BIT_SHIFT = 0x0C
@@ -360,11 +361,11 @@ class MCP9808(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS) : Aut
      * @throws Exception
      */
     @Throws(Exception::class)
-    private fun readSample16(address: Int): Int? {
+    private fun readSample16(register: Int): Int? {
         synchronized(mBuffer) {
             // Reading a byte buffer instead of a short to avoid having to deal with
             // platform-specific endianness.
-            mDevice?.readRegBuffer(address, mBuffer, 2) ?: return null
+            mDevice?.readRegBuffer(register, mBuffer, 2) ?: return null
 
             val msb = mBuffer[0].toInt().and(0xff)
             val lsb = mBuffer[1].toInt().and(0xff)
@@ -373,14 +374,14 @@ class MCP9808(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS) : Aut
     }
 
     @Throws(Exception::class)
-    private fun writeSample16(address: Int, data: Int) {
+    private fun writeSample16(register: Int, data: Int) {
         synchronized(mBuffer) {
             //msb
             mBuffer[0] = (data shr 8).toByte()
             mBuffer[1] = data.toByte()
             // Reading a byte buffer instead of a short to avoid having to deal with
             // platform-specific endianness.
-            mDevice?.writeRegBuffer(address, mBuffer, 2)
+            mDevice?.writeRegBuffer(register, mBuffer, 2)
         }
     }
 
@@ -393,13 +394,12 @@ class MCP9808(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS) : Aut
     @VisibleForTesting
     internal fun calculateTemperature(rawTemp: Int?): Float? {
         if (rawTemp == null) return null
-        Timber.w("calculateTemperature rawTemp:$rawTemp")
-        val tempRaw = rawTemp and MCO9808_REG_TEMP_MASK
-        Timber.w("calculateTemperature tempRaw:$tempRaw")
+        Timber.d("calculateTemperature rawTemp:$rawTemp")
+        val tempRaw = rawTemp and MCO9808_REG_SIGNED_TEMP_MASK
+        Timber.d("calculateTemperature tempRaw:$tempRaw")
         return if (rawTemp and MCO9808_REG_TEMP_SIGN_BIT > 0) {
             // Negative Temperature value
-            //TODO: add proper calculation of negative value
-            tempRaw * TEMP_REG_FACTOR
+            (((rawTemp - 1).inv()) and MCO9808_REG_TEMP_MASK) * -TEMP_REG_FACTOR
         } else {
             // Positive temperature value
             tempRaw * TEMP_REG_FACTOR

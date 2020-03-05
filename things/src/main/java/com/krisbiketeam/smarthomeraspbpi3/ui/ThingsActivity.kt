@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.wifi.WifiConfiguration
 import android.net.wifi.WifiManager
 import android.os.Bundle
+import android.text.format.Formatter
 import android.view.KeyEvent
 import android.view.KeyEvent.*
 import androidx.appcompat.app.AppCompatActivity
@@ -126,6 +127,10 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
     private val networkConnectionListener = object : NetworkConnectionListener {
         override fun onNetworkAvailable(available: Boolean) {
             Timber.d("Received onNetworkAvailable $available")
+            val ipAddress = wifiManager.connectionInfo.ipAddress
+            val formattedIpAddress = Formatter.formatIpAddress(ipAddress)
+            Timber.v("onAvailable ipAddress: $formattedIpAddress")
+            ConsoleLoggerTree.setIpAddress(formattedIpAddress)
             led1.setValueWithException(available)
         }
     }

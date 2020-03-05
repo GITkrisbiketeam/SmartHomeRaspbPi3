@@ -3,10 +3,10 @@ package com.krisbiketeam.smarthomeraspbpi3
 import android.content.Context
 import android.net.Uri
 import android.os.Bundle
+import android.view.*
 import androidx.fragment.app.Fragment
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.HomeInformationRepository
+import org.koin.android.ext.android.inject
 
 
 // TODO: Rename parameter arguments, choose names that match
@@ -28,6 +28,7 @@ class LogsFragment : androidx.fragment.app.Fragment() {
     private var param1: String? = null
     private var param2: String? = null
     private var listener: OnFragmentInteractionListener? = null
+    private val homeInformationRepository: HomeInformationRepository by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,6 +40,9 @@ class LogsFragment : androidx.fragment.app.Fragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
+
+
+        setHasOptionsMenu(true)
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_logs, container, false)
     }
@@ -60,6 +64,22 @@ class LogsFragment : androidx.fragment.app.Fragment() {
     override fun onDetach() {
         super.onDetach()
         listener = null
+    }
+
+
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.menu_logs, menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_clear_all -> {
+                homeInformationRepository.clearLog()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
     }
 
     /**

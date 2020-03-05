@@ -13,4 +13,11 @@ class LogConsole : BaseObservable() {
             field = consoleMessage
             notifyPropertyChanged(BR.consoleMessage)
         }
+
+    @get:Bindable
+    var ipAddress: String? = null
+        set(ipAddress) {
+            field = ipAddress
+            notifyPropertyChanged(BR.ipAddress)
+        }
 }

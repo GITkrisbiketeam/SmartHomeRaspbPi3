@@ -35,8 +35,7 @@ class Home(secureStorage: SecureStorage,
 
 
     private var hwUnitErrorEventListLiveData: HwUnitErrorEventListLiveData? = null
-    private val hwUnitErrorEventList: MutableMap<String, BaseHwUnit<Any>?> =
-            HashMap()
+    private val hwUnitErrorEventList: MutableMap<String, BaseHwUnit<Any>?> = HashMap()
 
     private var hwUnitRestartListLiveData: HwUnitErrorEventListLiveData? = null
 
@@ -122,10 +121,9 @@ class Home(secureStorage: SecureStorage,
                 homeInformationRepository.hwUnitErrorEventListLiveData().apply {
                     observeForever(hwUnitErrorEventListDataObserver)
                 }
-        hwUnitRestartListLiveData =
-                homeInformationRepository.hwUnitRestartListLiveData().apply {
-                    observeForever(hwUnitRestartListLiveDataObserver)
-                }
+        hwUnitRestartListLiveData = homeInformationRepository.hwUnitRestartListLiveData().apply {
+            observeForever(hwUnitRestartListLiveDataObserver)
+        }
         alarmEnabledLiveData.observeForever {
             alarmEnabled = it
         }
@@ -298,15 +296,16 @@ class Home(secureStorage: SecureStorage,
                             }
                         }
                     }
-                    if (newErrorOccurred){
+                    if (newErrorOccurred) {
                         // If error occurred then restart All other as they can be corrupted by error in i2c
                         Timber.w(
                                 "hwUnitErrorEventListDataObserver new error occurred restart others")
                         restartHwUnits()
                     }
                 } else {
-                    hwUnitErrorEventList.values.forEach { hwUnit -> hwUnit?.let { hwUnitStart(it)} }
+                    val unitToStart = hwUnitErrorEventList.values.toList()
                     hwUnitErrorEventList.clear()
+                    unitToStart.forEach { hwUnit -> hwUnit?.let { hwUnitStart(it) } }
                 }
             }
 
@@ -409,26 +408,27 @@ class Home(secureStorage: SecureStorage,
 
     private fun hwUnitStart(unit: BaseHwUnit<Any>) {
         Timber.v("hwUnitStart connect unit: ${unit.hwUnit}")
-        unit.connectValueWithException()
-        when (unit) {
-            is Sensor   -> {
-                GlobalScope.launch(Dispatchers.IO) {
-                    val readVal = unit.readValueWithException()
-                    Timber.w("hwUnitStart readVal:$readVal unit.unitValue:${unit.unitValue}")
-                    unit.registerListenerWithException(this@Home)
-                    hwUnitsList[unit.hwUnit.name] = unit
-                    onHwUnitChanged(unit.hwUnit, readVal, unit.valueUpdateTime)
+        if (unit.connectValueWithException()) {
+            when (unit) {
+                is Sensor   -> {
+                    GlobalScope.launch(Dispatchers.Main) {
+                        val readVal = unit.readValueWithException()
+                        Timber.w("hwUnitStart readVal:$readVal unit.unitValue:${unit.unitValue}")
+                        unit.registerListenerWithException(this@Home)
+                        hwUnitsList[unit.hwUnit.name] = unit
+                        onHwUnitChanged(unit.hwUnit, readVal, unit.valueUpdateTime)
+                    }
                 }
-            }
-            is Actuator -> {
-                hwUnitsList[unit.hwUnit.name] = unit
-                homeUnitsList.values.filter {
-                    it.hwUnitName == unit.hwUnit.name
-                }.forEach { homeUnit ->
-                    Timber.d(
-                            "hwUnitStart update value based on homeUnitValue, setValue value: ${homeUnit.value}")
-                    homeUnit.value?.let {
-                        unit.setValueWithException(it)
+                is Actuator -> {
+                    hwUnitsList[unit.hwUnit.name] = unit
+                    homeUnitsList.values.filter {
+                        it.hwUnitName == unit.hwUnit.name
+                    }.forEach { homeUnit ->
+                        Timber.d(
+                                "hwUnitStart update value based on homeUnitValue, setValue value: ${homeUnit.value}")
+                        homeUnit.value?.let {
+                            unit.setValueWithException(it)
+                        }
                     }
                 }
             }
@@ -642,15 +642,15 @@ class Home(secureStorage: SecureStorage,
 
     }
 
-    private fun <T : Any>Actuator<T>.setValueWithException(value: T) {
+    private fun <T : Any> Actuator<T>.setValueWithException(value: T) {
         try {
             setValue(value)
         } catch (e: Exception) {
             addHwUnitErrorEvent(e, "Error updating hwUnit value on $hwUnit")
         }
-
     }
-    private fun <T : Any>Sensor<T>.readValueWithException(): T? {
+
+    private fun <T : Any> Sensor<T>.readValueWithException(): T? {
         return try {
             readValue()
         } catch (e: Exception) {
@@ -658,7 +658,9 @@ class Home(secureStorage: SecureStorage,
             null
         }
     }
-    private fun <T : Any>Sensor<T>.registerListenerWithException(listener: Sensor.HwUnitListener<T>) {
+
+    private fun <T : Any> Sensor<T>.registerListenerWithException(
+            listener: Sensor.HwUnitListener<T>) {
         try {
             registerListener(listener, CoroutineExceptionHandler { _, error ->
                 addHwUnitErrorEvent(error,
@@ -667,26 +669,32 @@ class Home(secureStorage: SecureStorage,
         } catch (e: Exception) {
             addHwUnitErrorEvent(e, "Error registerListener hwUnit on $hwUnit")
         }
-
     }
-    private fun <T : Any>BaseHwUnit<T>.closeValueWithException() {
+
+    private fun <T : Any> BaseHwUnit<T>.closeValueWithException() {
         try {
             close()
         } catch (e: Exception) {
             addHwUnitErrorEvent(e, "Error closing hwUnit on $hwUnit")
         }
-
     }
-    private fun <T : Any>BaseHwUnit<T>.connectValueWithException() {
-        try {
+
+    private fun <T : Any> BaseHwUnit<T>.connectValueWithException(): Boolean {
+        return try {
             connect()
+            true
         } catch (e: Exception) {
             addHwUnitErrorEvent(e, "Error connecting hwUnit on $hwUnit")
+            false
         }
-
     }
 
     private fun <T : Any> BaseHwUnit<T>.addHwUnitErrorEvent(e: Throwable, logMessage: String) {
+        hwUnitErrorEventList.computeIfAbsent(hwUnit.name) { key ->
+            hwUnitsList.remove(key)?.also {
+                hwUnitStop(it)
+            }?: this as BaseHwUnit<Any>
+        }
         homeInformationRepository.addHwUnitErrorEvent(
                 HwUnitLog(hwUnit, unitValue, e.message, Date().toString()))
         Timber.e(e, logMessage)
