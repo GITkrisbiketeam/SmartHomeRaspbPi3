@@ -57,6 +57,7 @@
                         android:singleLine="true"
                         app:value="@={viewModel.ssid}"
                         app:entriesAutoComplete="@{viewModel.ssidList}"
+                        app:entriesFilterable="@{true}"
                         />
 
             </com.google.android.material.textfield.TextInputLayout>

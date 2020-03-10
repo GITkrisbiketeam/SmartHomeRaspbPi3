@@ -134,19 +134,13 @@ fun bindEntriesWithEmptyData(spinner: AppCompatSpinner, entries: List<Any>?) {
     }
 }
 
-
 @BindingAdapter("valueAttrChanged")
 fun MaterialAutoCompleteTextView.setListener(listener: InverseBindingListener?) {
-    this.onItemSelectedListener = if (listener != null) {
-        object : AdapterView.OnItemSelectedListener {
-            override fun onNothingSelected(parent: AdapterView<*>?) {
-                listener.onChange()
-            }
-
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int,
-                                        id: Long) {
-                listener.onChange()
-            }
+    this.onItemClickListener = if (listener != null) {
+        AdapterView.OnItemClickListener { parent, view, position, id ->
+            (adapter as AutoCompleteAdapter?)?.position = position
+            //listSelection = position
+            listener.onChange()
         }
     } else {
         null
@@ -156,25 +150,56 @@ fun MaterialAutoCompleteTextView.setListener(listener: InverseBindingListener?) 
 @get:InverseBindingAdapter(attribute = "value")
 @set:BindingAdapter("value")
 var MaterialAutoCompleteTextView.selectedValue: Any?
-    get() = if (listSelection != ListView.INVALID_POSITION) adapter?.getItem(listSelection) else text
+    get() {
+        return if (listSelection != ListView.INVALID_POSITION) {
+            adapter?.getItem(listSelection)
+        } else {
+            val position = (adapter as AutoCompleteAdapter?)?.position ?: ListView.INVALID_POSITION
+            if (position != ListView.INVALID_POSITION) {
+                val item = adapter?.getItem(position)
+                if (item is Pair<*,*>){
+                    item.first
+                } else {
+                    item
+                }
+            } else {
+                null
+            }
+        }
+    }
     set(value) {
         val newValue =
                 value ?: adapter?.getItem(if (adapter.count > 0) 0 else ListView.INVALID_POSITION)
-            setText(newValue?.toString(), true)
-        if (adapter is ArrayAdapter<*>) {
+        // Disable filtering so that we can select different item from already preselected one
+        setText(newValue?.toString(), false)
+        if (adapter is ArrayAdapter<*> && adapter.count > 0) {
             val position = (adapter as ArrayAdapter<Any?>).getPosition(newValue)
             listSelection = position
         }
     }
 
-@BindingAdapter("entriesAutoComplete")
-fun bindEntriesAutoCompleteData(autoCompleteTextView: MaterialAutoCompleteTextView,
-                                entries: List<Any>?) {
+@BindingAdapter("entriesAutoComplete", "entriesFilterable", requireAll = false)
+fun MaterialAutoCompleteTextView.setItems(entries: List<Any>?, filterable: Boolean = false) {
     // This is for dynamic entries list, like form ViewModel LiveData
-    Timber.d("bindEntriesData entriesAutoComplete: $entries tag: ${autoCompleteTextView.tag}")
+    Timber.d("bindEntriesData entriesAutoComplete: $entries tag: $tag")
     if (entries != null) {
-        autoCompleteTextView.setAdapter(
-                ArrayAdapter(autoCompleteTextView.context, android.R.layout.simple_spinner_item,
-                             android.R.id.text1, entries))
+        setAdapter(AutoCompleteAdapter(context, AutoCompleteAdapterType.DEFAULT, entries, filterable))
+    }
+}
+@BindingAdapter("entriesUsedAutoComplete", "entriesFilterable", requireAll = false)
+fun MaterialAutoCompleteTextView.setItemsUsed(entries: List<Any>?, filterable: Boolean = false) {
+    // This is for dynamic entries list, like form ViewModel LiveData
+    Timber.d("bindEntriesData entriesUsedAutoComplete: $entries tag: $tag")
+    if (entries != null) {
+        setAdapter(AutoCompleteAdapter(context, AutoCompleteAdapterType.ENTRIES_USED, entries, filterable))
+    }
+}
+
+@BindingAdapter("entriesWithEmptyAutoComplete", "entriesFilterable", requireAll = false)
+fun MaterialAutoCompleteTextView.setItemsWithEmpty(entries: List<Any>?, filterable: Boolean = false) {
+    // This is for dynamic entries list, like form ViewModel LiveData
+    Timber.d("bindEntriesData entriesWithEmptyAutoComplete: $entries tag: $tag")
+    if (entries != null) {
+        setAdapter(AutoCompleteAdapter(context, AutoCompleteAdapterType.WITH_EMPTY, entries, filterable))
     }
 }

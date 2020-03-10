@@ -42,14 +42,14 @@ class AddEditHwUnitViewModel(
     val refreshRate = if(hwUnitLiveData == null) MutableLiveData() else Transformations.map(hwUnitLiveData) { hwUnit -> hwUnit.refreshRate } as MutableLiveData<Long?>
 
     // This will be only valid for Gpio type HwUnits BoardConfig.IO_GPIO_PIN_NAME_LIST
-    val pinNamePosition = if(hwUnitLiveData == null) {
+    val pinName = if(hwUnitLiveData == null) {
         MutableLiveData()
     } else {
         Transformations.switchMap(hwUnitLiveData) { hwUnit ->
             Transformations.map(pinNameList) { pinNameList ->
-                pinNameList.indexOfFirst {it == hwUnit.pinName}
+                pinNameList.firstOrNull {it == hwUnit.pinName}
             }
-        } as MutableLiveData<Int>
+        } as MutableLiveData<String?>
     }
     val pinNameList: MutableLiveData<List<String>> = Transformations.map(Transformations.distinctUntilChanged(type)) { type ->
         Timber.d("init pinNameList type: $type")
@@ -67,29 +67,10 @@ class AddEditHwUnitViewModel(
             else ->
                 emptyList()
         }.also {
-            // if adding new Hw Unit select last empty dummy position
-            if (hwUnitLiveData == null) {pinNamePosition.value = it.size}
+            if (hwUnitLiveData == null) {if(it.size == 1)pinName.value = it[0]
+            }
         }
     } as MutableLiveData<List<String>>
-    var pinName
-        get() = pinNamePosition.value?.let { position ->
-            if (position in 0 until (pinNameList.value?.size ?: 0)) {
-                Timber.d("pinName getValue position: $position val: ${pinNameList.value?.get(position)}")
-                pinNameList.value?.get(position)
-            } else {
-                Timber.d("pinName getValue position: $position val: null")
-                null
-            }
-        }
-        set(value) {
-            val position = pinNameList.value?.indexOfFirst {
-                it == value
-            } ?: -1
-            Timber.d("pinName setValue val: $value position: $position")
-            if (position != -1) {
-                pinNamePosition.value = position
-            }
-        }
 
     //This should be automatically populated by selecting type
     val connectionType = Transformations.map(Transformations.distinctUntilChanged(type)) { type ->
@@ -112,16 +93,16 @@ class AddEditHwUnitViewModel(
 
     // This is only valid for I2C type HwUnits
     // This softAddress should be strictly linked to [pinInterrupt] as this pair makes a physical MCP23017 unit
-    val softAddressPosition = if (hwUnitLiveData == null) {
+    val softAddress = if (hwUnitLiveData == null) {
         MutableLiveData()
     } else {
         Transformations.switchMap(Transformations.distinctUntilChanged(hwUnitLiveData)) { hwUnit ->
             Transformations.map(Transformations.distinctUntilChanged(softAddressList)) { softAddressList ->
-                softAddressList.indexOfFirst {
+                softAddressList.firstOrNull {
                     it == hwUnit.softAddress
                 }
             }
-        } as MutableLiveData<Int>
+        } as MutableLiveData<Int?>
     }
     val softAddressList: MutableLiveData<List<Int>> =
             Transformations.map(Transformations.distinctUntilChanged(type)) { type ->
@@ -139,24 +120,10 @@ class AddEditHwUnitViewModel(
                     else ->
                         emptyList()
                 }.also {
-                    // if adding new Hw Unit select last empty dummy position
-                    if (hwUnitLiveData == null) {
-                        softAddressPosition.value = it.size
+                    if (hwUnitLiveData == null) {if(it.size == 1)softAddress.value = it[0]
                     }
                 }
             } as MutableLiveData<List<Int>>
-    val softAddress: MutableLiveData<Int?> =
-            Transformations.switchMap(Transformations.distinctUntilChanged(softAddressPosition)) { softAddressPos ->
-                Transformations.map(Transformations.distinctUntilChanged(softAddressList)) { softAddrList ->
-                    if (softAddressPos in softAddrList.indices) {
-                        Timber.d("softAddress getValue position: $softAddressPos val: ${softAddrList[softAddressPos]}")
-                        softAddrList[softAddressPos]
-                    } else {
-                        Timber.d("softAddress getValue position: $softAddressPos val: null")
-                        null
-                    }
-                }
-            } as MutableLiveData<Int?>
 
     // This is only valid for IO_Extender type HwUnits
     val ioPinList = Transformations.switchMap(Transformations.distinctUntilChanged(type)) { type ->
@@ -173,39 +140,20 @@ class AddEditHwUnitViewModel(
                             } != null)
                         }
                     }
-                }
+                } as MutableLiveData<List<Pair<String,Boolean>>>
             }
             else -> MutableLiveData()
         }
     } as MutableLiveData<List<Pair<String, Boolean>>>
-    val ioPinPosition = if (hwUnitLiveData == null) {
-        Transformations.map(ioPinList) { ioPinList ->
-            ioPinList.size
-        } as MutableLiveData<Int>
+    val ioPin = if (hwUnitLiveData == null) {
+        MutableLiveData()
     } else {
         Transformations.switchMap(hwUnitLiveData) { hwUnit ->
             Transformations.map(ioPinList) { ioPinList ->
-                ioPinList.indexOfFirst {it.first == hwUnit.ioPin}
+                ioPinList.firstOrNull {it.first == hwUnit.ioPin}?.first
             }
-        } as MutableLiveData<Int>
+        } as MutableLiveData<String?>
     }
-    var ioPin
-        get() = ioPinPosition.value?.let { position ->
-            if (position in 0 until (ioPinList.value?.size ?: 0)) {
-                Timber.d("ioPin getValue position: $position val: ${ioPinList.value?.get(position)}")
-                ioPinList.value?.get(position)?.first
-            } else {
-                Timber.d("ioPin getValue position: $position val: null")
-                null
-            }
-        }
-        set(value) {
-            val position = ioPinList.value?.indexOfFirst {it.first == value} ?: -1
-            if (position != -1) {
-                ioPinPosition.value = position
-            }
-        }
-
 
     // This is only valid for IO_Extender Input type HwUnits BoardConfig.IO_EXTENDER_INT_PIN_LIST
     // This pinInterrupt should be strictly linked to [softAddress] as this pair makes a physical MCP23017 unit
@@ -230,43 +178,23 @@ class AddEditHwUnitViewModel(
                                     ?: !addrMap.values.contains(intPin)))
                         }
                     }
-                }
+                } as MutableLiveData<List<Pair<String,Boolean>>>
             }
             else ->
                 MutableLiveData()
         }
     } as MutableLiveData<List<Pair<String, Boolean>>>
-    val pinInterruptItemPosition = if(hwUnitLiveData == null) {
-        Transformations.map(pinInterruptList) { ioPinList ->
-            ioPinList.size
-        } as MutableLiveData<Int>
+    val pinInterrupt = if (hwUnitLiveData == null) {
+        MutableLiveData()
     } else {
         Transformations.switchMap(hwUnitLiveData) { hwUnit ->
             Transformations.map(pinInterruptList) { pinIntList ->
-                pinIntList.indexOfFirst {
+                pinIntList.firstOrNull {
                     it.first == hwUnit.pinInterrupt
-                }
+                }?.first
             }
-        } as MutableLiveData<Int>
+        } as MutableLiveData<String?>
     }
-    var pinInterrupt
-        get() = pinInterruptItemPosition.value?.let { position ->
-            if (position in 0 until (pinInterruptList.value?.size ?: 0)) {
-                Timber.d("pinInterrupt getValue position: $position val: ${pinInterruptList.value?.get(position)}")
-                pinInterruptList.value?.get(position)?.first
-            } else {
-                Timber.d("pinInterrupt getValue position: $position val: null")
-                null
-            }
-        }
-        set(value) {
-            val position = pinInterruptList.value?.indexOfFirst {
-                it.first == value
-            } ?: -1
-            if (position != -1) {
-                pinInterruptItemPosition.value = position
-            }
-        }
 
     // This is only valid for IO_Extender Output type HwUnits
     val internalPullUp = if (hwUnitLiveData == null) {
@@ -304,11 +232,11 @@ class AddEditHwUnitViewModel(
             unit.name == name.value &&
             unit.location == location.value &&
             unit.type == type.value &&
-            unit.pinName == pinName &&
+            unit.pinName == pinName.value &&
             unit.connectionType == connectionType.value &&
             unit.softAddress == softAddress.value &&
-            unit.pinInterrupt == pinInterrupt &&
-            unit.ioPin == ioPin &&
+            unit.pinInterrupt == pinInterrupt.value &&
+            unit.ioPin == ioPin.value &&
             unit.internalPullUp == internalPullUp.value &&
             unit.refreshRate == refreshRate.value
         } ?: name.value.isNullOrEmpty()
@@ -334,10 +262,10 @@ class AddEditHwUnitViewModel(
                 name.value = unit.name
                 location.value = unit.location
                 type.value = unit.type
-                pinName = unit.pinName
+                pinName.value = unit.pinName
                 // connectionType  is automatically populated by type LiveData
                 // TODO: how to handle it like type
-                softAddressPosition.value = when (unit.type) {
+                softAddress.value = when (unit.type) {
                     BoardConfig.TEMP_SENSOR_TMP102 ->
                         BoardConfig.TEMP_SENSOR_TMP102_ADDR_LIST
                     BoardConfig.TEMP_SENSOR_MCP9808 ->
@@ -353,8 +281,8 @@ class AddEditHwUnitViewModel(
                     it == unit.softAddress
                 }
                 //softAddress.value = unit.softAddress
-                pinInterrupt = unit.pinInterrupt
-                ioPin = unit.ioPin
+                pinInterrupt.value = unit.pinInterrupt
+                ioPin.value = unit.ioPin
                 internalPullUp.value = unit.internalPullUp
             }
             false
@@ -378,12 +306,12 @@ class AddEditHwUnitViewModel(
                 return Pair(R.string.add_edit_hw_unit_name_already_used, null)
             }
             location.value?.trim().isNullOrEmpty() -> return Pair(R.string.add_edit_hw_unit_empty_location, null)
-            pinName.isNullOrEmpty() -> return Pair(R.string.add_edit_hw_unit_empty_pin_name, null)
+            pinName.value.isNullOrEmpty() -> return Pair(R.string.add_edit_hw_unit_empty_pin_name, null)
             connectionType.value == ConnectionType.I2C && softAddress.value == null ->
                 return Pair(R.string.add_edit_hw_unit_empty_soft_address, null)
-            (type.value == BoardConfig.IO_EXTENDER_MCP23017_INPUT || type.value == BoardConfig.IO_EXTENDER_MCP23017_OUTPUT) && ioPin == null ->
+            (type.value == BoardConfig.IO_EXTENDER_MCP23017_INPUT || type.value == BoardConfig.IO_EXTENDER_MCP23017_OUTPUT) && ioPin.value == null ->
                 return Pair(R.string.add_edit_hw_unit_empty_io_pin, null)
-            type.value == BoardConfig.IO_EXTENDER_MCP23017_INPUT && pinInterrupt == null ->
+            type.value == BoardConfig.IO_EXTENDER_MCP23017_INPUT && pinInterrupt.value == null ->
                 return Pair(R.string.add_edit_hw_unit_empty_pin_interrupt, null)
 
             hwUnitLiveData != null -> // Editing existing HomeUnit
@@ -437,7 +365,7 @@ class AddEditHwUnitViewModel(
         return name.value?.let { name ->
             location.value?.let { location ->
                 type.value?.let { type ->
-                    pinName?.let { pinName ->
+                    pinName.value?.let { pinName ->
                         showProgress.value = true
                         homeRepository.saveHardwareUnit(
                                 HwUnit(
@@ -447,8 +375,8 @@ class AddEditHwUnitViewModel(
                                         pinName = pinName,
                                         connectionType = connectionType.value,
                                         softAddress = softAddress.value,
-                                        pinInterrupt = pinInterrupt,
-                                        ioPin = ioPin,
+                                        pinInterrupt = pinInterrupt.value,
+                                        ioPin = ioPin.value,
                                         internalPullUp = internalPullUp.value,
                                         refreshRate = refreshRate.value)
                         )

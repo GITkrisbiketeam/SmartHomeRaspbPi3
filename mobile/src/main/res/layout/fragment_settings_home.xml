@@ -56,8 +56,9 @@
                         android:inputType="text"
                         android:maxLines="1"
                         android:singleLine="true"
-                        android:text="@={viewModel.homeName}"
+                        app:value="@={viewModel.homeName}"
                         app:entriesAutoComplete="@{viewModel.homeNameList}"
+                        app:entriesFilterable="@{true}"
                         />
 
             </com.google.android.material.textfield.TextInputLayout>

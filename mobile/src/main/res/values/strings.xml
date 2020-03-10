@@ -18,6 +18,7 @@
     <string name="prompt_password">Password</string>
     <string name="action_sign_in">Sign in or register</string>
     <string name="action_sign_in_short">Sign in</string>
+    <string name="action_next">Next</string>
     <string name="error_invalid_email">This email address is invalid</string>
     <string name="error_invalid_password">This password is too short</string>
     <string name="error_incorrect_password">This password is incorrect</string>
@@ -125,6 +126,7 @@
     <string name="add_edit_hw_unit_pit_interrupt_title_spinner_prompt">Select I2C GPIO Pin Interrupt:</string>
     <string name="add_edit_hw_unit_pin_pull_up_title">Extended Pin PullUp Resistor?</string>
     <string name="add_edit_hw_unit_pin_extender_io_pin_spinner_title">Extender pin Name</string>
+    <string name="add_edit_hw_unit_pin_extender_io_pin_spinner_prompt">Select I2C GPIO extender pin</string>
     <string name="add_edit_hw_unit_empty_name">Hardware Unit Name cannot be empty</string>
     <string name="add_edit_hw_unit_empty_location">Hardware Unit Location cannot be empty</string>
     <string name="add_edit_hw_unit_empty_type">Hardware Unit Type cannot be empty</string>
