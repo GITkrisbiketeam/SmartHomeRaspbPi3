@@ -390,7 +390,7 @@ class Home(secureStorage: SecureStorage,
                     HwUnitI2CMCP23017Sensor(hwUnit.name, hwUnit.location, hwUnit.pinName,
                                             hwUnit.softAddress ?: 0, hwUnit.pinInterrupt ?: "",
                                             ioPin,
-                                            hwUnit.internalPullUp ?: false) as BaseHwUnit<Any>
+                                            hwUnit.internalPullUp ?: false, hwUnit.inverse ?: false) as BaseHwUnit<Any>
                 }
             }
             BoardConfig.IO_EXTENDER_MCP23017_OUTPUT -> {

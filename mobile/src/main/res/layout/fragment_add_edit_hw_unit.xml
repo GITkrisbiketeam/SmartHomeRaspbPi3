@@ -255,19 +255,6 @@
 
                 </com.google.android.material.textfield.TextInputLayout>
 
-                <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/hw_unit_pin_pull_up_switch"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/margin_normal"
-                        android:clickable="@{viewModel.isEditMode}"
-                        android:text="@string/add_edit_hw_unit_pin_pull_up_title"
-                        android:textColor="@color/colorSecondary"
-                        android:visibility="@{BoardConfig.IO_EXTENDER_MCP23017_OUTPUT.equals(viewModel.type) ? View.VISIBLE : View.GONE}"
-                        app:layout_constraintTop_toBottomOf="@id/hw_unit_pin_extender_io_pin_spinner_layout"
-                        app:setChecked="@{viewModel.internalPullUp}"
-                        />
-
                 <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/hw_unit_pin_interrupt_spinner_layout"
                         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
@@ -295,6 +282,32 @@
                             />
 
                 </com.google.android.material.textfield.TextInputLayout>
+
+                <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/hw_unit_pin_inverse_switch"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_normal"
+                        android:clickable="@{viewModel.isEditMode}"
+                        android:text="@string/add_edit_hw_unit_pin_inverse_title"
+                        android:textColor="@color/colorSecondary"
+                        android:visibility="@{BoardConfig.IO_EXTENDER_MCP23017_INPUT.equals(viewModel.type) ? View.VISIBLE : View.GONE}"
+                        app:layout_constraintTop_toBottomOf="@id/hw_unit_pin_interrupt_spinner_layout"
+                        android:checked="@={viewModel.inverse}"
+                        />
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/hw_unit_pin_pull_up_switch"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_normal"
+                        android:clickable="@{viewModel.isEditMode}"
+                        android:text="@string/add_edit_hw_unit_pin_pull_up_title"
+                        android:textColor="@color/colorSecondary"
+                        android:visibility="@{BoardConfig.IO_EXTENDER_MCP23017_INPUT.equals(viewModel.type) ? View.VISIBLE : View.GONE}"
+                        app:layout_constraintTop_toBottomOf="@id/hw_unit_pin_inverse_switch"
+                        android:checked="@={viewModel.internalPullUp}"
+                        />
 
                 <androidx.constraintlayout.widget.Group
                         android:id="@+id/hw_unit_sensor_refresh_rate_group"

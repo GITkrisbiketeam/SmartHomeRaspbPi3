@@ -15,12 +15,13 @@ open class HwUnitI2CMCP23017Sensor(name: String, location: String, private val p
                                    private val address: Int, private val pinInterrupt: String,
                                    private val ioPin: Pin,
                                    private val internalPullUp: Boolean = false,
+                                   private val inverse: Boolean = false,
                                    override var device: AutoCloseable? = null) : HwUnitI2C<Boolean>,
         Sensor<Boolean> {
 
     override val hwUnit: HwUnit =
             HwUnit(name, location, BoardConfig.IO_EXTENDER_MCP23017_INPUT, pinName,
-                   ConnectionType.I2C, address, pinInterrupt, ioPin.name, internalPullUp)
+                   ConnectionType.I2C, address, pinInterrupt, ioPin.name, internalPullUp, inverse = inverse)
     override var unitValue: Boolean? = null
     override var valueUpdateTime: String = ""
 
@@ -29,7 +30,7 @@ open class HwUnitI2CMCP23017Sensor(name: String, location: String, private val p
     open val mMCP23017Callback = object : MCP23017PinStateChangeListener {
         override fun onPinStateChanged(pin: Pin, state: PinState) {
             Timber.d("onPinStateChanged pin: ${pin.name} state: $state")
-            unitValue = state == PinState.HIGH
+            unitValue = if(inverse) state != PinState.HIGH else state == PinState.HIGH
             valueUpdateTime = Date().toString()
             hwUnitListener?.onHwUnitChanged(hwUnit, unitValue, valueUpdateTime)
 
@@ -79,7 +80,7 @@ open class HwUnitI2CMCP23017Sensor(name: String, location: String, private val p
     @Throws(Exception::class)
     override fun readValue(): Boolean? {
         unitValue = (device as MCP23017?)?.run {
-            getState(ioPin) == PinState.HIGH
+            if(inverse) getState(ioPin) != PinState.HIGH else getState(ioPin) == PinState.HIGH
         }
 
         return unitValue

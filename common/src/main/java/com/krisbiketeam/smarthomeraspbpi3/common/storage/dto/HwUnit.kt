@@ -24,4 +24,6 @@ data class HwUnit(
         // Should Software pullup be applied to Extenders Units
         val internalPullUp: Boolean? = null,
         // Refresh rate for Sensor Type Units
-        val refreshRate: Long? = null)
+        val refreshRate: Long? = null,
+        // Inverse logic
+        val inverse: Boolean? = null)
