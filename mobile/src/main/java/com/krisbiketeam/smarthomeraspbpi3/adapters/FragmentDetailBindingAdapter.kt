@@ -179,6 +179,7 @@ var MaterialAutoCompleteTextView.selectedValue: Any?
         }
     }
 
+// entriesFilterable does not really work as expected
 @BindingAdapter("entriesAutoComplete", "entriesFilterable", requireAll = false)
 fun MaterialAutoCompleteTextView.setItems(entries: List<Any>?, filterable: Boolean = false) {
     // This is for dynamic entries list, like form ViewModel LiveData

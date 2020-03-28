@@ -58,7 +58,6 @@
                         android:singleLine="true"
                         app:value="@={viewModel.homeName}"
                         app:entriesAutoComplete="@{viewModel.homeNameList}"
-                        app:entriesFilterable="@{true}"
                         />
 
             </com.google.android.material.textfield.TextInputLayout>

@@ -127,7 +127,7 @@ class HomeUnitDetailViewModel(
                 Transformations.map(homeRepository.hwUnitListLiveData()) { list -> list.map {
                     Pair(it.name, homeUnitList.find { unit -> unit.hwUnitName == it.name } != null) }
                 }
-            }
+            } as MutableLiveData
         } else {
             MutableLiveData()
         }

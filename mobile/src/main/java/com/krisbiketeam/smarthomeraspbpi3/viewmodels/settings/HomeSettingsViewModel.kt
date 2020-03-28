@@ -23,6 +23,7 @@ class HomeSettingsViewModel(val nearByState: NearbyServiceLiveData, private val 
     init {
         Timber.d("init")
         remoteHomeSetup.value = false
+        homeName.value = secureStorage.homeName
     }
 
     fun setupHomeName(homeName: String) {
