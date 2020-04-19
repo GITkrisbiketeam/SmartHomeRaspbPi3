@@ -1,405 +1,358 @@
 package com.krisbiketeam.smarthomeraspbpi3.common.storage
 
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import com.google.android.gms.tasks.Task
 import com.google.firebase.database.*
+import com.krisbiketeam.smarthomeraspbpi3.common.resetableLazy
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.*
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.*
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.livedata.*
 import timber.log.Timber
 
 
-interface HomeInformationRepository {
-    /**
-     *  Sets Firebase homeReference to given homeName
-     */
-    fun setHomeReference(homeName: String)
-
-    /**
-     *  Adds given @see[HwUnitLog] to the log @see[LOG_INFORMATION_BASE] list in DB
-     */
-    fun logUnitEvent(hwUnitLog: HwUnitLog<out Any>)
-
-    /**
-     *  Adds given @see[HwUnitLog] to the hw Error lg @see[HW_ERROR_INFORMATION_BASE] list in DB
-     */
-    fun addHwUnitErrorEvent(hwUnitError: HwUnitLog<out Any>)
-
-    fun writeNewUser(name: String, email: String)
-
-    fun addUserNotiToken(email: String, token: String)
-
-    /**
-     *  Adds given @see[HomeUnit] to the log @see[NOTIFICATION_INFORMATION_BASE] list in DB
-     */
-    fun notifyHomeUnitEvent(homeUnit: HomeUnit<out Any?>)
-
-    /**
-     *  Saves/updates given @see[Room] in DB
-     */
-    fun saveRoom(room: Room): Task<Void>?
-
-    /**
-     *  Deletes given @see[Room] from DB
-     */
-    fun deleteRoom(roomName: String): Task<Void>?
-
-    /**
-     *  Saves/updates given @see[HomeUnit] in DB
-     */
-    fun <T> saveHomeUnit(homeUnit: HomeUnit<T>): Task<Void>?
-
-    /**
-     *  Deletes given @see[HomeUnit] from DB
-     */
-    fun <T> deleteHomeUnit(homeUnit: HomeUnit<T>): Task<Void>?
-
-    /**
-     *  Saves/updates given @see[HwUnit] as a hardware module list in DB
-     */
-    fun saveHardwareUnit(hwUnit: HwUnit): Task<Void>?
-
-    /**
-     *  Deletes given @see[HwUnit] from hardware module list in DB
-     */
-    fun deleteHardwareUnit(hwUnit: HwUnit): Task<Void>?
-
-    /**
-     *  Saves/updates given @see[UnitTask] in DB
-     */
-    fun saveUnitTask(homeUnitType: String, homeUnitName: String, unitTask: UnitTask): Task<Void>?
-
-    /**
-     *  Deletes given @see[UnitTask] from DB
-     */
-    fun deleteUnitTask(homeUnitType: String, homeUnitName: String, unitTask: UnitTask): Task<Void>?
-
-    /**
-     * get instance of @see[HomeUnitsLiveData] for listening to changes in entries in DB
-     */
-    fun homeUnitsLiveData(): HomeUnitsLiveData
-
-    /**
-     * get instance of @see[HomeUnitListLiveData] for listening to changes in entries in DB
-     */
-    fun homeUnitListLiveData(unitType: String): HomeUnitListLiveData
-
-    /**
-     * get instance of @see[HomeUnitLiveData] for listening to changes in given HomeUnit in DB
-     */
-    fun homeUnitLiveData(unitType: String, unitName: String): HomeUnitLiveData
-
-    /**
-     * get instance of @see[HomeUnitsLiveData] for listening to changes in entries in DB
-     */
-    fun homeUnitsLiveData(roomName: String): HomeUnitsLiveData
-
-    /**
-     * get instance of @see[HwUnitsLiveData] for listening to changes in Room entries in DB
-     */
-    fun hwUnitsLiveData(): HwUnitsLiveData
-
-    /**
-     * get instance of @see[HwUnitsLiveData] for listening to changes in entries in DB
-     */
-    fun hwUnitLiveData(hwUnitName: String): HwUnitLiveData
-
-    /**
-     * get instance of @see[HwUnitListLiveData] for listening to changes in Room entries in DB
-     */
-    fun hwUnitListLiveData(): HwUnitListLiveData
-
-    /**
-     * get instance of @see[RoomListLiveData] for listening to changes in Room entries in DB
-     */
-    fun roomListLiveData(): RoomListLiveData
-
-    /**
-     * get instance of @see[RoomLiveData] for listening to changes in specific Room entry in DB
-     */
-    fun roomLiveData(roomName: String): RoomLiveData
-
-    /**
-     * get instance of @see[UnitTaskListLiveData] for listening to changes in specific HomeUnit UnitTask List entry in DB
-     */
-    fun unitTaskListLiveData(unitType: String, unitName: String): UnitTaskListLiveData
-
-    /**
-     * get instance of @see[UnitTaskListLiveData] for listening to changes in specific HomeUnit UnitTask List entry in DB
-     */
-    //fun unitTaskListLiveData(taskName: String, unitType: String, unitName:String): UnitTaskListLiveData
-
-    /**
-     * get instance of @see[HwUnitErrorEventListLiveData] for listening to changes HwUnit Error Event List in DB
-     */
-    fun hwUnitErrorEventListLiveData(): HwUnitErrorEventListLiveData
-
-    /**
-     * get instance of @see[HwUnitErrorEventListLiveData] for listening to request to restart hw units
-     */
-    fun hwUnitRestartListLiveData(): HwUnitErrorEventListLiveData
-
-    /**
-     *  Sets Firebase homePreference key/Value
-     */
-    fun setHomePreference(key: String, value: Any?)
-
-    /**
-     *  Gets Firebase homePreference Value for given key
-     */
-    fun getHomePreference(key: String): DatabaseReference?
-
-    /**
-     * Clear all Logs entries from DB
-     */
-    fun clearLog()
-
-    /**
-     * Clear all hw Error entries from DB
-     */
-    fun clearHwErrors()
-
-    /**
-     * Clear hw Error Event entry from DB
-     */
-    fun clearHwErrorEvent(hwUnitName: String)
-
-    /**
-     * start monitoring for Firebase Connection active
-     */
-    fun startHomeToFirebaseConnectionActiveMonitor()
-
-    /**
-     * Checks if Home Module is online
-     */
-    fun isHomeOnline(): LiveData<Boolean?>
-
-    /**
-     * Checks when Home Module was last online
-     */
-    fun lastHomeOnlineTime(): LiveData<Long?>
-
-    /**
-     *
-     */
-    fun getHomes(): LiveData<List<String>>
-
-    fun clearHwRestarts()
-    fun clearHwRestartEvent(hwUnitName: String)
-    fun addHwUnitToRestart(hwUnitError: HwUnitLog<out Any>)
-    fun addHwUnitListToRestart(hwUnitErrorList: List<HwUnitLog<out Any>>)
-}
-
-class FirebaseHomeInformationRepository : HomeInformationRepository {
+class FirebaseHomeInformationRepository {
     // Reference for all home related "Units"
-    private var referenceHome: DatabaseReference? = null
-    // Reference for all log related events
-    private var referenceLog: DatabaseReference? = null
+    private var referenceHomePath: String? = null
+
+    private val referenceHWUnitsDelegate = resetableLazy {
+        referenceHomePath?.let { FirebaseDatabase.getInstance().getReference("$it/$HOME_HW_UNITS") }
+    }
+    private val referenceHWUnits: DatabaseReference? by referenceHWUnitsDelegate
+
+    private val referenceHwErrorDelegate = resetableLazy {
+        referenceHomePath?.let {
+            FirebaseDatabase.getInstance().getReference("$it/$HW_ERROR_INFORMATION_BASE")
+        }
+    }
     // Reference for all hw error events
-    private var referenceHwError: DatabaseReference? = null
+    private val referenceHwError: DatabaseReference? by referenceHwErrorDelegate
+
+    private val referenceHwRestartDelegate = resetableLazy {
+        referenceHomePath?.let {
+            FirebaseDatabase.getInstance().getReference("$it/$HW_RESTART_INFORMATION_BASE")
+        }
+    }
     // Reference for all hw unit restart events
-    private var referenceHwRestart: DatabaseReference? = null
+    private val referenceHwRestart: DatabaseReference? by referenceHwRestartDelegate
+
+    private val referenceRoomsDelegate = resetableLazy {
+        referenceHomePath?.let { FirebaseDatabase.getInstance().getReference("$it/$HOME_ROOMS") }
+    }
+    // Reference for all Rooms stored remotely
+    private val referenceRooms: DatabaseReference? by referenceRoomsDelegate
+
+
+    private val referenceHomePreferencesDelegate = resetableLazy {
+        referenceHomePath?.let {
+            FirebaseDatabase.getInstance().getReference("$it/$HOME_PREFERENCES")
+        }
+    }
+    // Reference for all sharedPreferences stored remotely
+    private val referenceHomePreferences: DatabaseReference? by referenceHomePreferencesDelegate
+
+    private val referenceLogDelegate = resetableLazy {
+        referenceHomePath?.let {
+            FirebaseDatabase.getInstance().getReference("$it/$LOG_INFORMATION_BASE")
+        }
+    }
+    // Reference for all log related events
+    private val referenceLog: DatabaseReference? by referenceLogDelegate
+
+
     // Reference for all users
-    private val referenceUsers =
-            FirebaseDatabase.getInstance().reference.child(USER_INFORMATION_BASE)
+    private val referenceUsers = FirebaseDatabase.getInstance().getReference(USER_INFORMATION_BASE)
+
     // Reference for all notifications
     private val referenceNotifications =
-            FirebaseDatabase.getInstance().reference.child(NOTIFICATION_INFORMATION_BASE)
-
-    private var homeUnitsLiveData = HomeUnitsLiveData(null)
-
-    private var hwUnitsLiveData = HwUnitsLiveData(null)
-
-    private var roomsLiveData = RoomListLiveData(null)
-
-    private var hwUnitListLiveData = HwUnitListLiveData(null)
-
-    private var hwUnitErrorEventListLiveData = HwUnitErrorEventListLiveData(null)
-
-    private var hwUnitRestartListLiveData = HwUnitErrorEventListLiveData(null)
+            FirebaseDatabase.getInstance().getReference(NOTIFICATION_INFORMATION_BASE)
 
     init {
         // Enable offline this causes some huge delays :(
         //FirebaseDatabase.getInstance().setPersistenceEnabled(true)
 
         // Keep tracking changes even if there are not active listeners
-        //referenceHome?.keepSynced(true)
+        //FirebaseDatabase.getInstance().getReference(referenceHomePath).keepSynced(true)
     }
 
-    override fun setHomeReference(homeName: String) {
-        referenceHome = FirebaseDatabase.getInstance().reference.child(HOME_INFORMATION_BASE)
-                .child(homeName)
-        //TODO :disable logging as its can overload firebase DB
-        //referenceLog = referenceHome?.child(LOG_INFORMATION_BASE)
-        referenceHwError = referenceHome?.child(HW_ERROR_INFORMATION_BASE)
-        referenceHwRestart = referenceHome?.child(HW_RESTART_INFORMATION_BASE)
+    /**
+     *  Sets Firebase homeReference to given homeName
+     */
+    fun setHomeReference(homeName: String) {
+        referenceHomePath = "$HOME_INFORMATION_BASE/$homeName"
 
-        homeUnitsLiveData = HomeUnitsLiveData(referenceHome)
-        hwUnitsLiveData = HwUnitsLiveData(referenceHome)
-        roomsLiveData = RoomListLiveData(referenceHome)
-        hwUnitListLiveData = HwUnitListLiveData(referenceHome)
-        hwUnitErrorEventListLiveData = HwUnitErrorEventListLiveData(referenceHwError)
-        hwUnitRestartListLiveData = HwUnitErrorEventListLiveData(referenceHwRestart)
+        referenceRoomsDelegate.reset()
+
+        referenceHWUnitsDelegate.reset()
+        referenceHwErrorDelegate.reset()
+        referenceHwRestartDelegate.reset()
+        referenceHomePreferencesDelegate.reset()
+
+        referenceLogDelegate.reset()
+
         // Keep tracking changes even if there are not active listeners
-        referenceHome?.keepSynced(true)
+        //FirebaseDatabase.getInstance().getReference(this).keepSynced(true)
     }
 
-    override fun logUnitEvent(hwUnitLog: HwUnitLog<out Any>) {
+    /**
+     *  Adds given @see[HwUnitLog] to the log @see[LOG_INFORMATION_BASE] list in DB
+     */
+    fun logUnitEvent(hwUnitLog: HwUnitLog<out Any>) {
         referenceLog?.push()?.setValue(hwUnitLog)
     }
 
-    override fun addHwUnitErrorEvent(hwUnitError: HwUnitLog<out Any>) {
+    /**
+     *  Adds given @see[HwUnitLog] to the hw Error lg @see[HW_ERROR_INFORMATION_BASE] list in DB
+     */
+    fun addHwUnitErrorEvent(hwUnitError: HwUnitLog<out Any>) {
         referenceHwError?.child(hwUnitError.name)?.setValue(hwUnitError)
     }
 
-    override fun addHwUnitToRestart(hwUnitError: HwUnitLog<out Any>) {
+    /**
+     * Clear all hw Error entries from DB
+     */
+    fun clearHwErrors() {
+        referenceHwError?.removeValue()
+    }
+
+    /**
+     * Clear hw Error Event entry from DB
+     */
+    fun clearHwErrorEvent(hwUnitName: String) {
+        referenceHwError?.child(hwUnitName)?.removeValue()
+    }
+
+    fun addHwUnitToRestart(hwUnitError: HwUnitLog<out Any>) {
         referenceHwRestart?.child(hwUnitError.name)?.setValue(hwUnitError)
     }
 
-    override fun addHwUnitListToRestart(hwUnitErrorList: List<HwUnitLog<out Any>>) {
-        val pairs = hwUnitErrorList.map {it.name to it }
+    fun addHwUnitListToRestart(hwUnitErrorList: List<HwUnitLog<out Any>>) {
+        val pairs = hwUnitErrorList.map { it.name to it }
         referenceHwRestart?.setValue(pairs.toMap())
     }
 
-    override fun notifyHomeUnitEvent(homeUnit: HomeUnit<out Any?>) {
+    fun clearHwRestarts() {
+        referenceHwRestart?.removeValue()
+    }
+
+    fun clearHwRestartEvent(hwUnitName: String) {
+        referenceHwRestart?.child(hwUnitName)?.removeValue()
+    }
+
+    /**
+     *  Adds given @see[HomeUnit] to the log @see[NOTIFICATION_INFORMATION_BASE] list in DB
+     */
+    fun notifyHomeUnitEvent(homeUnit: HomeUnit<out Any?>) {
         referenceNotifications.push().setValue(homeUnit.makeNotification())
     }
 
-    override fun writeNewUser(name: String, email: String) {
+    fun writeNewUser(name: String, email: String) {
         referenceUsers.child(email.hashCode().toString())
                 .updateChildren(mapOf(Pair(USER_NAME, name), Pair(USER_EMAIL, email)))
     }
 
-    override fun addUserNotiToken(email: String, token: String) {
+    fun addUserNotiToken(email: String, token: String) {
         referenceUsers.child(email.hashCode().toString()).child(USER_NOTIFICATION_TOKENS)
                 .child(token).setValue(true)
     }
 
-    override fun saveRoom(room: Room): Task<Void>? {
-        return referenceHome?.child(HOME_ROOMS)?.child(room.name)?.setValue(room)
+    /**
+     *  Saves/updates given @see[Room] in DB
+     */
+    fun saveRoom(room: Room): Task<Void>? {
+        return referenceRooms?.child(room.name)?.setValue(room)
     }
 
-    override fun deleteRoom(roomName: String): Task<Void>? {
-        return referenceHome?.child(HOME_ROOMS)?.child(roomName)?.removeValue()
+    /**
+     *  Deletes given @see[Room] from DB
+     */
+    fun deleteRoom(roomName: String): Task<Void>? {
+        return referenceRooms?.child(roomName)?.removeValue()
     }
 
-    override fun <T> saveHomeUnit(homeUnit: HomeUnit<T>): Task<Void>? {
+    /**
+     *  Saves/updates given @see[HomeUnit] in DB
+     */
+    fun <T> saveHomeUnit(homeUnit: HomeUnit<T>): Task<Void>? {
         Timber.w("saveHomeUnit $homeUnit")
-        return referenceHome?.child(homeUnit.type)?.child(homeUnit.name)?.setValue(homeUnit)
+        return referenceHomePath?.let {
+            FirebaseDatabase.getInstance().getReference("$it/${homeUnit.type}/${homeUnit.name}")
+                    .setValue(homeUnit)
+        }
     }
 
-    override fun <T> deleteHomeUnit(homeUnit: HomeUnit<T>): Task<Void>? {
-        return referenceHome?.child(homeUnit.type)?.child(homeUnit.name)?.removeValue()
+    /**
+     *  Deletes given @see[HomeUnit] from DB
+     */
+    fun <T> deleteHomeUnit(homeUnit: HomeUnit<T>): Task<Void>? {
+        return referenceHomePath?.let {
+            FirebaseDatabase.getInstance().getReference("$it/${homeUnit.type}/${homeUnit.name}")
+                    .removeValue()
+        }
     }
 
-    override fun saveHardwareUnit(hwUnit: HwUnit): Task<Void>? {
-        return referenceHome?.child(HOME_HW_UNITS)?.child(hwUnit.name)?.setValue(hwUnit)
+    /**
+     *  Saves/updates given @see[HwUnit] as a hardware module list in DB
+     */
+    fun saveHardwareUnit(hwUnit: HwUnit): Task<Void>? {
+        return referenceHWUnits?.child(hwUnit.name)?.setValue(hwUnit)
     }
 
-    override fun deleteHardwareUnit(hwUnit: HwUnit): Task<Void>? {
-        return referenceHome?.child(HOME_HW_UNITS)?.child(hwUnit.name)?.removeValue()
+    /**
+     *  Deletes given @see[HwUnit] from hardware module list in DB
+     */
+    fun deleteHardwareUnit(hwUnit: HwUnit): Task<Void>? {
+        return referenceHWUnits?.child(hwUnit.name)?.removeValue()
     }
 
-    override fun saveUnitTask(homeUnitType: String, homeUnitName: String,
-                              unitTask: UnitTask): Task<Void>? {
-        return referenceHome?.child(homeUnitType)?.child(homeUnitName)?.child(HOME_UNIT_TASKS)
-                ?.child(unitTask.name)?.setValue(unitTask)
+    /**
+     *  Saves/updates given @see[UnitTask] in DB
+     */
+    fun saveUnitTask(homeUnitType: String, homeUnitName: String, unitTask: UnitTask): Task<Void>? {
+        return referenceHomePath?.let {
+            FirebaseDatabase.getInstance().getReference(
+                            "$it/$homeUnitType/$homeUnitName/$HOME_UNIT_TASKS/${unitTask.name}")
+                    .setValue(unitTask)
+        }
     }
 
-    override fun deleteUnitTask(homeUnitType: String, homeUnitName: String,
-                                unitTask: UnitTask): Task<Void>? {
-        return referenceHome?.child(homeUnitType)?.child(homeUnitName)?.child(HOME_UNIT_TASKS)
-                ?.child(unitTask.name)?.removeValue()
+    /**
+     *  Deletes given @see[UnitTask] from DB
+     */
+    fun deleteUnitTask(homeUnitType: String, homeUnitName: String,
+                       unitTask: UnitTask): Task<Void>? {
+        return referenceHomePath?.let {
+            FirebaseDatabase.getInstance().getReference(
+                            "$it/$homeUnitType/$homeUnitName/$HOME_UNIT_TASKS/${unitTask.name}")
+                    .removeValue()
+        }
     }
 
-    override fun clearLog() {
-        referenceLog?.removeValue()
+    /**
+     * Clear all Logs entries from DB
+     */
+    fun clearLog() {
+        referenceHomePath?.let {
+            FirebaseDatabase.getInstance().getReference("$it/$LOG_INFORMATION_BASE").removeValue()
+            //todo: can be removed
+            referenceLog?.removeValue()
+        }
     }
 
-    override fun clearHwErrors() {
-        referenceHwError?.removeValue()
+    /**
+     * get instance of @see[HomeUnitListLiveData] for listening to changes in entries in DB
+     */
+    fun homeUnitListLiveData(unitType: String): HomeUnitListLiveData {
+        return HomeUnitListLiveData(referenceHomePath, unitType)
     }
 
-    override fun clearHwErrorEvent(hwUnitName: String) {
-        referenceHwError?.child(hwUnitName)?.removeValue()
+    /**
+     * get instance of @see[HomeUnitsLiveData] for listening to changes in entries in DB
+     */
+    fun homeUnitsLiveData(): HomeUnitsLiveData {
+        return HomeUnitsLiveData(referenceHomePath)
     }
 
-    override fun clearHwRestarts() {
-        referenceHwRestart?.removeValue()
+    /**
+     * get instance of @see[HomeUnitsLiveData] for listening to changes in entries in DB
+     */
+    fun homeUnitsLiveData(roomName: String): HomeUnitsLiveData {
+        return HomeUnitsLiveData(referenceHomePath, roomName)
     }
 
-    override fun clearHwRestartEvent(hwUnitName: String) {
-        referenceHwRestart?.child(hwUnitName)?.removeValue()
+    /**
+     * get instance of @see[HomeUnitLiveData] for listening to changes in given HomeUnit in DB
+     */
+    fun homeUnitLiveData(unitType: String, unitName: String): HomeUnitLiveData {
+        return HomeUnitLiveData(referenceHomePath, unitType, unitName)
     }
 
-    override fun homeUnitListLiveData(unitType: String): HomeUnitListLiveData {
-        return HomeUnitListLiveData(referenceHome, unitType)
+    /**
+     * get instance of @see[HwUnitListLiveData] for listening to changes in Room entries in DB
+     */
+    fun hwUnitListLiveData(): HwUnitListLiveData {
+        return HwUnitListLiveData(referenceHWUnits)
     }
 
-    override fun homeUnitsLiveData(): HomeUnitsLiveData {
-        return homeUnitsLiveData
+    /**
+     * get instance of @see[HwUnitsLiveData] for listening to changes in Room entries in DB
+     */
+    fun hwUnitsLiveData(): HwUnitsLiveData {
+        return HwUnitsLiveData(referenceHWUnits)
     }
 
-    override fun homeUnitsLiveData(roomName: String): HomeUnitsLiveData {
-        return HomeUnitsLiveData(referenceHome, roomName)
+    /**
+     * get instance of @see[HwUnitsLiveData] for listening to changes in entries in DB
+     */
+    fun hwUnitLiveData(hwUnitName: String): HwUnitLiveData {
+        return HwUnitLiveData(referenceHWUnits, hwUnitName)
     }
 
-    override fun homeUnitLiveData(unitType: String, unitName: String): HomeUnitLiveData {
-        return HomeUnitLiveData(referenceHome, unitType, unitName)
+    /**
+     * get instance of @see[RoomListLiveData] for listening to changes in Room entries in DB
+     */
+    fun roomListLiveData(): RoomListLiveData {
+        return RoomListLiveData(referenceRooms)
     }
 
-    override fun hwUnitListLiveData(): HwUnitListLiveData {
-        return hwUnitListLiveData
+    /**
+     * get instance of @see[RoomLiveData] for listening to changes in specific Room entry in DB
+     */
+    fun roomLiveData(roomName: String): RoomLiveData {
+        return RoomLiveData(referenceRooms, roomName)
     }
 
-    override fun hwUnitsLiveData(): HwUnitsLiveData {
-        return hwUnitsLiveData
+    /**
+     * get instance of @see[UnitTaskListLiveData] for listening to changes in specific HomeUnit UnitTask List entry in DB
+     */
+    fun unitTaskListLiveData(unitType: String, unitName: String): UnitTaskListLiveData {
+        return UnitTaskListLiveData(referenceHomePath, unitType, unitName)
     }
 
-    override fun hwUnitLiveData(hwUnitName: String): HwUnitLiveData {
-        return HwUnitLiveData(referenceHome, hwUnitName)
+    /**
+     * get instance of @see[HwUnitErrorEventListLiveData] for listening to changes HwUnit Error Event List in DB
+     */
+    fun hwUnitErrorEventListLiveData(): HwUnitErrorEventListLiveData {
+        return HwUnitErrorEventListLiveData(referenceHwError)
     }
 
-    override fun roomListLiveData(): RoomListLiveData {
-        return roomsLiveData
-    }
-
-    override fun roomLiveData(roomName: String): RoomLiveData {
-        return RoomLiveData(referenceHome, roomName)
-    }
-
-    override fun unitTaskListLiveData(unitType: String, unitName: String): UnitTaskListLiveData {
-        return UnitTaskListLiveData(referenceHome, unitType, unitName)
-    }
-
-    override fun hwUnitErrorEventListLiveData(): HwUnitErrorEventListLiveData {
-        return hwUnitErrorEventListLiveData
-    }
-
-    override fun hwUnitRestartListLiveData(): HwUnitErrorEventListLiveData {
-        return hwUnitRestartListLiveData
+    /**
+     * get instance of @see[HwUnitErrorEventListLiveData] for listening to request to restart hw units
+     */
+    fun hwUnitRestartListLiveData(): HwUnitErrorEventListLiveData {
+        return HwUnitErrorEventListLiveData(referenceHwRestart)
     }
 
 
-
-    override fun setHomePreference(key: String, value: Any?) {
-        referenceHome?.child(HOME_PREFERENCES)?.child(key)?.setValue(value)
-
+    /**
+     *  Sets Firebase homePreference key/Value
+     */
+    fun setHomePreference(key: String, value: Any?) {
+        referenceHomePreferences?.child(key)?.setValue(value)
     }
 
-    override fun getHomePreference(key: String): DatabaseReference? {
-        return referenceHome?.child(HOME_PREFERENCES)?.child(key)
+    /**
+     *  Gets Firebase homePreference Value for given key
+     */
+    fun getHomePreference(key: String): DatabaseReference? {
+        return referenceHomePreferences?.child(key)
     }
 
-    override fun startHomeToFirebaseConnectionActiveMonitor() {
-        referenceHome?.run {
+    /**
+     * start monitoring for Firebase Connection active
+     */
+    fun startHomeToFirebaseConnectionActiveMonitor() {
+        referenceHomePath?.run {
             // Since I can connect from multiple devices, we store each connection instance separately
             // any time that connectionsRef's value is null (i.e. has no children) I am offline
-            val myConnectionsRef = child(HOME_ONLINE)
+            val myConnectionsRef = FirebaseDatabase.getInstance().getReference("$this/$HOME_ONLINE")
 
             // Stores the timestamp of my last disconnect (the last time I was seen online)
-            val lastOnlineRef = child(HOME_LAST_ONLINE_TIME)
+            val lastOnlineRef =
+                    FirebaseDatabase.getInstance().getReference("$this/$HOME_LAST_ONLINE_TIME")
+
             val connectedRef = FirebaseDatabase.getInstance().getReference(".info/connected")
+
             connectedRef.addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     val connected = snapshot.getValue(Boolean::class.java) ?: false
@@ -424,12 +377,22 @@ class FirebaseHomeInformationRepository : HomeInformationRepository {
         }
     }
 
-    override fun isHomeOnline(): LiveData<Boolean?> = FirebaseDBLiveData(
-            referenceHome?.child(HOME_ONLINE)).getObjectLiveData()
+    /**
+     * Checks if Home Module is online
+     */
+    fun isHomeOnline(): LiveData<Boolean?> = referenceHomePath?.let {
+        FirebaseDBLiveData("$it/$HOME_ONLINE").getObjectLiveData<Boolean?>()
+    } ?: MutableLiveData()
 
-    override fun lastHomeOnlineTime(): LiveData<Long?> = FirebaseDBLiveData(
-            referenceHome?.child(HOME_LAST_ONLINE_TIME)).getObjectLiveData()
+    /**
+     * Checks when Home Module was last online
+     */
+    fun lastHomeOnlineTime(): LiveData<Long?> = referenceHomePath?.let {
+        FirebaseDBLiveData("$it/$HOME_LAST_ONLINE_TIME").getObjectLiveData<Long?>()
+    } ?: MutableLiveData()
 
-    override fun getHomes(): LiveData<List<String>> = HomesListLiveData(
+    fun getHomes(): LiveData<List<String>> = HomesListLiveData(
+            // TODO: this will overLoad FirebaseDB
+            // need to add separate node with only rooms list
             FirebaseDatabase.getInstance().reference.child(HOME_INFORMATION_BASE))
 }

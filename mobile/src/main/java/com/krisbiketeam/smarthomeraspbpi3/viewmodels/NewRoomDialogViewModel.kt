@@ -3,7 +3,7 @@ package com.krisbiketeam.smarthomeraspbpi3.viewmodels
 import android.app.Application
 import androidx.lifecycle.*
 import com.krisbiketeam.smarthomeraspbpi3.R
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.HomeInformationRepository
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.Room
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomListFragment
 
@@ -11,7 +11,7 @@ import com.krisbiketeam.smarthomeraspbpi3.ui.RoomListFragment
 /**
  * The ViewModel for [RoomListFragment].
  */
-class NewRoomDialogViewModel(private val appl: Application, private val homeRepository: HomeInformationRepository) : AndroidViewModel(appl) {
+class NewRoomDialogViewModel(private val appl: Application, private val homeRepository: FirebaseHomeInformationRepository) : AndroidViewModel(appl) {
 
     private val roomList = homeRepository.roomListLiveData()
     val roomName = MutableLiveData<String?>("")

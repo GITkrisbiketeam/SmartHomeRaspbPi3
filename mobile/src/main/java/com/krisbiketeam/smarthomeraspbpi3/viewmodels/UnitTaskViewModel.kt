@@ -2,7 +2,7 @@ package com.krisbiketeam.smarthomeraspbpi3.viewmodels
 
 import androidx.lifecycle.*
 import com.google.android.gms.tasks.Task
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.HomeInformationRepository
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HOME_STORAGE_UNITS
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.UnitTask
 import com.krisbiketeam.smarthomeraspbpi3.R
@@ -18,7 +18,7 @@ import timber.log.Timber
  * The ViewModel used in [RoomDetailFragment].
  */
 class UnitTaskViewModel(
-        private val homeRepository: HomeInformationRepository,
+        private val homeRepository: FirebaseHomeInformationRepository,
         taskName: String,
         private val unitName: String,
         private val unitType: String

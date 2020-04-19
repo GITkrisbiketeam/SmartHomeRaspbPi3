@@ -7,7 +7,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.MyLiveDataState
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.AuthenticationLiveData
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.FirebaseCredentials
 import com.krisbiketeam.smarthomeraspbpi3.common.nearby.NearbyServiceLiveData
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.HomeInformationRepository
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.firebase.getFirebaseAppToken
 import com.krisbiketeam.smarthomeraspbpi3.firebase.sendRegistrationToServer
 import com.krisbiketeam.smarthomeraspbpi3.ui.settings.WifiSettingsFragment
@@ -19,7 +19,7 @@ import timber.log.Timber
  */
 class LoginSettingsViewModel(private val authentication: AuthenticationLiveData,
                              private val nearByState: NearbyServiceLiveData,
-                             private val homeInformationRepository: HomeInformationRepository) : ViewModel() {
+                             private val homeInformationRepository: FirebaseHomeInformationRepository) : ViewModel() {
     var email: MutableLiveData<String> = MutableLiveData()
     var password: MutableLiveData<String> = MutableLiveData()
     var remoteLogin: MutableLiveData<Boolean> = MutableLiveData()

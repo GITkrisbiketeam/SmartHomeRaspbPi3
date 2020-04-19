@@ -185,7 +185,7 @@ class NearbyServiceProvider(private val context: Context, private val moshi: Mos
                     Timber.d("startDiscovery:SUCCESS")
                 }
                 .addOnFailureListener {
-                    Timber.w("startDiscovery:FAILURE ${it.stackTrace}")
+                    Timber.w("startDiscovery:FAILURE $it")
                     dataSendResultListener?.onFailure(it)
                 }
     }

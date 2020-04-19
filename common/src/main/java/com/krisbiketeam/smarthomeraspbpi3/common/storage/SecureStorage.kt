@@ -29,7 +29,7 @@ interface SecureStorage {
 }
 
 // Todo: implement a encrypted secure storage since this is not secure
-class NotSecureStorage(context: Context, homeInformationRepository: HomeInformationRepository) : SecureStorage {
+class NotSecureStorage(context: Context, homeInformationRepository: FirebaseHomeInformationRepository) : SecureStorage {
     private val sharedPrefs = context.getSharedPreferences(SHARED_FILE, Context.MODE_PRIVATE)
     private val prefs = PreferenceManager.getDefaultSharedPreferences(context)
 

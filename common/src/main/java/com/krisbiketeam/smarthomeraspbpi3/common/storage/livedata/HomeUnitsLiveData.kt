@@ -2,29 +2,42 @@ package com.krisbiketeam.smarthomeraspbpi3.common.storage.livedata
 
 import androidx.lifecycle.LiveData
 import com.google.firebase.database.*
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.*
-import timber.log.Timber
-import com.google.firebase.database.GenericTypeIndicator
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.ChildEventType
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.*
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.*
+import timber.log.Timber
 
 //TODO: We should somehow only register for units from given roomName if present
-class HomeUnitsLiveData(private val databaseReference: DatabaseReference?, private val roomName: String? = null) :
+class HomeUnitsLiveData(private val homeNamePath: String?, private val roomName: String? = null) :
         LiveData<Pair<ChildEventType, HomeUnit<Any?>>>() {
 
-    private val unitsList: List<MyChildEventListener> = HOME_STORAGE_UNITS.map { MyChildEventListener(it) }
+    private val unitsList: List<Pair<DatabaseReference, MyChildEventListener>> by lazy {
+        homeNamePath?.let { homePath ->
+            HOME_STORAGE_UNITS.map { storageUnit ->
+                MyChildEventListener(storageUnit).let { childListener ->
+                    Pair(FirebaseDatabase.getInstance()
+                                 .getReference("$homePath/${childListener.childNode}"),
+                         childListener)
+                }
+            }
+        } ?: emptyList()
+    }
+
     private val homeUnitsList: MutableMap<String, HomeUnit<out Any?>> = mutableMapOf()
 
-    private val typeIndicatorMap: HashMap<String, GenericTypeIndicator<out HomeUnit<out Any?>>> = hashMapOf(
-            HOME_LIGHTS to object : GenericTypeIndicator<HomeUnit<LightType?>>() {},
-            HOME_ACTUATORS to object : GenericTypeIndicator<HomeUnit<ActuatorType?>>() {},
-            HOME_LIGHT_SWITCHES to object : GenericTypeIndicator<HomeUnit<LightSwitchType?>>() {},
-            HOME_REED_SWITCHES to object : GenericTypeIndicator<HomeUnit<ReedSwitchType?>>() {},
-            HOME_MOTIONS to object : GenericTypeIndicator<HomeUnit<MotionType?>>() {},
-            HOME_TEMPERATURES to object : GenericTypeIndicator<HomeUnit<TemperatureType?>>() {},
-            HOME_PRESSURES to object : GenericTypeIndicator<HomeUnit<PressureType?>>() {},
-            HOME_BLINDS to object : GenericTypeIndicator<HomeUnit<BlindType?>>() {}
-    )
+    private val typeIndicatorMap: HashMap<String, GenericTypeIndicator<out HomeUnit<out Any?>>> by lazy {
+        hashMapOf(HOME_LIGHTS to object : GenericTypeIndicator<HomeUnit<LightType?>>() {},
+                  HOME_ACTUATORS to object : GenericTypeIndicator<HomeUnit<ActuatorType?>>() {},
+                  HOME_LIGHT_SWITCHES to object :
+                          GenericTypeIndicator<HomeUnit<LightSwitchType?>>() {},
+                  HOME_REED_SWITCHES to object :
+                          GenericTypeIndicator<HomeUnit<ReedSwitchType?>>() {},
+                  HOME_MOTIONS to object : GenericTypeIndicator<HomeUnit<MotionType?>>() {},
+                  HOME_TEMPERATURES to object :
+                          GenericTypeIndicator<HomeUnit<TemperatureType?>>() {},
+                  HOME_PRESSURES to object : GenericTypeIndicator<HomeUnit<PressureType?>>() {},
+                  HOME_BLINDS to object : GenericTypeIndicator<HomeUnit<BlindType?>>() {})
+    }
 
     inner class MyChildEventListener(val childNode: String) : ChildEventListener {
 
@@ -113,11 +126,15 @@ class HomeUnitsLiveData(private val databaseReference: DatabaseReference?, priva
 
     override fun onActive() {
         Timber.d("onActive")
-        unitsList.forEach { databaseReference?.child(it.childNode)?.addChildEventListener(it) }
+        unitsList.forEach {
+            it.first.addChildEventListener(it.second)
+        }
     }
 
     override fun onInactive() {
         Timber.d("onInactive")
-        unitsList.forEach { databaseReference?.child(it.childNode)?.removeEventListener(it) }
+        unitsList.forEach {
+            it.first.removeEventListener(it.second)
+        }
     }
 }

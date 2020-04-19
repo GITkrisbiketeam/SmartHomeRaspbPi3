@@ -6,14 +6,16 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.ChildEventType
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_HW_UNITS
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
 import timber.log.Timber
 
 
-class HwUnitsLiveData(private val databaseReference: DatabaseReference?) : LiveData<Pair<ChildEventType,HwUnit>>() {
+class HwUnitsLiveData(private val databaseReference: DatabaseReference?) :
+        LiveData<Pair<ChildEventType, HwUnit>>() {
 
-    private val eventListener: MyChildEventListener = MyChildEventListener()
+    private val eventListener: MyChildEventListener by lazy {
+        MyChildEventListener()
+    }
 
     inner class MyChildEventListener : ChildEventListener {
 
@@ -66,11 +68,11 @@ class HwUnitsLiveData(private val databaseReference: DatabaseReference?) : LiveD
 
     override fun onActive() {
         Timber.d("onActive")
-        databaseReference?.child(HOME_HW_UNITS)?.addChildEventListener(eventListener)
+        databaseReference?.addChildEventListener(eventListener)
     }
 
     override fun onInactive() {
         Timber.d("onInactive")
-        databaseReference?.child(HOME_HW_UNITS)?.removeEventListener(eventListener)
+        databaseReference?.removeEventListener(eventListener)
     }
 }

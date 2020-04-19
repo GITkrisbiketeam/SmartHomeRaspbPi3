@@ -5,7 +5,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.view.*
 import androidx.fragment.app.Fragment
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.HomeInformationRepository
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import org.koin.android.ext.android.inject
 
 
@@ -28,7 +28,7 @@ class LogsFragment : androidx.fragment.app.Fragment() {
     private var param1: String? = null
     private var param2: String? = null
     private var listener: OnFragmentInteractionListener? = null
-    private val homeInformationRepository: HomeInformationRepository by inject()
+    private val homeInformationRepository: FirebaseHomeInformationRepository by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

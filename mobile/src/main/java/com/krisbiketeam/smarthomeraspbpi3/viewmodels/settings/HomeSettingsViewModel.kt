@@ -5,7 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.krisbiketeam.smarthomeraspbpi3.common.MyLiveDataState
 import com.krisbiketeam.smarthomeraspbpi3.common.nearby.NearbyServiceLiveData
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.HomeInformationRepository
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.ui.settings.WifiSettingsFragment
 import timber.log.Timber
@@ -14,7 +14,7 @@ import timber.log.Timber
 /**
  * The ViewModel used in [WifiSettingsFragment].
  */
-class HomeSettingsViewModel(val nearByState: NearbyServiceLiveData, private val secureStorage: SecureStorage, private val homeInformationRepository: HomeInformationRepository) : ViewModel() {
+class HomeSettingsViewModel(val nearByState: NearbyServiceLiveData, private val secureStorage: SecureStorage, private val homeInformationRepository: FirebaseHomeInformationRepository) : ViewModel() {
     var homeName: MutableLiveData<String> = MutableLiveData()
     var remoteHomeSetup: MutableLiveData<Boolean> = MutableLiveData()
 

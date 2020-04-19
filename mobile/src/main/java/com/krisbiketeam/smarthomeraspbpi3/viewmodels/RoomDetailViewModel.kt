@@ -7,7 +7,7 @@ import androidx.lifecycle.ViewModel
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.Tasks
 import com.krisbiketeam.smarthomeraspbpi3.R
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.HomeInformationRepository
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HOME_STORAGE_UNITS
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitDetailFragment
@@ -19,14 +19,14 @@ import timber.log.Timber
  * The ViewModel used in [RoomDetailFragment].
  */
 class RoomDetailViewModel(
-        private val homeRepository: HomeInformationRepository,
+        private val homeRepository: FirebaseHomeInformationRepository,
         roomName: String
 ) : ViewModel() {
 
     val isEditMode: MutableLiveData<Boolean> = MutableLiveData(false)
     val room = homeRepository.roomLiveData(roomName)
-    val roomName = MutableLiveData<String>(roomName)
-    val showProgress = MutableLiveData<Boolean>(false)
+    val roomName = MutableLiveData(roomName)
+    val showProgress = MutableLiveData(false)
 
     private val roomList = homeRepository.roomListLiveData()
     val homeUnitsMap = Transformations.switchMap(room) { room ->

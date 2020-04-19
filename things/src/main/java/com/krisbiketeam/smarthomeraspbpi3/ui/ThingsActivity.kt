@@ -18,9 +18,8 @@ import com.krisbiketeam.smarthomeraspbpi3.common.auth.FirebaseCredentials
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.WifiCredentials
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig
 import com.krisbiketeam.smarthomeraspbpi3.common.nearby.NearbyService
-import com.krisbiketeam.smarthomeraspbpi3.common.nearby.NearbyServiceProvider
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.ConnectionType
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.HomeInformationRepository
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnitLog
@@ -48,7 +47,7 @@ private const val NEARBY_BLINK_DELAY = 1000L        // 1 sec
 class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, CoroutineScope {
     private val authentication: Authentication by inject()
     private val secureStorage: SecureStorage by inject()
-    private val homeInformationRepository: HomeInformationRepository by inject()
+    private val homeInformationRepository: FirebaseHomeInformationRepository by inject()
     private lateinit var networkConnectionMonitor: NetworkConnectionMonitor
     private lateinit var wifiManager: WifiManager
 
@@ -285,7 +284,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
 
     private suspend fun waitForWifiCredentials(): WifiCredentials? = suspendCancellableCoroutine { cont ->
         val moshi: Moshi by inject()
-        val nearbyService: NearbyServiceProvider by inject()
+        val nearbyService: NearbyService by inject()
         if (!nearbyService.isActive()) {
             nearbyService.dataReceivedListener(object : NearbyService.DataReceiverListener {
                 override fun onDataReceived(data: ByteArray?) {
@@ -324,7 +323,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
 
     private suspend fun waitForFirebaseCredentials(): FirebaseCredentials? = suspendCancellableCoroutine { cont ->
         val moshi: Moshi by inject()
-        val nearbyService: NearbyServiceProvider by inject()
+        val nearbyService: NearbyService by inject()
         if (!nearbyService.isActive()) {
             nearbyService.dataReceivedListener(object : NearbyService.DataReceiverListener {
                 override fun onDataReceived(data: ByteArray?) {
@@ -362,7 +361,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
 
     private suspend fun waitForHomeName(): String? = suspendCancellableCoroutine { cont ->
         val moshi: Moshi by inject()
-        val nearbyService: NearbyServiceProvider by inject()
+        val nearbyService: NearbyService by inject()
         if (!nearbyService.isActive()) {
             nearbyService.dataReceivedListener(object : NearbyService.DataReceiverListener {
                 override fun onDataReceived(data: ByteArray?) {
@@ -661,7 +660,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
             try {
                 repeat((NEARBY_TIMEOUT / NEARBY_BLINK_DELAY).toInt()) {
                     Timber.d("blinkLed ${led.unitValue}")
-                    led.setValueWithException(false)
+                    led.setValueWithException(led.unitValue?.not() ?: false)
                     delay(NEARBY_BLINK_DELAY)
                 }
             } finally {

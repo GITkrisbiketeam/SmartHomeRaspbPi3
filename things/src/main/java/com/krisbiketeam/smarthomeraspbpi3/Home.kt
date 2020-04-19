@@ -5,7 +5,7 @@ import androidx.lifecycle.Observer
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver.MCP23017Pin
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.ChildEventType
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.HomeInformationRepository
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.*
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.*
@@ -25,7 +25,7 @@ import java.util.*
 import kotlin.collections.HashMap
 
 class Home(secureStorage: SecureStorage,
-           private val homeInformationRepository: HomeInformationRepository) :
+           private val homeInformationRepository: FirebaseHomeInformationRepository) :
         Sensor.HwUnitListener<Any> {
     private var homeUnitsLiveData: HomeUnitsLiveData? = null
     private val homeUnitsList: MutableMap<String, HomeUnit<Any?>> = HashMap()

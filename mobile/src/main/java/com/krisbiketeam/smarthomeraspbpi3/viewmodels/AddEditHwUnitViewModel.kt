@@ -8,7 +8,7 @@ import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver.MCP23017Pin
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.ConnectionType
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.HomeInformationRepository
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
 import com.krisbiketeam.smarthomeraspbpi3.ui.AddEditHwUnitFragment
 import timber.log.Timber
@@ -16,7 +16,7 @@ import timber.log.Timber
 /**
  * The ViewModel used in [AddEditHwUnitFragment].
  */
-class AddEditHwUnitViewModel(private val homeRepository: HomeInformationRepository,
+class AddEditHwUnitViewModel(private val homeRepository: FirebaseHomeInformationRepository,
                              hwUnitName: String) : ViewModel() {
 
     val isEditMode: MutableLiveData<Boolean> = MutableLiveData()

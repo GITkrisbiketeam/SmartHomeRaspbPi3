@@ -10,7 +10,6 @@ import com.krisbiketeam.smarthomeraspbpi3.common.nearby.NearbyService
 import com.krisbiketeam.smarthomeraspbpi3.common.nearby.NearbyServiceLiveData
 import com.krisbiketeam.smarthomeraspbpi3.common.nearby.NearbyServiceProvider
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.HomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.NotSecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.*
@@ -48,7 +47,7 @@ val myModule: Module = module {
     viewModel { HwUnitListViewModel(get()) }
     viewModel { HwUnitErrorEventListViewModel(get()) }
 
-    single<HomeInformationRepository> { FirebaseHomeInformationRepository() }
+    single { FirebaseHomeInformationRepository() }
     single<SecureStorage> { NotSecureStorage(androidApplication(), get()) }
     single<Authentication> { FirebaseAuthentication() }
     single { Moshi.Builder().build() }

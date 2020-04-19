@@ -7,36 +7,47 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.homeUnitTypeIndicat
 import timber.log.Timber
 
 
-class HomeUnitLiveData(private val databaseReference: DatabaseReference?, private val type: String, private val name: String) : LiveData<HomeUnit<Any?>>() {
+class HomeUnitLiveData(private val homeNamePath: String?, private val type: String,
+                       private val name: String) : LiveData<HomeUnit<Any?>>() {
     private val clazz = homeUnitTypeIndicatorMap[type]
-    val typeIndicator  = object : GenericTypeIndicator<HomeUnit<Any?>>() {}
 
-    private val homeUnitListener: ValueEventListener = object : ValueEventListener {
-        override fun onDataChange(dataSnapshot: DataSnapshot) {
-            clazz?.let {
-                // A new value has been added, add it to the displayed list
-                //val key = dataSnapshot.key
+    val typeIndicator = object : GenericTypeIndicator<HomeUnit<Any?>>() {}
 
-                dataSnapshot.getValue(typeIndicator)?.let {homeUnit ->
-                    //Timber.d("onDataChange (key=$key)(room=$homeUnit)")
+    private val databaseReference: DatabaseReference? by lazy {
+        homeNamePath?.let {
+            FirebaseDatabase.getInstance().getReference("$it/$type/$name")
+        }
+    }
 
-                    value = homeUnit
+    private val homeUnitListener: ValueEventListener by lazy {
+
+        object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                clazz?.let {
+                    // A new value has been added, add it to the displayed list
+                    //val key = dataSnapshot.key
+
+                    dataSnapshot.getValue(typeIndicator)?.let { homeUnit ->
+                        //Timber.d("onDataChange (key=$key)(room=$homeUnit)")
+
+                        value = homeUnit
+                    }
                 }
             }
-        }
 
-        override fun onCancelled(databaseError: DatabaseError) {
-            Timber.e("onCancelled: $databaseError")
+            override fun onCancelled(databaseError: DatabaseError) {
+                Timber.e("onCancelled: $databaseError")
+            }
         }
     }
 
     override fun onActive() {
         Timber.d("onActive")
-        databaseReference?.child(type)?.child(name)?.addValueEventListener(homeUnitListener)
+        databaseReference?.addValueEventListener(homeUnitListener)
     }
 
     override fun onInactive() {
         Timber.d("onInactive")
-        databaseReference?.child(type)?.child(name)?.removeEventListener(homeUnitListener)
+        databaseReference?.removeEventListener(homeUnitListener)
     }
 }

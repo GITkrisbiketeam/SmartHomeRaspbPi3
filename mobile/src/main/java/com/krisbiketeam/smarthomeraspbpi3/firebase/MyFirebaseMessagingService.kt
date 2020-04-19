@@ -13,7 +13,7 @@ import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.krisbiketeam.smarthomeraspbpi3.LoadActivity
 import com.krisbiketeam.smarthomeraspbpi3.R
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.HomeInformationRepository
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import org.koin.android.ext.android.inject
 import timber.log.Timber
@@ -41,14 +41,14 @@ fun getFirebaseAppToken(tokenReceived: (String?) -> Unit) {
  *
  * @param token The new token.
  */
-fun sendRegistrationToServer(homeInformationRepository: HomeInformationRepository, email: String, token: String) {
+fun sendRegistrationToServer(homeInformationRepository: FirebaseHomeInformationRepository, email: String, token: String) {
     Timber.d("sendRegistrationToServer email: $email, token: $token")
     homeInformationRepository.addUserNotiToken(email, token)
 }
 
 class MyFirebaseMessagingService : FirebaseMessagingService() {
     private val secureStorage: SecureStorage by inject()
-    private val homeInformationRepository: HomeInformationRepository by inject()
+    private val homeInformationRepository: FirebaseHomeInformationRepository by inject()
 
     /**
      * Called when message is received.

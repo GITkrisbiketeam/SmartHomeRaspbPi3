@@ -4,7 +4,7 @@ import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.HomeInformationRepository
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HOME_STORAGE_UNITS
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
@@ -15,7 +15,7 @@ private const val UNIT_LIST_SECTION_EXIST = "unit_list_section_exist"
 /**
  * The ViewModel for [RoomListFragment].
  */
-class RoomListViewModel(homeRepository: HomeInformationRepository, secureStorage: SecureStorage) : ViewModel() {
+class RoomListViewModel(homeRepository: FirebaseHomeInformationRepository, secureStorage: SecureStorage) : ViewModel() {
 
     val isEditMode: MutableLiveData<Boolean> = MutableLiveData(false)
 
