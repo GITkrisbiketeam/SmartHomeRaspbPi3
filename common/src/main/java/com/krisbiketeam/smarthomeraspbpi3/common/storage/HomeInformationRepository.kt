@@ -229,7 +229,8 @@ class FirebaseHomeInformationRepository : HomeInformationRepository {
     override fun setHomeReference(homeName: String) {
         referenceHome = FirebaseDatabase.getInstance().reference.child(HOME_INFORMATION_BASE)
                 .child(homeName)
-        referenceLog = referenceHome?.child(LOG_INFORMATION_BASE)
+        //TODO :disable logging as its can overload firebase DB
+        //referenceLog = referenceHome?.child(LOG_INFORMATION_BASE)
         referenceHwError = referenceHome?.child(HW_ERROR_INFORMATION_BASE)
         referenceHwRestart = referenceHome?.child(HW_RESTART_INFORMATION_BASE)
 

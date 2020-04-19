@@ -337,7 +337,8 @@ class Home(secureStorage: SecureStorage,
 
     override fun onHwUnitChanged(hwUnit: HwUnit, unitValue: Any?, updateTime: String) {
         Timber.d("onHwUnitChanged unit: $hwUnit; unitValue: $unitValue; updateTime: $updateTime")
-        homeInformationRepository.logUnitEvent(HwUnitLog(hwUnit, unitValue, updateTime))
+        //TODO :disable logging as its can overload firebase DB
+        //homeInformationRepository.logUnitEvent(HwUnitLog(hwUnit, unitValue, updateTime))
 
         homeUnitsList.values.filter {
             it.hwUnitName == hwUnit.name
