@@ -37,11 +37,11 @@ class UnitTaskViewModel(
     val isEditMode: MutableLiveData<Boolean> = MutableLiveData(addingNewUnit)
 
 
-    var name: MutableLiveData<String> = if(addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.name } as MutableLiveData<String>
+    val name: MutableLiveData<String> = if(addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.name } as MutableLiveData<String>
 
 
     // used for checking if given homeUnit name is not already used
-    var homeUnitNameList = Transformations.switchMap(isEditMode) { edit ->      // HomeUnitListLiveData
+    val homeUnitNameList = Transformations.switchMap(isEditMode) { edit ->      // HomeUnitListLiveData
         Timber.d("init homeUnitList isEditMode edit: $edit")
         if (edit) {
             MediatorLiveData<MutableList<String>>().apply {
@@ -59,56 +59,8 @@ class UnitTaskViewModel(
                 }
             }
         } else MediatorLiveData()
-    } as MediatorLiveData<MutableList<String>>
-    val homeUnitNamePosition = Transformations.switchMap(isEditMode) { edit ->
-        if (edit) {
-            if (addingNewUnit) {
-                Transformations.map(homeUnitNameList) { homeUnitNameList ->
-                    homeUnitNameList.size
-                }
-            } else {
-                Transformations.switchMap(unitTask) { unitTask ->
-                    Transformations.map(homeUnitNameList) { homeUnitNameList ->
-                        homeUnitNameList.indexOfFirst {it == unitTask?.homeUnitName}
-                    }
-                }
-            }
-        } else {
-            MutableLiveData()
-        }
-    } as MutableLiveData<Int>
-    var homeUnitName = Transformations.switchMap(isEditMode) { edit ->
-        if (edit) {
-        Transformations.switchMap(homeUnitNameList) { homeUnitNameList ->
-                Transformations.map(homeUnitNamePosition) { position ->
-                    if (position in 0 until (homeUnitNameList?.size ?: 0)) {
-                        Timber.d("homeUnitName getValue position: $position val: ${homeUnitNameList?.get(position)}")
-                        homeUnitNameList?.get(position)
-                    } else {
-                        Timber.d("homeUnitName getValue position: $position val: null")
-                        null
-                    }
-                }
-            }
-        } else {
-            Transformations.map(unitTask) { unit -> unit?.homeUnitName }
-        }
-    } as MutableLiveData<String>
-        /*get() = homeUnitNamePosition.value?.let { position ->
-            if (position in 0 until (homeUnitNameList.value?.size ?: 0)) {
-                Timber.d("homeUnitName getValue position: $position val: ${homeUnitNameList.value?.get(position)}")
-                homeUnitNameList.value?.get(position)
-            } else {
-                Timber.d("homeUnitName getValue position: $position val: null")
-                null
-            }
-        }
-        set(value) {
-            val position = homeUnitNameList.value?.indexOfFirst { it == value } ?: -1
-            if (position != -1) {
-                homeUnitNamePosition.value = position
-            }
-        }*/
+    }
+    val homeUnitName = if(addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.homeUnitName } as MutableLiveData<String>
 
 //    var hwUnitName: MutableLiveData<String>
     var delay: MutableLiveData<Long>

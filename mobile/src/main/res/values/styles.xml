@@ -22,14 +22,15 @@
         <item name="android:colorBackground">@color/colorSurface</item>
         <item name="colorOnBackground">@color/colorOnBackground</item>
 
-        <item name="textInputStyle">@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox</item>
+        <item name="textInputStyle">@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox
+        </item>
     </style>
 
-    <style name="AppTheme" parent="BaseAppTheme"/>
+    <style name="AppTheme" parent="BaseAppTheme" />
 
-    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.MaterialComponents.Dark.ActionBar"/>
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.MaterialComponents.Dark.ActionBar" />
 
-    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.MaterialComponents.Light"/>
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.MaterialComponents.Light" />
 
     <style name="BaseEditTextStyle" parent="TextAppearance.AppCompat.Title">
         <item name="android:maxLines">1</item>
@@ -38,6 +39,38 @@
         <item name="android:layout_marginTop">@dimen/margin_small</item>
     </style>
 
-    <style name="EditTextStyle" parent="BaseEditTextStyle"/>
+    <style name="EditTextStyle" parent="BaseEditTextStyle" />
+
+    <style name="LargeTitleDropDownOutlineInputLayoutStyle" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+        <item name="hintTextAppearance">@style/TextAppearance.AppCompat.Title</item>
+        <item name="hintTextColor">@color/colorSecondaryDark</item>
+        <item name="android:textColorHint">@color/colorSecondaryDark</item>
+    </style>
+
+    <style name="EnabledColorMaterialAutoCompleteTextViewStyle" parent="Widget.AppCompat.AutoCompleteTextView">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:editable">false</item>
+        <item name="android:inputType">none</item>
+        <item name="android:textColor">@drawable/auto_complete_text_view_color_selector</item>
+    </style>
+
+    <style name="LargeTitleOutlineTextInputLayoutStyle" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="hintTextAppearance">@style/TextAppearance.AppCompat.Title</item>
+        <item name="hintTextColor">@color/colorSecondaryDark</item>
+        <item name="android:textColorHint">@color/colorSecondaryDark</item>
+    </style>
+
+    <style name="EnabledColorEditTextStyle" parent="Widget.AppCompat.EditText">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:imeActionId">6</item>
+        <item name="android:imeActionLabel">1</item>
+        <item name="android:imeOptions">actionUnspecified</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:textColor">@drawable/auto_complete_text_view_color_selector</item>
+    </style>
+
 
 </resources>

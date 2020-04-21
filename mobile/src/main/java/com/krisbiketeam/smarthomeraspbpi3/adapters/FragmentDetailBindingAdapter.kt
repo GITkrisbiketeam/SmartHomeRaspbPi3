@@ -3,10 +3,8 @@ package com.krisbiketeam.smarthomeraspbpi3.adapters
 import android.text.TextUtils
 import android.view.View
 import android.widget.AdapterView
-import android.widget.ArrayAdapter
 import android.widget.ListView
 import android.widget.ProgressBar
-import androidx.appcompat.widget.AppCompatSpinner
 import androidx.appcompat.widget.SwitchCompat
 import androidx.constraintlayout.widget.Group
 import androidx.databinding.BindingAdapter
@@ -15,6 +13,7 @@ import androidx.databinding.InverseBindingListener
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.textfield.TextInputLayout
 import com.google.android.material.textview.MaterialAutoCompleteTextView
 import com.krisbiketeam.smarthomeraspbpi3.common.MyLiveDataState
 import timber.log.Timber
@@ -70,73 +69,22 @@ fun bindSetChecked(switch: SwitchCompat, value: Any?) {
     }
 }
 
-@BindingAdapter("valueAttrChanged")
-fun AppCompatSpinner.setListener(listener: InverseBindingListener?) {
-    this.onItemSelectedListener = if (listener != null) {
-        object : AdapterView.OnItemSelectedListener {
-            override fun onNothingSelected(parent: AdapterView<*>?) {
-                listener.onChange()
-            }
-
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int,
-                                        id: Long) {
-                listener.onChange()
-            }
+@BindingAdapter("endIconDropDownEnabled")
+fun bindEndIconDropDownEnabled(textInputLayout: TextInputLayout, enabled: Boolean? = true) {
+    Timber.d("endIconDropDownEnabled BindingAdapter enabled: $enabled")
+    if (enabled is Boolean) {
+        if(enabled) {
+            textInputLayout.endIconMode = TextInputLayout.END_ICON_DROPDOWN_MENU
+        } else {
+            textInputLayout.endIconMode = TextInputLayout.END_ICON_NONE
         }
-    } else {
-        null
-    }
-}
-
-@get:InverseBindingAdapter(attribute = "value")
-@set:BindingAdapter("value")
-var AppCompatSpinner.selectedValue: Any?
-    get() = if (selectedItemPosition != ListView.INVALID_POSITION) {
-        adapter?.getItem(selectedItemPosition)
-    } else {
-        null
-    }
-    set(value) {
-        val newValue = value ?: adapter?.getItem(adapter.count - 1)
-        //setText(newValue?.toString(), true)
-        if (adapter is ArrayAdapter<*>) {
-            val position = (adapter as ArrayAdapter<Any?>).getPosition(newValue)
-            setSelection(position)
-        }
-    }
-
-
-@BindingAdapter("entries")
-fun bindEntriesData(spinner: AppCompatSpinner, entries: List<Any>?) {
-    // This is for dynamic entries list, like form ViewModel LiveData
-    Timber.d("bindEntriesData entries: $entries tag: ${spinner.tag}")
-    if (entries != null) {
-        spinner.adapter = SpinnerAdapter(spinner.context, SpinnerType.DEFAULT, entries)
-    }
-}
-
-@BindingAdapter("entriesUsed")
-fun bindEntriesUsedData(spinner: AppCompatSpinner, entries: List<Pair<String, Boolean>>?) {
-    // This is for dynamic entries list, like form ViewModel LiveData
-    Timber.d("bindEntriesUsedData entries: $entries tag: ${spinner.tag}")
-    if (entries != null) {
-        spinner.adapter = SpinnerAdapter(spinner.context, SpinnerType.ENTRIES_USED, entries)
-    }
-}
-
-@BindingAdapter("entriesWithEmpty")
-fun bindEntriesWithEmptyData(spinner: AppCompatSpinner, entries: List<Any>?) {
-    // This is for dynamic entries list, like form ViewModel LiveData
-    Timber.d("bindEntriesWithEmptyData entries: $entries tag: ${spinner.tag}")
-    if (entries != null) {
-        spinner.adapter = SpinnerAdapter(spinner.context, SpinnerType.WITH_EMPTY, entries)
     }
 }
 
 @BindingAdapter("valueAttrChanged")
 fun MaterialAutoCompleteTextView.setListener(listener: InverseBindingListener?) {
     this.onItemClickListener = if (listener != null) {
-        AdapterView.OnItemClickListener { parent, view, position, id ->
+        AdapterView.OnItemClickListener { _, _, position, _ ->
             (adapter as AutoCompleteAdapter?)?.position = position
             //listSelection = position
             listener.onChange()

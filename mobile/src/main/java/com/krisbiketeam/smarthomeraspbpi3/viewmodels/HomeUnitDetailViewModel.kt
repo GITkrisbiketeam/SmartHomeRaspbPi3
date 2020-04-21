@@ -2,10 +2,13 @@ package com.krisbiketeam.smarthomeraspbpi3.viewmodels
 
 import androidx.lifecycle.*
 import com.google.android.gms.tasks.Task
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.*
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.adapters.UnitTaskListAdapter
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HOME_STORAGE_UNITS
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.Room
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.UnitTask
 import com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitDetailFragment
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomDetailFragment
 import timber.log.Timber
@@ -14,12 +17,8 @@ import timber.log.Timber
 /**
  * The ViewModel used in [RoomDetailFragment].
  */
-class HomeUnitDetailViewModel(
-        private val homeRepository: FirebaseHomeInformationRepository,
-        roomName: String,
-        unitName: String,
-        unitType: String
-) : ViewModel() {
+class HomeUnitDetailViewModel(private val homeRepository: FirebaseHomeInformationRepository,
+                              roomName: String, unitName: String, unitType: String) : ViewModel() {
 
     val unitTaskListAdapter = UnitTaskListAdapter(unitName, unitType)
 
@@ -27,131 +26,61 @@ class HomeUnitDetailViewModel(
 
     val isEditMode: MutableLiveData<Boolean> = MutableLiveData()
 
-    val homeUnit = if(unitName.isEmpty() && unitType.isEmpty()) null else homeRepository.homeUnitLiveData(unitType, unitName)
+    val homeUnit =
+            if (unitName.isEmpty() && unitType.isEmpty()) null else homeRepository.homeUnitLiveData(
+                    unitType, unitName)
 
-    val name: MutableLiveData<String> = if (homeUnit == null) MutableLiveData() else Transformations.map(homeUnit) { unit -> unit.name } as MutableLiveData<String>
+    val name: MutableLiveData<String> =
+            if (homeUnit == null) MutableLiveData() else Transformations.map(
+                    homeUnit) { unit -> unit.name } as MutableLiveData<String>
 
-    val typeItemPosition = if (homeUnit == null) {
+    val typeList = HOME_STORAGE_UNITS
+    val type = if (homeUnit == null) {
         MutableLiveData()
     } else {
         Transformations.map(Transformations.distinctUntilChanged(homeUnit)) { unit ->
-           Timber.d("init typeItemPosition : ${typeList.indexOfFirst { it == unit.type }}")
-            typeList.indexOfFirst {
-                    it == unit.type
-                }
-        } as MutableLiveData<Int>
+            unit.type
+        } as MutableLiveData<String?>
     }
-    val typeList = HOME_STORAGE_UNITS
-    var type = Transformations.map(Transformations.distinctUntilChanged(typeItemPosition)) { typePos ->
-        if (typePos in typeList.indices) {
-            Timber.d("type getValue position: $typePos val: ${typeList[typePos]}")
-            typeList[typePos]
-        } else {
-            Timber.d("type getValue position: $typePos val: null")
-            null
-        }
+
+    val roomNameList =
+            Transformations.switchMap(Transformations.distinctUntilChanged(isEditMode)) { isEdit ->
+                if (isEdit) {
+                    Transformations.map(Transformations.distinctUntilChanged(
+                            homeRepository.roomListLiveData())) { list ->
+                        list.map(Room::name)
+                    }
+                } else {
+                    MutableLiveData()
+                }
+            } as MutableLiveData<List<String>>
+    val roomName = if (homeUnit == null) {
+        MutableLiveData()
+    } else {
+        Transformations.map(homeUnit) { unit -> unit.room }
     } as MutableLiveData<String?>
 
-    val roomNameItemPosition = Transformations.switchMap(Transformations.distinctUntilChanged(isEditMode)) { isEdit ->
-        if (isEdit) {
-            if (homeUnit == null) {
-                MutableLiveData()
-            } else {
-                Transformations.switchMap(Transformations.distinctUntilChanged(homeUnit)) { unit ->
-                    Transformations.map(Transformations.distinctUntilChanged(roomNameList)) { roomNames ->
-                        Timber.d("init roomNameItemPosition : ${roomNames.indexOfFirst { it == unit.room }}")
-                        roomNames.indexOfFirst {
-                            it == unit.room
+    val hwUnitNameList =
+            Transformations.switchMap(Transformations.distinctUntilChanged(isEditMode)) { isEdit ->
+                Timber.d("init hwUnitNameList isEditMode: $isEdit")
+                if (isEdit) {
+                    Transformations.switchMap(homeUnitList) { homeUnitList ->
+                        Timber.d("init hwUnitNameList homeUnitList homeUnitList: $homeUnitList")
+                        Transformations.map(homeRepository.hwUnitListLiveData()) { list ->
+                            list.map {
+                                Pair(it.name,
+                                     homeUnitList.find { unit -> unit.hwUnitName == it.name } != null)
+                            }
                         }
-                    }
+                    } as MutableLiveData
+                } else {
+                    MutableLiveData()
                 }
-            }
-        } else {
-            MutableLiveData()
-        }
-    }as MutableLiveData<Int>
-    val roomNameList = Transformations.switchMap(Transformations.distinctUntilChanged(isEditMode)) { isEdit ->
-        if (isEdit) {
-            Transformations.map(Transformations.distinctUntilChanged(homeRepository.roomListLiveData())) { list ->
-                list.map(Room::name)
-            }
-        } else {
-            MutableLiveData()
-        }
-    } as MutableLiveData<List<String>>
-    val roomName = Transformations.switchMap(Transformations.distinctUntilChanged(isEditMode)) { isEdit ->
-        if (isEdit) {
-            Transformations.switchMap(Transformations.distinctUntilChanged(roomNameList)) { roomNames ->
-                Transformations.map(Transformations.distinctUntilChanged(roomNameItemPosition)) { roomNamePos ->
-                    if (roomNamePos in roomNames.indices) {
-                        Timber.d("roomName getValue position: $roomNamePos val: ${roomNames[roomNamePos]}")
-                        roomNames[roomNamePos]
-                    } else {
-                        Timber.d("roomName getValue position: $roomNamePos val: null")
-                        ""
-                    }
-                }
-            }
-        } else {
-            if (homeUnit == null) {
-                MutableLiveData()
-            } else {
-                Transformations.map(homeUnit) { unit -> unit.room }
-            }
-        }
-    } as MutableLiveData<String?>
-
-    val hwUnitNameItemPosition = Transformations.switchMap(Transformations.distinctUntilChanged(isEditMode)) { isEdit ->
-        if (isEdit) {
-            if (homeUnit == null) {
-                MutableLiveData()
-            } else {
-                Transformations.switchMap(Transformations.distinctUntilChanged(homeUnit)) { unit ->
-                    Transformations.map(Transformations.distinctUntilChanged(hwUnitNameList)) { hwUnits ->
-                        Timber.d("init hwUnitNameItemPosition : ${hwUnits.indexOfFirst { it.first == unit.hwUnitName }}")
-                        hwUnits.indexOfFirst {
-                            it.first == unit.hwUnitName
-                        }
-                    }
-                }
-            }
-        } else {
-            MutableLiveData()
-        }
-    }as MutableLiveData<Int>
-    val hwUnitNameList = Transformations.switchMap(Transformations.distinctUntilChanged(isEditMode)) { isEdit ->
-        Timber.d("init hwUnitNameList isEditMode: $isEdit")
-        if (isEdit) {
-            Transformations.switchMap(homeUnitList) { homeUnitList ->
-                Timber.d("init hwUnitNameList homeUnitList homeUnitList: $homeUnitList")
-                Transformations.map(homeRepository.hwUnitListLiveData()) { list -> list.map {
-                    Pair(it.name, homeUnitList.find { unit -> unit.hwUnitName == it.name } != null) }
-                }
-            } as MutableLiveData
-        } else {
-            MutableLiveData()
-        }
-    } as LiveData<List<Pair<String, Boolean>>>
-    val hwUnitName = Transformations.switchMap(Transformations.distinctUntilChanged(isEditMode)) { isEdit ->
-        if (isEdit) {
-            Transformations.switchMap(Transformations.distinctUntilChanged(hwUnitNameList)) { hwUnits ->
-                Transformations.map(Transformations.distinctUntilChanged(hwUnitNameItemPosition)) { hwUnitNamePos ->
-                    if (hwUnitNamePos in hwUnits.indices) {
-                        Timber.d("hwUnitName getValue position: $hwUnitNamePos val: ${hwUnits[hwUnitNamePos].first}")
-                        hwUnits[hwUnitNamePos].first
-                    } else {
-                        Timber.d("hwUnitName getValue position: $hwUnitNamePos val: null")
-                        null
-                    }
-                }
-            }
-        } else {
-            if (homeUnit == null) {
-                MutableLiveData()
-            } else {
-                Transformations.map(homeUnit) { unit -> unit.hwUnitName }
-            }
-        }
+            } as LiveData<List<Pair<String, Boolean>>>
+    val hwUnitName = if (homeUnit == null) {
+        MutableLiveData()
+    } else {
+        Transformations.map(homeUnit) { unit -> unit.hwUnitName }
     } as MutableLiveData<String?>
 
     val value: MutableLiveData<String>
@@ -161,20 +90,20 @@ class HomeUnitDetailViewModel(
     private var homeRepositoryTask: Task<Void>? = null
 
     // used for checking if given homeUnit name is not already used
-    var homeUnitList =
+    val homeUnitList =
             Transformations.switchMap(Transformations.distinctUntilChanged(isEditMode)) { edit ->
                 Timber.d("init homeUnitList isEditMode edit: $edit")
-                if (edit)
-                    MediatorLiveData<MutableList<HomeUnit<Any?>>>().apply {
-                        HOME_STORAGE_UNITS.forEach { type ->
-                            addSource(homeRepository.homeUnitListLiveData(type)) { homeUnitList ->
-                                Timber.d("init homeUnitList homeUnitListLiveData homeUnitList: $homeUnitList")
-                                value = value ?: ArrayList()
-                                value?.addAll(homeUnitList?: emptyList())
-                                postValue(value)
-                            }
+                if (edit) MediatorLiveData<MutableList<HomeUnit<Any?>>>().apply {
+                    HOME_STORAGE_UNITS.forEach { type ->
+                        addSource(homeRepository.homeUnitListLiveData(type)) { homeUnitList ->
+                            Timber.d(
+                                    "init homeUnitList homeUnitListLiveData homeUnitList: $homeUnitList")
+                            value = value ?: ArrayList()
+                            value?.addAll(homeUnitList ?: emptyList())
+                            postValue(value)
                         }
                     }
+                }
                 else MediatorLiveData()
             } as MediatorLiveData<MutableList<HomeUnit<Any?>>>
 
@@ -184,8 +113,10 @@ class HomeUnitDetailViewModel(
         if (homeUnit != null) {
             Timber.d("init Editing existing HomeUnit")
 
-            value = Transformations.map(homeUnit) { unit -> unit.value.toString() } as MutableLiveData<String>
-            firebaseNotify = Transformations.map(homeUnit) { unit -> unit.firebaseNotify } as MutableLiveData<Boolean>
+            value = Transformations.map(
+                    homeUnit) { unit -> unit.value.toString() } as MutableLiveData<String>
+            firebaseNotify = Transformations.map(
+                    homeUnit) { unit -> unit.firebaseNotify } as MutableLiveData<Boolean>
 
             showProgress = Transformations.map(homeUnit) { false } as MutableLiveData<Boolean>
 
@@ -206,56 +137,48 @@ class HomeUnitDetailViewModel(
             isEditMode.value = true
         }
         // Decide how to handle this list
-        unitTaskList =
-                if (homeUnit != null) {
-                    Transformations.switchMap(isEditMode) { edit ->
-                        Timber.d("init unitTaskList isEditMode edit: $edit")
-                        Transformations.map(homeRepository.unitTaskListLiveData(unitType, unitName)) {
-                            if (edit) {
-                                Timber.d("init unitTaskList edit it: $it")
-                                // Add empty UnitTask which will be used for adding new UnitTask
-                                val newList = it.toMutableMap()
-                                newList[""] = UnitTask()
-                                Timber.d("init unitTaskList edit newList: $newList")
+        unitTaskList = if (homeUnit != null) {
+            Transformations.switchMap(isEditMode) { edit ->
+                Timber.d("init unitTaskList isEditMode edit: $edit")
+                Transformations.map(homeRepository.unitTaskListLiveData(unitType, unitName)) {
+                    if (edit) {
+                        Timber.d("init unitTaskList edit it: $it")
+                        // Add empty UnitTask which will be used for adding new UnitTask
+                        val newList = it.toMutableMap()
+                        newList[""] = UnitTask()
+                        Timber.d("init unitTaskList edit newList: $newList")
 
-                                newList
-                            }
-                            else {
-                                Timber.d("init unitTaskList it: $it")
-                                it
-                            }
-                        }
+                        newList
+                    } else {
+                        Timber.d("init unitTaskList it: $it")
+                        it
                     }
                 }
-                else {
-                    Transformations.switchMap(isEditMode) { edit ->
-                        Timber.d("init adding add new item to unitTaskList isEditMode edit: $edit")
-                        // We cannot add option to Add new Task before Home Unit is saved as there will not be where to save ne UnitTask
-                        /*if (edit) {
-                            MutableLiveData<Map<String, UnitTask>>().apply {
-                                value = mutableMapOf(Pair("", UnitTask()))
-                            }//newList
-                        } else {*/
-                            MutableLiveData<Map<String, UnitTask>>()
-                        //}
-                    }
-                }
+            }
+        } else {
+            Transformations.switchMap(isEditMode) { edit ->
+                Timber.d("init adding add new item to unitTaskList isEditMode edit: $edit")
+                // We cannot add option to Add new Task before Home Unit is saved as there will not be where to save ne UnitTask
+                /*if (edit) {
+                    MutableLiveData<Map<String, UnitTask>>().apply {
+                        value = mutableMapOf(Pair("", UnitTask()))
+                    }//newList
+                } else {*/
+                MutableLiveData<Map<String, UnitTask>>()
+                //}
+            }
+        }
 
     }
 
     fun noChangesMade(): Boolean {
         return homeUnit?.value?.let { unit ->
-            unit.name == name.value &&
-            unit.type == type.value &&
-            unit.room == roomName.value &&
-            unit.hwUnitName == hwUnitName.value &&
-            unit.firebaseNotify == firebaseNotify.value/* &&
+            unit.name == name.value && unit.type == type.value && unit.room == roomName.value && unit.hwUnitName == hwUnitName.value && unit.firebaseNotify == firebaseNotify.value/* &&
             unit.unitsTasks == unitTaskList.value*/
         } ?: name.value.isNullOrEmpty()
         /*?: type.value.isNullOrEmpty()
         ?: roomName.value.isNullOrEmpty()
-        ?: hwUnitName.value.isNullOrEmpty()*/
-        ?: true
+        ?: hwUnitName.value.isNullOrEmpty()*/ ?: true
     }
 
     fun actionEdit() {
@@ -289,11 +212,15 @@ class HomeUnitDetailViewModel(
         if (homeUnit == null) {
             // Adding new HomeUnit
             when {
-                name.value?.trim().isNullOrEmpty() -> return Pair(R.string.add_edit_home_unit_empty_name, null)
-                type.value?.trim().isNullOrEmpty() -> return Pair(R.string.add_edit_home_unit_empty_unit_type, null)
-                hwUnitName.value?.trim().isNullOrEmpty() -> return Pair(R.string.add_edit_home_unit_empty_unit_hw_unit, null)
-                homeUnitList.value?.find { unit -> unit.name == name.value?.trim() } != null ->
-                       {
+                name.value?.trim().isNullOrEmpty()                                           -> return Pair(
+                        R.string.add_edit_home_unit_empty_name, null)
+                type.value?.trim()
+                        .isNullOrEmpty()                                                     -> return Pair(
+                        R.string.add_edit_home_unit_empty_unit_type, null)
+                hwUnitName.value?.trim()
+                        .isNullOrEmpty()                                                     -> return Pair(
+                        R.string.add_edit_home_unit_empty_unit_hw_unit, null)
+                homeUnitList.value?.find { unit -> unit.name == name.value?.trim() } != null -> {
                     //This name is already used
                     Timber.d("This name is already used")
                     return Pair(R.string.add_edit_home_unit_name_already_used, null)
@@ -318,7 +245,8 @@ class HomeUnitDetailViewModel(
     }
 
     fun deleteHomeUnit(): Task<Void>? {
-        Timber.d("deleteHomeUnit homeUnit: ${homeUnit?.value} homeRepositoryTask.isComplete: ${homeRepositoryTask?.isComplete}")
+        Timber.d(
+                "deleteHomeUnit homeUnit: ${homeUnit?.value} homeRepositoryTask.isComplete: ${homeRepositoryTask?.isComplete}")
         homeRepositoryTask = homeUnit?.value?.let { unit ->
             showProgress.value = true
             homeRepository.deleteHomeUnit(unit)
@@ -330,15 +258,17 @@ class HomeUnitDetailViewModel(
     }
 
     fun saveChanges(): Task<Void>? {
-        Timber.d("saveChanges homeUnit: ${homeUnit?.value} homeRepositoryTask.isComplete: ${homeRepositoryTask?.isComplete}")
+        Timber.d(
+                "saveChanges homeUnit: ${homeUnit?.value} homeRepositoryTask.isComplete: ${homeRepositoryTask?.isComplete}")
         homeRepositoryTask = homeUnit?.value?.let { unit ->
             showProgress.value = true
             Timber.e("Save all changes")
             doSaveChanges().apply {
                 if (name.value != unit.name || type.value != unit.type) {
-                    Timber.d("Name or type changed will need to delete old value name=${name.value}, type = ${type.value}")
+                    Timber.d(
+                            "Name or type changed will need to delete old value name=${name.value}, type = ${type.value}")
                     // delete old HomeUnit
-                    this?.continueWithTask { homeRepository.deleteHomeUnit(unit)}
+                    this?.continueWithTask { homeRepository.deleteHomeUnit(unit) }
                 }
             }
         } ?: doSaveChanges()?.addOnCompleteListener {
@@ -348,25 +278,22 @@ class HomeUnitDetailViewModel(
         return homeRepositoryTask
     }
 
-    private fun doSaveChanges(): Task<Void>?{
+    private fun doSaveChanges(): Task<Void>? {
         return name.value?.let { name ->
             type.value?.let { type ->
                 roomName.value?.let { room ->
                     hwUnitName.value?.let { hwUnitName ->
                         firebaseNotify.value?.let { firebaseNotify ->
                             //unitTaskList.value?.let { unitTaskList ->
-                                showProgress.value = true
-                                homeRepository.saveHomeUnit(HomeUnit(
-                                        name = name,
-                                        type = type,
-                                        room = room,
-                                        hwUnitName = hwUnitName,
-                                        firebaseNotify = firebaseNotify,
-                                        value = homeUnit?.value?.value,
-                                        unitsTasks = unitTaskList.value?.toMutableMap()?.also {
-                                            it.remove("")
-                                        }?: HashMap()
-                                ))
+                            showProgress.value = true
+                            homeRepository.saveHomeUnit(
+                                    HomeUnit(name = name, type = type, room = room,
+                                             hwUnitName = hwUnitName,
+                                             firebaseNotify = firebaseNotify,
+                                             value = homeUnit?.value?.value,
+                                             unitsTasks = unitTaskList.value?.toMutableMap()?.also {
+                                                 it.remove("")
+                                             } ?: HashMap()))
                             //}
                         }
                     }

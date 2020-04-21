@@ -21,7 +21,15 @@ class AutoCompleteAdapter(context: Context, val type: AutoCompleteAdapterType, e
             R.layout.spinner_custom_item
         } else {
             android.R.layout.simple_spinner_dropdown_item
-        }, android.R.id.text1, entries.toMutableList()) {
+        }, android.R.id.text1, entries.toMutableList().apply {
+            if (type == AutoCompleteAdapterType.WITH_EMPTY) {
+                when {
+                    all { it is String } -> add(0, "")
+                    all { it is Int } -> add(0, "")
+                    all { it is Pair<*, *> } -> add(0, Pair("", false))
+                }
+            }
+        }) {
 
     var position: Int = ListView.INVALID_POSITION
 
