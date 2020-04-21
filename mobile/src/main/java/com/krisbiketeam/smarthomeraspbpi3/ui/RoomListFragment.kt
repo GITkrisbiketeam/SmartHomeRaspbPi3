@@ -6,6 +6,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.GridLayoutManager
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.adapters.RoomHomeUnitListAdapter
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
@@ -34,6 +35,7 @@ class RoomListFragment : Fragment() {
                 findNavController().navigate(direction)
             }
             val adapter = RoomHomeUnitListAdapter()
+            roomList.layoutManager = GridLayoutManager(requireContext(), 2)
             roomList.adapter = adapter
             subscribeRoomHomeUnitList(adapter)
         }
@@ -77,7 +79,7 @@ class RoomListFragment : Fragment() {
     }
 
     private fun subscribeRoomHomeUnitList(adapter: RoomHomeUnitListAdapter) {
-        roomListViewModel.roomHomeUnitsMap.observe(viewLifecycleOwner, Observer<MutableMap<String, Any>> { roomHomeUnitsMap ->
+        roomListViewModel.roomHomeUnitsMap.observe(viewLifecycleOwner, Observer { roomHomeUnitsMap ->
             Timber.d("subscribeUi roomHomeUnitsMap: $roomHomeUnitsMap")
             val roomHomeUnitListSorted = roomHomeUnitsMap.values.sortedWith(Comparator { a, b ->
                 when {
@@ -87,9 +89,7 @@ class RoomListFragment : Fragment() {
                     a is Room && b is String -> -1
                     else -> 0
                 }
-            }
-
-            )
+            })
             adapter.submitList(roomHomeUnitListSorted)
         })
     }

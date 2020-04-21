@@ -11,7 +11,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.Room
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentRoomDetailListItemBinding
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentRoomListHomeUnitSectionBinding
-import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentRoomListItemBinding
+import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentRoomListItemCardBinding
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomListFragment
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomListFragmentDirections
 import timber.log.Timber
@@ -35,7 +35,7 @@ class RoomHomeUnitListAdapter : ListAdapter<Any, RoomHomeUnitListAdapter.ViewHol
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         return when (viewType) {
-            ROOM_TYPE -> ViewHolder(FragmentRoomListItemBinding.inflate(
+            ROOM_TYPE -> ViewHolder(FragmentRoomListItemCardBinding.inflate(
                     LayoutInflater.from(parent.context), parent, false))
             HOME_UNIT_TYPE -> ViewHolder(FragmentRoomDetailListItemBinding.inflate(
                     LayoutInflater.from(parent.context), parent, false))
@@ -74,7 +74,7 @@ class RoomHomeUnitListAdapter : ListAdapter<Any, RoomHomeUnitListAdapter.ViewHol
 
         fun bind(listener: View.OnClickListener, item: Any) {
             when (binding) {
-                is FragmentRoomListItemBinding -> {
+                is FragmentRoomListItemCardBinding -> {
                     binding.apply {
                         clickListener = listener
                         room = item as Room
