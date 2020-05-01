@@ -45,7 +45,11 @@ class HomeUnitsLiveData(private val homeNamePath: String?, private val roomName:
             // A new value has been added, add it to the displayed list
             val key = dataSnapshot.key
             typeIndicatorMap[childNode]?.run {
-                val unit = dataSnapshot.getValue(this)
+                val unit = try {
+                    dataSnapshot.getValue(this)
+                } catch (e: DatabaseException) {
+                    null
+                }
                 Timber.d("onChildAdded (key=$key)(unit=${unit?.name})")
                 unit?.let {
                     Timber.d("onChildAdded (roomName=$roomName)(unit.room=${it.room})")
