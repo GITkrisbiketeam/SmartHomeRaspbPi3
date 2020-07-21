@@ -8,7 +8,7 @@ import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import com.krisbiketeam.smarthomeraspbpi3.R
-import com.krisbiketeam.smarthomeraspbpi3.adapters.RoomHomeUnitListAdapter
+import com.krisbiketeam.smarthomeraspbpi3.adapters.RoomWithHomeUnitListAdapter
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.Room
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentRoomListBinding
@@ -34,7 +34,7 @@ class RoomListFragment : Fragment() {
                 val direction = RoomListFragmentDirections.actionRoomListFragmentToNewRoomDialogFragment()
                 findNavController().navigate(direction)
             }
-            val adapter = RoomHomeUnitListAdapter()
+            val adapter = RoomWithHomeUnitListAdapter()
             roomList.layoutManager = GridLayoutManager(requireContext(), 2)
             roomList.adapter = adapter
             subscribeRoomHomeUnitList(adapter)
@@ -78,7 +78,7 @@ class RoomListFragment : Fragment() {
         }
     }
 
-    private fun subscribeRoomHomeUnitList(adapter: RoomHomeUnitListAdapter) {
+    private fun subscribeRoomHomeUnitList(adapter: RoomWithHomeUnitListAdapter) {
         roomListViewModel.roomHomeUnitsMap.observe(viewLifecycleOwner, Observer { roomHomeUnitsMap ->
             Timber.d("subscribeUi roomHomeUnitsMap: $roomHomeUnitsMap")
             val roomHomeUnitListSorted = roomHomeUnitsMap.values.sortedWith(Comparator { a, b ->
@@ -90,7 +90,11 @@ class RoomListFragment : Fragment() {
                     else -> 0
                 }
             })
-            adapter.submitList(roomHomeUnitListSorted)
+            //adapter.submitList(roomHomeUnitListSorted)
+        })
+        roomListViewModel.roomWithHomeUnitsList.observe(viewLifecycleOwner, Observer { roomWithHomeUnitsList ->
+            Timber.d("subscribeUi roomWithHomeUnitsList: $roomWithHomeUnitsList")
+            adapter.submitList(roomWithHomeUnitsList)
         })
     }
 }

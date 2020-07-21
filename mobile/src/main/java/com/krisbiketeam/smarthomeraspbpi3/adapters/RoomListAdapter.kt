@@ -15,6 +15,7 @@ import com.krisbiketeam.smarthomeraspbpi3.ui.RoomListFragment
 /**
  * Adapter for the [RecyclerView] in [RoomListFragment].
  */
+@Deprecated(message = "Please use other RoomList Adapter")
 class RoomListAdapter : ListAdapter<Room, RoomListAdapter.ViewHolder>(RoomListAdapterDiffCallback()) {
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
