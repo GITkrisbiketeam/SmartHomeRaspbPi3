@@ -31,15 +31,7 @@ val homeUnitTypeIndicatorMap: HashMap<String, Class<out Any?>> = hashMapOf(
         HOME_BLINDS to BlindType::class.java
 )
 
-val HOME_STORAGE_UNITS: List<String> = listOf(
-        HOME_LIGHTS,
-        HOME_ACTUATORS,
-        HOME_LIGHT_SWITCHES,
-        HOME_REED_SWITCHES,
-        HOME_MOTIONS,
-        HOME_TEMPERATURES,
-        HOME_PRESSURES,
-        HOME_BLINDS)
+val HOME_STORAGE_UNITS: List<String> = homeUnitTypeIndicatorMap.keys.toList()
 
 data class HomeUnit<T>(var name: String = "", // Name should be unique for all units
                        var type: String = "",

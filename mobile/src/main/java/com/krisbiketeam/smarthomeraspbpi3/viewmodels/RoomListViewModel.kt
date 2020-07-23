@@ -6,10 +6,11 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HOME_STORAGE_UNITS
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.Room
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_TEMPERATURES
 import com.krisbiketeam.smarthomeraspbpi3.model.RoomListAdapterModel
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomListFragment
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.combine
 import timber.log.Timber
 
 private const val UNIT_LIST_SECTION_EXIST = "unit_list_section_exist"
@@ -70,41 +71,27 @@ class RoomListViewModel(homeRepository: FirebaseHomeInformationRepository, secur
         }
     }
 
-    val roomWithHomeUnitsList: LiveData<List<RoomListAdapterModel>> = secureStorage.homeNameLiveData.switchMap {
+    @ExperimentalCoroutinesApi
+    val roomWithHomeUnitsListFromFlow: LiveData<List<RoomListAdapterModel>> = secureStorage.homeNameLiveData.switchMap {
         Timber.e("secureStorage.homeNameLiveData")
-        homeRepository.roomListLiveData().switchMap { roomList ->
-            Timber.e("homeRepository.roomListLiveData()")
-
+        combine(homeRepository.roomListFlow(), homeRepository.homeUnitListFlow()) { roomList, homeUnitsList ->
             Timber.e("roomListAdapterModelMap")
             val roomListAdapterModelMap: MutableMap<String, RoomListAdapterModel> = roomList.associate {
                 it.name to RoomListAdapterModel(it)
             }.toMutableMap()
 
-            MediatorLiveData<Map<String, HomeUnit<Any?>>>().also { mediatorLiveData ->
-                Timber.e("mediatorLiveData")
-                //HOME_STORAGE_UNITS.forEach { type ->
-                    mediatorLiveData.addSource(homeRepository.homeUnitListLiveData(HOME_TEMPERATURES)) { homeUnitList ->
-                        Timber.e("mediatorLiveData.addSource")
-                        mediatorLiveData.value = homeUnitList.associateBy { it.name }
-                    }
-                //}
-            }.switchMap { homeUnitsMap ->
-                liveData(context = viewModelScope.coroutineContext + Dispatchers.IO) {
-                    Timber.e("roomListAdapterModelMap")
-                    val homeUnitsList = homeUnitsMap.values.toMutableList()
-                    homeUnitsMap.values.forEach {
-                        if (roomListAdapterModelMap.containsKey(it.room)) {
-                            roomListAdapterModelMap[it.room]?.homeUnit = it
-                            homeUnitsList.remove(it)
-                        }
-                    }
-                    homeUnitsList.forEach {
-                        roomListAdapterModelMap[it.name] = RoomListAdapterModel(null, it)
-                    }
-                    emit(roomListAdapterModelMap.values.toList())
+            val homeUnitsListCopy = homeUnitsList.toMutableList()
+            homeUnitsList.forEach {
+                if (roomListAdapterModelMap.containsKey(it.room)) {
+                    roomListAdapterModelMap[it.room]?.homeUnit = it
+                    homeUnitsListCopy.remove(it)
                 }
             }
-        }
+            homeUnitsListCopy.forEach {
+                roomListAdapterModelMap[it.name] = RoomListAdapterModel(null, it)
+            }
+            roomListAdapterModelMap.values.toList()
+        }.asLiveData(Dispatchers.Default)
     }
 }
 

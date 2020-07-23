@@ -8,6 +8,7 @@ import com.google.firebase.database.ValueEventListener
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.Room
 import timber.log.Timber
 
+@Deprecated("please use GenericListReferenceFlow")
 class RoomListLiveData(private val databaseReference: DatabaseReference?) : LiveData<List<Room>>() {
 
     private val roomsListener: ValueEventListener by lazy {

@@ -13,6 +13,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.Room
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentRoomListBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.RoomListViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.koin.android.viewmodel.ext.android.viewModel
 import timber.log.Timber
 
@@ -21,6 +22,7 @@ class RoomListFragment : Fragment() {
 
     private val roomListViewModel by viewModel<RoomListViewModel>()
 
+    @ExperimentalCoroutinesApi
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -78,6 +80,7 @@ class RoomListFragment : Fragment() {
         }
     }
 
+    @ExperimentalCoroutinesApi
     private fun subscribeRoomHomeUnitList(adapter: RoomWithHomeUnitListAdapter) {
         roomListViewModel.roomHomeUnitsMap.observe(viewLifecycleOwner, Observer { roomHomeUnitsMap ->
             Timber.d("subscribeUi roomHomeUnitsMap: $roomHomeUnitsMap")
@@ -92,7 +95,7 @@ class RoomListFragment : Fragment() {
             })
             //adapter.submitList(roomHomeUnitListSorted)
         })
-        roomListViewModel.roomWithHomeUnitsList.observe(viewLifecycleOwner, Observer { roomWithHomeUnitsList ->
+        roomListViewModel.roomWithHomeUnitsListFromFlow.observe(viewLifecycleOwner, Observer { roomWithHomeUnitsList ->
             Timber.d("subscribeUi roomWithHomeUnitsList: $roomWithHomeUnitsList")
             adapter.submitList(roomWithHomeUnitsList)
         })

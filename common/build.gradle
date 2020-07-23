@@ -25,16 +25,13 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
-
-    dataBinding {
-        enabled = true
-    }
 }
 
 dependencies {
-    implementation  "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
-    implementation  "com.jakewharton.timber:timber:$timberVersion"
-    implementation  "androidx.lifecycle:lifecycle-extensions:$androidxLifecycleExtensionsVersion"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
+    implementation "com.jakewharton.timber:timber:$timberVersion"
+    implementation "androidx.lifecycle:lifecycle-extensions:$androidxLifecycleExtensionsVersion"
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycleLivedataKtxVersion"
 
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinxCoroutinesAndroid"
 
