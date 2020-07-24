@@ -38,6 +38,7 @@ data class HomeUnit<T>(var name: String = "", // Name should be unique for all u
                        var room: String = "",
                        var hwUnitName: String = "",
                        var value: T? = null,
+                       var lastUpdateTime: String? = null,
                        var firebaseNotify: Boolean = false,
                        var unitsTasks: Map<String,UnitTask> = HashMap()) {
     constructor(homeUnit: HomeUnit<T?>) : this(
@@ -46,6 +47,7 @@ data class HomeUnit<T>(var name: String = "", // Name should be unique for all u
             homeUnit.room,
             homeUnit.hwUnitName,
             homeUnit.value,
+            homeUnit.lastUpdateTime,
             homeUnit.firebaseNotify,
             homeUnit.unitsTasks)
 
@@ -61,6 +63,7 @@ data class HomeUnit<T>(var name: String = "", // Name should be unique for all u
                 room,
                 hwUnitName,
                 value,
+                lastUpdateTime,
                 firebaseNotify,
                 unitsTasks)
     }
@@ -70,6 +73,7 @@ data class HomeUnit<T>(var name: String = "", // Name should be unique for all u
                 type,
                 room,
                 hwUnitName,
-                value)
+                value,
+                lastUpdateTime)
     }
 }
