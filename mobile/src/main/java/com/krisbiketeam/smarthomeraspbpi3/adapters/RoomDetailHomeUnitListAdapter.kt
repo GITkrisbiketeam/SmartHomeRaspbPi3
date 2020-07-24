@@ -12,6 +12,7 @@ import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentRoomDetailListItem
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomDetailFragmentDirections
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomListFragment
 import timber.log.Timber
+import java.util.*
 
 /**
  * Adapter for the [RecyclerView] in [RoomListFragment].
@@ -53,6 +54,7 @@ class RoomDetailHomeUnitListAdapter(private val homeInformationRepository: Fireb
                     homeUnit?.apply {
                         if (value != isChecked) {
                             value = isChecked
+                            lastUpdateTime = Date().toString()
                             homeInformationRepository.saveHomeUnit(this)
                         }
                     }

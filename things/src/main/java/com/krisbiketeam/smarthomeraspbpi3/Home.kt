@@ -53,6 +53,7 @@ class Home(secureStorage: SecureStorage,
                         Timber.d("booleanApplyFunction taskHwUnit: $taskHwUnit")
                         if (taskHwUnit is Actuator) {
                             value = newVal
+                            lastUpdateTime = Date().toString()
                             Timber.d("booleanApplyFunction taskHwUnit setValue value: $value")
                             taskHwUnit.setValueWithException(newVal)
                             applyFunction(newVal)
@@ -83,6 +84,7 @@ class Home(secureStorage: SecureStorage,
                             Timber.d("sensorApplyFunction taskHwUnit: $taskHwUnit")
                             if (taskHwUnit is Actuator) {
                                 value = newVal
+                                lastUpdateTime = Date().toString()
                                 Timber.d("sensorApplyFunction taskHwUnit setValue value: $value")
                                 taskHwUnit.setValueWithException(newVal)
                                 applyFunction(newVal)
@@ -202,6 +204,7 @@ class Home(secureStorage: SecureStorage,
                                 homeUnit.value = hwUnit.unitValue
                                 homeInformationRepository.saveHomeUnit(homeUnit)
                             }
+                            homeUnit.lastUpdateTime = Date().toString()
                         }
                     }
                     homeUnitsList[homeUnit.name] = homeUnit
@@ -355,6 +358,7 @@ class Home(secureStorage: SecureStorage,
                 } else {
                     value = unitValue
                 }
+                lastUpdateTime = Date().toString()
                 value?.let { newValue ->
                     applyFunction(newValue)
                 }

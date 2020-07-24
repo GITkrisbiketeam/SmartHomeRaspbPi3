@@ -291,6 +291,7 @@ class HomeUnitDetailViewModel(private val homeRepository: FirebaseHomeInformatio
                                              hwUnitName = hwUnitName,
                                              firebaseNotify = firebaseNotify,
                                              value = homeUnit?.value?.value,
+                                             lastUpdateTime = homeUnit?.value?.lastUpdateTime,
                                              unitsTasks = unitTaskList.value?.toMutableMap()?.also {
                                                  it.remove("")
                                              } ?: HashMap()))
