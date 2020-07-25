@@ -53,7 +53,7 @@ class Home(secureStorage: SecureStorage,
                         Timber.d("booleanApplyFunction taskHwUnit: $taskHwUnit")
                         if (taskHwUnit is Actuator) {
                             value = newVal
-                            lastUpdateTime = System.currentTimeMillis().toString()
+                            lastUpdateTime = System.currentTimeMillis()
                             Timber.d("booleanApplyFunction taskHwUnit setValue value: $value")
                             taskHwUnit.setValueWithException(newVal)
                             applyFunction(newVal)
@@ -84,7 +84,7 @@ class Home(secureStorage: SecureStorage,
                             Timber.d("sensorApplyFunction taskHwUnit: $taskHwUnit")
                             if (taskHwUnit is Actuator) {
                                 value = newVal
-                                lastUpdateTime = System.currentTimeMillis().toString()
+                                lastUpdateTime = System.currentTimeMillis()
                                 Timber.d("sensorApplyFunction taskHwUnit setValue value: $value")
                                 taskHwUnit.setValueWithException(newVal)
                                 applyFunction(newVal)
@@ -152,7 +152,7 @@ class Home(secureStorage: SecureStorage,
                         // set previous apply function to new homeUnit
                         homeUnit.applyFunction = applyFunction
                         hwUnitsList[homeUnit.hwUnitName]?.let { hwUnit ->
-                            Timber.d("homeUnitsDataObserver NODE_ACTION_CHANGED hwUnit: $hwUnit")
+                            Timber.d("homeUnitsDataObserver NODE_ACTION_CHANGED hwUnit: ${hwUnit.hwUnit}")
                             // Actuators can be changed from remote mobile App so apply HomeUnitState to hwUnitState if it changed
                             if (hwUnit is Actuator) {
                                 if (homeUnit.value != value) {
@@ -162,7 +162,7 @@ class Home(secureStorage: SecureStorage,
                                         hwUnit.setValueWithException(newValue)
                                         homeUnit.applyFunction(newValue)
                                     }
-                                    homeUnit.lastUpdateTime = System.currentTimeMillis().toString()
+                                    homeUnit.lastUpdateTime = System.currentTimeMillis()
 
                                     if (homeUnit.firebaseNotify && alarmEnabled) {
                                         Timber.d(
@@ -205,7 +205,7 @@ class Home(secureStorage: SecureStorage,
                                 homeUnit.value = hwUnit.unitValue
                                 homeInformationRepository.saveHomeUnit(homeUnit)
                             }
-                            homeUnit.lastUpdateTime = System.currentTimeMillis().toString()
+                            homeUnit.lastUpdateTime = System.currentTimeMillis()
                         }
                     }
                     homeUnitsList[homeUnit.name] = homeUnit
@@ -359,7 +359,7 @@ class Home(secureStorage: SecureStorage,
                 } else {
                     value = unitValue
                 }
-                lastUpdateTime = System.currentTimeMillis().toString()
+                lastUpdateTime = System.currentTimeMillis()
                 value?.let { newValue ->
                     applyFunction(newValue)
                 }

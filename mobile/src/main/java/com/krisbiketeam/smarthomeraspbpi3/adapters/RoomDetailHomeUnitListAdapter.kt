@@ -55,13 +55,10 @@ class RoomDetailHomeUnitListAdapter(private val homeInformationRepository: Fireb
                 lastUpdateTime = getTime(root.context, item)
                 homeUnitItemSwitch.setOnCheckedChangeListener { _, isChecked ->
                     Timber.d("OnCheckedChangeListener isChecked: $isChecked item: $item")
-                    homeUnit?.also { unit ->
-                        if (unit.value != isChecked) {
+                    if (item.value != isChecked) {
+                        item.copy().also { unit ->
                             unit.value = isChecked
-                            // TODO this can be removed when deployed to RaspPi
-                            unit.lastUpdateTime = (System.currentTimeMillis() - 1000000000).toString()
-                            lastUpdateTime = getTime(root.context, unit)
-
+                            unit.lastUpdateTime = System.currentTimeMillis()
                             homeInformationRepository.saveHomeUnit(unit)
                         }
                     }
@@ -72,11 +69,7 @@ class RoomDetailHomeUnitListAdapter(private val homeInformationRepository: Fireb
         }
 
         private fun getTime(context: Context, item: HomeUnit<Any?>): String {
-            val date = try {
-                Date(item.lastUpdateTime?.toLong() ?: 0)
-            } catch (e: NumberFormatException) {
-                Date(System.currentTimeMillis().toString().toLong())
-            }
+            val date = Date(item.lastUpdateTime ?: 0)
 
             // calculate days from unit time to now 1000 milliseconds * 60 seconds * 60 minutes * 24 hours = 86400000L
             val days = ((System.currentTimeMillis() - date.time) / 86400000L).toInt()

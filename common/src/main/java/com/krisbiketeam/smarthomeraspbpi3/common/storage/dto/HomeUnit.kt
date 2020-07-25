@@ -38,7 +38,7 @@ data class HomeUnit<T>(var name: String = "", // Name should be unique for all u
                        var room: String = "",
                        var hwUnitName: String = "",
                        var value: T? = null,
-                       var lastUpdateTime: String? = null,
+                       var lastUpdateTime: Long? = null,
                        var firebaseNotify: Boolean = false,
                        var unitsTasks: Map<String,UnitTask> = HashMap()) {
     constructor(homeUnit: HomeUnit<T?>) : this(
