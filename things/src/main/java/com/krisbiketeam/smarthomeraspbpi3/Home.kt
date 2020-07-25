@@ -53,7 +53,7 @@ class Home(secureStorage: SecureStorage,
                         Timber.d("booleanApplyFunction taskHwUnit: $taskHwUnit")
                         if (taskHwUnit is Actuator) {
                             value = newVal
-                            lastUpdateTime = Date().toString()
+                            lastUpdateTime = System.currentTimeMillis().toString()
                             Timber.d("booleanApplyFunction taskHwUnit setValue value: $value")
                             taskHwUnit.setValueWithException(newVal)
                             applyFunction(newVal)
@@ -84,7 +84,7 @@ class Home(secureStorage: SecureStorage,
                             Timber.d("sensorApplyFunction taskHwUnit: $taskHwUnit")
                             if (taskHwUnit is Actuator) {
                                 value = newVal
-                                lastUpdateTime = Date().toString()
+                                lastUpdateTime = System.currentTimeMillis().toString()
                                 Timber.d("sensorApplyFunction taskHwUnit setValue value: $value")
                                 taskHwUnit.setValueWithException(newVal)
                                 applyFunction(newVal)
@@ -162,6 +162,7 @@ class Home(secureStorage: SecureStorage,
                                         hwUnit.setValueWithException(newValue)
                                         homeUnit.applyFunction(newValue)
                                     }
+                                    homeUnit.lastUpdateTime = System.currentTimeMillis().toString()
 
                                     if (homeUnit.firebaseNotify && alarmEnabled) {
                                         Timber.d(
@@ -204,7 +205,7 @@ class Home(secureStorage: SecureStorage,
                                 homeUnit.value = hwUnit.unitValue
                                 homeInformationRepository.saveHomeUnit(homeUnit)
                             }
-                            homeUnit.lastUpdateTime = Date().toString()
+                            homeUnit.lastUpdateTime = System.currentTimeMillis().toString()
                         }
                     }
                     homeUnitsList[homeUnit.name] = homeUnit
@@ -358,7 +359,7 @@ class Home(secureStorage: SecureStorage,
                 } else {
                     value = unitValue
                 }
-                lastUpdateTime = Date().toString()
+                lastUpdateTime = System.currentTimeMillis().toString()
                 value?.let { newValue ->
                     applyFunction(newValue)
                 }

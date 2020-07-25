@@ -6,6 +6,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HOME_STORAGE_UNITS
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.Room
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_TEMPERATURES
 import com.krisbiketeam.smarthomeraspbpi3.model.RoomListAdapterModel
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomListFragment
 import kotlinx.coroutines.Dispatchers
@@ -83,7 +84,9 @@ class RoomListViewModel(homeRepository: FirebaseHomeInformationRepository, secur
             val homeUnitsListCopy = homeUnitsList.toMutableList()
             homeUnitsList.forEach {
                 if (roomListAdapterModelMap.containsKey(it.room)) {
-                    roomListAdapterModelMap[it.room]?.homeUnit = it
+                    if (it.type == HOME_TEMPERATURES) {
+                        roomListAdapterModelMap[it.room]?.homeUnit = it
+                    }
                     homeUnitsListCopy.remove(it)
                 }
             }

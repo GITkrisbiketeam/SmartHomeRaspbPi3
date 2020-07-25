@@ -16,7 +16,7 @@ class HomeUnitsLiveData(private val homeNamePath: String?, private val roomName:
             HOME_STORAGE_UNITS.map { storageUnit ->
                 MyChildEventListener(storageUnit).let { childListener ->
                     Pair(FirebaseDatabase.getInstance()
-                                 .getReference("$homePath/${childListener.childNode}"),
+                                 .getReference("$homePath/$HOME_UNITS_BASE/${childListener.childNode}"),
                          childListener)
                 }
             }

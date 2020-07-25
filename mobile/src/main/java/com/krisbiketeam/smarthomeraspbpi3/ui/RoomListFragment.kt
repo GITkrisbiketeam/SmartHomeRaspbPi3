@@ -9,8 +9,6 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.adapters.RoomWithHomeUnitListAdapter
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.Room
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentRoomListBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.RoomListViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -82,7 +80,7 @@ class RoomListFragment : Fragment() {
 
     @ExperimentalCoroutinesApi
     private fun subscribeRoomHomeUnitList(adapter: RoomWithHomeUnitListAdapter) {
-        roomListViewModel.roomHomeUnitsMap.observe(viewLifecycleOwner, Observer { roomHomeUnitsMap ->
+        /*roomListViewModel.roomHomeUnitsMap.observe(viewLifecycleOwner, Observer { roomHomeUnitsMap ->
             Timber.d("subscribeUi roomHomeUnitsMap: $roomHomeUnitsMap")
             val roomHomeUnitListSorted = roomHomeUnitsMap.values.sortedWith(Comparator { a, b ->
                 when {
@@ -93,8 +91,8 @@ class RoomListFragment : Fragment() {
                     else -> 0
                 }
             })
-            //adapter.submitList(roomHomeUnitListSorted)
-        })
+            adapter.submitList(roomHomeUnitListSorted)
+        })*/
         roomListViewModel.roomWithHomeUnitsListFromFlow.observe(viewLifecycleOwner, Observer { roomWithHomeUnitsList ->
             Timber.d("subscribeUi roomWithHomeUnitsList: $roomWithHomeUnitsList")
             adapter.submitList(roomWithHomeUnitsList)

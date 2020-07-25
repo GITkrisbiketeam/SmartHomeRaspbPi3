@@ -1,17 +1,20 @@
 package com.krisbiketeam.smarthomeraspbpi3.adapters
 
+import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentRoomDetailListItemBinding
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomDetailFragmentDirections
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomListFragment
 import timber.log.Timber
+import java.text.SimpleDateFormat
 import java.util.*
 
 /**
@@ -49,18 +52,41 @@ class RoomDetailHomeUnitListAdapter(private val homeInformationRepository: Fireb
             binding.apply {
                 clickListener = listener
                 homeUnit = item
+                lastUpdateTime = getTime(root.context, item)
                 homeUnitItemSwitch.setOnCheckedChangeListener { _, isChecked ->
                     Timber.d("OnCheckedChangeListener isChecked: $isChecked item: $item")
-                    homeUnit?.apply {
-                        if (value != isChecked) {
-                            value = isChecked
-                            lastUpdateTime = Date().toString()
-                            homeInformationRepository.saveHomeUnit(this)
+                    homeUnit?.also { unit ->
+                        if (unit.value != isChecked) {
+                            unit.value = isChecked
+                            // TODO this can be removed when deployed to RaspPi
+                            unit.lastUpdateTime = (System.currentTimeMillis() - 1000000000).toString()
+                            lastUpdateTime = getTime(root.context, unit)
+
+                            homeInformationRepository.saveHomeUnit(unit)
                         }
                     }
                 }
 
                 executePendingBindings()
+            }
+        }
+
+        private fun getTime(context: Context, item: HomeUnit<Any?>): String {
+            val date = try {
+                Date(item.lastUpdateTime?.toLong() ?: 0)
+            } catch (e: NumberFormatException) {
+                Date(System.currentTimeMillis().toString().toLong())
+            }
+
+            // calculate days from unit time to now 1000 milliseconds * 60 seconds * 60 minutes * 24 hours = 86400000L
+            val days = ((System.currentTimeMillis() - date.time) / 86400000L).toInt()
+
+            val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+            timeFormat.format(date)
+            return if (days > 0) {
+                context.resources.getQuantityString(R.plurals.last_update_time, days, timeFormat.format(date), days)
+            } else {
+                context.resources.getString(R.string.last_update_time, timeFormat.format(date))
             }
         }
     }

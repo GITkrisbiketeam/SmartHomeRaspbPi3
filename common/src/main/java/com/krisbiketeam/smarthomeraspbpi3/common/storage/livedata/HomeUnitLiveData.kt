@@ -3,6 +3,7 @@ package com.krisbiketeam.smarthomeraspbpi3.common.storage.livedata
 import androidx.lifecycle.LiveData
 import com.google.firebase.database.*
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_UNITS_BASE
 import timber.log.Timber
 
 
@@ -13,7 +14,7 @@ class HomeUnitLiveData(private val homeNamePath: String?, private val type: Stri
 
     private val databaseReference: DatabaseReference? by lazy {
         homeNamePath?.let {
-            FirebaseDatabase.getInstance().getReference("$it/$type/$name")
+            FirebaseDatabase.getInstance().getReference("$it/$HOME_UNITS_BASE/$type/$name")
         }
     }
 
