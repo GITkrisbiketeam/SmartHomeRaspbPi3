@@ -7,7 +7,6 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.ConnectionType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
 import com.krisbiketeam.smarthomeraspbpi3.units.Actuator
 import com.krisbiketeam.smarthomeraspbpi3.units.HwUnitI2C
-import java.util.*
 
 class HwUnitI2CMCP23017Actuator(name: String, location: String, private val pinName: String,
                                 private val address: Int, private val pinInterrupt: String,
@@ -19,7 +18,7 @@ class HwUnitI2CMCP23017Actuator(name: String, location: String, private val pinN
             HwUnit(name, location, BoardConfig.IO_EXTENDER_MCP23017_OUTPUT, pinName,
                    ConnectionType.I2C, address, pinInterrupt, ioPin.name)
     override var unitValue: Boolean? = null
-    override var valueUpdateTime: String = ""
+    override var valueUpdateTime: Long = System.currentTimeMillis()
 
     @Throws(Exception::class)
     override fun connect() {
@@ -40,6 +39,6 @@ class HwUnitI2CMCP23017Actuator(name: String, location: String, private val pinN
     override fun setValue(value: Boolean) {
         unitValue = value
         (device as MCP23017?)?.setState(ioPin, if (value) PinState.HIGH else PinState.LOW)
-        valueUpdateTime = Date().toString()
+        valueUpdateTime = System.currentTimeMillis()
     }
 }

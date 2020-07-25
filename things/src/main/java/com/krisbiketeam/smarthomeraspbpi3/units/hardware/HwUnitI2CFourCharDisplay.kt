@@ -8,7 +8,6 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.ConnectionType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
 import com.krisbiketeam.smarthomeraspbpi3.units.Actuator
 import com.krisbiketeam.smarthomeraspbpi3.units.HwUnitI2C
-import java.util.*
 
 class HwUnitI2CFourCharDisplay(name: String, location: String, pinName: String,
                                override var device: AutoCloseable? = null) : HwUnitI2C<String>,
@@ -23,7 +22,7 @@ class HwUnitI2CFourCharDisplay(name: String, location: String, pinName: String,
             HwUnit(name, location, BoardConfig.FOUR_CHAR_DISP, pinName, ConnectionType.I2C,
                    AlphanumericDisplay.I2C_ADDRESS)
     override var unitValue: String? = null
-    override var valueUpdateTime: String = ""
+    override var valueUpdateTime: Long = System.currentTimeMillis()
 
     override fun setValue(value: String) {
         // We do not want to block I2C buss so open device to only display some data and then immediately close it.
@@ -38,7 +37,7 @@ class HwUnitI2CFourCharDisplay(name: String, location: String, pinName: String,
         } else {
             display.setEnabled(false)
         }
-        valueUpdateTime = Date().toString()
+        valueUpdateTime = System.currentTimeMillis()
         display.close()
     }
 }

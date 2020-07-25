@@ -9,7 +9,6 @@ import com.krisbiketeam.smarthomeraspbpi3.units.HwUnitI2C
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
 import kotlinx.coroutines.CoroutineExceptionHandler
 import timber.log.Timber
-import java.util.*
 
 open class HwUnitI2CPCF8574ATSensor(name: String, location: String, private val pinName: String,
                                     private val address: Int, private val pinInterrupt: String,
@@ -21,7 +20,7 @@ open class HwUnitI2CPCF8574ATSensor(name: String, location: String, private val 
             HwUnit(name, location, BoardConfig.IO_EXTENDER_PCF8474AT_INPUT, pinName,
                    ConnectionType.I2C, address, pinInterrupt, ioPin.name)
     override var unitValue: Boolean? = null
-    override var valueUpdateTime: String = ""
+    override var valueUpdateTime: Long = System.currentTimeMillis()
 
     var hwUnitListener: Sensor.HwUnitListener<Boolean>? = null
 
@@ -29,7 +28,7 @@ open class HwUnitI2CPCF8574ATSensor(name: String, location: String, private val 
         override fun onPinStateChanged(pin: Pin, state: PinState) {
             Timber.d("onPinStateChanged pin: ${pin.name} state: $state")
             unitValue = state == PinState.HIGH
-            valueUpdateTime = Date().toString()
+            valueUpdateTime = System.currentTimeMillis()
             hwUnitListener?.onHwUnitChanged(hwUnit, unitValue, valueUpdateTime)
 
         }

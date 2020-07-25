@@ -74,7 +74,7 @@ class RoomDetailHomeUnitListAdapter(private val homeInformationRepository: Fireb
             // calculate days from unit time to now 1000 milliseconds * 60 seconds * 60 minutes * 24 hours = 86400000L
             val days = ((System.currentTimeMillis() - date.time) / 86400000L).toInt()
 
-            val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+            val timeFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
             timeFormat.format(date)
             return if (days > 0) {
                 context.resources.getQuantityString(R.plurals.last_update_time, days, timeFormat.format(date), days)

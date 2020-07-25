@@ -8,7 +8,6 @@ import com.krisbiketeam.smarthomeraspbpi3.units.HwUnitI2C
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
 import kotlinx.coroutines.*
 import timber.log.Timber
-import java.util.*
 
 private const val REFRESH_RATE = 300000L // 5 min
 
@@ -22,7 +21,7 @@ class HwUnitI2CTempTMP102Sensor(name: String, location: String, private val pinN
             HwUnit(name, location, BoardConfig.TEMP_SENSOR_TMP102, pinName, ConnectionType.I2C,
                    softAddress, refreshRate = refreshRate)
     override var unitValue: Float? = null
-    override var valueUpdateTime: String = ""
+    override var valueUpdateTime: Long = System.currentTimeMillis()
 
     private var job: Job? = null
     private var hwUnitListener: Sensor.HwUnitListener<Float>? = null
@@ -69,7 +68,7 @@ class HwUnitI2CTempTMP102Sensor(name: String, location: String, private val pinN
         tmp102.shutdownMode = true
         tmp102.readOneShotTemperature { value ->
             unitValue = value
-            valueUpdateTime = Date().toString()
+            valueUpdateTime = System.currentTimeMillis()
             Timber.d("temperature:$unitValue")
             hwUnitListener?.onHwUnitChanged(hwUnit, unitValue, valueUpdateTime)
             tmp102.close()
@@ -83,7 +82,7 @@ class HwUnitI2CTempTMP102Sensor(name: String, location: String, private val pinN
         val tmp102 = TMP102(pinName, softAddress)
         tmp102.use {
             unitValue = it.readTemperature()
-            valueUpdateTime = Date().toString()
+            valueUpdateTime = System.currentTimeMillis()
             Timber.d("temperature:$unitValue")
         }
         return unitValue

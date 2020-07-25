@@ -53,9 +53,9 @@ class Home(secureStorage: SecureStorage,
                         Timber.d("booleanApplyFunction taskHwUnit: $taskHwUnit")
                         if (taskHwUnit is Actuator) {
                             value = newVal
-                            lastUpdateTime = System.currentTimeMillis()
                             Timber.d("booleanApplyFunction taskHwUnit setValue value: $value")
                             taskHwUnit.setValueWithException(newVal)
+                            lastUpdateTime = taskHwUnit.valueUpdateTime
                             applyFunction(newVal)
                             homeInformationRepository.saveHomeUnit(this)
                             if (firebaseNotify && alarmEnabled) {
@@ -84,9 +84,9 @@ class Home(secureStorage: SecureStorage,
                             Timber.d("sensorApplyFunction taskHwUnit: $taskHwUnit")
                             if (taskHwUnit is Actuator) {
                                 value = newVal
-                                lastUpdateTime = System.currentTimeMillis()
                                 Timber.d("sensorApplyFunction taskHwUnit setValue value: $value")
                                 taskHwUnit.setValueWithException(newVal)
+                                lastUpdateTime = taskHwUnit.valueUpdateTime
                                 applyFunction(newVal)
                                 homeInformationRepository.saveHomeUnit(this)
                                 if (firebaseNotify && alarmEnabled) {
@@ -160,9 +160,9 @@ class Home(secureStorage: SecureStorage,
                                             "homeUnitsDataObserver NODE_ACTION_CHANGED baseUnit setValue value: ${homeUnit.value}")
                                     homeUnit.value?.let { newValue ->
                                         hwUnit.setValueWithException(newValue)
+                                        homeUnit.lastUpdateTime = hwUnit.valueUpdateTime
                                         homeUnit.applyFunction(newValue)
                                     }
-                                    homeUnit.lastUpdateTime = System.currentTimeMillis()
 
                                     if (homeUnit.firebaseNotify && alarmEnabled) {
                                         Timber.d(
@@ -205,7 +205,7 @@ class Home(secureStorage: SecureStorage,
                                 homeUnit.value = hwUnit.unitValue
                                 homeInformationRepository.saveHomeUnit(homeUnit)
                             }
-                            homeUnit.lastUpdateTime = System.currentTimeMillis()
+                            homeUnit.lastUpdateTime = hwUnit.valueUpdateTime
                         }
                     }
                     homeUnitsList[homeUnit.name] = homeUnit
@@ -339,8 +339,8 @@ class Home(secureStorage: SecureStorage,
         restartHwUnitList.forEach(this::hwUnitStart)
     }
 
-    override fun onHwUnitChanged(hwUnit: HwUnit, unitValue: Any?, updateTime: String) {
-        Timber.d("onHwUnitChanged unit: $hwUnit; unitValue: $unitValue; updateTime: $updateTime")
+    override fun onHwUnitChanged(hwUnit: HwUnit, unitValue: Any?, updateTime: Long) {
+        Timber.d("onHwUnitChanged unit: $hwUnit; unitValue: $unitValue; updateTime: ${Date(updateTime)}")
         //TODO :disable logging as its can overload firebase DB
         //homeInformationRepository.logUnitEvent(HwUnitLog(hwUnit, unitValue, updateTime))
 
@@ -359,7 +359,7 @@ class Home(secureStorage: SecureStorage,
                 } else {
                     value = unitValue
                 }
-                lastUpdateTime = System.currentTimeMillis()
+                lastUpdateTime = updateTime
                 value?.let { newValue ->
                     applyFunction(newValue)
                 }

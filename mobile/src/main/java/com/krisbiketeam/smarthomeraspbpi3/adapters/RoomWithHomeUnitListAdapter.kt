@@ -36,9 +36,11 @@ class RoomWithHomeUnitListAdapter : ListAdapter<RoomListAdapterModel, RoomWithHo
         return View.OnClickListener { view ->
             Timber.d("onClick")
             val direction = when {
-                item.room != null -> RoomListFragmentDirections.actionRoomListFragmentToRoomDetailFragment(item.room.name)
-                // is HomeUnit<*> -> RoomListFragmentDirections.actionRoomListFragmentToHomeUnitDetailFragment(item.room, item.name, item.type)
-                else -> null
+                item.room != null     -> RoomListFragmentDirections.actionRoomListFragmentToRoomDetailFragment(
+                        item.room.name)
+                item.homeUnit != null -> RoomListFragmentDirections.actionRoomListFragmentToHomeUnitDetailFragment(
+                        "", item.homeUnit?.name ?: "", item.homeUnit?.type ?: "")
+                else                  -> null
             }
             direction?.let {
                 view.findNavController().navigate(it)

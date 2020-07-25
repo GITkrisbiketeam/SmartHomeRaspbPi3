@@ -9,7 +9,6 @@ import com.krisbiketeam.smarthomeraspbpi3.units.HwUnitGpio
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
 import kotlinx.coroutines.CoroutineExceptionHandler
 import timber.log.Timber
-import java.util.*
 
 open class HwUnitGpioSensor(name: String, location: String, pinName: String,
                             private val activeType: Int = Gpio.ACTIVE_HIGH,
@@ -19,7 +18,7 @@ open class HwUnitGpioSensor(name: String, location: String, pinName: String,
     override val hwUnit: HwUnit =
             HwUnit(name, location, BoardConfig.GPIO_INPUT, pinName, ConnectionType.GPIO)
     override var unitValue: Boolean? = null
-    override var valueUpdateTime: String = ""
+    override var valueUpdateTime: Long = System.currentTimeMillis()
 
     var hwUnitListener: Sensor.HwUnitListener<Boolean>? = null
 
@@ -78,7 +77,7 @@ open class HwUnitGpioSensor(name: String, location: String, pinName: String,
     @Throws(Exception::class)
     fun readValue(gpio: Gpio?): Boolean? {
         unitValue = gpio?.value
-        valueUpdateTime = Date().toString()
+        valueUpdateTime = System.currentTimeMillis()
 
         return unitValue
     }

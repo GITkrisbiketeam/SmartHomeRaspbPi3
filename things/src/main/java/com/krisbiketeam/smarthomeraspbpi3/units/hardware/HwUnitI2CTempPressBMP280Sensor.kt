@@ -9,7 +9,6 @@ import com.krisbiketeam.smarthomeraspbpi3.units.HwUnitI2C
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
 import kotlinx.coroutines.*
 import timber.log.Timber
-import java.util.*
 
 private const val REFRESH_RATE = 300000L // 5 min
 
@@ -25,7 +24,7 @@ class HwUnitI2CTempPressBMP280Sensor(name: String, location: String, pinName: St
             HwUnit(name, location, BoardConfig.TEMP_PRESS_SENSOR_BMP280, pinName,
                    ConnectionType.I2C, softAddress, refreshRate = refreshRate)
     override var unitValue: TemperatureAndPressure? = null
-    override var valueUpdateTime: String = ""
+    override var valueUpdateTime: Long = System.currentTimeMillis()
 
     private var job: Job? = null
     private var hwUnitListener: Sensor.HwUnitListener<TemperatureAndPressure>? = null
@@ -78,7 +77,7 @@ class HwUnitI2CTempPressBMP280Sensor(name: String, location: String, pinName: St
             it.pressureOversampling = Bmx280.OVERSAMPLING_1X
             it.setMode(Bmx280.MODE_NORMAL)
             unitValue = TemperatureAndPressure(it.readTemperature(), it.readPressure())
-            valueUpdateTime = Date().toString()
+            valueUpdateTime = System.currentTimeMillis()
             Timber.d("temperature:$unitValue")
         }
         return unitValue

@@ -6,7 +6,6 @@ import androidx.annotation.VisibleForTesting
 import com.google.android.things.pio.Gpio
 import com.google.android.things.pio.GpioCallback
 import timber.log.Timber
-import java.util.*
 
 class HwUnitGpioNoiseSensor(name: String, location: String, pinName: String, activeType: Int,
                             gpio: Gpio? = null) :
@@ -68,7 +67,7 @@ class HwUnitGpioNoiseSensor(name: String, location: String, pinName: String, act
     @VisibleForTesting
     internal fun performSensorEvent(event: Boolean?) {
         unitValue = event
-        valueUpdateTime = Date().toString()
+        valueUpdateTime = System.currentTimeMillis()
         Timber.d("performSensorEvent event: $event on: $hwUnit")
         hwUnitListener?.onHwUnitChanged(hwUnit, unitValue, valueUpdateTime) ?: Timber.w(
                 "listener not registered on: $hwUnit")
