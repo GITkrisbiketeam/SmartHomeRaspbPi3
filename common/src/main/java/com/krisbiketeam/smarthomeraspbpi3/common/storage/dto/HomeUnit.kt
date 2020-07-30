@@ -17,6 +17,8 @@ typealias TemperatureType = Float
 typealias Temperature = HomeUnit<TemperatureType?>
 typealias PressureType = Float
 typealias Pressure = HomeUnit<PressureType?>
+typealias HumidityType = Float
+typealias Humidity = HomeUnit<HumidityType?>
 typealias BlindType = Int
 typealias Blind = HomeUnit<BlindType?>
 
@@ -28,6 +30,7 @@ val homeUnitTypeIndicatorMap: HashMap<String, Class<out Any?>> = hashMapOf(
         HOME_MOTIONS to MotionType::class.java,
         HOME_TEMPERATURES to TemperatureType::class.java,
         HOME_PRESSURES to PressureType::class.java,
+        HOME_HUMIDITY to HumidityType::class.java,
         HOME_BLINDS to BlindType::class.java
 )
 

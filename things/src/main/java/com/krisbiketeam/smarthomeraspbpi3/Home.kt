@@ -185,7 +185,7 @@ class Home(secureStorage: SecureStorage,
                                     "homeUnitsDataObserver NODE_ACTION_ADDED set boolean apply function")
                             homeUnit.applyFunction = booleanApplyFunction
                         }
-                        HOME_TEMPERATURES, HOME_PRESSURES                                                  -> {
+                        HOME_TEMPERATURES, HOME_PRESSURES, HOME_HUMIDITY                                   -> {
                             Timber.d(
                                     "homeUnitsDataObserver NODE_ACTION_ADDED set sensor apply function")
                             homeUnit.applyFunction = sensorApplyFunction
@@ -356,6 +356,13 @@ class Home(secureStorage: SecureStorage,
                     } else if (type == HOME_PRESSURES) {
                         value = unitValue.pressure
                     }
+                } else if (unitValue is TemperatureAndHumidity) {
+                    Timber.d("Received TemperatureAndHumidity $value")
+                    if (type == HOME_TEMPERATURES) {
+                        value = unitValue.temperature
+                    } else if (type == HOME_HUMIDITY) {
+                        value = unitValue.humidity
+                    }
                 } else {
                     value = unitValue
                 }
@@ -383,6 +390,11 @@ class Home(secureStorage: SecureStorage,
                 HwUnitI2CTempMCP9808Sensor(hwUnit.name, hwUnit.location, hwUnit.pinName,
                                            hwUnit.softAddress ?: 0,
                                            hwUnit.refreshRate) as BaseHwUnit<Any>
+            }
+            BoardConfig.TEMP_RH_SENSOR_SI7021       -> {
+                HwUnitI2CTempRhSi7021Sensor(hwUnit.name, hwUnit.location, hwUnit.pinName,
+                        hwUnit.softAddress ?: 0,
+                        hwUnit.refreshRate) as BaseHwUnit<Any>
             }
             BoardConfig.TEMP_PRESS_SENSOR_BMP280    -> {
                 HwUnitI2CTempPressBMP280Sensor(hwUnit.name, hwUnit.location, hwUnit.pinName,

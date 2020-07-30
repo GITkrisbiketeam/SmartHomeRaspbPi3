@@ -36,6 +36,7 @@ const val HOME_REED_SWITCHES = "reed_switches"
 const val HOME_MOTIONS = "motions"
 const val HOME_TEMPERATURES = "temperatures"
 const val HOME_PRESSURES = "pressures"
+const val HOME_HUMIDITY = "humidity"
 const val HOME_BLINDS = "blinds"
 
 // region unitTasks

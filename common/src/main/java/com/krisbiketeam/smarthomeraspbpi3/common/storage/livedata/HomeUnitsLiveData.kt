@@ -27,16 +27,17 @@ class HomeUnitsLiveData(private val homeNamePath: String?, private val roomName:
 
     private val typeIndicatorMap: HashMap<String, GenericTypeIndicator<out HomeUnit<out Any?>>> by lazy {
         hashMapOf(HOME_LIGHTS to object : GenericTypeIndicator<HomeUnit<LightType?>>() {},
-                  HOME_ACTUATORS to object : GenericTypeIndicator<HomeUnit<ActuatorType?>>() {},
-                  HOME_LIGHT_SWITCHES to object :
-                          GenericTypeIndicator<HomeUnit<LightSwitchType?>>() {},
-                  HOME_REED_SWITCHES to object :
-                          GenericTypeIndicator<HomeUnit<ReedSwitchType?>>() {},
-                  HOME_MOTIONS to object : GenericTypeIndicator<HomeUnit<MotionType?>>() {},
-                  HOME_TEMPERATURES to object :
-                          GenericTypeIndicator<HomeUnit<TemperatureType?>>() {},
-                  HOME_PRESSURES to object : GenericTypeIndicator<HomeUnit<PressureType?>>() {},
-                  HOME_BLINDS to object : GenericTypeIndicator<HomeUnit<BlindType?>>() {})
+                HOME_ACTUATORS to object : GenericTypeIndicator<HomeUnit<ActuatorType?>>() {},
+                HOME_LIGHT_SWITCHES to object :
+                        GenericTypeIndicator<HomeUnit<LightSwitchType?>>() {},
+                HOME_REED_SWITCHES to object :
+                        GenericTypeIndicator<HomeUnit<ReedSwitchType?>>() {},
+                HOME_MOTIONS to object : GenericTypeIndicator<HomeUnit<MotionType?>>() {},
+                HOME_TEMPERATURES to object :
+                        GenericTypeIndicator<HomeUnit<TemperatureType?>>() {},
+                HOME_PRESSURES to object : GenericTypeIndicator<HomeUnit<PressureType?>>() {},
+                HOME_HUMIDITY to object : GenericTypeIndicator<HomeUnit<HumidityType?>>() {},
+                HOME_BLINDS to object : GenericTypeIndicator<HomeUnit<BlindType?>>() {})
     }
 
     inner class MyChildEventListener(val childNode: String) : ChildEventListener {

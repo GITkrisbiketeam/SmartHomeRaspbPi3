@@ -57,7 +57,7 @@ class AddEditHwUnitViewModel(private val homeRepository: FirebaseHomeInformation
             Transformations.map(Transformations.distinctUntilChanged(type)) { type ->
                 Timber.d("init pinNameList type: $type")
                 when (type) {
-                    BoardConfig.TEMP_SENSOR_TMP102, BoardConfig.TEMP_SENSOR_MCP9808, BoardConfig.TEMP_PRESS_SENSOR_BMP280, BoardConfig.IO_EXTENDER_MCP23017_INPUT, BoardConfig.IO_EXTENDER_MCP23017_OUTPUT, BoardConfig.FOUR_CHAR_DISP -> BoardConfig.IO_I2C_PIN_NAME_LIST
+                    BoardConfig.TEMP_SENSOR_TMP102, BoardConfig.TEMP_SENSOR_MCP9808, BoardConfig.TEMP_RH_SENSOR_SI7021, BoardConfig.TEMP_PRESS_SENSOR_BMP280, BoardConfig.IO_EXTENDER_MCP23017_INPUT, BoardConfig.IO_EXTENDER_MCP23017_OUTPUT, BoardConfig.FOUR_CHAR_DISP -> BoardConfig.IO_I2C_PIN_NAME_LIST
                     BoardConfig.GPIO_INPUT, BoardConfig.GPIO_OUTPUT                                                                                                                                                                    -> BoardConfig.IO_GPIO_PIN_NAME_LIST
                     else                                                                                                                                                                                                               -> emptyList()
                 }.also {
@@ -71,7 +71,7 @@ class AddEditHwUnitViewModel(private val homeRepository: FirebaseHomeInformation
     val connectionType = Transformations.map(Transformations.distinctUntilChanged(type)) { type ->
         Timber.d("init connectionType type: $type")
         when (type) {
-            BoardConfig.TEMP_SENSOR_TMP102, BoardConfig.TEMP_SENSOR_MCP9808, BoardConfig.TEMP_PRESS_SENSOR_BMP280, BoardConfig.IO_EXTENDER_MCP23017_INPUT, BoardConfig.IO_EXTENDER_MCP23017_OUTPUT, BoardConfig.FOUR_CHAR_DISP -> ConnectionType.I2C
+            BoardConfig.TEMP_SENSOR_TMP102, BoardConfig.TEMP_SENSOR_MCP9808, BoardConfig.TEMP_RH_SENSOR_SI7021, BoardConfig.TEMP_PRESS_SENSOR_BMP280, BoardConfig.IO_EXTENDER_MCP23017_INPUT, BoardConfig.IO_EXTENDER_MCP23017_OUTPUT, BoardConfig.FOUR_CHAR_DISP -> ConnectionType.I2C
             BoardConfig.GPIO_INPUT, BoardConfig.GPIO_OUTPUT                                                                                                                                                                    -> ConnectionType.GPIO
             else                                                                                                                                                                                                               -> null
         }
@@ -97,6 +97,7 @@ class AddEditHwUnitViewModel(private val homeRepository: FirebaseHomeInformation
                 when (type) {
                     BoardConfig.TEMP_SENSOR_TMP102                                                  -> BoardConfig.TEMP_SENSOR_TMP102_ADDR_LIST
                     BoardConfig.TEMP_SENSOR_MCP9808                                                 -> BoardConfig.TEMP_SENSOR_MCP9808_ADDR_LIST
+                    BoardConfig.TEMP_RH_SENSOR_SI7021                                               -> BoardConfig.TEMP_RH_SENSOR_SI7021_ADDR_LIST
                     BoardConfig.TEMP_PRESS_SENSOR_BMP280                                            -> BoardConfig.TEMP_PRESS_SENSOR_BMP280_ADDR_LIST
                     BoardConfig.IO_EXTENDER_MCP23017_INPUT, BoardConfig.IO_EXTENDER_MCP23017_OUTPUT -> BoardConfig.IO_EXTENDER_MCP23017_ADDR_LIST
                     else                                                                            -> emptyList()
@@ -249,6 +250,7 @@ class AddEditHwUnitViewModel(private val homeRepository: FirebaseHomeInformation
                 softAddress.value = when (unit.type) {
                     BoardConfig.TEMP_SENSOR_TMP102                                                  -> BoardConfig.TEMP_SENSOR_TMP102_ADDR_LIST
                     BoardConfig.TEMP_SENSOR_MCP9808                                                 -> BoardConfig.TEMP_SENSOR_MCP9808_ADDR_LIST
+                    BoardConfig.TEMP_RH_SENSOR_SI7021                                               -> BoardConfig.TEMP_RH_SENSOR_SI7021_ADDR_LIST
                     BoardConfig.TEMP_PRESS_SENSOR_BMP280                                            -> BoardConfig.TEMP_PRESS_SENSOR_BMP280_ADDR_LIST
                     BoardConfig.IO_EXTENDER_MCP23017_INPUT, BoardConfig.IO_EXTENDER_MCP23017_OUTPUT -> BoardConfig.IO_EXTENDER_MCP23017_ADDR_LIST
                     else                                                                            -> emptyList()
