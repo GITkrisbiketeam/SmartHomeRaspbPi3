@@ -64,12 +64,13 @@ class HwUnitI2CTempMCP9808Sensor(name: String, location: String, private val pin
     private fun oneShotReadValue() {
         // We do not want to block I2C buss so open device to only display some data and then immediately close it.
         // use block automatically closes resources referenced to mcp9808
-        MCP9808(pinName, softAddress).use {
+        MCP9808(pinName, softAddress).let {
             it.readOneShotTemperature { value ->
                 unitValue = value
                 valueUpdateTime = System.currentTimeMillis()
                 Timber.d("temperature:$unitValue")
                 hwUnitListener?.onHwUnitChanged(hwUnit, unitValue, valueUpdateTime)
+                it.close()
             }
         }
     }

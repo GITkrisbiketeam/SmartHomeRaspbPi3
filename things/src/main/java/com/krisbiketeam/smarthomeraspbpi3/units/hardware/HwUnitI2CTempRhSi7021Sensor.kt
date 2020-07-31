@@ -1,7 +1,6 @@
 package com.krisbiketeam.smarthomeraspbpi3.units.hardware
 
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig
-import com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver.MCP9808
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver.Si7021
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.ConnectionType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
@@ -9,23 +8,21 @@ import com.krisbiketeam.smarthomeraspbpi3.units.HwUnitI2C
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
 import kotlinx.coroutines.*
 import timber.log.Timber
-import java.util.*
 
 private const val REFRESH_RATE = 300000L // 5 min
 
 data class TemperatureAndHumidity(val temperature: Float?, val humidity: Float?)
 
 class HwUnitI2CTempRhSi7021Sensor(name: String, location: String, private val pinName: String,
-                                  private val softAddress: Int,
-                                  private val refreshRate: Long? = REFRESH_RATE,
-                                  override var device: AutoCloseable? = null) : HwUnitI2C<TemperatureAndHumidity>,
-        Sensor<TemperatureAndHumidity> {
+                                  softAddress: Int, private val refreshRate: Long? = REFRESH_RATE,
+                                  override var device: AutoCloseable? = null) :
+        HwUnitI2C<TemperatureAndHumidity>, Sensor<TemperatureAndHumidity> {
 
     override val hwUnit: HwUnit =
             HwUnit(name, location, BoardConfig.TEMP_RH_SENSOR_SI7021, pinName, ConnectionType.I2C,
                    softAddress, refreshRate = refreshRate)
     override var unitValue: TemperatureAndHumidity? = null
-    override var valueUpdateTime: String = ""
+    override var valueUpdateTime: Long = System.currentTimeMillis()
 
     private var job: Job? = null
     private var hwUnitListener: Sensor.HwUnitListener<TemperatureAndHumidity>? = null
@@ -68,12 +65,13 @@ class HwUnitI2CTempRhSi7021Sensor(name: String, location: String, private val pi
     private fun oneShotReadValue() {
         // We do not want to block I2C buss so open device to only display some data and then immediately close it.
         // use block automatically closes resources referenced to mcp9808
-        Si7021(pinName).use {
+        Si7021(pinName).let {
             it.readOneShotRh { rh ->
                 unitValue = TemperatureAndHumidity(it.readPrevTemperature(), rh)
-                valueUpdateTime = Date().toString()
+                valueUpdateTime = System.currentTimeMillis()
                 Timber.d("temperatureAndHumidity:$unitValue")
                 hwUnitListener?.onHwUnitChanged(hwUnit, unitValue, valueUpdateTime)
+                it.close()
             }
         }
     }
@@ -83,11 +81,10 @@ class HwUnitI2CTempRhSi7021Sensor(name: String, location: String, private val pi
         // We do not want to block I2C buss so open device to only display some data and then immediately close it.
         // use block automatically closes resources referenced to tmp102
         Si7021(pinName).use {
-            it.readOneShotRh { rh ->
-                unitValue = TemperatureAndHumidity(it.readPrevTemperature(), rh)
-                valueUpdateTime = Date().toString()
-                Timber.d("temperatureAndHumidity:$unitValue")
-            }
+            // TODO do not use callback method here as it will hold I2C buss
+            unitValue = TemperatureAndHumidity(it.readPrevTemperature(), null)
+            valueUpdateTime = System.currentTimeMillis()
+            Timber.d("temperatureAndHumidity:$unitValue")
         }
         return unitValue
     }

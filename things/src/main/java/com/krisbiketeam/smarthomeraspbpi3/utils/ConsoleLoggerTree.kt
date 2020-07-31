@@ -13,7 +13,7 @@ object ConsoleLoggerTree : Timber.DebugTree() {
     private var loggingEnabled: Boolean = false
 
     override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
-        super.log(priority, tag, message, t)
+        super.log(priority, "[${Thread.currentThread().name}] SHRP3_$tag", message, t)
         if (loggingEnabled && priority > Log.VERBOSE && logger != null) {
             var lastConsoleMsg: String? = logger?.consoleMessage
             if (lastConsoleMsg == null) {

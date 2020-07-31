@@ -87,7 +87,7 @@ private const val TEMP_REG_FACTOR = 0.0625f
 
 
 /**
- * Driver for the MCP9808 temperature sensor.
+ * Driver for the Si7021 temperature sensor.
  */
 class Si7021(bus: String? = null) : AutoCloseable {
 
@@ -249,19 +249,20 @@ class Si7021(bus: String? = null) : AutoCloseable {
 
     init {
         if (bus != null) {
+            Timber.d("connect init")
             try {
                 mDevice = PeripheralManager.getInstance()?.openI2cDevice(bus, I2C_ADDRESS)
                 mConfig = readRegister(READ_RH_T_USER_REG) ?: 0
                 Timber.d("connect mConfig: $mConfig")
             } catch (e: Exception) {
                 close()
-                throw Exception("Error Initializing MCP9808", e)
+                throw Exception("Error Initializing Si7021", e)
             }
         }
     }
 
     /**
-     * Create a new MCP9808 sensor driver connected to the given I2c device.
+     * Create a new Si7021 sensor driver connected to the given I2c device.
      *
      * @param device I2C device of the sensor.
      */
@@ -281,7 +282,7 @@ class Si7021(bus: String? = null) : AutoCloseable {
         try {
             mDevice?.close()
         } catch (e: Exception) {
-            throw Exception("Error closing MCP9808", e)
+            throw Exception("Error closing Si7021", e)
         } finally {
             mDevice = null
         }
@@ -329,7 +330,7 @@ class Si7021(bus: String? = null) : AutoCloseable {
             GlobalScope.launch(Dispatchers.IO) {
                 Timber.d("readOneShotRh start")
                 val rh = readRH()
-                Timber.d("readOneShotRh conversion finished temp? $rh")
+                Timber.d("readOneShotRh conversion finished rh? $rh")
                 onResult(rh)
             }
         }
@@ -343,7 +344,7 @@ class Si7021(bus: String? = null) : AutoCloseable {
      * @throws Exception
      */
     @Throws(Exception::class)
-    private fun readTemperature(): Float? = calculateTemperature(readSample16(MEASURE_TEMP_NO_HOLD_MASTER_MODE))
+    private fun readTemperature(): Float? = calculateTemperature(readSample16(MEASURE_TEMP_HOLD_MASTER_MODE))
 
     /**
      * Read the RH.
@@ -352,7 +353,7 @@ class Si7021(bus: String? = null) : AutoCloseable {
      * @throws Exception
      */
     @Throws(Exception::class)
-    private fun readRH(): Float? = calculateRh(readSample16(MEASURE_RH_NO_HOLD_MASTER_MODE))
+    private fun readRH(): Float? = calculateRh(readSample16(MEASURE_RH_HOLD_MASTER_MODE))
 
     @Throws(Exception::class)
     private fun readRegister(reg: Int): Int? = mDevice?.readRegByte(reg)?.toInt()?.and(0xff)
