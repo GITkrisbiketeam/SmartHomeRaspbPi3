@@ -54,7 +54,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="@dimen/margin_normal"
-                android:text="@{roomModel.homeUnit != null ? roomModel.homeUnit.value.toString() : null}"
+                android:text='@{roomModel.homeUnit != null ? roomModel.homeUnit.value instanceof java.lang.Double || roomModel.homeUnit.value instanceof java.lang.Float ? String.format("%.2f", roomModel.homeUnit.value) : roomModel.homeUnit.value.toString() : null}'
                 android:textAppearance="?attr/textAppearanceHeadline5"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
