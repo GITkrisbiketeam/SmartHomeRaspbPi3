@@ -3,6 +3,7 @@ package com.krisbiketeam.smarthomeraspbpi3.viewmodels
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asLiveData
 import com.google.android.gms.tasks.Task
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig
@@ -196,7 +197,7 @@ class AddEditHwUnitViewModel(private val homeRepository: FirebaseHomeInformation
     }
 
     // This is for checking if given name is not already used
-    private val hwUnitList = homeRepository.hwUnitListLiveData()
+    private val hwUnitList = homeRepository.hwUnitListFlow().asLiveData()
 
     private var homeRepositoryTask: Task<Void>? = null
 

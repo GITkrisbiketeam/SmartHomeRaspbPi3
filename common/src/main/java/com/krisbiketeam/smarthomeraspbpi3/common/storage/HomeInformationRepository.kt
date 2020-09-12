@@ -8,6 +8,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.resetableLazy
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.*
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.*
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.flows.genericListReferenceFlow
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.flows.genericReferenceFlow
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.livedata.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -351,10 +352,10 @@ class FirebaseHomeInformationRepository {
 
     // region HW Units
     /**
-     * get instance of @see[HwUnitListLiveData] for listening to changes in Room entries in DB
+     * get [Flow] of [HwUnit] List for listening to changes in Room entries in DB
      */
-    fun hwUnitListLiveData(): HwUnitListLiveData {
-        return HwUnitListLiveData(referenceHWUnits)
+    fun hwUnitListFlow(): Flow<List<HwUnit>> {
+        return genericListReferenceFlow(referenceHWUnits)
     }
 
     /**
@@ -367,23 +368,27 @@ class FirebaseHomeInformationRepository {
     /**
      * get instance of @see[HwUnitsLiveData] for listening to changes in entries in DB
      */
+    @Deprecated("please use hwUnitFlow")
     fun hwUnitLiveData(hwUnitName: String): HwUnitLiveData {
         return HwUnitLiveData(referenceHWUnits, hwUnitName)
+    }
+    fun hwUnitFlow(hwUnitName: String): Flow<HwUnit> {
+        return genericReferenceFlow(referenceHWUnits?.child(hwUnitName))
     }
 
     // region HW Unit Error/Restart
     /**
-     * get instance of @see[HwUnitErrorEventListLiveData] for listening to changes HwUnit Error Event List in DB
+     * get [Flow] of [HwUnitLog] List for listening to changes HwUnit Error Event List in DB
      */
-    fun hwUnitErrorEventListLiveData(): HwUnitErrorEventListLiveData {
-        return HwUnitErrorEventListLiveData(referenceHwError)
+    fun hwUnitErrorEventListFlow(): Flow<List<HwUnitLog<Any>>> {
+        return genericListReferenceFlow(referenceHwError)
     }
 
     /**
-     * get instance of @see[HwUnitErrorEventListLiveData] for listening to request to restart hw units
+     * get [Flow] of [HwUnitLog] List for listening to request to restart hw units
      */
-    fun hwUnitRestartListLiveData(): HwUnitErrorEventListLiveData {
-        return HwUnitErrorEventListLiveData(referenceHwRestart)
+    fun hwUnitRestartListFlow(): Flow<List<HwUnitLog<Any>>> {
+        return genericListReferenceFlow(referenceHwRestart)
     }
     // endregion
 

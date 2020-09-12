@@ -66,7 +66,7 @@ class HomeUnitDetailViewModel(private val homeRepository: FirebaseHomeInformatio
                 if (isEdit) {
                     Transformations.switchMap(homeUnitList) { homeUnitList ->
                         Timber.d("init hwUnitNameList homeUnitList homeUnitList: $homeUnitList")
-                        Transformations.map(homeRepository.hwUnitListLiveData()) { list ->
+                        Transformations.map(homeRepository.hwUnitListFlow().asLiveData()) { list ->
                             list.map {
                                 Pair(it.name,
                                      homeUnitList.find { unit -> unit.hwUnitName == it.name } != null)

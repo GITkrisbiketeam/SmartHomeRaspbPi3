@@ -10,16 +10,13 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.*
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.*
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.livedata.HomeUnitsLiveData
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.livedata.HwUnitErrorEventListLiveData
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.livedata.HwUnitsLiveData
 import com.krisbiketeam.smarthomeraspbpi3.units.Actuator
 import com.krisbiketeam.smarthomeraspbpi3.units.BaseHwUnit
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
 import com.krisbiketeam.smarthomeraspbpi3.units.hardware.*
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.collect
 import timber.log.Timber
 import java.util.*
 import kotlin.collections.HashMap
@@ -34,10 +31,9 @@ class Home(secureStorage: SecureStorage,
     private val hwUnitsList: MutableMap<String, BaseHwUnit<Any>> = HashMap()
 
 
-    private var hwUnitErrorEventListLiveData: HwUnitErrorEventListLiveData? = null
-    private val hwUnitErrorEventList: MutableMap<String, BaseHwUnit<Any>?> = HashMap()
+    private var hwUnitErrorEventRestartListJob: Job? = null
 
-    private var hwUnitRestartListLiveData: HwUnitErrorEventListLiveData? = null
+    private val hwUnitErrorEventList: MutableMap<String, BaseHwUnit<Any>?> = HashMap()
 
 
     private val alarmEnabledLiveData: LiveData<Boolean> = secureStorage.alarmEnabledLiveData
@@ -119,12 +115,13 @@ class Home(secureStorage: SecureStorage,
         hwUnitsLiveData = homeInformationRepository.hwUnitsLiveData().apply {
             observeForever(hwUnitsDataObserver)
         }
-        hwUnitErrorEventListLiveData =
-                homeInformationRepository.hwUnitErrorEventListLiveData().apply {
-                    observeForever(hwUnitErrorEventListDataObserver)
-                }
-        hwUnitRestartListLiveData = homeInformationRepository.hwUnitRestartListLiveData().apply {
-            observeForever(hwUnitRestartListLiveDataObserver)
+        hwUnitErrorEventRestartListJob = GlobalScope.launch(Dispatchers.Default) {
+            homeInformationRepository.hwUnitErrorEventListFlow().collect {
+                hwUnitErrorEventListDataProcessor(it)
+            }
+            homeInformationRepository.hwUnitRestartListFlow().collect {
+                hwUnitRestartListProcessor(it)
+            }
         }
         alarmEnabledLiveData.observeForever {
             alarmEnabled = it
@@ -135,8 +132,7 @@ class Home(secureStorage: SecureStorage,
         Timber.e("stop; hwUnitsList.size: ${hwUnitsList.size}")
         homeUnitsLiveData?.removeObserver(homeUnitsDataObserver)
         hwUnitsLiveData?.removeObserver(hwUnitsDataObserver)
-        hwUnitErrorEventListLiveData?.removeObserver(hwUnitErrorEventListDataObserver)
-        hwUnitRestartListLiveData?.removeObserver(hwUnitRestartListLiveDataObserver)
+        hwUnitErrorEventRestartListJob?.cancel()
 
         hwUnitsList.values.forEach(this::hwUnitStop)
     }
@@ -283,52 +279,50 @@ class Home(secureStorage: SecureStorage,
         }
     }
 
-    private val hwUnitErrorEventListDataObserver =
-            Observer<List<HwUnitLog<Any>>> { errorEventList ->
-                Timber.d(
-                        "hwUnitErrorEventListDataObserver errorEventList: $errorEventList; errorEventList.size: ${errorEventList.size}")
-                if (errorEventList.isNotEmpty()) {
-                    var newErrorOccurred = false
-                    errorEventList.forEach { hwUnitErrorEvent ->
-                        hwUnitErrorEventList.computeIfAbsent(hwUnitErrorEvent.name) { key ->
-                            // disable after first error
-                            hwUnitsList.remove(key)?.also {
-                                newErrorOccurred = true
-                                hwUnitStop(it)
-                                Timber.w(
-                                        "hwUnitErrorEventListDataObserver error from hwUnit: $key, remove it from hwUnitsList")
-                            }
-                        }
-                    }
-                    if (newErrorOccurred) {
-                        // If error occurred then restart All other as they can be corrupted by error in i2c
+    private fun hwUnitErrorEventListDataProcessor(errorEventList: List<HwUnitLog<Any>>) {
+        Timber.d(
+                "hwUnitErrorEventListDataProcessor errorEventList: $errorEventList; errorEventList.size: ${errorEventList.size}")
+        if (errorEventList.isNotEmpty()) {
+            var newErrorOccurred = false
+            errorEventList.forEach { hwUnitErrorEvent ->
+                hwUnitErrorEventList.computeIfAbsent(hwUnitErrorEvent.name) { key ->
+                    // disable after first error
+                    hwUnitsList.remove(key)?.also {
+                        newErrorOccurred = true
+                        hwUnitStop(it)
                         Timber.w(
-                                "hwUnitErrorEventListDataObserver new error occurred restart others")
-                        restartHwUnits()
+                                "hwUnitErrorEventListDataProcessor error from hwUnit: $key, remove it from hwUnitsList")
                     }
-                } else {
-                    val unitToStart = hwUnitErrorEventList.values.toList()
-                    hwUnitErrorEventList.clear()
-                    unitToStart.forEach { hwUnit -> hwUnit?.let { hwUnitStart(it) } }
                 }
             }
+            if (newErrorOccurred) {
+                // If error occurred then restart All other as they can be corrupted by error in i2c
+                Timber.w(
+                        "hwUnitErrorEventListDataProcessor new error occurred restart others")
+                restartHwUnits()
+            }
+        } else {
+            val unitToStart = hwUnitErrorEventList.values.toList()
+            hwUnitErrorEventList.clear()
+            unitToStart.forEach { hwUnit -> hwUnit?.let { hwUnitStart(it) } }
+        }
+    }
 
-    private val hwUnitRestartListLiveDataObserver =
-            Observer<List<HwUnitLog<Any>>> { restartEventList ->
-                if (!restartEventList.isNullOrEmpty()) {
-                    val removedHwUnitList = restartEventList.mapNotNull { hwUnitLog ->
-                        hwUnitsList.remove(hwUnitLog.name)?.also { hwUnit ->
-                            hwUnitStop(hwUnit)
-                        }
-                    }
-                    Timber.d(
-                            "hwUnitRestartListLiveDataObserver restartEventList.size: ${restartEventList.size} ; restarted count (no error Units) ${removedHwUnitList.size}; restartEventList: $restartEventList")
-                    homeInformationRepository.clearHwRestarts()
-                    removedHwUnitList.forEach { hwUnit ->
-                        hwUnitStart(hwUnit)
-                    }
+    private fun hwUnitRestartListProcessor(restartEventList: List<HwUnitLog<Any>>) {
+        if (!restartEventList.isNullOrEmpty()) {
+            val removedHwUnitList = restartEventList.mapNotNull { hwUnitLog ->
+                hwUnitsList.remove(hwUnitLog.name)?.also { hwUnit ->
+                    hwUnitStop(hwUnit)
                 }
             }
+            Timber.d(
+                    "hwUnitRestartListLiveDataObserver restartEventList.size: ${restartEventList.size} ; restarted count (no error Units) ${removedHwUnitList.size}; restartEventList: $restartEventList")
+            homeInformationRepository.clearHwRestarts()
+            removedHwUnitList.forEach { hwUnit ->
+                hwUnitStart(hwUnit)
+            }
+        }
+    }
 
     private fun restartHwUnits() {
         val restartHwUnitList = hwUnitsList.values.toList()

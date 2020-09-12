@@ -36,3 +36,28 @@ inline fun <reified T> genericListReferenceFlow(databaseReference: DatabaseRefer
     }
 
 }.conflate()
+
+@ExperimentalCoroutinesApi
+inline fun <reified T> genericReferenceFlow(databaseReference: DatabaseReference?) = callbackFlow<T> {
+    val typeIndicator = object : GenericTypeIndicator<T>() {}
+    databaseReference?.let { reference ->
+        val eventListener = reference.addValueEventListener(object : ValueEventListener {
+            override fun onCancelled(databaseError: DatabaseError) {
+                this@callbackFlow.close(databaseError.toException())
+            }
+
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                // A new value has been added, add it to the displayed list
+                val value: T? = dataSnapshot.getValue(typeIndicator)
+                Timber.e("onDataChange (key=${dataSnapshot.key})(value=$value)")
+                if(value != null) {
+                    this@callbackFlow.sendBlocking(value)
+                }
+            }
+        })
+        awaitClose {
+            reference.removeEventListener(eventListener)
+        }
+    }
+
+}.conflate()

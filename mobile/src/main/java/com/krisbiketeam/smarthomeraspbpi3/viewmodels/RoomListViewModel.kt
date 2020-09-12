@@ -75,7 +75,7 @@ class RoomListViewModel(homeRepository: FirebaseHomeInformationRepository, secur
     @ExperimentalCoroutinesApi
     val roomWithHomeUnitsListFromFlow: LiveData<List<RoomListAdapterModel>> = secureStorage.homeNameLiveData.switchMap {
         Timber.e("secureStorage.homeNameLiveData")
-        combine(homeRepository.roomListFlow(), homeRepository.homeUnitListFlow()) { roomList, homeUnitsList ->
+        combine(homeRepository.roomListFlow(), homeRepository.homeUnitListFlow(), homeRepository.hwUnitErrorEventListFlow()) { roomList, homeUnitsList, hwUnitErrorEventList ->
             Timber.e("roomListAdapterModelMap")
             val roomListAdapterModelMap: MutableMap<String, RoomListAdapterModel> = roomList.associate {
                 it.name to RoomListAdapterModel(it)
@@ -87,11 +87,12 @@ class RoomListViewModel(homeRepository: FirebaseHomeInformationRepository, secur
                     if (it.type == HOME_TEMPERATURES) {
                         roomListAdapterModelMap[it.room]?.homeUnit = it
                     }
+                    roomListAdapterModelMap[it.room]?.error = hwUnitErrorEventList.firstOrNull { hwUnitLog -> hwUnitLog.name == it.hwUnitName } != null
                     homeUnitsListCopy.remove(it)
                 }
             }
             homeUnitsListCopy.forEach {
-                roomListAdapterModelMap[it.name] = RoomListAdapterModel(null, it)
+                roomListAdapterModelMap[it.name] = RoomListAdapterModel(null, it, hwUnitErrorEventList.firstOrNull { hwUnitLog -> hwUnitLog.name == it.hwUnitName } != null)
             }
             roomListAdapterModelMap.values.toList()
         }.asLiveData(Dispatchers.Default)
