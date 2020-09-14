@@ -27,6 +27,9 @@ class HwUnitI2CTempRhSi7021Sensor(name: String, location: String, private val pi
     private var job: Job? = null
     private var hwUnitListener: Sensor.HwUnitListener<TemperatureAndHumidity>? = null
 
+    private var heatOnCounter = 0
+    private var heatOnTrigger = 86400000 / (refreshRate?:REFRESH_RATE) // Heat on once per day
+
     override fun connect() {
         // Do noting we do not want to block I2C device so it will be opened while setting the value
         // and then immediately closed to release resources
@@ -43,7 +46,17 @@ class HwUnitI2CTempRhSi7021Sensor(name: String, location: String, private val pi
             while (isActive) {
                 // Cancel will not stop non suspending oneShotReadValue function
                 oneShotReadValue()
+                if (heatOnCounter++ >= heatOnTrigger) {
+                    // wait for OneShotReadValue to close Si7021
+                    delay(5000)
+                    heatOnOff(true)
+                    heatOnCounter = 0
+                    // heat up for 60 sec
+                    delay(60000)
+                    heatOnOff(false)
+                }
                 delay(refreshRate ?: REFRESH_RATE)
+
             }
         }
     }
@@ -72,6 +85,20 @@ class HwUnitI2CTempRhSi7021Sensor(name: String, location: String, private val pi
                 Timber.d("temperatureAndHumidity:$unitValue")
                 hwUnitListener?.onHwUnitChanged(hwUnit, unitValue, valueUpdateTime)
                 it.close()
+            }
+        }
+    }
+
+    @Throws(Exception::class)
+    private fun heatOnOff(on:Boolean) {
+        // We do not want to block I2C buss so open device to only display some data and then immediately close it.
+        // use block automatically closes resources referenced to mcp9808
+        Timber.d("heatOn:$on")
+        Si7021(pinName).use {
+            if (on) {
+                it.heater = Si7021.HeaterAmount.HEATER_15_MA
+            } else {
+                it.heater = Si7021.HeaterAmount.HEATER_OFF
             }
         }
     }

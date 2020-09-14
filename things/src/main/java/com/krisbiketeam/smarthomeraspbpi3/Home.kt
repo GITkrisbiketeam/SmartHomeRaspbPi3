@@ -31,7 +31,8 @@ class Home(secureStorage: SecureStorage,
     private val hwUnitsList: MutableMap<String, BaseHwUnit<Any>> = HashMap()
 
 
-    private var hwUnitErrorEventRestartListJob: Job? = null
+    private var hwUnitErrorEventListJob: Job? = null
+    private var hwUnitRestartListJob: Job? = null
 
     private val hwUnitErrorEventList: MutableMap<String, BaseHwUnit<Any>?> = HashMap()
 
@@ -115,10 +116,12 @@ class Home(secureStorage: SecureStorage,
         hwUnitsLiveData = homeInformationRepository.hwUnitsLiveData().apply {
             observeForever(hwUnitsDataObserver)
         }
-        hwUnitErrorEventRestartListJob = GlobalScope.launch(Dispatchers.Default) {
+        hwUnitErrorEventListJob = GlobalScope.launch(Dispatchers.Default) {
             homeInformationRepository.hwUnitErrorEventListFlow().collect {
                 hwUnitErrorEventListDataProcessor(it)
             }
+        }
+        hwUnitRestartListJob = GlobalScope.launch(Dispatchers.Default) {
             homeInformationRepository.hwUnitRestartListFlow().collect {
                 hwUnitRestartListProcessor(it)
             }
@@ -132,7 +135,8 @@ class Home(secureStorage: SecureStorage,
         Timber.e("stop; hwUnitsList.size: ${hwUnitsList.size}")
         homeUnitsLiveData?.removeObserver(homeUnitsDataObserver)
         hwUnitsLiveData?.removeObserver(hwUnitsDataObserver)
-        hwUnitErrorEventRestartListJob?.cancel()
+        hwUnitErrorEventListJob?.cancel()
+        hwUnitRestartListJob?.cancel()
 
         hwUnitsList.values.forEach(this::hwUnitStop)
     }
@@ -316,7 +320,7 @@ class Home(secureStorage: SecureStorage,
                 }
             }
             Timber.d(
-                    "hwUnitRestartListLiveDataObserver restartEventList.size: ${restartEventList.size} ; restarted count (no error Units) ${removedHwUnitList.size}; restartEventList: $restartEventList")
+                    "hwUnitRestartListProcessor restartEventList.size: ${restartEventList.size} ; restarted count (no error Units) ${removedHwUnitList.size}; restartEventList: $restartEventList")
             homeInformationRepository.clearHwRestarts()
             removedHwUnitList.forEach { hwUnit ->
                 hwUnitStart(hwUnit)
@@ -424,10 +428,10 @@ class Home(secureStorage: SecureStorage,
             when (unit) {
                 is Sensor   -> {
                     GlobalScope.launch(Dispatchers.Main) {
+                        hwUnitsList[unit.hwUnit.name] = unit
                         val readVal = unit.readValueWithException()
                         Timber.w("hwUnitStart readVal:$readVal unit.unitValue:${unit.unitValue}")
                         unit.registerListenerWithException(this@Home)
-                        hwUnitsList[unit.hwUnit.name] = unit
                         onHwUnitChanged(unit.hwUnit, readVal, unit.valueUpdateTime)
                     }
                 }

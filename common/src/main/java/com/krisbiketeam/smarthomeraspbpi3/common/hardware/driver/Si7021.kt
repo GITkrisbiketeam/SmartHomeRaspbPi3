@@ -55,13 +55,13 @@ private const val CONTROL_REG_HEATER_MASK = 0b00000100
  *  10: 10 bit  13 bit
  *  11: 11 bit  11 bit
  */
-private const val HEATER_REG_RES_3_MA = 0b00000000        //Default
-private const val HEATER_REG_RES_9_MA = 0b00000001
-private const val HEATER_REG_RES_15_MA = 0b10000010
-private const val HEATER_REG_RES_27_MA = 0b10000100
-private const val HEATER_REG_RES_52_MA = 0b10001000
-private const val HEATER_REG_RES_94_MA = 0b00001111
-private const val HEATER_REG_MASK = 0b00001111
+private const val HEATER_REG_RES_3_MA   = 0b00000000        //Default
+private const val HEATER_REG_RES_9_MA   = 0b00000001
+private const val HEATER_REG_RES_15_MA  = 0b00000010
+private const val HEATER_REG_RES_27_MA  = 0b00000100
+private const val HEATER_REG_RES_52_MA  = 0b00001000
+private const val HEATER_REG_RES_94_MA  = 0b00001111
+private const val HEATER_REG_MASK       = 0b00001111
 
 private const val MCO9808_REG_SIGNED_TEMP_MASK = 0x1FFF
 private const val MCO9808_REG_TEMP_MASK = 0x0FFF
@@ -213,19 +213,45 @@ class Si7021(bus: String? = null) : AutoCloseable {
 
 
     /**
+     * Measurement Resolution:
+     *      RH      Temp
+     *  00: 12 bit  14 bit
+     *  01: 8 bit   12 bit
+     *  10: 10 bit  13 bit
+     *  11: 11 bit  11 bit
+     */
+    enum class HeaterAmount(var value: Int?) {
+        HEATER_OFF(null),
+        HEATER_3_MA(HEATER_REG_RES_3_MA),        //Default
+        HEATER_9_MA(HEATER_REG_RES_9_MA),
+        HEATER_15_MA(HEATER_REG_RES_15_MA),
+        HEATER_27_MA(HEATER_REG_RES_27_MA),
+        HEATER_52_MA(HEATER_REG_RES_52_MA),
+        HEATER_94_MA(HEATER_REG_RES_94_MA);
+    }
+
+    /**
      * Heater Mode and value
      */
-    var heater: Int?
+    var heater: HeaterAmount
         /**
          * Get the heater status value, if null then heater is off.
          *
          * @return heater val.
          */
         get() {
-            return if((mConfig and CONTROL_REG_HEATER_MASK) == CONTROL_REG_HEATER_ON){
-                readRegister(READ_HEATER_REG)
+            return if ((mConfig and CONTROL_REG_HEATER_MASK) == CONTROL_REG_HEATER_ON) {
+                when (readRegister(READ_HEATER_REG)?.and(HEATER_REG_MASK)) {
+                    HEATER_REG_RES_3_MA  -> HeaterAmount.HEATER_3_MA        //Default
+                    HEATER_REG_RES_9_MA  -> HeaterAmount.HEATER_9_MA
+                    HEATER_REG_RES_15_MA -> HeaterAmount.HEATER_15_MA
+                    HEATER_REG_RES_27_MA -> HeaterAmount.HEATER_27_MA
+                    HEATER_REG_RES_52_MA -> HeaterAmount.HEATER_52_MA
+                    HEATER_REG_RES_94_MA -> HeaterAmount.HEATER_94_MA
+                    else                 -> HeaterAmount.HEATER_OFF
+                }
             } else {
-                null
+                HeaterAmount.HEATER_OFF
             }
         }
         /**
@@ -234,15 +260,17 @@ class Si7021(bus: String? = null) : AutoCloseable {
          * @param value  heater val.
          */
         set(value) {
-            if (value == null) {
-                mConfig = mConfig and CONTROL_REG_HEATER_MASK.inv()
-                mConfig = mConfig or CONTROL_REG_HEATER_OFF
-                writeRegister(WRITE_RH_T_USER_REG, mConfig)
-            } else if (value and HEATER_REG_MASK.inv() == 0) {
-                writeRegister(READ_HEATER_REG, value)
-                mConfig = mConfig and CONTROL_REG_HEATER_MASK.inv()
-                mConfig = mConfig or CONTROL_REG_HEATER_ON
-                writeRegister(WRITE_RH_T_USER_REG, mConfig)
+            value.value.let{
+                if (it == null) {
+                    mConfig = mConfig and CONTROL_REG_HEATER_MASK.inv()
+                    mConfig = mConfig or CONTROL_REG_HEATER_OFF
+                    writeRegister(WRITE_RH_T_USER_REG, mConfig)
+                } else {
+                    writeRegister(WRITE_HEATER_REG, it)
+                    mConfig = mConfig and CONTROL_REG_HEATER_MASK.inv()
+                    mConfig = mConfig or CONTROL_REG_HEATER_ON
+                    writeRegister(WRITE_RH_T_USER_REG, mConfig)
+                }
             }
         }
 
