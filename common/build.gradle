@@ -46,6 +46,13 @@ dependencies {
     implementation "com.google.android.gms:play-services-base:$playServicesVersion"
     implementation "com.google.android.gms:play-services-nearby:$playServicesNearbyVersion"
 
+    // Recommended: Add the Firebase SDK for Google Analytics.
+    implementation "com.google.firebase:firebase-analytics-ktx:$firebaseAnalytics"
+    // Add the Firebase Crashlytics SDK.
+    implementation "com.google.firebase:firebase-crashlytics-ktx:$firebaseCrashlytics"
+    // Add the dependency for the Performance Monitoring library
+    implementation "com.google.firebase:firebase-perf-ktx:$firebasePerf"
+
     implementation "com.squareup.moshi:moshi:$moshiVersion"
 
     implementation "com.google.android.things.contrib:driver-bmx280:$bmx280Version"

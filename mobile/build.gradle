@@ -3,6 +3,10 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'androidx.navigation.safeargs.kotlin'
+// Apply the Crashlytics Gradle plugin
+apply plugin: 'com.google.firebase.crashlytics'
+// Apply the Performance Monitoring plugin
+apply plugin: 'com.google.firebase.firebase-perf'
 
 android {
     buildToolsVersion buildToolsVersion
@@ -30,8 +34,17 @@ android {
         jvmTarget = "1.8"
     }
 
-    dataBinding {
-        enabled = true
+    buildFeatures {
+        // Determines whether to generate a BuildConfig class.
+        buildConfig = true
+        // Determines whether to support View Binding.
+        // Note that the viewBinding.enabled property is now deprecated.
+        viewBinding = true
+        // Determines whether to support Data Binding.
+        // Note that the dataBinding.enabled property is now deprecated.
+        dataBinding = true
+        // Determines whether to generate binder classes for your AIDL files.
+        aidl = true
     }
 
     useLibrary 'android.test.mock'
@@ -58,6 +71,13 @@ dependencies {
     implementation "com.google.firebase:firebase-database:$firebaseDatabaseVersion"
     implementation "com.google.firebase:firebase-auth:$firebaseAuthVersion"
     implementation "com.google.firebase:firebase-messaging:$firebaseMessaging"
+
+    // Recommended: Add the Firebase SDK for Google Analytics.
+    implementation "com.google.firebase:firebase-analytics-ktx:$firebaseAnalytics"
+    // Add the Firebase Crashlytics SDK.
+    implementation "com.google.firebase:firebase-crashlytics-ktx:$firebaseCrashlytics"
+    // Add the dependency for the Performance Monitoring library
+    implementation "com.google.firebase:firebase-perf-ktx:$firebasePerf"
 
     implementation "androidx.lifecycle:lifecycle-extensions:$androidxLifecycleExtensionsVersion"
     implementation "androidx.navigation:navigation-fragment-ktx:$navigationVersion"
