@@ -4,6 +4,7 @@ class MCP23017Pin {
 
     interface MCP23017PinStateChangeListener {
         fun onPinStateChanged(pin: Pin, state: PinState)
+        fun onError(error: String)
     }
 
     enum class PinMode {

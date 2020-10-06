@@ -250,7 +250,7 @@ class TMP102(bus: String? = null, address: Int = DEFAULT_I2C_GND_ADDRESS) : Auto
     fun readOneShotTemperature(onResult: (Float?)-> Unit) {
         if (shutdownMode) {
             synchronized(mBuffer) {
-                GlobalScope.launch(Dispatchers.IO) {
+                GlobalScope.launch(Dispatchers.Main) {
                     // Write OneShot bit to config to wakeup device for one shot read temp
                     mConfig = mConfig or (1 shl TMP102_ONE_SHOT_BIT_SHIFT)
                     writeSample16(TMP102_REG_CONF, mConfig)

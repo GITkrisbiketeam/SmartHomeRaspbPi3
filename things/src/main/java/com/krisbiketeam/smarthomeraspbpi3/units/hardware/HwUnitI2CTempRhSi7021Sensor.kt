@@ -44,6 +44,7 @@ class HwUnitI2CTempRhSi7021Sensor(name: String, location: String, private val pi
         job = GlobalScope.plus(exceptionHandler).launch(Dispatchers.IO) {
             // We could also check for true as suspending delay() method is cancellable
             while (isActive) {
+                delay(refreshRate ?: REFRESH_RATE)
                 // Cancel will not stop non suspending oneShotReadValue function
                 oneShotReadValue()
                 if (heatOnCounter++ >= heatOnTrigger) {
@@ -55,7 +56,6 @@ class HwUnitI2CTempRhSi7021Sensor(name: String, location: String, private val pi
                     delay(60000)
                     heatOnOff(false)
                 }
-                delay(refreshRate ?: REFRESH_RATE)
 
             }
         }

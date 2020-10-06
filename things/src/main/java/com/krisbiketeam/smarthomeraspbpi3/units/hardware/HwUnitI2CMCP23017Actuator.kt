@@ -26,13 +26,17 @@ class HwUnitI2CMCP23017Actuator(name: String, location: String, private val pinN
             intGpio = pinInterrupt
             setMode(ioPin, PinMode.DIGITAL_OUTPUT)
         }
+        HwUnitI2CMCP23017.increaseUseCount(pinName, address)
     }
 
     @Throws(Exception::class)
     override fun close() {
         // We do not want to close this device if it is used by another instance of this class
         // decreaseUseCount will close HwUnitI2C when count reaches 0
-        HwUnitI2CMCP23017.decreaseUseCount(pinName, address)
+        val refCount = HwUnitI2CMCP23017.decreaseUseCount(pinName, address)
+        if (refCount == 0) {
+            super.close()
+        }
     }
 
     @Throws(Exception::class)

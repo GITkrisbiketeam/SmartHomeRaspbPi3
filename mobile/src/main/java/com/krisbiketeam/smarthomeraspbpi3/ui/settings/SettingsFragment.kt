@@ -1,20 +1,30 @@
 package com.krisbiketeam.smarthomeraspbpi3.ui.settings
 
 import android.os.Bundle
+import androidx.core.os.bundleOf
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.navigation.Navigation
+import com.google.firebase.analytics.FirebaseAnalytics
 import com.krisbiketeam.smarthomeraspbpi3.R
+import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
+import org.koin.android.ext.android.inject
 import timber.log.Timber
 
 /**
  * A fragment representing settings screen.
  */
 class SettingsFragment : PreferenceFragmentCompat() {
+
+    private val analytics: Analytics by inject()
+
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         // Load the preferences from an XML resource
         setPreferencesFromResource(R.xml.settings_fragment_preference, rootKey)
-        preferenceManager
+
+        analytics.firebaseAnalytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW, bundleOf(
+                FirebaseAnalytics.Param.SCREEN_NAME to this::class.simpleName
+        ))
     }
 
     override fun onPreferenceTreeClick(preference: Preference?): Boolean {

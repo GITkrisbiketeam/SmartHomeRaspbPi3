@@ -44,9 +44,9 @@ class HwUnitI2CTempPressBMP280Sensor(name: String, location: String, pinName: St
             // We could also check for true as suspending delay() method is cancellable
             while (isActive) {
                 try {
+                    delay(refreshRate ?: REFRESH_RATE)
                     readValue()
                     hwUnitListener?.onHwUnitChanged(hwUnit, unitValue, valueUpdateTime)
-                    delay(refreshRate ?: REFRESH_RATE)
                 } catch (e: Exception) {
                     Timber.e(e, "Error readValue on $hwUnit")
                 }

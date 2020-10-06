@@ -3,14 +3,16 @@ package com.krisbiketeam.smarthomeraspbpi3.ui
 import android.os.Bundle
 import android.view.*
 import androidx.appcompat.app.AlertDialog
+import androidx.core.os.bundleOf
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.analytics.FirebaseAnalytics
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.adapters.RoomDetailHomeUnitListAdapter
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
+import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentRoomDetailBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.RoomDetailViewModel
 import org.koin.android.ext.android.inject
@@ -23,9 +25,13 @@ import timber.log.Timber
  */
 class RoomDetailFragment : Fragment() {
 
+    private val args: RoomDetailFragmentArgs by navArgs()
+
     private val roomDetailViewModel: RoomDetailViewModel by viewModel {
-        parametersOf(arguments?.let { RoomDetailFragmentArgs.fromBundle(it).roomName}?: "")
+        parametersOf(arguments?.let { args.roomName}?: "")
     }
+
+    private val analytics: Analytics by inject()
 
     init {
         Timber.w("init $this")
@@ -52,17 +58,22 @@ class RoomDetailFragment : Fragment() {
             subscribeUi(adapter)
         }
 
-        roomDetailViewModel.isEditMode.observe(viewLifecycleOwner, Observer {
+        roomDetailViewModel.isEditMode.observe(viewLifecycleOwner, {
             activity?.invalidateOptionsMenu()
         })
 
         setHasOptionsMenu(true)
 
+        analytics.firebaseAnalytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW, bundleOf(
+                FirebaseAnalytics.Param.SCREEN_CLASS to this::class.simpleName,
+                FirebaseAnalytics.Param.ITEM_NAME to args.roomName
+        ))
+
         return binding.root
     }
 
     private fun subscribeUi(adapter: RoomDetailHomeUnitListAdapter) {
-        roomDetailViewModel.homeUnitsMap.observe(viewLifecycleOwner, Observer<MutableMap<String, HomeUnit<Any?>>> { homeUnitsMap ->
+        roomDetailViewModel.homeUnitsMap.observe(viewLifecycleOwner, { homeUnitsMap ->
             Timber.d("subscribeUi homeUnitsMap: $homeUnitsMap")
             adapter.submitList(homeUnitsMap.values.toList())
         })

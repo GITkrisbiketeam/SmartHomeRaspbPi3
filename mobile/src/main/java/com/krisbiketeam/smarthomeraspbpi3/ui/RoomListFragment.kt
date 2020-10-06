@@ -2,16 +2,19 @@ package com.krisbiketeam.smarthomeraspbpi3.ui
 
 import android.os.Bundle
 import android.view.*
+import androidx.core.os.bundleOf
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
+import com.google.firebase.analytics.FirebaseAnalytics
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.adapters.RoomWithHomeUnitListAdapter
+import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentRoomListBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.RoomListViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import org.koin.android.ext.android.inject
 import org.koin.android.viewmodel.ext.android.viewModel
 import timber.log.Timber
 
@@ -19,6 +22,8 @@ import timber.log.Timber
 class RoomListFragment : Fragment() {
 
     private val roomListViewModel by viewModel<RoomListViewModel>()
+
+    private val analytics: Analytics by inject()
 
     @ExperimentalCoroutinesApi
     override fun onCreateView(
@@ -39,13 +44,17 @@ class RoomListFragment : Fragment() {
             roomList.adapter = adapter
             subscribeRoomHomeUnitList(adapter)
         }
-        roomListViewModel.isEditMode.observe(viewLifecycleOwner, Observer {
+        roomListViewModel.isEditMode.observe(viewLifecycleOwner, {
             activity?.invalidateOptionsMenu()
         })
         setHasOptionsMenu(true)
+
+        analytics.firebaseAnalytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW, bundleOf(
+                FirebaseAnalytics.Param.SCREEN_NAME to this::class.simpleName
+        ))
+
         return binding.root
     }
-
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.menu_room_list, menu)
     }
@@ -93,9 +102,10 @@ class RoomListFragment : Fragment() {
             })
             adapter.submitList(roomHomeUnitListSorted)
         })*/
-        roomListViewModel.roomWithHomeUnitsListFromFlow.observe(viewLifecycleOwner, Observer { roomWithHomeUnitsList ->
-            Timber.d("subscribeUi roomWithHomeUnitsList: $roomWithHomeUnitsList")
-            adapter.submitList(roomWithHomeUnitsList)
-        })
+        roomListViewModel.roomWithHomeUnitsListFromFlow.observe(viewLifecycleOwner,
+                                                                { roomWithHomeUnitsList ->
+                                                                    Timber.d("subscribeUi roomWithHomeUnitsList: $roomWithHomeUnitsList")
+                                                                    adapter.submitList(roomWithHomeUnitsList)
+                                                                })
     }
 }

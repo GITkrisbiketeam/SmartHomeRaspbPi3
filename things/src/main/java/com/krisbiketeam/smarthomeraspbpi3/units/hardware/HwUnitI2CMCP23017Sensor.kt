@@ -1,5 +1,6 @@
 package com.krisbiketeam.smarthomeraspbpi3.units.hardware
 
+import androidx.annotation.MainThread
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver.MCP23017
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver.MCP23017Pin.*
@@ -34,9 +35,14 @@ open class HwUnitI2CMCP23017Sensor(name: String, location: String, private val p
             hwUnitListener?.onHwUnitChanged(hwUnit, unitValue, valueUpdateTime)
 
         }
+
+        override fun onError(error: String) {
+            hwUnitListener?.onHwUnitError(hwUnit, error, System.currentTimeMillis())
+        }
     }
 
     @Throws(Exception::class)
+    @MainThread
     override fun connect() {
         device = HwUnitI2CMCP23017.getMcp23017Instance(pinName, address).apply {
             intGpio = pinInterrupt
@@ -48,6 +54,7 @@ open class HwUnitI2CMCP23017Sensor(name: String, location: String, private val p
     }
 
     @Throws(Exception::class)
+    @MainThread
     override fun close() {
         unregisterListener()
         // We do not want to close this device if it is used by another instance of this class
@@ -71,7 +78,7 @@ open class HwUnitI2CMCP23017Sensor(name: String, location: String, private val p
         Timber.d("unregisterListener")
         (device as MCP23017?)?.run {
             val result = unRegisterPinListener(ioPin, mMCP23017Callback)
-            Timber.d("registerListener unRegisterPinListener?: $result")
+            Timber.d("unregisterListener unRegisterPinListener?: $result")
         }
         hwUnitListener = null
     }

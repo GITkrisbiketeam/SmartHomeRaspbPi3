@@ -1,4 +1,4 @@
-package com.krisbiketeam.smarthomeraspbpi3.firebase
+package com.krisbiketeam.smarthomeraspbpi3.common
 
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.ktx.analytics

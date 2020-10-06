@@ -40,9 +40,9 @@ class HwUnitI2CTempTMP102Sensor(name: String, location: String, private val pinN
         job = GlobalScope.plus(exceptionHandler).launch(Dispatchers.IO) {
             // We could also check for true as suspending delay() method is cancellable
             while (isActive) {
+                delay(refreshRate ?: REFRESH_RATE)
                 // Cancel will not stop non suspending oneShotReadValue function
                 oneShotReadValue()
-                delay(refreshRate ?: REFRESH_RATE)
             }
         }
     }

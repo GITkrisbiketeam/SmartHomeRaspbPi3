@@ -49,6 +49,7 @@ class HomeUnitsLiveData(private val homeNamePath: String?, private val roomName:
                 val unit = try {
                     dataSnapshot.getValue(this)
                 } catch (e: DatabaseException) {
+                    Timber.e("onChildAdded (key=$key)(childNode=$childNode) could not get HomeUnit")
                     null
                 }
                 Timber.d("onChildAdded (key=$key)(unit=${unit?.name})")

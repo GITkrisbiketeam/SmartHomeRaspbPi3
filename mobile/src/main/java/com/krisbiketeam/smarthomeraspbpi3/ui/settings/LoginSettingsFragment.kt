@@ -1,22 +1,24 @@
 package com.krisbiketeam.smarthomeraspbpi3.ui.settings
 
-import androidx.lifecycle.Observer
-import androidx.databinding.DataBindingUtil
-import androidx.databinding.OnRebindCallback
-import androidx.databinding.ViewDataBinding
 import android.os.Bundle
-import androidx.transition.TransitionManager
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.widget.TextView
+import androidx.core.os.bundleOf
+import androidx.databinding.DataBindingUtil
+import androidx.databinding.OnRebindCallback
+import androidx.databinding.ViewDataBinding
+import androidx.fragment.app.Fragment
 import androidx.navigation.Navigation
+import androidx.transition.TransitionManager
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.krisbiketeam.smarthomeraspbpi3.R
+import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
 import com.krisbiketeam.smarthomeraspbpi3.common.MyLiveDataState
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.FirebaseCredentials
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
-import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentSettingsLoginBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.settings.LoginSettingsViewModel
 import org.koin.android.ext.android.inject
@@ -26,6 +28,8 @@ import timber.log.Timber
 class LoginSettingsFragment : Fragment() {
     private lateinit var binding: FragmentSettingsLoginBinding
     private val loginSettingsViewModel by viewModel<LoginSettingsViewModel>()
+
+    private val analytics: Analytics by inject()
 
     private val secureStorage: SecureStorage by inject()
 
@@ -45,7 +49,7 @@ class LoginSettingsFragment : Fragment() {
                 }
                 false
             })
-            loginSettingsViewModel.password.observe(viewLifecycleOwner, Observer {
+            loginSettingsViewModel.password.observe(viewLifecycleOwner, {
                 binding.passwordLayout.error = null
             })
             loginConnectButton.setOnClickListener { attemptLogin() }
@@ -63,7 +67,7 @@ class LoginSettingsFragment : Fragment() {
             lifecycleOwner = this@LoginSettingsFragment
         }
 
-        loginSettingsViewModel.loginState.observe(viewLifecycleOwner, Observer { pair ->
+        loginSettingsViewModel.loginState.observe(viewLifecycleOwner, { pair ->
             pair?.let { (state, data) ->
                 Timber.d("loginState changed state: $state data: $data")
                 when (state) {
@@ -84,6 +88,10 @@ class LoginSettingsFragment : Fragment() {
                 }
             }
         })
+
+        analytics.firebaseAnalytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW, bundleOf(
+                FirebaseAnalytics.Param.SCREEN_NAME to this::class.simpleName
+        ))
 
         return binding.root
     }

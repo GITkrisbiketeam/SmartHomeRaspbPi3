@@ -8,7 +8,7 @@ import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
-import com.krisbiketeam.smarthomeraspbpi3.firebase.Analytics
+import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
 import org.koin.android.ext.android.inject
 
 
@@ -33,7 +33,7 @@ class LogsFragment : androidx.fragment.app.Fragment() {
     private var listener: OnFragmentInteractionListener? = null
     private val homeInformationRepository: FirebaseHomeInformationRepository by inject()
 
-    val analytics:Analytics by inject()
+    private val analytics: Analytics by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,9 +64,9 @@ class LogsFragment : androidx.fragment.app.Fragment() {
         } else {
             //throw RuntimeException(context.toString() + " must implement OnFragmentInteractionListener")
         }
-        analytics.firebaseAnalytics.logEvent(FirebaseAnalytics.Event.VIEW_ITEM_LIST, bundleOf(
+        analytics.firebaseAnalytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW, bundleOf(
                 FirebaseAnalytics.Param.SCREEN_NAME to this::class.simpleName,
-                FirebaseAnalytics.Param.ITEMS to 0
+                FirebaseAnalytics.Param.SCREEN_CLASS to this::class.qualifiedName
         ))
     }
 
