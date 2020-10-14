@@ -162,6 +162,8 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
 
         firebaseAnalytics = Firebase.analytics
 
+        homeInformationRepository.clearResetAppFlag()
+
         ledA.connectValueWithException()
         ledB.connectValueWithException()
         ledC.connectValueWithException()
