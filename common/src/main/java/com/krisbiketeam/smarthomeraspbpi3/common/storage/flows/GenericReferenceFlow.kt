@@ -21,9 +21,9 @@ inline fun <reified T> genericListReferenceFlow(databaseReference: DatabaseRefer
                 // A new value has been added, add it to the displayed list
                 val list: ArrayList<T> = ArrayList()
                 for (child: DataSnapshot in dataSnapshot.children) {
-                    val homeUnit = child.getValue(typeIndicator)
-                    homeUnit?.run {
-                        list.add(homeUnit)
+                    val value = child.getValue(typeIndicator)
+                    value?.run {
+                        list.add(value)
                     }
                 }
                 Timber.e("onDataChange (key=${dataSnapshot.key})(homeUnits=$list)")

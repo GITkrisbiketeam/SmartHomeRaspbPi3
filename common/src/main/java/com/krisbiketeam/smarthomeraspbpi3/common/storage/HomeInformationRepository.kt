@@ -14,8 +14,8 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.map
 import timber.log.Timber
-
 
 class FirebaseHomeInformationRepository {
     // region references
@@ -77,6 +77,7 @@ class FirebaseHomeInformationRepository {
     private val referenceNotifications =
             FirebaseDatabase.getInstance().getReference(NOTIFICATION_INFORMATION_BASE)
     // endregion
+
     // endregion
 
     init {
@@ -344,6 +345,19 @@ class FirebaseHomeInformationRepository {
         }
     }
     // endregion
+
+    // region restarts
+
+    fun setResetAppFlag(): Task<Void>? {
+        return homePathReference?.let { FirebaseDatabase.getInstance().getReference(it) }?.child(RESTART_APP)?.setValue(true)
+    }
+
+    fun clearResetAppFlag(): Task<Void>? {
+        return homePathReference?.let { FirebaseDatabase.getInstance().getReference(it) }?.child(RESTART_APP)?.removeValue()
+    }
+
+    // endregion
+
     // endregion
 
     // endregion
@@ -477,9 +491,36 @@ class FirebaseHomeInformationRepository {
     /**
      * get instance of @see[UnitTaskListLiveData] for listening to changes in specific HomeUnit UnitTask List entry in DB
      */
+    @Deprecated("please use unitTaskListFlow")
     fun unitTaskListLiveData(unitType: String, unitName: String): UnitTaskListLiveData {
         return UnitTaskListLiveData(homePathReference, unitType, unitName)
     }
+
+    /**
+     * get instance of @see[UnitTaskListLiveData] for listening to changes in specific HomeUnit UnitTask List entry in DB
+     */
+    fun unitTaskListFlow(unitType: String, unitName: String): Flow<Map<String, UnitTask>> {
+        return homePathReference?.let { home ->
+            FirebaseDatabase.getInstance().getReference("$home/$HOME_UNITS_BASE/$unitType/$unitName/$HOME_UNIT_TASKS").let { reference ->
+                genericListReferenceFlow<UnitTask>(reference)
+            }.map {
+                it.associateBy { it.name }
+            }
+        } ?: emptyFlow()
+    }
+    // endregion
+
+    // region restarts
+
+    @ExperimentalCoroutinesApi
+    fun restartAppFlow(): Flow<Boolean> {
+        return homePathReference?.let { home ->
+            FirebaseDatabase.getInstance().getReference("$home/$RESTART_APP").let { reference ->
+                genericReferenceFlow(reference)
+            }
+        } ?: emptyFlow()
+    }
+
     // endregion
 
     fun getHomes(): LiveData<List<String>> = HomesListLiveData(

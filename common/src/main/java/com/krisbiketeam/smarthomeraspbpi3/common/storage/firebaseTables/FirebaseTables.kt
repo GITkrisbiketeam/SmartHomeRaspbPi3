@@ -58,4 +58,9 @@ const val HOME_LAST_ONLINE_TIME = "lastOnline"
 const val LOG_INFORMATION_BASE = "log"
 // endregion
 
+// region "home"
+const val RESTART_APP = "restart_app"
+const val RESTART_PI = "restart_pi"
+const val RESTART_BOARD = "restart_board"
+// endregion
 // endregion

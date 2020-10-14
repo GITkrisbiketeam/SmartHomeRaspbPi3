@@ -36,6 +36,7 @@ import com.krisbiketeam.smarthomeraspbpi3.units.hardware.HwUnitI2CPCF8574ATSenso
 import com.krisbiketeam.smarthomeraspbpi3.utils.ConsoleLoggerTree
 import com.squareup.moshi.Moshi
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.collectLatest
 import org.koin.android.ext.android.inject
 import timber.log.Timber
 import java.io.IOException
@@ -233,6 +234,12 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
             } else {
                 Timber.d("No Home Name defined, starting HomeNameReceiver")
                 startHomeNameReceiver()
+            }
+            homeInformationRepository.restartAppFlow().collectLatest {
+                if (it) {
+                    homeInformationRepository.clearResetAppFlag()
+                    restartApp()
+                }
             }
 
             Timber.d("connectAndSetupJob finished")
