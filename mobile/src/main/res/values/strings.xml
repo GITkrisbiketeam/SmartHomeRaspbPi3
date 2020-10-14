@@ -30,6 +30,8 @@
     <string name="settings_home_fragment_key">home_screen_key</string>
     <string name="settings_hw_unit_list_fragment_key">hw_unit_list_key</string>
     <string name="settings_hw_unit_error_event_list_fragment_key">hw_unit_error_event_list_key</string>
+    <string name="settings_restart_rpi_things_app">restart_rpi_things_app</string>
+    <string name="settings_restarting">Restarting…</string>
 
     <string name="settings_wifi_title">WiFi Connect</string>
     <string name="settings_login_title">Firebase Login</string>
