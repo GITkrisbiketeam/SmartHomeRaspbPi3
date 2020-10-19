@@ -56,7 +56,7 @@ class Home(secureStorage: SecureStorage,
     private val alarmEnabledLiveData: LiveData<Boolean> = secureStorage.alarmEnabledLiveData
     private var alarmEnabled: Boolean = secureStorage.alarmEnabled
 
-    private var booleanApplyFunction: HomeUnit<in Boolean>.(Any) -> Unit = { newVal: Any ->
+    private var booleanApplyFunction: suspend HomeUnit<in Boolean>.(Any) -> Unit = { newVal: Any ->
         Timber.d("booleanApplyFunction newVal: $newVal this: $this")
         if (newVal is Boolean) {
             unitsTasks.values.forEach { task ->
@@ -67,9 +67,7 @@ class Home(secureStorage: SecureStorage,
                         if (taskHwUnit is Actuator) {
                             value = newVal
                             Timber.d("booleanApplyFunction taskHwUnit setValue value: $value")
-                            GlobalScope.launch(Dispatchers.Default) {
-                                taskHwUnit.setValueWithException(newVal)
-                            }
+                            taskHwUnit.setValueWithException(newVal)
                             lastUpdateTime = taskHwUnit.valueUpdateTime
                             applyFunction(newVal)
                             homeInformationRepository.saveHomeUnit(this)
@@ -86,7 +84,7 @@ class Home(secureStorage: SecureStorage,
         }
     }
 
-    private var sensorApplyFunction: HomeUnit<in Boolean>.(Any) -> Unit = { newVal: Any ->
+    private var sensorApplyFunction: suspend HomeUnit<in Boolean>.(Any) -> Unit = { newVal: Any ->
         Timber.d("sensorApplyFunction newVal: $newVal this: $this")
         if (newVal is Float) {
             unitsTasks.values.forEach { task ->
@@ -100,9 +98,7 @@ class Home(secureStorage: SecureStorage,
                             if (taskHwUnit is Actuator) {
                                 value = newVal
                                 Timber.d("sensorApplyFunction taskHwUnit setValue value: $value")
-                                GlobalScope.launch(Dispatchers.Default) {
-                                    taskHwUnit.setValueWithException(newVal)
-                                }
+                                taskHwUnit.setValueWithException(newVal)
                                 lastUpdateTime = taskHwUnit.valueUpdateTime
                                 applyFunction(newVal)
                                 homeInformationRepository.saveHomeUnit(this)
@@ -371,37 +367,39 @@ class Home(secureStorage: SecureStorage,
         //TODO :disable logging as its can overload firebase DB
         //homeInformationRepository.logUnitEvent(HwUnitLog(hwUnit, unitValue, updateTime))
 
-        homeUnitsList.values.filter {
-            it.hwUnitName == hwUnit.name
-        }.forEach { homeUnit ->
-            // We need to handel differently values of non Basic Types
-            if (unitValue is TemperatureAndPressure) {
-                Timber.d("Received TemperatureAndPressure ${homeUnit.value}")
-                if (homeUnit.type == HOME_TEMPERATURES) {
-                    homeUnit.value = unitValue.temperature
-                } else if (homeUnit.type == HOME_PRESSURES) {
-                    homeUnit.value = unitValue.pressure
+        GlobalScope.launch(Dispatchers.Default) {
+            homeUnitsList.values.filter {
+                it.hwUnitName == hwUnit.name
+            }.forEach { homeUnit ->
+                // We need to handel differently values of non Basic Types
+                if (unitValue is TemperatureAndPressure) {
+                    Timber.d("Received TemperatureAndPressure ${homeUnit.value}")
+                    if (homeUnit.type == HOME_TEMPERATURES) {
+                        homeUnit.value = unitValue.temperature
+                    } else if (homeUnit.type == HOME_PRESSURES) {
+                        homeUnit.value = unitValue.pressure
+                    }
+                } else if (unitValue is TemperatureAndHumidity) {
+                    Timber.d("Received TemperatureAndHumidity ${homeUnit.value}")
+                    if (homeUnit.type == HOME_TEMPERATURES) {
+                        homeUnit.value = unitValue.temperature
+                    } else if (homeUnit.type == HOME_HUMIDITY) {
+                        homeUnit.value = unitValue.humidity
+                    }
+                } else {
+                    homeUnit.value = unitValue
                 }
-            } else if (unitValue is TemperatureAndHumidity) {
-                Timber.d("Received TemperatureAndHumidity ${homeUnit.value}")
-                if (homeUnit.type == HOME_TEMPERATURES) {
-                    homeUnit.value = unitValue.temperature
-                } else if (homeUnit.type == HOME_HUMIDITY) {
-                    homeUnit.value = unitValue.humidity
+                homeUnit.lastUpdateTime = updateTime
+                homeUnit.value?.let { newValue ->
+                    homeUnit.applyFunction.invoke(homeUnit, newValue)
                 }
-            } else {
-                homeUnit.value = unitValue
-            }
-            homeUnit.lastUpdateTime = updateTime
-            homeUnit.value?.let { newValue ->
-                homeUnit.applyFunction.invoke(homeUnit, newValue)
-            }
-            homeInformationRepository.saveHomeUnit(homeUnit)
-            if (homeUnit.firebaseNotify && alarmEnabled) {
-                Timber.d("onHwUnitChanged notify with FCM Message")
-                homeInformationRepository.notifyHomeUnitEvent(homeUnit)
-            }
+                homeInformationRepository.saveHomeUnit(homeUnit)
+                if (homeUnit.firebaseNotify && alarmEnabled) {
+                    Timber.d("onHwUnitChanged notify with FCM Message")
+                    homeInformationRepository.notifyHomeUnitEvent(homeUnit)
+                }
 
+            }
         }
     }
 

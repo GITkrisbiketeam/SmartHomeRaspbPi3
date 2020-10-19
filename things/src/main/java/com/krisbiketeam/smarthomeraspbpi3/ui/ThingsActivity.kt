@@ -569,7 +569,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
                         // start listen for LongKeyPress event
                         event.startTracking()
 
-                        if (ledB.unitValue == true) {
+                        if (ledA.unitValue == true) {
                             restartApp()
                         }
                         return true

@@ -516,7 +516,7 @@ class FirebaseHomeInformationRepository {
     fun restartAppFlow(): Flow<Boolean> {
         return homePathReference?.let { home ->
             FirebaseDatabase.getInstance().getReference("$home/$RESTART_APP").let { reference ->
-                genericReferenceFlow(reference)
+                genericReferenceFlow<Boolean>(reference)
             }
         } ?: emptyFlow()
     }
