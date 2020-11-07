@@ -203,7 +203,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
 
         //homeInformationRepository.setHomeReference("test home")
 
-        connectAndSetupJob = launch {
+        connectAndSetupJob = launch(Dispatchers.Default) {
             if (networkConnectionMonitor.isNetworkConnected) {
                 led1.setValueWithException(true)
             } else {
@@ -236,12 +236,6 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
             } else {
                 Timber.d("No Home Name defined, starting HomeNameReceiver")
                 startHomeNameReceiver()
-            }
-            homeInformationRepository.restartAppFlow().collectLatest {
-                if (it) {
-                    homeInformationRepository.clearResetAppFlag()
-                    restartApp()
-                }
             }
 
             Timber.d("connectAndSetupJob finished")
@@ -452,6 +446,17 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
                 connectAndSetupJob?.join()
                 Timber.d("onStart home.start()")
                 home.start()
+            }
+        }
+
+        launch(Dispatchers.Default) {
+            connectAndSetupJob?.join()
+            homeInformationRepository.restartAppFlow().collectLatest {
+                Timber.e("Remote restart app $it")
+                if (it) {
+                    homeInformationRepository.clearResetAppFlag()
+                    restartApp()
+                }
             }
         }
     }
