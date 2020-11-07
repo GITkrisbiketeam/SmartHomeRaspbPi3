@@ -15,6 +15,7 @@ import com.google.android.things.userdriver.input.InputDriverEvent
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.analytics.ktx.logEvent
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.ktx.Firebase
 import com.krisbiketeam.smarthomeraspbpi3.Home
 import com.krisbiketeam.smarthomeraspbpi3.R
@@ -754,6 +755,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
     private fun <T : Any> BaseHwUnit<T>.addHwUnitErrorEvent(e: Throwable, logMessage: String) {
         homeInformationRepository.addHwUnitErrorEvent(
                 HwUnitLog(hwUnit, unitValue, e.message, Date().toString()))
+        FirebaseCrashlytics.getInstance().recordException(e)
         Timber.e(e, logMessage)
     }
 }

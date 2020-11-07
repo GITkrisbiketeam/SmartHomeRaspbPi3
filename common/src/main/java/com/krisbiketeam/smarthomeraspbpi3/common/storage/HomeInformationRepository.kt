@@ -8,6 +8,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.resetableLazy
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.*
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.*
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.flows.genericListReferenceFlow
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.flows.genericMapReferenceFlow
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.flows.genericReferenceFlow
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.livedata.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -343,6 +344,19 @@ class FirebaseHomeInformationRepository {
         homePathReference?.let {
             referenceLog?.removeValue()
         }
+    }
+
+    /**
+     * Clear all Logs entries from DB
+     */
+    fun clearLog(child: String) {
+        homePathReference?.let {
+            referenceLog?.child(child)?.removeValue()
+        }
+    }
+
+    fun logsFlow(): Flow<Map<String, HwUnit>> {
+        return genericMapReferenceFlow(referenceLog)
     }
     // endregion
 

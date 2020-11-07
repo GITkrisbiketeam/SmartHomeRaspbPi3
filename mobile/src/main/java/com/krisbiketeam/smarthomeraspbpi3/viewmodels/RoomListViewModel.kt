@@ -87,7 +87,8 @@ class RoomListViewModel(homeRepository: FirebaseHomeInformationRepository, secur
                     if (it.type == HOME_TEMPERATURES) {
                         roomListAdapterModelMap[it.room]?.homeUnit = it
                     }
-                    roomListAdapterModelMap[it.room]?.error = hwUnitErrorEventList.firstOrNull { hwUnitLog -> hwUnitLog.name == it.hwUnitName } != null
+                    roomListAdapterModelMap[it.room]?.error =
+                            roomListAdapterModelMap[it.room]?.error == true || hwUnitErrorEventList.firstOrNull { hwUnitLog -> hwUnitLog.name == it.hwUnitName } != null
                     homeUnitsListCopy.remove(it)
                 }
             }
