@@ -318,14 +318,14 @@ class FirebaseHomeInformationRepository {
      * Checks if Home Module is online
      */
     fun isHomeOnline(): LiveData<Boolean?> = homePathReference?.let {
-        FirebaseDBLiveData("$it/$HOME_ONLINE").getObjectLiveData<Boolean?>()
+        FirebaseDBLiveData("$it/$HOME_ONLINE").getObjectLiveData()
     } ?: MutableLiveData()
 
     /**
      * Checks when Home Module was last online
      */
     fun lastHomeOnlineTime(): LiveData<Long?> = homePathReference?.let {
-        FirebaseDBLiveData("$it/$HOME_LAST_ONLINE_TIME").getObjectLiveData<Long?>()
+        FirebaseDBLiveData("$it/$HOME_LAST_ONLINE_TIME").getObjectLiveData()
     } ?: MutableLiveData()
     // endregion
 
@@ -464,7 +464,7 @@ class FirebaseHomeInformationRepository {
         return homePathReference?.let {home ->
             if (unitType != null) {
                 FirebaseDatabase.getInstance().getReference("$home/$HOME_UNITS_BASE/$unitType").let { reference ->
-                    genericListReferenceFlow<HomeUnit<Any?>>(reference)
+                    genericListReferenceFlow(reference)
                 }
             } else {
                 combine(HOME_STORAGE_UNITS.map { type ->
@@ -530,7 +530,7 @@ class FirebaseHomeInformationRepository {
     fun restartAppFlow(): Flow<Boolean> {
         return homePathReference?.let { home ->
             FirebaseDatabase.getInstance().getReference("$home/$RESTART_APP").let { reference ->
-                genericReferenceFlow<Boolean>(reference)
+                genericReferenceFlow(reference)
             }
         } ?: emptyFlow()
     }
