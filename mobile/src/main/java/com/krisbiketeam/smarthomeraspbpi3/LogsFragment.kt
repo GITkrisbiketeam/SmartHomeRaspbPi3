@@ -7,8 +7,8 @@ import android.view.*
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import com.google.firebase.analytics.FirebaseAnalytics
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import org.koin.android.ext.android.inject
 
 
@@ -68,6 +68,14 @@ class LogsFragment : androidx.fragment.app.Fragment() {
                 FirebaseAnalytics.Param.SCREEN_NAME to this::class.simpleName,
                 FirebaseAnalytics.Param.SCREEN_CLASS to this::class.qualifiedName
         ))
+        /*GlobalScope.launch(Dispatchers.Default) {
+            homeInformationRepository.logsFlow().collect {
+                it.keys.forEach {key ->
+                    homeInformationRepository.clearLog(key)
+                }
+            }
+        }*/
+
     }
 
     override fun onDetach() {

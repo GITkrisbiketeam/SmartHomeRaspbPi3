@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.ktx.logEvent
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver.MCP23017Pin
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.ChildEventType
@@ -19,8 +20,12 @@ import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
 import com.krisbiketeam.smarthomeraspbpi3.units.hardware.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import timber.log.Timber
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.HashMap
 
 
@@ -41,22 +46,24 @@ class Home(secureStorage: SecureStorage,
            private val firebaseAnalytics: FirebaseAnalytics) :
         Sensor.HwUnitListener<Any> {
     private var homeUnitsLiveData: HomeUnitsLiveData? = null
-    private val homeUnitsList: MutableMap<String, HomeUnit<Any?>> = HashMap()
+    private val homeUnitsList: MutableMap<String, HomeUnit<Any?>> = ConcurrentHashMap()
 
     private var hwUnitsLiveData: HwUnitsLiveData? = null
-    private val hwUnitsList: MutableMap<String, BaseHwUnit<Any>> = HashMap()
+    private val hwUnitsList: MutableMap<String, BaseHwUnit<Any>> = ConcurrentHashMap()
+    private val hwUnitsListMutex = Mutex()
 
 
     private var hwUnitErrorEventListJob: Job? = null
     private var hwUnitRestartListJob: Job? = null
 
-    private val hwUnitErrorEventList: MutableMap<String, BaseHwUnit<Any>?> = HashMap()
+    private val hwUnitErrorEventList: MutableMap<String, BaseHwUnit<Any>?> = ConcurrentHashMap()
+    private val hwUnitErrorEventListMutex = Mutex()
 
 
     private val alarmEnabledLiveData: LiveData<Boolean> = secureStorage.alarmEnabledLiveData
     private var alarmEnabled: Boolean = secureStorage.alarmEnabled
 
-    private var booleanApplyFunction: HomeUnit<in Boolean>.(Any) -> Unit = { newVal: Any ->
+    private var booleanApplyFunction: suspend HomeUnit<in Boolean>.(Any) -> Unit = { newVal: Any ->
         Timber.d("booleanApplyFunction newVal: $newVal this: $this")
         if (newVal is Boolean) {
             unitsTasks.values.forEach { task ->
@@ -67,9 +74,7 @@ class Home(secureStorage: SecureStorage,
                         if (taskHwUnit is Actuator) {
                             value = newVal
                             Timber.d("booleanApplyFunction taskHwUnit setValue value: $value")
-                            GlobalScope.launch(Dispatchers.Default) {
-                                taskHwUnit.setValueWithException(newVal)
-                            }
+                            taskHwUnit.setValueWithException(newVal)
                             lastUpdateTime = taskHwUnit.valueUpdateTime
                             applyFunction(newVal)
                             homeInformationRepository.saveHomeUnit(this)
@@ -86,7 +91,7 @@ class Home(secureStorage: SecureStorage,
         }
     }
 
-    private var sensorApplyFunction: HomeUnit<in Boolean>.(Any) -> Unit = { newVal: Any ->
+    private var sensorApplyFunction: suspend HomeUnit<in Boolean>.(Any) -> Unit = { newVal: Any ->
         Timber.d("sensorApplyFunction newVal: $newVal this: $this")
         if (newVal is Float) {
             unitsTasks.values.forEach { task ->
@@ -100,9 +105,7 @@ class Home(secureStorage: SecureStorage,
                             if (taskHwUnit is Actuator) {
                                 value = newVal
                                 Timber.d("sensorApplyFunction taskHwUnit setValue value: $value")
-                                GlobalScope.launch(Dispatchers.Default) {
-                                    taskHwUnit.setValueWithException(newVal)
-                                }
+                                taskHwUnit.setValueWithException(newVal)
                                 lastUpdateTime = taskHwUnit.valueUpdateTime
                                 applyFunction(newVal)
                                 homeInformationRepository.saveHomeUnit(this)
@@ -136,12 +139,12 @@ class Home(secureStorage: SecureStorage,
             observeForever(hwUnitsDataObserver)
         }
         hwUnitErrorEventListJob = GlobalScope.launch(Dispatchers.Default) {
-            homeInformationRepository.hwUnitErrorEventListFlow().collect {
+            homeInformationRepository.hwUnitErrorEventListFlow().distinctUntilChanged().collect {
                 hwUnitErrorEventListDataProcessor(it)
             }
         }
         hwUnitRestartListJob = GlobalScope.launch(Dispatchers.Default) {
-            homeInformationRepository.hwUnitRestartListFlow().collect {
+            homeInformationRepository.hwUnitRestartListFlow().distinctUntilChanged().collect {
                 hwUnitRestartListProcessor(it)
             }
         }
@@ -310,7 +313,7 @@ class Home(secureStorage: SecureStorage,
     }
 
     private suspend fun hwUnitErrorEventListDataProcessor(errorEventList: List<HwUnitLog<Any>>) {
-        Timber.d(
+        Timber.e(
                 "hwUnitErrorEventListDataProcessor errorEventList: $errorEventList; errorEventList.size: ${errorEventList.size}")
         if (errorEventList.isNotEmpty()) {
             var newErrorOccurred = false
@@ -333,13 +336,17 @@ class Home(secureStorage: SecureStorage,
                 restartHwUnits()
             }
         } else {
-            val unitToStart = hwUnitErrorEventList.values.toList()
-            hwUnitErrorEventList.clear()
+            val unitToStart = hwUnitErrorEventListMutex.withLock {
+                val list = hwUnitErrorEventList.values.toList()
+                hwUnitErrorEventList.clear()
+                list
+            }
             unitToStart.forEach { hwUnit -> hwUnit?.let { hwUnitStart(it) } }
         }
     }
 
     private suspend fun hwUnitRestartListProcessor(restartEventList: List<HwUnitLog<Any>>) {
+        Timber.e("hwUnitRestartListProcessor $restartEventList")
         if (!restartEventList.isNullOrEmpty()) {
             val removedHwUnitList = restartEventList.mapNotNull { hwUnitLog ->
                 hwUnitsList.remove(hwUnitLog.name)?.also { hwUnit ->
@@ -356,9 +363,12 @@ class Home(secureStorage: SecureStorage,
     }
 
     private suspend fun restartHwUnits() {
-        val restartHwUnitList = hwUnitsList.values.toList()
+        val restartHwUnitList = hwUnitsListMutex.withLock {
+            val list = hwUnitsList.values.toList()
+            hwUnitsList.clear()
+            list
+        }
         restartHwUnitList.forEach { this.hwUnitStop(it) }
-        hwUnitsList.clear()
         Timber.d(
                 "restartHwUnits restarted count (no error Units) ${restartHwUnitList.size}; removedHwUnitList: $restartHwUnitList")
         restartHwUnitList.forEach { this.hwUnitStart(it) }
@@ -371,37 +381,39 @@ class Home(secureStorage: SecureStorage,
         //TODO :disable logging as its can overload firebase DB
         //homeInformationRepository.logUnitEvent(HwUnitLog(hwUnit, unitValue, updateTime))
 
-        homeUnitsList.values.filter {
-            it.hwUnitName == hwUnit.name
-        }.forEach { homeUnit ->
-            // We need to handel differently values of non Basic Types
-            if (unitValue is TemperatureAndPressure) {
-                Timber.d("Received TemperatureAndPressure ${homeUnit.value}")
-                if (homeUnit.type == HOME_TEMPERATURES) {
-                    homeUnit.value = unitValue.temperature
-                } else if (homeUnit.type == HOME_PRESSURES) {
-                    homeUnit.value = unitValue.pressure
+        GlobalScope.launch(Dispatchers.Default) {
+            homeUnitsList.values.filter {
+                it.hwUnitName == hwUnit.name
+            }.forEach { homeUnit ->
+                // We need to handel differently values of non Basic Types
+                if (unitValue is TemperatureAndPressure) {
+                    Timber.d("Received TemperatureAndPressure ${homeUnit.value}")
+                    if (homeUnit.type == HOME_TEMPERATURES) {
+                        homeUnit.value = unitValue.temperature
+                    } else if (homeUnit.type == HOME_PRESSURES) {
+                        homeUnit.value = unitValue.pressure
+                    }
+                } else if (unitValue is TemperatureAndHumidity) {
+                    Timber.d("Received TemperatureAndHumidity ${homeUnit.value}")
+                    if (homeUnit.type == HOME_TEMPERATURES) {
+                        homeUnit.value = unitValue.temperature
+                    } else if (homeUnit.type == HOME_HUMIDITY) {
+                        homeUnit.value = unitValue.humidity
+                    }
+                } else {
+                    homeUnit.value = unitValue
                 }
-            } else if (unitValue is TemperatureAndHumidity) {
-                Timber.d("Received TemperatureAndHumidity ${homeUnit.value}")
-                if (homeUnit.type == HOME_TEMPERATURES) {
-                    homeUnit.value = unitValue.temperature
-                } else if (homeUnit.type == HOME_HUMIDITY) {
-                    homeUnit.value = unitValue.humidity
+                homeUnit.lastUpdateTime = updateTime
+                homeUnit.value?.let { newValue ->
+                    homeUnit.applyFunction.invoke(homeUnit, newValue)
                 }
-            } else {
-                homeUnit.value = unitValue
-            }
-            homeUnit.lastUpdateTime = updateTime
-            homeUnit.value?.let { newValue ->
-                homeUnit.applyFunction.invoke(homeUnit, newValue)
-            }
-            homeInformationRepository.saveHomeUnit(homeUnit)
-            if (homeUnit.firebaseNotify && alarmEnabled) {
-                Timber.d("onHwUnitChanged notify with FCM Message")
-                homeInformationRepository.notifyHomeUnitEvent(homeUnit)
-            }
+                homeInformationRepository.saveHomeUnit(homeUnit)
+                if (homeUnit.firebaseNotify && alarmEnabled) {
+                    Timber.d("onHwUnitChanged notify with FCM Message")
+                    homeInformationRepository.notifyHomeUnitEvent(homeUnit)
+                }
 
+            }
         }
     }
 
@@ -787,6 +799,7 @@ class Home(secureStorage: SecureStorage,
             param(SENSOR_LOG_MESSAGE, logMessage)
             param(SENSOR_ERROR, e.toString())
         }
+        FirebaseCrashlytics.getInstance().recordException(e)
         Timber.e(e, logMessage)
     }
 }

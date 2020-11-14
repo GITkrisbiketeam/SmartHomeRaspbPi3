@@ -38,6 +38,36 @@ inline fun <reified T> genericListReferenceFlow(databaseReference: DatabaseRefer
 }.conflate()
 
 @ExperimentalCoroutinesApi
+inline fun <reified T> genericMapReferenceFlow(databaseReference: DatabaseReference?) = callbackFlow<Map<String,T>> {
+    val typeIndicator = object : GenericTypeIndicator<T>() {}
+    databaseReference?.let { reference ->
+        val eventListener = reference.addValueEventListener(object : ValueEventListener {
+            override fun onCancelled(databaseError: DatabaseError) {
+                this@callbackFlow.close(databaseError.toException())
+            }
+
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                // A new value has been added, add it to the displayed list
+                val list: HashMap<String, T> = HashMap()
+                for (child: DataSnapshot in dataSnapshot.children) {
+                    val key: String? = child.key
+                    val value = child.getValue(typeIndicator)
+                    if(value != null && key != null) {
+                        list[key] = value
+                    }
+                }
+                Timber.e("onDataChange (key=${dataSnapshot.key})(homeUnits=$list)")
+                this@callbackFlow.sendBlocking(list)
+            }
+        })
+        awaitClose {
+            reference.removeEventListener(eventListener)
+        }
+    }
+
+}.conflate()
+
+@ExperimentalCoroutinesApi
 inline fun <reified T> genericReferenceFlow(databaseReference: DatabaseReference?) = callbackFlow<T> {
     val typeIndicator = object : GenericTypeIndicator<T>() {}
     databaseReference?.let { reference ->
