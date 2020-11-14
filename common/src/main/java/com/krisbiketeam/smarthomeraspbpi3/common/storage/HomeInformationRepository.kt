@@ -424,6 +424,7 @@ class FirebaseHomeInformationRepository {
     /**
      * get [Flow] of [HwUnit] List for listening to changes in Room entries in DB
      */
+    @ExperimentalCoroutinesApi
     fun hwUnitListFlow(): Flow<List<HwUnit>> {
         return genericListReferenceFlow(referenceHWUnits)
     }
@@ -442,6 +443,7 @@ class FirebaseHomeInformationRepository {
     fun hwUnitLiveData(hwUnitName: String): HwUnitLiveData {
         return HwUnitLiveData(referenceHWUnits, hwUnitName)
     }
+    @ExperimentalCoroutinesApi
     fun hwUnitFlow(hwUnitName: String): Flow<HwUnit> {
         return genericReferenceFlow(referenceHWUnits?.child(hwUnitName))
     }
@@ -491,15 +493,7 @@ class FirebaseHomeInformationRepository {
 
     // region HomeUnit
     /**
-     * get instance of @see[HomeUnitListLiveData] for listening to changes in entries in DB
-     */
-    @Deprecated("please use homeUnitListFlow")
-    fun homeUnitListLiveData(unitType: String): HomeUnitListLiveData {
-        return HomeUnitListLiveData(homePathReference, unitType)
-    }
-
-    /**
-     * get instance of @see[HomeUnitListLiveData] for listening to changes in entries in DB
+     * get Flow of @see[List<HomeUnit<Any?>>] for listening to changes in entries in DB
      */
     @ExperimentalCoroutinesApi
     fun homeUnitListFlow(unitType: String? = null): Flow<List<HomeUnit<Any?>>> {
@@ -525,13 +519,6 @@ class FirebaseHomeInformationRepository {
      */
     fun homeUnitsLiveData(): HomeUnitsLiveData {
         return HomeUnitsLiveData(homePathReference)
-    }
-
-    /**
-     * get instance of @see[HomeUnitsLiveData] for listening to changes in entries in DB
-     */
-    fun homeUnitsLiveData(roomName: String): HomeUnitsLiveData {
-        return HomeUnitsLiveData(homePathReference, roomName)
     }
 
     /**

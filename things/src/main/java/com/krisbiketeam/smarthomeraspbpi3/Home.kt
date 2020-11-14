@@ -47,7 +47,7 @@ class Home(secureStorage: SecureStorage,
            private val firebaseAnalytics: FirebaseAnalytics) :
         Sensor.HwUnitListener<Any> {
     private var homeUnitsLiveData: HomeUnitsLiveData? = null
-    private val homeUnitsList: MutableMap<String, HomeUnit<Any?>> = ConcurrentHashMap()
+    private val homeUnitsList: MutableMap<Pair<String, String>, HomeUnit<Any?>> = ConcurrentHashMap()
 
     private var hwUnitsLiveData: HwUnitsLiveData? = null
     private val hwUnitsList: MutableMap<String, BaseHwUnit<Any>> = ConcurrentHashMap()
@@ -68,7 +68,7 @@ class Home(secureStorage: SecureStorage,
         Timber.d("booleanApplyFunction newVal: $newVal this: $this")
         if (newVal is Boolean) {
             unitsTasks.values.forEach { task ->
-                homeUnitsList[task.homeUnitName]?.apply {
+                homeUnitsList[task.homeUnitType to task.homeUnitName]?.apply {
                     Timber.d("booleanApplyFunction task: $task for homeUnit: $this")
                     hwUnitsList[hwUnitName]?.let { taskHwUnit ->
                         Timber.d("booleanApplyFunction taskHwUnit: $taskHwUnit")
@@ -99,7 +99,7 @@ class Home(secureStorage: SecureStorage,
                 if (this.name == task.homeUnitName) {
                     task.delay
                 } else {
-                    homeUnitsList[task.homeUnitName]?.apply {
+                    homeUnitsList[task.homeUnitType to task.homeUnitName]?.apply {
                         Timber.d("sensorApplyFunction task: $task for homeUnit: $this")
                         hwUnitsList[hwUnitName]?.let { taskHwUnit ->
                             Timber.d("sensorApplyFunction taskHwUnit: $taskHwUnit")
@@ -165,7 +165,7 @@ class Home(secureStorage: SecureStorage,
                 when (action) {
                     ChildEventType.NODE_ACTION_CHANGED -> {
                         Timber.d("homeUnitsDataObserver NODE_ACTION_CHANGED NEW:  $homeUnit")
-                        homeUnitsList[homeUnit.name]?.run {
+                        homeUnitsList[homeUnit.type to homeUnit.name]?.run {
                             Timber.d("homeUnitsDataObserver NODE_ACTION_CHANGED EXISTING: $this}")
                             // set previous apply function to new homeUnit
                             homeUnit.applyFunction = applyFunction
@@ -191,11 +191,11 @@ class Home(secureStorage: SecureStorage,
                                     }
                                 }
                             }
-                            homeUnitsList[homeUnit.name] = homeUnit
+                            homeUnitsList[homeUnit.type to homeUnit.name] = homeUnit
                         }
                     }
                     ChildEventType.NODE_ACTION_ADDED   -> {
-                        val existingUnit = homeUnitsList[homeUnit.name]
+                        val existingUnit = homeUnitsList[homeUnit.type to homeUnit.name]
                         Timber.d(
                                 "homeUnitsDataObserver NODE_ACTION_ADDED EXISTING $existingUnit ; NEW  $homeUnit")
                         when (homeUnit.type) {
@@ -227,14 +227,14 @@ class Home(secureStorage: SecureStorage,
                                 homeUnit.lastUpdateTime = hwUnit.valueUpdateTime
                             }
                         }
-                        homeUnitsList[homeUnit.name] = homeUnit
+                        homeUnitsList[homeUnit.type to homeUnit.name] = homeUnit
                         //TODO: should we also call applyFunction ???
                         homeUnit.value?.let { value ->
                             homeUnit.applyFunction(homeUnit, value)
                         }
                     }
                     ChildEventType.NODE_ACTION_DELETED -> {
-                        val result = homeUnitsList.remove(homeUnit.name)
+                        val result = homeUnitsList.remove(homeUnit.type to homeUnit.name)
                         Timber.d("homeUnitsDataObserver NODE_ACTION_DELETED: $result")
                     }
                     else                               -> {

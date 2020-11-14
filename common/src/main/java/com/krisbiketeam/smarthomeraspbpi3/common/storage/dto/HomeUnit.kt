@@ -36,6 +36,8 @@ val homeUnitTypeIndicatorMap: HashMap<String, Class<out Any?>> = hashMapOf(
 
 val HOME_STORAGE_UNITS: List<String> = homeUnitTypeIndicatorMap.keys.toList()
 
+val HOME_ACTION_STORAGE_UNITS: List<String> = listOf(HOME_LIGHTS, HOME_BLINDS, HOME_ACTUATORS)
+
 data class HomeUnit<T>(var name: String = "", // Name should be unique for all units
                        var type: String = "",
                        var room: String = "",

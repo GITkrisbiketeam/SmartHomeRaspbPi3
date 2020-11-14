@@ -49,18 +49,40 @@
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/unit_task_home_unit_type_layout"
+                style="@style/LargeTitleDropDownOutlineInputLayoutStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_small"
+                android:enabled="@{viewModel.isEditMode}"
+                android:hint="@string/unit_task_text_home_unit_type_title"
+                app:endIconDropDownEnabled="@{viewModel.isEditMode}"
+                app:helperText="@string/unit_task_text_home_unit_type_select_spinner_prompt"
+                app:helperTextEnabled="@{viewModel.isEditMode}"
+                app:hintEnabled="true"
+                app:layout_constraintTop_toBottomOf="@id/unit_task_name_layout">
+
+                <com.google.android.material.textview.MaterialAutoCompleteTextView
+                    android:id="@+id/unit_task_home_unit_type"
+                    style="@style/EnabledColorMaterialAutoCompleteTextViewStyle"
+                    app:entriesAutoComplete="@{viewModel.homeUnitTypeList}"
+                    app:value="@={viewModel.homeUnitType}" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/unit_task_hw_unit_layout"
                 style="@style/LargeTitleDropDownOutlineInputLayoutStyle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/margin_normal"
+                android:layout_marginTop="@dimen/margin_small"
                 android:enabled="@{viewModel.isEditMode}"
                 android:hint="@string/unit_task_text_home_unit_name_title"
                 app:endIconDropDownEnabled="@{viewModel.isEditMode}"
-                app:helperText="@string/unit_task_text_home_unit_select_spinner_prompt"
+                app:helperText="@string/unit_task_text_home_unit_nam_select_spinner_prompt"
                 app:helperTextEnabled="@{viewModel.isEditMode}"
                 app:hintEnabled="true"
-                app:layout_constraintTop_toBottomOf="@id/unit_task_name_layout">
+                app:layout_constraintTop_toBottomOf="@id/unit_task_home_unit_type_layout">
 
                 <com.google.android.material.textview.MaterialAutoCompleteTextView
                     android:id="@+id/unit_task_hw_unit_text"

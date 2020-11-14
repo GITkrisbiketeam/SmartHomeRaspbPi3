@@ -13,6 +13,9 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.UnitTask
 import com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitDetailFragment
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomDetailFragment
 import com.krisbiketeam.smarthomeraspbpi3.utils.getLastUpdateTime
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.combine
 import timber.log.Timber
 
 
@@ -45,7 +48,7 @@ class HomeUnitDetailViewModel(application: Application, private val homeReposito
         } as MutableLiveData<String?>
     }
 
-    val roomNameList =
+    val roomNameList:LiveData<List<String>> =
             Transformations.switchMap(Transformations.distinctUntilChanged(isEditMode)) { isEdit ->
                 if (isEdit) {
                     Transformations.map(Transformations.distinctUntilChanged(
@@ -53,32 +56,35 @@ class HomeUnitDetailViewModel(application: Application, private val homeReposito
                         list.map(Room::name)
                     }
                 } else {
-                    MutableLiveData()
+                    MutableLiveData(emptyList())
                 }
-            } as MutableLiveData<List<String>>
+            }
     val roomName = if (homeUnit == null) {
         MutableLiveData()
     } else {
         Transformations.map(homeUnit) { unit -> unit.room }
     } as MutableLiveData<String?>
 
-    val hwUnitNameList =
+    @ExperimentalCoroutinesApi
+    val hwUnitNameList:LiveData<List<Pair<String, Boolean>>> =
             Transformations.switchMap(Transformations.distinctUntilChanged(isEditMode)) { isEdit ->
                 Timber.d("init hwUnitNameList isEditMode: $isEdit")
                 if (isEdit) {
-                    Transformations.switchMap(homeUnitList) { homeUnitList ->
-                        Timber.d("init hwUnitNameList homeUnitList homeUnitList: $homeUnitList")
-                        Transformations.map(homeRepository.hwUnitListFlow().asLiveData()) { list ->
-                            list.map {
+                    Transformations.switchMap(type) { type ->
+                        combine(homeRepository.homeUnitListFlow(), homeRepository.hwUnitListFlow()) { homeUnitList, hwUnitList ->
+                            homeUnitOfSelectedTypeList = homeUnitList.filter {
+                                it.type == type
+                            }
+                            hwUnitList.map {
                                 Pair(it.name,
                                         homeUnitList.find { unit -> unit.hwUnitName == it.name } != null)
                             }
-                        }
-                    } as MutableLiveData
+                        }.asLiveData(Dispatchers.Default)
+                    }
                 } else {
                     MutableLiveData(emptyList())
                 }
-            } as LiveData<List<Pair<String, Boolean>>>
+            }
     val hwUnitName = if (homeUnit == null) {
         MutableLiveData()
     } else {
@@ -92,23 +98,8 @@ class HomeUnitDetailViewModel(application: Application, private val homeReposito
 
     private var homeRepositoryTask: Task<Void>? = null
 
-    // used for checking if given homeUnit name is not already used
-    val homeUnitList =
-            Transformations.switchMap(Transformations.distinctUntilChanged(isEditMode)) { edit ->
-                Timber.d("init homeUnitList isEditMode edit: $edit")
-                if (edit) MediatorLiveData<MutableList<HomeUnit<Any?>>>().apply {
-                    HOME_STORAGE_UNITS.forEach { type ->
-                        addSource(homeRepository.homeUnitListLiveData(type)) { homeUnitList ->
-                            Timber.d(
-                                    "init homeUnitList homeUnitListLiveData homeUnitList: $homeUnitList")
-                            value = value ?: ArrayList()
-                            value?.addAll(homeUnitList ?: emptyList())
-                            postValue(value)
-                        }
-                    }
-                }
-                else MediatorLiveData()
-            } as MediatorLiveData<MutableList<HomeUnit<Any?>>>
+    // used for checking if given homeUnit name is not already used this is populated in hwUnitNameList
+    private var homeUnitOfSelectedTypeList: List<HomeUnit<Any?>> = emptyList()
 
     init {
         Timber.d("init unitName: $unitName unitType: $unitType roomName: $roomName")
@@ -231,7 +222,7 @@ class HomeUnitDetailViewModel(application: Application, private val homeReposito
                 hwUnitName.value?.trim()
                         .isNullOrEmpty() -> return Pair(
                         R.string.add_edit_home_unit_empty_unit_hw_unit, null)
-                homeUnitList.value?.find { unit -> unit.name == name.value?.trim() } != null -> {
+                homeUnitOfSelectedTypeList.find { unit -> unit.name == name.value?.trim() } != null -> {
                     //This name is already used
                     Timber.d("This name is already used")
                     return Pair(R.string.add_edit_home_unit_name_already_used, null)
@@ -242,6 +233,8 @@ class HomeUnitDetailViewModel(application: Application, private val homeReposito
             homeUnit.value?.let { unit ->
                 return if (name.value?.trim().isNullOrEmpty()) {
                     Pair(R.string.add_edit_home_unit_empty_name, null)
+                } else if (name.value?.trim() != unit.name && homeUnitOfSelectedTypeList.find { it.name == name.value?.trim() } != null) {
+                    return Pair(R.string.add_edit_home_unit_name_already_used, null)
                 } else if (name.value?.trim() != unit.name || type.value?.trim() != unit.type) {
                     Pair(R.string.add_edit_home_unit_save_with_delete, R.string.overwrite)
                 } else if (noChangesMade()) {

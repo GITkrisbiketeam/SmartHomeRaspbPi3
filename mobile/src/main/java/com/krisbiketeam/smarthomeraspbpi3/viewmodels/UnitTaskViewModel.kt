@@ -4,13 +4,14 @@ import androidx.lifecycle.*
 import com.google.android.gms.tasks.Task
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HOME_STORAGE_UNITS
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HOME_ACTION_STORAGE_UNITS
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.UnitTask
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_ACTUATORS
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_BLINDS
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_LIGHTS
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomDetailFragment
 import com.krisbiketeam.smarthomeraspbpi3.ui.UnitTaskFragment
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.map
 import timber.log.Timber
 
 
@@ -26,7 +27,7 @@ class UnitTaskViewModel(
     private val addingNewUnit = taskName.isEmpty()
 
     // Helper LiveData for UnitTaskList
-    private val unitTaskList: LiveData<Map<String, UnitTask>> = homeRepository.unitTaskListLiveData(unitType, unitName) //LiveData<Map<String, UnitTask>>
+    private val unitTaskList: LiveData<Map<String, UnitTask>> = homeRepository.unitTaskListLiveData(unitType, unitName)
 
     private val unitTask = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTaskList) { taskList -> taskList[taskName] }
 
@@ -37,7 +38,6 @@ class UnitTaskViewModel(
     val isEditMode: MutableLiveData<Boolean> = MutableLiveData(addingNewUnit)
 
     val name: MutableLiveData<String?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.name } as MutableLiveData<String?>
-    val homeUnitName: MutableLiveData<String?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.homeUnitName } as MutableLiveData<String?>
     val delay: MutableLiveData<Long?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.delay } as MutableLiveData<Long?>
     val duration: MutableLiveData<Long?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.duration } as MutableLiveData<Long?>
     val period: MutableLiveData<Long?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.period } as MutableLiveData<Long?>
@@ -45,26 +45,22 @@ class UnitTaskViewModel(
     val endTime: MutableLiveData<Long?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.endTime } as MutableLiveData<Long?>
     val inverse: MutableLiveData<Boolean?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.inverse } as MutableLiveData<Boolean?>
 
+    val homeUnitTypeList = HOME_ACTION_STORAGE_UNITS
+    val homeUnitType = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.homeUnitType } as MutableLiveData<String?>
+
     // List with all available HomeUnits to be used for this Task
+    @ExperimentalCoroutinesApi
     val homeUnitNameList = Transformations.switchMap(isEditMode) { edit ->      // HomeUnitListLiveData
         Timber.d("init homeUnitList isEditMode edit: $edit")
         if (edit) {
-            MediatorLiveData<MutableList<String>>().apply {
-                HOME_STORAGE_UNITS.filter {
-                    when (it) {
-                        HOME_LIGHTS, HOME_BLINDS, HOME_ACTUATORS -> true
-                        else -> false
-                    }
-                }.forEach { type ->
-                    addSource(homeRepository.homeUnitListLiveData(type)) { homeUnitList ->
-                        value = value ?: ArrayList()
-                        value?.addAll(homeUnitList?.map { it.name } ?: emptyList())
-                        postValue(value)
-                    }
-                }
+            Transformations.switchMap(homeUnitType) { type ->
+                homeRepository.homeUnitListFlow(type).map { homeUnitList ->
+                    homeUnitList.map(HomeUnit<Any?>::name)
+                }.asLiveData(Dispatchers.Default)
             }
-        } else MediatorLiveData()
+        } else MutableLiveData(emptyList())
     }
+    val homeUnitName: MutableLiveData<String?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.homeUnitName } as MutableLiveData<String?>
 
     init {
         Timber.d("init taskName: $taskName")
@@ -78,11 +74,13 @@ class UnitTaskViewModel(
     fun noChangesMade(): Boolean {
         Timber.d("noChangesMade unitTask?.value: ${unitTask.value}")
         Timber.d("noChangesMade name.value: ${name.value}")
+        Timber.d("noChangesMade homeUnitType: $homeUnitType")
         Timber.d("noChangesMade homeUnitName: $homeUnitName")
 //        Timber.d("noChangesMade hwUnitName.value: ${hwUnitName.value}")
 
         return unitTask.value?.let { unit ->
             unit.name == name.value &&
+                    unit.homeUnitType == homeUnitName.value &&
                     unit.homeUnitName == homeUnitName.value &&
 //            unit.hwUnitName == hwUnitName.value &&
                     unit.delay == delay.value &&
@@ -90,9 +88,7 @@ class UnitTaskViewModel(
                     unit.startTime == startTime.value &&
                     unit.endTime == endTime.value &&
                     unit.inverse == inverse.value
-        } ?: name.value.isNullOrEmpty()
-        ?: homeUnitName.value.isNullOrEmpty()/* && hwUnitName.value.isNullOrEmpty())*/
-        ?: true
+        } ?: name.value.isNullOrEmpty() || homeUnitType.value.isNullOrEmpty() || homeUnitName.value.isNullOrEmpty()/* || hwUnitName.value.isNullOrEmpty())*/
     }
 
     fun actionEdit() {
@@ -129,6 +125,7 @@ class UnitTaskViewModel(
             // Adding new HomeUnit
             when {
                 name.value?.trim().isNullOrEmpty() -> Pair(R.string.unit_task_empty_name, null)
+                homeUnitType.value.isNullOrEmpty() -> Pair(R.string.unit_task_empty_home_unit_type, null)
                 homeUnitName.value.isNullOrEmpty() -> Pair(R.string.unit_task_empty_home_unit_name, null)
                 unitTaskList.value?.keys?.contains(name.value?.trim()) == true -> {
                     //This name is already used
@@ -141,7 +138,7 @@ class UnitTaskViewModel(
             // Editing existing HomeUnit
             unitTask.value?.let {
                 return when {
-                    name.value?.trim().isNullOrEmpty() || homeUnitName.value.isNullOrEmpty()/* && hwUnitName.value.isNullOrEmpty()*/ -> {
+                    name.value?.trim().isNullOrEmpty() || homeUnitType.value.isNullOrEmpty() || homeUnitName.value.isNullOrEmpty()/* && hwUnitName.value.isNullOrEmpty()*/ -> {
                         Pair(R.string.unit_task_empty_name_unit_or_hw, null)
                     }
                     noChangesMade() -> {
@@ -189,16 +186,19 @@ class UnitTaskViewModel(
     private fun doSaveChanges(): Task<Void>? {
         return name.value?.let { name ->
             homeUnitName.value?.let { homeUnitName ->
-                homeRepository.saveUnitTask(unitType, unitName,
-                        UnitTask(
-                                name = name,
-                                homeUnitName = homeUnitName,
-                                //hwUnitName = hwUnitName.value,
-                                delay = delay.value,
-                                duration = duration.value,
-                                period = period.value,
-                                startTime = startTime.value
-                        ))
+                homeUnitType.value?.let { homeUnitType ->
+                    homeRepository.saveUnitTask(unitType, unitName,
+                            UnitTask(
+                                    name = name,
+                                    homeUnitName = homeUnitName,
+                                    homeUnitType = homeUnitType,
+                                    //hwUnitName = hwUnitName.value,
+                                    delay = delay.value,
+                                    duration = duration.value,
+                                    period = period.value,
+                                    startTime = startTime.value
+                            ))
+                }
             }
         }
     }

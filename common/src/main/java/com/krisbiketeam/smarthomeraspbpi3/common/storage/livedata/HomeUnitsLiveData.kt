@@ -7,23 +7,20 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.*
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.*
 import timber.log.Timber
 
-//TODO: We should somehow only register for units from given roomName if present
-class HomeUnitsLiveData(private val homeNamePath: String?, private val roomName: String? = null) :
+class HomeUnitsLiveData(private val homeNamePath: String?) :
         LiveData<Pair<ChildEventType, HomeUnit<Any?>>>() {
 
     private val unitsList: List<Pair<DatabaseReference, MyChildEventListener>> by lazy {
         homeNamePath?.let { homePath ->
             HOME_STORAGE_UNITS.map { storageUnit ->
                 MyChildEventListener(storageUnit).let { childListener ->
-                    Pair(FirebaseDatabase.getInstance()
-                                 .getReference("$homePath/$HOME_UNITS_BASE/${childListener.childNode}"),
-                         childListener)
+                    FirebaseDatabase.getInstance()
+                            .getReference("$homePath/$HOME_UNITS_BASE/${childListener.childNode}") to
+                            childListener
                 }
             }
         } ?: emptyList()
     }
-
-    private val homeUnitsList: MutableMap<String, HomeUnit<out Any?>> = mutableMapOf()
 
     private val typeIndicatorMap: HashMap<String, GenericTypeIndicator<out HomeUnit<out Any?>>> by lazy {
         hashMapOf(HOME_LIGHTS to object : GenericTypeIndicator<HomeUnit<LightType?>>() {},
@@ -54,15 +51,9 @@ class HomeUnitsLiveData(private val homeNamePath: String?, private val roomName:
                 }
                 Timber.d("onChildAdded (key=$key)(unit=${unit?.name})")
                 unit?.let {
-                    Timber.d("onChildAdded (roomName=$roomName)(unit.room=${it.room})")
-                    if (roomName == null || roomName == it.room) {
-                        // We need to create new SecureStorage unit as the one returned from GenericTypeIndicator is covariant
-                        //value = ChildEventType.NODE_ACTION_ADDED to HomeUnit(it.name, it.type, it.room, it.hwUnitName, it.value, it.unitsTasks)//HomeUnit<Any>(it)
-                        value = ChildEventType.NODE_ACTION_ADDED to it.makeInvariant()
-                    } else if (homeUnitsList.containsKey(it.name)) {
-                        value = ChildEventType.NODE_ACTION_DELETED to it.makeInvariant()
-                    }
-                    homeUnitsList[it.name] = it
+                    Timber.d("onChildAdded (unit.room=${it.room})")
+                    // We need to create new SecureStorage unit as the one returned from GenericTypeIndicator is covariant
+                    value = ChildEventType.NODE_ACTION_ADDED to it.makeInvariant()
                 }
             }
         }
@@ -75,19 +66,8 @@ class HomeUnitsLiveData(private val homeNamePath: String?, private val roomName:
                 val unit = dataSnapshot.getValue(this)
                 Timber.d("onChildChanged (key=$key)(unit=$unit)")
                 unit?.let {
-                    Timber.d("onChildChanged (roomName=$roomName)(unit.room=${it.room})")
-                    if (roomName == null || roomName == it.room) {
-                        //value = ChildEventType.NODE_ACTION_CHANGED to HomeUnit(it.name, it.type, it.room, it.hwUnitName, it.value, it.unitsTasks)
-                        value = if (roomName == null || homeUnitsList[it.name]?.room == roomName) {
-                            ChildEventType.NODE_ACTION_CHANGED to it.makeInvariant()
-                        } else {
-                            ChildEventType.NODE_ACTION_ADDED to it.makeInvariant()
-                        }
-                    } else if (homeUnitsList.containsKey(it.name)) {
-                        value = ChildEventType.NODE_ACTION_DELETED to it.makeInvariant()
-                    }
-                    // Update HomeUnit on the list
-                    homeUnitsList[it.name] = it
+                    Timber.d("onChildChanged (unit.room=${it.room})")
+                    value = ChildEventType.NODE_ACTION_CHANGED to it.makeInvariant()
                 }
             }
         }
@@ -102,12 +82,8 @@ class HomeUnitsLiveData(private val homeNamePath: String?, private val roomName:
                 val unit = dataSnapshot.getValue(this)
                 Timber.d("onChildRemoved (key=$key)(unit=$unit)")
                 unit?.let {
-                    Timber.d("onChildRemoved (roomName=$roomName)(unit.room=${it.room})")
-                    if (roomName == null || roomName == it.room) {
-                        //value = ChildEventType.NODE_ACTION_DELETED to HomeUnit(it.name, it.type, it.room, it.hwUnitName, it.value, it.unitsTasks)
-                        value = ChildEventType.NODE_ACTION_DELETED to it.makeInvariant()
-                    }
-                    homeUnitsList.remove(it.name)
+                    Timber.d("onChildRemoved (unit.room=${it.room})")
+                    value = ChildEventType.NODE_ACTION_DELETED to it.makeInvariant()
                 }
             }
         }

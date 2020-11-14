@@ -11,7 +11,6 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformation
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitDetailFragment
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomDetailFragment
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import timber.log.Timber
@@ -39,7 +38,7 @@ class RoomDetailViewModel(
             it.room == room.value?.name
         }
     }
-    val homeUnitsList: LiveData<List<HomeUnit<Any?>>> = homeUnitsListFlow.asLiveData(Dispatchers.Default)
+    val homeUnitsList: LiveData<List<HomeUnit<Any?>>> = homeUnitsListFlow.asLiveData()
 
     fun noChangesMade(): Boolean {
         return room.value?.name?.trim() == roomName.value
