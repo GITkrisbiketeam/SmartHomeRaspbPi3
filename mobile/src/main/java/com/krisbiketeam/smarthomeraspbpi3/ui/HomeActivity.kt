@@ -9,7 +9,6 @@ import androidx.navigation.Navigation
 import androidx.navigation.findNavController
 import androidx.navigation.ui.NavigationUI
 import androidx.navigation.ui.setupActionBarWithNavController
-import androidx.navigation.ui.setupWithNavController
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
@@ -52,6 +51,7 @@ class HomeActivity : AppCompatActivity() {
             navController.navigate(R.id.home_settings_fragment)
         } else {
             homeInformationRepository.setHomeReference(secureStorage.homeName)
+            homeInformationRepository.setUserReference(secureStorage.firebaseCredentials.email)
         }
 
         DataBindingUtil.inflate<NavHeaderBinding>(layoutInflater, R.layout.nav_header,

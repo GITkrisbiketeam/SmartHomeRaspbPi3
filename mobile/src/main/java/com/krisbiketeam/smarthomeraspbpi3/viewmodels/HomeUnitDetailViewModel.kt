@@ -1,5 +1,6 @@
 package com.krisbiketeam.smarthomeraspbpi3.viewmodels
 
+import android.app.Application
 import androidx.lifecycle.*
 import com.google.android.gms.tasks.Task
 import com.krisbiketeam.smarthomeraspbpi3.R
@@ -11,14 +12,15 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.Room
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.UnitTask
 import com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitDetailFragment
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomDetailFragment
+import com.krisbiketeam.smarthomeraspbpi3.utils.getLastUpdateTime
 import timber.log.Timber
 
 
 /**
  * The ViewModel used in [RoomDetailFragment].
  */
-class HomeUnitDetailViewModel(private val homeRepository: FirebaseHomeInformationRepository,
-                              roomName: String, unitName: String, unitType: String) : ViewModel() {
+class HomeUnitDetailViewModel(application: Application, private val homeRepository: FirebaseHomeInformationRepository,
+                              roomName: String, unitName: String, unitType: String) : AndroidViewModel(application) {
 
     val unitTaskListAdapter = UnitTaskListAdapter(unitName, unitType)
 
@@ -69,12 +71,12 @@ class HomeUnitDetailViewModel(private val homeRepository: FirebaseHomeInformatio
                         Transformations.map(homeRepository.hwUnitListFlow().asLiveData()) { list ->
                             list.map {
                                 Pair(it.name,
-                                     homeUnitList.find { unit -> unit.hwUnitName == it.name } != null)
+                                        homeUnitList.find { unit -> unit.hwUnitName == it.name } != null)
                             }
                         }
                     } as MutableLiveData
                 } else {
-                    MutableLiveData()
+                    MutableLiveData(emptyList())
                 }
             } as LiveData<List<Pair<String, Boolean>>>
     val hwUnitName = if (homeUnit == null) {
@@ -84,6 +86,7 @@ class HomeUnitDetailViewModel(private val homeRepository: FirebaseHomeInformatio
     } as MutableLiveData<String?>
 
     val value: MutableLiveData<String>
+    val lastUpdateTime: MutableLiveData<String>
     val firebaseNotify: MutableLiveData<Boolean>
     val unitTaskList: LiveData<Map<String, UnitTask>>
 
@@ -115,10 +118,17 @@ class HomeUnitDetailViewModel(private val homeRepository: FirebaseHomeInformatio
 
             value = Transformations.map(
                     homeUnit) { unit -> unit.value.toString() } as MutableLiveData<String>
+            lastUpdateTime = Transformations.map(
+                    homeUnit) { unit -> getLastUpdateTime(application, unit) } as MutableLiveData<String>
+
             firebaseNotify = Transformations.map(
                     homeUnit) { unit -> unit.firebaseNotify } as MutableLiveData<Boolean>
 
-            showProgress = Transformations.map(homeUnit) { false } as MutableLiveData<Boolean>
+            showProgress = Transformations.switchMap(homeUnit) {
+                Transformations.map(homeRepository.isUserOnline()) { online ->
+                    online != true
+                }
+            } as MutableLiveData<Boolean>
 
             showProgress.value = true
             isEditMode.value = false
@@ -126,6 +136,7 @@ class HomeUnitDetailViewModel(private val homeRepository: FirebaseHomeInformatio
             Timber.d("init Adding new HomeUnit")
 
             value = MutableLiveData()
+            lastUpdateTime = MutableLiveData()
             firebaseNotify = MutableLiveData()
 
             showProgress = MutableLiveData()
@@ -164,7 +175,7 @@ class HomeUnitDetailViewModel(private val homeRepository: FirebaseHomeInformatio
                         value = mutableMapOf(Pair("", UnitTask()))
                     }//newList
                 } else {*/
-                MutableLiveData<Map<String, UnitTask>>()
+                MutableLiveData()
                 //}
             }
         }
@@ -212,13 +223,13 @@ class HomeUnitDetailViewModel(private val homeRepository: FirebaseHomeInformatio
         if (homeUnit == null) {
             // Adding new HomeUnit
             when {
-                name.value?.trim().isNullOrEmpty()                                           -> return Pair(
+                name.value?.trim().isNullOrEmpty() -> return Pair(
                         R.string.add_edit_home_unit_empty_name, null)
                 type.value?.trim()
-                        .isNullOrEmpty()                                                     -> return Pair(
+                        .isNullOrEmpty() -> return Pair(
                         R.string.add_edit_home_unit_empty_unit_type, null)
                 hwUnitName.value?.trim()
-                        .isNullOrEmpty()                                                     -> return Pair(
+                        .isNullOrEmpty() -> return Pair(
                         R.string.add_edit_home_unit_empty_unit_hw_unit, null)
                 homeUnitList.value?.find { unit -> unit.name == name.value?.trim() } != null -> {
                     //This name is already used
@@ -288,13 +299,13 @@ class HomeUnitDetailViewModel(private val homeRepository: FirebaseHomeInformatio
                             showProgress.value = true
                             homeRepository.saveHomeUnit(
                                     HomeUnit(name = name, type = type, room = room,
-                                             hwUnitName = hwUnitName,
-                                             firebaseNotify = firebaseNotify,
-                                             value = homeUnit?.value?.value,
-                                             lastUpdateTime = homeUnit?.value?.lastUpdateTime,
-                                             unitsTasks = unitTaskList.value?.toMutableMap()?.also {
-                                                 it.remove("")
-                                             } ?: HashMap()))
+                                            hwUnitName = hwUnitName,
+                                            firebaseNotify = firebaseNotify,
+                                            value = homeUnit?.value?.value,
+                                            lastUpdateTime = homeUnit?.value?.lastUpdateTime,
+                                            unitsTasks = unitTaskList.value?.toMutableMap()?.also {
+                                                it.remove("")
+                                            } ?: HashMap()))
                             //}
                         }
                     }

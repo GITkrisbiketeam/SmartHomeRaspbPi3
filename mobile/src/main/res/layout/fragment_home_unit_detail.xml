@@ -119,7 +119,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/margin_normal"
-                    android:enabled="@{viewModel.isEditMode}"
                     android:hint="@string/add_edit_home_unit_text_hw_unit_title"
                     app:endIconDropDownEnabled="@{viewModel.isEditMode}"
                     app:helperText="@string/add_edit_home_unit_text_room_spinner_prompt"
@@ -131,59 +130,77 @@
                         android:id="@+id/hw_unit_name_spinner"
                         style="@style/EnabledColorMaterialAutoCompleteTextViewStyle"
                         app:entriesUsedAutoComplete="@{viewModel.hwUnitNameList}"
+                        android:clickable="@{viewModel.isEditMode}"
+                        android:focusable="false"
                         app:value="@={viewModel.hwUnitName}" />
                 </com.google.android.material.textfield.TextInputLayout>
 
-                <FrameLayout
-                    android:id="@+id/home_unit_name_value_layout"
-                    android:layout_width="match_parent"
+                <androidx.constraintlayout.widget.Group
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:visibility="@{safeUnbox(viewModel.isEditMode) ? View.GONE : View.VISIBLE}"
+                    app:constraint_referenced_ids="home_unit_value_title,home_unit_value, home_unit_value_last_update_time" />
+
+                <TextView
+                    android:id="@+id/home_unit_value_title"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/margin_normal"
+                    android:text="@string/add_edit_home_unit_text_value"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Title"
+                    app:layout_constraintEnd_toStartOf="@id/home_unit_value"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/hw_unit_name_layout" />
+
+                <TextView
+                    android:id="@+id/home_unit_value"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/margin_small"
+                    android:text="@{viewModel.value}"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Title"
+                    app:layout_constraintBottom_toBottomOf="@id/home_unit_value_title"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/home_unit_value_title"
+                    app:layout_constraintTop_toTopOf="@id/home_unit_value_title" />
+
+                <TextView
+                    android:id="@+id/home_unit_value_last_update_time"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_small"
+                    android:layout_marginStart="@dimen/margin_small"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+                    android:text="@{viewModel.lastUpdateTime}"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/hw_unit_name_layout">
+                    app:layout_constraintTop_toBottomOf="@id/home_unit_value_title" />
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:orientation="vertical"
-                        android:visibility="@{safeUnbox(viewModel.isEditMode) ? View.INVISIBLE : View.VISIBLE}">
+                <androidx.constraintlayout.widget.Group
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:visibility="@{safeUnbox(viewModel.isEditMode) ? View.VISIBLE : View.GONE}"
+                    app:constraint_referenced_ids="home_unit_name_title,home_unit_name" />
 
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/add_edit_home_unit_text_value"
-                            android:textAppearance="@style/TextAppearance.AppCompat.Title" />
+                <TextView
+                    android:id="@+id/home_unit_name_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/add_edit_home_unit_text_name"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Title"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/home_unit_value_last_update_time" />
 
-                        <TextView
-                            android:id="@+id/home_unit_value"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@{viewModel.value}"
-                            android:textAppearance="@style/TextAppearance.AppCompat.Title" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:visibility="@{safeUnbox(viewModel.isEditMode) ? View.VISIBLE : View.INVISIBLE}">
-
-                        <TextView
-                            android:id="@+id/home_unit_name_title"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/add_edit_home_unit_text_name"
-                            android:textAppearance="@style/TextAppearance.AppCompat.Title" />
-
-                        <EditText
-                            android:id="@+id/home_unit_name"
-                            style="@style/EditTextStyle"
-                            android:hint="@string/add_edit_home_unit_text_title_hint"
-                            android:text="@={viewModel.name}"
-                            tools:ignore="Autofill,TextFields" />
-                    </LinearLayout>
-                </FrameLayout>
+                <EditText
+                    android:id="@+id/home_unit_name"
+                    style="@style/EditTextStyle"
+                    android:hint="@string/add_edit_home_unit_text_title_hint"
+                    android:text="@={viewModel.name}"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/home_unit_name_title"
+                    tools:ignore="Autofill,TextFields" />
 
                 <androidx.appcompat.widget.SwitchCompat
                     android:id="@+id/home_unit_notify_firebase_switch"
@@ -194,7 +211,7 @@
                     android:text="@string/add_edit_home_unit_notify_firebase_switch_text"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/home_unit_name_value_layout" />
+                    app:layout_constraintTop_toBottomOf="@id/home_unit_name" />
 
                 <TextView
                     android:id="@+id/unit_task_list_title"

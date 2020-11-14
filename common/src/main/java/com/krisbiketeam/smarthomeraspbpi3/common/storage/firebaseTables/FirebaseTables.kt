@@ -4,6 +4,7 @@ package com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables
 const val USER_INFORMATION_BASE = "users"
 
 const val USER_NAME= "name"
+const val USER_ONLINE= "online"
 const val USER_EMAIL = "email"
 const val USER_NOTIFICATION_TOKENS = "notificationTokens"
 // endregion

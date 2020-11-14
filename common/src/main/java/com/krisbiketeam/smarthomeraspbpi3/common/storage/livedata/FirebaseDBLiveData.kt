@@ -2,23 +2,24 @@ package com.krisbiketeam.smarthomeraspbpi3.common.storage.livedata
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Transformations
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.*
 import timber.log.Timber
 
 class FirebaseDBLiveData(private val refName: String) : LiveData<DataSnapshot>() {
     private val listener = MyValueEventListener()
 
+    private val databaseReference: DatabaseReference by lazy {
+        FirebaseDatabase.getInstance().getReference(refName)
+    }
+
     override fun onActive() {
         Timber.d("onActive")
-        FirebaseDatabase.getInstance().getReference(refName).addValueEventListener(listener)
+        databaseReference.addValueEventListener(listener)
     }
 
     override fun onInactive() {
         Timber.d("onInactive")
-        FirebaseDatabase.getInstance().getReference(refName).removeEventListener(listener)
+        databaseReference.removeEventListener(listener)
     }
 
     private inner class MyValueEventListener : ValueEventListener {

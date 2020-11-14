@@ -31,7 +31,7 @@ val myModule: Module = module {
         RoomDetailViewModel(get(), roomName)
     }
     viewModel { (roomName: String, homeUnitName: String, homeUnitType: String) ->
-        HomeUnitDetailViewModel(get(), roomName, homeUnitName, homeUnitType)
+        HomeUnitDetailViewModel(androidApplication(), get(), roomName, homeUnitName, homeUnitType)
     }
     viewModel { (taskName: String, homeUnitName: String, homeUnitType: String) ->
         UnitTaskViewModel(get(), taskName, homeUnitName, homeUnitType)

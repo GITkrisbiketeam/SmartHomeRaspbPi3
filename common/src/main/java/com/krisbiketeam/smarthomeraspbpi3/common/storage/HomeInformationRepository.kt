@@ -22,6 +22,7 @@ class FirebaseHomeInformationRepository {
     // region Home reference
     // Reference for all home related "Units"
     private var homePathReference: String? = null
+    private var userPathReference: String? = null
 
     private val referenceHWUnitsDelegate = resetableLazy {
         homePathReference?.let { FirebaseDatabase.getInstance().getReference("$it/$HOME_HW_UNITS_BASE") }
@@ -69,7 +70,7 @@ class FirebaseHomeInformationRepository {
 
     // region Users
     // Reference for all users
-    private val referenceUsers = FirebaseDatabase.getInstance().getReference(USER_INFORMATION_BASE)
+    private val referenceUsers by lazy { FirebaseDatabase.getInstance().getReference(USER_INFORMATION_BASE) }
     // endregion
 
     // region Notifications
@@ -108,6 +109,10 @@ class FirebaseHomeInformationRepository {
         //FirebaseDatabase.getInstance().getReference(this).keepSynced(true)
     }
 
+    fun setUserReference(email: String) {
+        userPathReference = "$USER_INFORMATION_BASE/${email.hashCode()}"
+    }
+
     // region Firebase DB operations
     // region User and its Notification token handling
 
@@ -120,6 +125,43 @@ class FirebaseHomeInformationRepository {
         referenceUsers.child(email.hashCode().toString()).child(USER_NOTIFICATION_TOKENS)
                 .child(token).setValue(true)
     }
+
+    fun startUserToFirebaseConnectionActiveMonitor(email: String) {
+        // Since I can connect from multiple devices, we store each connection instance separately
+        // any time that connectionsRef's value is null (i.e. has no children) I am offline
+        val myConnectionsRef = userPathReference?.let {
+            FirebaseDatabase.getInstance().getReference("$it/$USER_ONLINE")
+        }
+
+        val connectedRef = FirebaseDatabase.getInstance().getReference(".info/connected")
+
+        connectedRef.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val connected = snapshot.getValue(Boolean::class.java) ?: false
+                Timber.w("Firebase Online Connected? $connected")
+                if (connected) {
+                    // When this device disconnects, remove it
+                    myConnectionsRef?.onDisconnect()?.removeValue()
+
+                    // Add this device to my connections list
+                    // this value could contain info about the device or a timestamp too
+                    myConnectionsRef?.setValue(java.lang.Boolean.TRUE)
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Timber.w("Listener was cancelled at .info/connected")
+            }
+        })
+    }
+
+    fun isUserOnline(): LiveData<Boolean?> = userPathReference?.let {
+        FirebaseDBLiveData("$it/$USER_ONLINE").getObjectLiveData()
+    } ?: MutableLiveData()
+
+    @ExperimentalCoroutinesApi
+    fun isUserOnlineFlow(): Flow<Boolean?> =
+        genericReferenceFlow(userPathReference?.let{FirebaseDatabase.getInstance().getReference("$it/$USER_ONLINE")})
 
     // endregion
 
@@ -317,14 +359,14 @@ class FirebaseHomeInformationRepository {
      * Checks if Home Module is online
      */
     fun isHomeOnline(): LiveData<Boolean?> = homePathReference?.let {
-        FirebaseDBLiveData("$it/$HOME_ONLINE").getObjectLiveData<Boolean?>()
+        FirebaseDBLiveData("$it/$HOME_ONLINE").getObjectLiveData()
     } ?: MutableLiveData()
 
     /**
      * Checks when Home Module was last online
      */
     fun lastHomeOnlineTime(): LiveData<Long?> = homePathReference?.let {
-        FirebaseDBLiveData("$it/$HOME_LAST_ONLINE_TIME").getObjectLiveData<Long?>()
+        FirebaseDBLiveData("$it/$HOME_LAST_ONLINE_TIME").getObjectLiveData()
     } ?: MutableLiveData()
     // endregion
 
@@ -450,7 +492,7 @@ class FirebaseHomeInformationRepository {
         return homePathReference?.let {home ->
             if (unitType != null) {
                 FirebaseDatabase.getInstance().getReference("$home/$HOME_UNITS_BASE/$unitType").let { reference ->
-                    genericListReferenceFlow<HomeUnit<Any?>>(reference)
+                    genericListReferenceFlow(reference)
                 }
             } else {
                 combine(HOME_STORAGE_UNITS.map { type ->
@@ -503,8 +545,8 @@ class FirebaseHomeInformationRepository {
         return homePathReference?.let { home ->
             FirebaseDatabase.getInstance().getReference("$home/$HOME_UNITS_BASE/$unitType/$unitName/$HOME_UNIT_TASKS").let { reference ->
                 genericListReferenceFlow<UnitTask>(reference)
-            }.map {
-                it.associateBy { it.name }
+            }.map { list ->
+                list.associateBy { it.name }
             }
         } ?: emptyFlow()
     }

@@ -114,6 +114,10 @@
             tools:keep="@string/unit_task_text_hw_unit_select_spinner_prompt">Select Hw Unit</string>
     <string name="unit_task_empty_name_unit_or_hw">Empty Unit Task, please fill in required fields</string>
     <string name="unit_task_empty_home_unit_name">Empty Home Unit Name, please fill in required fields</string>
+    <string name="unit_task_empty_name">Unit Task name cannot be empty</string>
+    <string name="unit_task_name_already_used">This Unit Task Name is already used, please use different one.</string>
+    <string name="unit_task_save_changes">Do you want to save new Unit Task?</string>
+    <string name="unit_task_error_empty_editing_unit_task">Could not load existing Unit Task</string>
 
     <string name="add_edit_hw_unit_type_spinner_title">HwUnit Type</string>
     <string name="add_edit_hw_unit_type_spinner_prompt">Select HW Unit Type:</string>

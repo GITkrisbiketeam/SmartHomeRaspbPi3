@@ -24,6 +24,7 @@ class NavigationViewModel(secureStorage: SecureStorage, homeRepository: Firebase
             if (it.email.isEmpty()) {
                 "Login to Firebase"
             } else {
+                homeRepository.startUserToFirebaseConnectionActiveMonitor(it.email)
                 it.email
             }
         }

@@ -16,6 +16,7 @@ import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentHomeUnitDetailBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.HomeUnitDetailViewModel
+import kotlinx.android.synthetic.main.fragment_home_unit_detail.*
 import org.koin.android.ext.android.inject
 import org.koin.android.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
@@ -73,6 +74,26 @@ class HomeUnitDetailFragment : Fragment() {
         ))
 
         return rootBinding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        hw_unit_name_spinner.setOnLongClickListener {
+            val hwUnitName = homeUnitDetailViewModel.hwUnitName.value
+            if (hwUnitName != null && homeUnitDetailViewModel.isEditMode.value == true) {
+                findNavController().navigate(HomeUnitDetailFragmentDirections.actionHomeUnitDetailFragmentToAddEditHwUnitFragment(hwUnitName))
+                true
+            } else {
+                false
+            }
+        }
+        hw_unit_name_spinner.setOnClickListener {
+            val hwUnitName = homeUnitDetailViewModel.hwUnitName.value
+            if (hwUnitName != null && homeUnitDetailViewModel.isEditMode.value != true) {
+                findNavController().navigate(HomeUnitDetailFragmentDirections.actionHomeUnitDetailFragmentToAddEditHwUnitFragment(hwUnitName))
+            }
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {

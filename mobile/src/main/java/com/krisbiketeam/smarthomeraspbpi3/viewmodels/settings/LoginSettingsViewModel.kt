@@ -38,6 +38,7 @@ class LoginSettingsViewModel(private val authentication: AuthenticationLiveData,
                 if (state == MyLiveDataState.DONE && data is FirebaseCredentials) {
                     homeInformationRepository.writeNewUser(data.email.substringBefore("@"),
                                                                    data.email)
+                    homeInformationRepository.setUserReference(data.email)
                     updateValue = false
                     getFirebaseAppToken { token ->
                         Timber.d("getFirebaseAppToken token: $token")
