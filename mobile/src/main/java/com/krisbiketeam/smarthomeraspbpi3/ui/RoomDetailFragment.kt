@@ -73,9 +73,9 @@ class RoomDetailFragment : Fragment() {
     }
 
     private fun subscribeUi(adapter: RoomDetailHomeUnitListAdapter) {
-        roomDetailViewModel.homeUnitsMap.observe(viewLifecycleOwner, { homeUnitsMap ->
-            Timber.d("subscribeUi homeUnitsMap: $homeUnitsMap")
-            adapter.submitList(homeUnitsMap.values.toList())
+        roomDetailViewModel.homeUnitsList.observe(viewLifecycleOwner, { homeUnitsList ->
+            Timber.d("subscribeUi homeUnitsList: $homeUnitsList")
+            adapter.submitList(homeUnitsList)
         })
     }
 

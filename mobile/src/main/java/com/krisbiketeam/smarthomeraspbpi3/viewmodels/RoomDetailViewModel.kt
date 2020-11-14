@@ -1,17 +1,19 @@
 package com.krisbiketeam.smarthomeraspbpi3.viewmodels
 
-import androidx.lifecycle.MediatorLiveData
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asLiveData
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.Tasks
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HOME_STORAGE_UNITS
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitDetailFragment
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomDetailFragment
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import timber.log.Timber
 
 
@@ -29,21 +31,15 @@ class RoomDetailViewModel(
     val showProgress = MutableLiveData(false)
 
     private val roomList = homeRepository.roomListLiveData()
-    val homeUnitsMap = Transformations.switchMap(room) { room ->
-        MediatorLiveData<MutableMap<String, HomeUnit<Any?>>>().apply {
-            HOME_STORAGE_UNITS.forEach { type ->
-                    addSource(homeRepository.homeUnitListLiveData(type)) {homeUnitList ->
-                        value = value ?: mutableMapOf()
-                        homeUnitList.filter {
-                            it.room == room.name
-                        }.forEach {
-                            value?.put(it.name, it)
-                        }
-                        postValue(value)
-                    }
-            }
+
+    private val homeUnitsListFlow: Flow<List<HomeUnit<Any?>>> = homeRepository.homeUnitListFlow().map {homeUnitList ->
+        Timber.e("homeUnitsMap Flow")
+        homeUnitList.filter {
+            Timber.e("homeUnitsMap Flow filter")
+            it.room == room.value?.name
         }
     }
+    val homeUnitsList: LiveData<List<HomeUnit<Any?>>> = homeUnitsListFlow.asLiveData(Dispatchers.Default)
 
     fun noChangesMade(): Boolean {
         return room.value?.name?.trim() == roomName.value
@@ -73,7 +69,7 @@ class RoomDetailViewModel(
     fun actionDeleteHomeUnit(): Task<Void> {
         Timber.d("deleteHomeUnit room.name: ${room.value?.name} ")
         showProgress.value = true
-        return homeUnitsMap.value?.values?.let { homeUnitList ->
+        return homeUnitsList.value?.let { homeUnitList ->
             Tasks.whenAll(homeUnitList.map { homeUnit ->
                 homeUnit.run {
                     room = ""
@@ -93,7 +89,7 @@ class RoomDetailViewModel(
     fun saveChanges(): Task<Void> {
         showProgress.value = true
         return roomName.value?.let { newRoomName ->
-            homeUnitsMap.value?.values?.let { homeUnitList ->
+            homeUnitsList.value?.let { homeUnitList ->
                 Tasks.whenAll(homeUnitList.map { homeUnit ->
                     homeUnit.run {
                         room = newRoomName

@@ -140,7 +140,7 @@ class UnitTaskFragment : Fragment() {
             }
             R.id.action_delete -> {
                 showDialog(R.string.add_edit_home_unit_delete_home_unit_prompt, R.string.menu_delete) {
-                    unitTaskViewModel.deleteHomeUnit()?.addOnCompleteListener {
+                    unitTaskViewModel.deleteUnitTask()?.addOnCompleteListener {
                         // navigate back Up from this Fragment
                         findNavController().navigateUp()
                     }
