@@ -63,7 +63,7 @@ class Home(secureStorage: SecureStorage,
     private var alarmEnabled: Boolean = secureStorage.alarmEnabled
 
     private var booleanApplyFunction: suspend HomeUnit<in Boolean>.(Any) -> Unit = { newVal: Any ->
-        Timber.d("booleanApplyFunction newVal: $newVal this: $this")
+        Timber.d("booleanApplyFunction newVal: $newVal called from: $this")
         if (newVal is Boolean) {
             unitsTasks.values.forEach { task ->
                 homeUnitsList[task.homeUnitType to task.homeUnitName]?.apply {
@@ -71,20 +71,38 @@ class Home(secureStorage: SecureStorage,
                     hwUnitsList[hwUnitName]?.let { taskHwUnit ->
                         Timber.d("booleanApplyFunction taskHwUnit: $taskHwUnit")
                         if (taskHwUnit is Actuator) {
-                            if (task.trigger == null
-                                    || task.trigger == BOTH
-                                    || (task.trigger == RISING_EDGE && newVal == true)
-                                    || (task.trigger == FALLING_EDGE && newVal == false)) {
-                                value = task.inverse ?: false xor newVal
-                                Timber.d("booleanApplyFunction taskHwUnit setValue value: $value")
-                                taskHwUnit.setValueWithException(newVal)
-                                lastUpdateTime = taskHwUnit.valueUpdateTime
-                                applyFunction(newVal)
-                                homeInformationRepository.saveHomeUnit(this)
-                                if (firebaseNotify && alarmEnabled) {
-                                    Timber.d("booleanApplyFunction notify with FCM Message")
-                                    homeInformationRepository.notifyHomeUnitEvent(this)
+                            if ((task.trigger == null || task.trigger == BOTH)
+                                    || (task.trigger == RISING_EDGE && newVal)
+                                    || (task.trigger == FALLING_EDGE && !newVal)) {
+
+                                val action: suspend (Boolean) -> Unit = { actionVal ->
+                                    value = task.inverse ?: false xor actionVal
+                                    Timber.d("booleanApplyFunction taskHwUnit setValue value: $value")
+                                    taskHwUnit.setValueWithException(actionVal)
+                                    lastUpdateTime = taskHwUnit.valueUpdateTime
+                                    applyFunction(actionVal)
+                                    homeInformationRepository.saveHomeUnit(this)
+                                    if (firebaseNotify && alarmEnabled) {
+                                        Timber.d("booleanApplyFunction notify with FCM Message")
+                                        homeInformationRepository.notifyHomeUnitEvent(this)
+                                    }
                                 }
+                                task.delay?.let { delay ->
+                                    task.taskJob = GlobalScope.launch(Dispatchers.Default) {
+                                        delay(delay)
+                                        action.invoke(newVal)
+                                        task.duration?.let { duration ->
+                                            delay(duration)
+                                            action.invoke(!newVal)
+                                        }
+                                    }
+                                } ?: task.duration?.let { duration ->
+                                    action.invoke(newVal)
+                                    task.taskJob = GlobalScope.launch(Dispatchers.Default) {
+                                        delay(duration)
+                                        action.invoke(!newVal)
+                                    }
+                                } ?: action.invoke(newVal)
                             }
                         }
                     }
@@ -172,6 +190,13 @@ class Home(secureStorage: SecureStorage,
                             Timber.d("homeUnitsDataObserver NODE_ACTION_CHANGED EXISTING: $this}")
                             // set previous apply function to new homeUnit
                             homeUnit.applyFunction = applyFunction
+                            unitsTasks.forEach { (key, value) ->
+                                if (homeUnit.unitsTasks.contains(key)) {
+                                    homeUnit.unitsTasks[key]?.taskJob = value.taskJob
+                                } else {
+                                    value.taskJob?.cancel()
+                                }
+                            }
                             hwUnitsList[homeUnit.hwUnitName]?.let { hwUnit ->
                                 Timber.d(
                                         "homeUnitsDataObserver NODE_ACTION_CHANGED hwUnit: ${hwUnit.hwUnit}")
@@ -197,7 +222,7 @@ class Home(secureStorage: SecureStorage,
                             homeUnitsList[homeUnit.type to homeUnit.name] = homeUnit
                         }
                     }
-                    ChildEventType.NODE_ACTION_ADDED   -> {
+                    ChildEventType.NODE_ACTION_ADDED -> {
                         val existingUnit = homeUnitsList[homeUnit.type to homeUnit.name]
                         Timber.d(
                                 "homeUnitsDataObserver NODE_ACTION_ADDED EXISTING $existingUnit ; NEW  $homeUnit")
@@ -207,7 +232,7 @@ class Home(secureStorage: SecureStorage,
                                         "homeUnitsDataObserver NODE_ACTION_ADDED set boolean apply function")
                                 homeUnit.applyFunction = booleanApplyFunction
                             }
-                            HOME_TEMPERATURES, HOME_PRESSURES, HOME_HUMIDITY                                   -> {
+                            HOME_TEMPERATURES, HOME_PRESSURES, HOME_HUMIDITY -> {
                                 Timber.d(
                                         "homeUnitsDataObserver NODE_ACTION_ADDED set sensor apply function")
                                 homeUnit.applyFunction = sensorApplyFunction
@@ -240,7 +265,7 @@ class Home(secureStorage: SecureStorage,
                         val result = homeUnitsList.remove(homeUnit.type to homeUnit.name)
                         Timber.d("homeUnitsDataObserver NODE_ACTION_DELETED: $result")
                     }
-                    else                               -> {
+                    else -> {
                         Timber.e("homeUnitsDataObserver unsupported action: $action")
                     }
                 }
@@ -270,7 +295,7 @@ class Home(secureStorage: SecureStorage,
                             hwUnitStart(it)
                         }
                     }
-                    ChildEventType.NODE_ACTION_ADDED   -> {
+                    ChildEventType.NODE_ACTION_ADDED -> {
                         // consider this unit is already present in hwUnitsList
                         hwUnitsList[value.name]?.let {
                             Timber.w("NODE_ACTION_ADDED HwUnit already exist stop old one:")
@@ -301,7 +326,7 @@ class Home(secureStorage: SecureStorage,
                         Timber.d("hwUnitsDataObserver HwUnit NODE_ACTION_DELETED: $result")
 
                     }
-                    else                               -> {
+                    else -> {
                         Timber.e("hwUnitsDataObserver unsupported action: $action")
                     }
                 }
@@ -425,34 +450,35 @@ class Home(secureStorage: SecureStorage,
 
     private fun createHwUnit(hwUnit: HwUnit): BaseHwUnit<Any>? {
         return when (hwUnit.type) {
-            BoardConfig.TEMP_SENSOR_TMP102          -> {
+            BoardConfig.TEMP_SENSOR_TMP102 -> {
                 HwUnitI2CTempTMP102Sensor(hwUnit.name, hwUnit.location, hwUnit.pinName,
-                                          hwUnit.softAddress ?: 0,
-                                          hwUnit.refreshRate) as BaseHwUnit<Any>
+                        hwUnit.softAddress ?: 0,
+                        hwUnit.refreshRate) as BaseHwUnit<Any>
             }
-            BoardConfig.TEMP_SENSOR_MCP9808         -> {
+            BoardConfig.TEMP_SENSOR_MCP9808 -> {
                 HwUnitI2CTempMCP9808Sensor(hwUnit.name, hwUnit.location, hwUnit.pinName,
-                                           hwUnit.softAddress ?: 0,
-                                           hwUnit.refreshRate) as BaseHwUnit<Any>
+                        hwUnit.softAddress ?: 0,
+                        hwUnit.refreshRate) as BaseHwUnit<Any>
             }
-            BoardConfig.TEMP_RH_SENSOR_SI7021       -> {
+            BoardConfig.TEMP_RH_SENSOR_SI7021 -> {
                 HwUnitI2CTempRhSi7021Sensor(hwUnit.name, hwUnit.location, hwUnit.pinName,
                         hwUnit.softAddress ?: 0,
                         hwUnit.refreshRate) as BaseHwUnit<Any>
             }
-            BoardConfig.TEMP_PRESS_SENSOR_BMP280    -> {
+            BoardConfig.TEMP_PRESS_SENSOR_BMP280 -> {
                 HwUnitI2CTempPressBMP280Sensor(hwUnit.name, hwUnit.location, hwUnit.pinName,
-                                               hwUnit.softAddress ?: 0,
-                                               hwUnit.refreshRate) as BaseHwUnit<Any>
+                        hwUnit.softAddress ?: 0,
+                        hwUnit.refreshRate) as BaseHwUnit<Any>
             }
-            BoardConfig.IO_EXTENDER_MCP23017_INPUT  -> {
+            BoardConfig.IO_EXTENDER_MCP23017_INPUT -> {
                 MCP23017Pin.Pin.values().find {
                     it.name == hwUnit.ioPin
                 }?.let { ioPin ->
                     HwUnitI2CMCP23017Sensor(hwUnit.name, hwUnit.location, hwUnit.pinName,
-                                            hwUnit.softAddress ?: 0, hwUnit.pinInterrupt ?: "",
-                                            ioPin,
-                                            hwUnit.internalPullUp ?: false, hwUnit.inverse ?: false) as BaseHwUnit<Any>
+                            hwUnit.softAddress ?: 0, hwUnit.pinInterrupt ?: "",
+                            ioPin,
+                            hwUnit.internalPullUp ?: false, hwUnit.inverse
+                            ?: false) as BaseHwUnit<Any>
                 }
             }
             BoardConfig.IO_EXTENDER_MCP23017_OUTPUT -> {
@@ -460,11 +486,11 @@ class Home(secureStorage: SecureStorage,
                     it.name == hwUnit.ioPin
                 }?.let { ioPin ->
                     HwUnitI2CMCP23017Actuator(hwUnit.name, hwUnit.location, hwUnit.pinName,
-                                              hwUnit.softAddress ?: 0, hwUnit.pinInterrupt ?: "",
-                                              ioPin) as BaseHwUnit<Any>
+                            hwUnit.softAddress ?: 0, hwUnit.pinInterrupt ?: "",
+                            ioPin) as BaseHwUnit<Any>
                 }
             }
-            else                                    -> null
+            else -> null
         }
     }
 
@@ -472,12 +498,12 @@ class Home(secureStorage: SecureStorage,
         Timber.v("hwUnitStart connect unit: ${unit.hwUnit}")
         if (unit.connectValueWithException()) {
             when (unit) {
-                is Sensor   -> {
+                is Sensor -> {
                     hwUnitsList[unit.hwUnit.name] = unit
-                        val readVal = unit.readValueWithException()
-                        Timber.w("hwUnitStart readVal:$readVal unit.unitValue:${unit.unitValue}")
-                        unit.registerListenerWithException(this@Home)
-                        onHwUnitChanged(unit.hwUnit, readVal, unit.valueUpdateTime)
+                    val readVal = unit.readValueWithException()
+                    Timber.w("hwUnitStart readVal:$readVal unit.unitValue:${unit.unitValue}")
+                    unit.registerListenerWithException(this@Home)
+                    onHwUnitChanged(unit.hwUnit, readVal, unit.valueUpdateTime)
                 }
                 is Actuator -> {
                     hwUnitsList[unit.hwUnit.name] = unit
@@ -521,7 +547,7 @@ class Home(secureStorage: SecureStorage,
         return try {
             withContext(Dispatchers.Main) {
                 readValue()
-            }.also{
+            }.also {
                 firebaseAnalytics.logEvent(EVENT_SENSOR_READ_VALUE) {
                     param(SENSOR_NAME, this@readValueWithException.hwUnit.name)
                     param(SENSOR_VALUE, it.toString())
@@ -540,7 +566,7 @@ class Home(secureStorage: SecureStorage,
                 registerListener(listener, CoroutineExceptionHandler { _, error ->
                     GlobalScope.launch(Dispatchers.Default) {
                         addHwUnitErrorEvent(error,
-                                            "Error registerListener CoroutineExceptionHandler hwUnit on $hwUnit")
+                                "Error registerListener CoroutineExceptionHandler hwUnit on $hwUnit")
                     }
                 })
                 firebaseAnalytics.logEvent(EVENT_REGISTER_LISTENER) {

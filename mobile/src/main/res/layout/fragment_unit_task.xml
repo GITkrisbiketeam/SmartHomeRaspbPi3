@@ -131,23 +131,65 @@
 
                 <TextView
                     android:id="@+id/unit_task_delay_title"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/margin_normal"
                     android:text="@string/unit_task_text_delay_title"
                     android:textColor="@color/colorSecondary"
+                    app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/unit_task_trigger_layout" />
 
                 <TextView
                     android:id="@+id/unit_task_delay"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/margin_small"
                     android:clickable="@{viewModel.isEditMode}"
                     android:focusable="true"
                     android:hint="@string/unit_task_text_delay"
                     android:text="@{Long.toString(viewModel.delay)}"
                     android:textColor="@color/design_default_color_on_secondary"
+                    app:layout_constraintBottom_toBottomOf="@+id/unit_task_delay_title"
+                    app:layout_constraintStart_toEndOf="@+id/unit_task_delay_title"
+                    app:layout_constraintTop_toTopOf="@+id/unit_task_delay_title" />
+
+                <View
+                    android:id="@+id/unit_task_delay_group"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    app:layout_constraintBottom_toBottomOf="@+id/unit_task_delay_title"
+                    app:layout_constraintTop_toTopOf="@+id/unit_task_delay_title" />
+
+                <TextView
+                    android:id="@+id/unit_task_duration_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_normal"
+                    android:text="@string/unit_task_text_duration_title"
+                    android:textColor="@color/colorSecondary"
+                    app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/unit_task_delay_title" />
+
+                <TextView
+                    android:id="@+id/unit_task_duration"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/margin_small"
+                    android:clickable="@{viewModel.isEditMode}"
+                    android:focusable="true"
+                    android:hint="@string/unit_task_text_duration"
+                    android:text="@{Long.toString(viewModel.duration)}"
+                    android:textColor="@color/design_default_color_on_secondary"
+                    app:layout_constraintBottom_toBottomOf="@+id/unit_task_duration_title"
+                    app:layout_constraintStart_toEndOf="@+id/unit_task_duration_title"
+                    app:layout_constraintTop_toTopOf="@+id/unit_task_duration_title" />
+
+                <View
+                    android:id="@+id/unit_task_duration_group"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    app:layout_constraintBottom_toBottomOf="@+id/unit_task_duration_title"
+                    app:layout_constraintTop_toTopOf="@+id/unit_task_duration_title" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 

@@ -87,7 +87,7 @@ class UnitTaskViewModel(
 
         return unitTask.value?.let { unit ->
             unit.name == name.value &&
-                    unit.homeUnitType == homeUnitName.value &&
+                    unit.homeUnitType == homeUnitType.value &&
                     unit.homeUnitName == homeUnitName.value &&
 //            unit.hwUnitName == hwUnitName.value &&
                     unit.inverse == inverse.value &&

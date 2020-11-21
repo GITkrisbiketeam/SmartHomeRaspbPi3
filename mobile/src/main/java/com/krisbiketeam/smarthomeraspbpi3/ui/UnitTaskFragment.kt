@@ -6,6 +6,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.os.bundleOf
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.MutableLiveData
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.transition.Fade
@@ -43,8 +44,11 @@ class UnitTaskFragment : Fragment() {
                 inflater, R.layout.fragment_unit_task, container, false).apply {
             viewModel = unitTaskViewModel
             lifecycleOwner = this@UnitTaskFragment
-            unitTaskDelay.setOnClickListener {
-                onClickShowTimePicker()
+            unitTaskDelayGroup.setOnClickListener {
+                onClickShowTimePicker(unitTaskViewModel.delay)
+            }
+            unitTaskDurationGroup.setOnClickListener {
+                onClickShowTimePicker(unitTaskViewModel.duration)
             }
         }
 
@@ -160,7 +164,7 @@ class UnitTaskFragment : Fragment() {
         }
     }
 
-    private fun onClickShowTimePicker() {
-        showTimePicker(context, unitTaskViewModel.delay)
+    private fun onClickShowTimePicker(liveData: MutableLiveData<Long?>) {
+        showTimePicker(context, liveData)
     }
 }
