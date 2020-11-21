@@ -15,12 +15,12 @@ import com.google.firebase.analytics.FirebaseAnalytics
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentUnitTaskBinding
+import com.krisbiketeam.smarthomeraspbpi3.utils.showTimePicker
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.UnitTaskViewModel
 import org.koin.android.ext.android.inject
 import org.koin.android.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
 import timber.log.Timber
-
 
 class UnitTaskFragment : Fragment() {
 
@@ -28,9 +28,9 @@ class UnitTaskFragment : Fragment() {
 
     private val unitTaskViewModel: UnitTaskViewModel by viewModel {
         parametersOf(
-                arguments?.let { args.taskName}?: "",
-                arguments?.let { args.homeUnitName}?: "",
-                arguments?.let { args.homeUnitType}?: "")
+                arguments?.let { args.taskName } ?: "",
+                arguments?.let { args.homeUnitName } ?: "",
+                arguments?.let { args.homeUnitType } ?: "")
     }
 
     private val analytics: Analytics by inject()
@@ -43,6 +43,9 @@ class UnitTaskFragment : Fragment() {
                 inflater, R.layout.fragment_unit_task, container, false).apply {
             viewModel = unitTaskViewModel
             lifecycleOwner = this@UnitTaskFragment
+            unitTaskDelay.setOnClickListener {
+                onClickShowTimePicker()
+            }
         }
 
         unitTaskViewModel.isEditMode.observe(viewLifecycleOwner, { isEditMode ->
@@ -60,6 +63,7 @@ class UnitTaskFragment : Fragment() {
 
         return rootBinding.root
     }
+
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.menu_unit_task, menu)
         super.onCreateOptionsMenu(menu, inflater)
@@ -154,5 +158,9 @@ class UnitTaskFragment : Fragment() {
                     .setNegativeButton(R.string.cancel) { _, _ -> }
                     .show()
         }
+    }
+
+    private fun onClickShowTimePicker() {
+        showTimePicker(context, unitTaskViewModel.delay)
     }
 }

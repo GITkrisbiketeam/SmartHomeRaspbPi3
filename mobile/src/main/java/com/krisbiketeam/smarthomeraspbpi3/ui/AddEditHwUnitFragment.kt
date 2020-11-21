@@ -1,9 +1,7 @@
 package com.krisbiketeam.smarthomeraspbpi3.ui
 
-import android.app.TimePickerDialog
 import android.os.Bundle
 import android.view.*
-import android.widget.TimePicker
 import androidx.appcompat.app.AlertDialog
 import androidx.core.os.bundleOf
 import androidx.databinding.DataBindingUtil
@@ -17,6 +15,7 @@ import com.google.firebase.analytics.FirebaseAnalytics
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentAddEditHwUnitBinding
+import com.krisbiketeam.smarthomeraspbpi3.utils.showTimePicker
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.AddEditHwUnitViewModel
 import org.koin.android.ext.android.inject
 import org.koin.android.viewmodel.ext.android.viewModel
@@ -48,7 +47,7 @@ class AddEditHwUnitFragment : Fragment() {
             viewModel = addEditHwUnitViewModel
             lifecycleOwner = this@AddEditHwUnitFragment
             hwUnitSensorRefreshRate.setOnClickListener {
-                showTimePicker()
+                onClickShowTimePicker()
             }
         }
         addEditHwUnitViewModel.isEditMode.observe(viewLifecycleOwner, {
@@ -96,7 +95,7 @@ class AddEditHwUnitFragment : Fragment() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         // If showing progress do not allow app bar actions
         if (addEditHwUnitViewModel.showProgress.value == true) {
-            //return false
+            return true
         }
         return when (item.itemId) {
             R.id.action_edit -> {
@@ -163,12 +162,7 @@ class AddEditHwUnitFragment : Fragment() {
         }
     }
 
-    private fun showTimePicker() {
-        // TODO: Add proper Time Picker
-        context?.let {
-            TimePickerDialog(context, { _: TimePicker, hourOfDay: Int, minute: Int ->
-                addEditHwUnitViewModel.refreshRate.value = (minute * 1000 + hourOfDay * 60 * 1000).toLong()
-            }, 0, 0, true).show()
-        }
+    private fun onClickShowTimePicker() {
+        showTimePicker(context, addEditHwUnitViewModel.refreshRate)
     }
 }

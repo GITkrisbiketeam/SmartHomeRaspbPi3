@@ -129,6 +129,26 @@
 
                 </com.google.android.material.textfield.TextInputLayout>
 
+                <TextView
+                    android:id="@+id/unit_task_delay_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_normal"
+                    android:text="@string/unit_task_text_delay_title"
+                    android:textColor="@color/colorSecondary"
+                    app:layout_constraintTop_toBottomOf="@id/unit_task_trigger_layout" />
+
+                <TextView
+                    android:id="@+id/unit_task_delay"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clickable="@{viewModel.isEditMode}"
+                    android:focusable="true"
+                    android:hint="@string/unit_task_text_delay"
+                    android:text="@{Long.toString(viewModel.delay)}"
+                    android:textColor="@color/design_default_color_on_secondary"
+                    app:layout_constraintTop_toBottomOf="@id/unit_task_delay_title" />
+
             </androidx.constraintlayout.widget.ConstraintLayout>
 
         </androidx.core.widget.NestedScrollView>

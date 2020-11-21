@@ -1,6 +1,8 @@
 package com.krisbiketeam.smarthomeraspbpi3.common.storage.dto
 
 import androidx.annotation.StringDef
+import com.google.firebase.database.Exclude
+import kotlinx.coroutines.Job
 
 @Target(AnnotationTarget.VALUE_PARAMETER, AnnotationTarget.TYPE_PARAMETER)
 @StringDef(BOTH, RISING_EDGE, FALLING_EDGE)
@@ -25,4 +27,10 @@ data class UnitTask(var name: String = "",
                     var startTime: Long? = null,
                     var endTime: Long? = null,
                     var threshold: Float? = null,
-                    var hysteresis: Float? = null)
+                    var hysteresis: Float? = null){
+
+    @Exclude
+    @set:Exclude
+    @get:Exclude
+    var taskJob: Job? = null
+}
