@@ -10,9 +10,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver.MCP23017Pin
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.ChildEventType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnitLog
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.*
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.*
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.livedata.HomeUnitsLiveData
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.livedata.HwUnitsLiveData
@@ -73,15 +71,20 @@ class Home(secureStorage: SecureStorage,
                     hwUnitsList[hwUnitName]?.let { taskHwUnit ->
                         Timber.d("booleanApplyFunction taskHwUnit: $taskHwUnit")
                         if (taskHwUnit is Actuator) {
-                            value = newVal
-                            Timber.d("booleanApplyFunction taskHwUnit setValue value: $value")
-                            taskHwUnit.setValueWithException(newVal)
-                            lastUpdateTime = taskHwUnit.valueUpdateTime
-                            applyFunction(newVal)
-                            homeInformationRepository.saveHomeUnit(this)
-                            if (firebaseNotify && alarmEnabled) {
-                                Timber.d("booleanApplyFunction notify with FCM Message")
-                                homeInformationRepository.notifyHomeUnitEvent(this)
+                            if (task.trigger == null
+                                    || task.trigger == BOTH
+                                    || (task.trigger == RISING_EDGE && newVal == true)
+                                    || (task.trigger == FALLING_EDGE && newVal == false)) {
+                                value = task.inverse ?: false xor newVal
+                                Timber.d("booleanApplyFunction taskHwUnit setValue value: $value")
+                                taskHwUnit.setValueWithException(newVal)
+                                lastUpdateTime = taskHwUnit.valueUpdateTime
+                                applyFunction(newVal)
+                                homeInformationRepository.saveHomeUnit(this)
+                                if (firebaseNotify && alarmEnabled) {
+                                    Timber.d("booleanApplyFunction notify with FCM Message")
+                                    homeInformationRepository.notifyHomeUnitEvent(this)
+                                }
                             }
                         }
                     }
@@ -92,7 +95,7 @@ class Home(secureStorage: SecureStorage,
         }
     }
 
-    private var sensorApplyFunction: suspend HomeUnit<in Boolean>.(Any) -> Unit = { newVal: Any ->
+    private var sensorApplyFunction: suspend HomeUnit<in Float>.(Any) -> Unit = { newVal: Any ->
         Timber.d("sensorApplyFunction newVal: $newVal this: $this")
         if (newVal is Float) {
             unitsTasks.values.forEach { task ->

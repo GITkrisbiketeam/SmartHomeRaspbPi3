@@ -19,98 +19,134 @@
         tools:context="com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitDetailFragment"
         tools:ignore="MergeRootFrame">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
+        <androidx.core.widget.NestedScrollView
+            android:id="@+id/room_detail_scrollview"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:paddingLeft="@dimen/activity_horizontal_margin"
-            android:paddingTop="@dimen/activity_vertical_margin"
-            android:paddingRight="@dimen/activity_horizontal_margin"
-            android:paddingBottom="@dimen/activity_vertical_margin">
+            app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/unit_task_name_layout"
-                style="@style/LargeTitleOutlineTextInputLayoutStyle"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/margin_small"
-                android:enabled="@{viewModel.isEditMode}"
-                android:hint="@string/unit_task_text_name_title"
-                app:errorEnabled="true"
-                app:helperText="@string/unit_task_text_name_prompt"
-                app:helperTextEnabled="@{viewModel.isEditMode}"
-                app:hintEnabled="true"
-                app:layout_constraintTop_toTopOf="parent">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/unit_task_name_edit_text"
-                    style="@style/EnabledColorEditTextStyle"
-                    android:text="@={viewModel.name}" />
-
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/unit_task_home_unit_type_layout"
-                style="@style/LargeTitleDropDownOutlineInputLayoutStyle"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/margin_small"
-                android:enabled="@{viewModel.isEditMode}"
-                android:hint="@string/unit_task_text_home_unit_type_title"
-                app:endIconDropDownEnabled="@{viewModel.isEditMode}"
-                app:helperText="@string/unit_task_text_home_unit_type_select_spinner_prompt"
-                app:helperTextEnabled="@{viewModel.isEditMode}"
-                app:hintEnabled="true"
-                app:layout_constraintTop_toBottomOf="@id/unit_task_name_layout">
-
-                <com.google.android.material.textview.MaterialAutoCompleteTextView
-                    android:id="@+id/unit_task_home_unit_type"
-                    style="@style/EnabledColorMaterialAutoCompleteTextViewStyle"
-                    app:entriesAutoComplete="@{viewModel.homeUnitTypeList}"
-                    app:value="@={viewModel.homeUnitType}" />
-
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/unit_task_hw_unit_layout"
-                style="@style/LargeTitleDropDownOutlineInputLayoutStyle"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/margin_small"
-                android:enabled="@{viewModel.isEditMode}"
-                android:hint="@string/unit_task_text_home_unit_name_title"
-                app:endIconDropDownEnabled="@{viewModel.isEditMode}"
-                app:helperText="@string/unit_task_text_home_unit_nam_select_spinner_prompt"
-                app:helperTextEnabled="@{viewModel.isEditMode}"
-                app:hintEnabled="true"
-                app:layout_constraintTop_toBottomOf="@id/unit_task_home_unit_type_layout">
-
-                <com.google.android.material.textview.MaterialAutoCompleteTextView
-                    android:id="@+id/unit_task_hw_unit_text"
-                    style="@style/EnabledColorMaterialAutoCompleteTextViewStyle"
-                    app:entriesAutoComplete="@{viewModel.homeUnitNameList}"
-                    app:value="@={viewModel.homeUnitName}" />
-
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <FrameLayout
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:clickable="true"
-                android:focusable="true"
-                android:visibility="@{safeUnbox(viewModel.showProgress) ? View.VISIBLE : View.GONE}"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent">
+                android:paddingLeft="@dimen/activity_horizontal_margin"
+                android:paddingTop="@dimen/activity_vertical_margin"
+                android:paddingRight="@dimen/activity_horizontal_margin"
+                android:paddingBottom="@dimen/activity_vertical_margin">
 
-                <androidx.core.widget.ContentLoadingProgressBar
-                    style="?android:attr/progressBarStyleLarge"
-                    android:layout_width="wrap_content"
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/unit_task_name_layout"
+                    style="@style/LargeTitleOutlineTextInputLayoutStyle"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center" />
+                    android:layout_marginTop="@dimen/margin_small"
+                    android:enabled="@{viewModel.isEditMode}"
+                    android:hint="@string/unit_task_text_name_title"
+                    app:errorEnabled="true"
+                    app:helperText="@string/unit_task_text_name_prompt"
+                    app:helperTextEnabled="@{viewModel.isEditMode}"
+                    app:hintEnabled="true"
+                    app:layout_constraintTop_toTopOf="parent">
 
-            </FrameLayout>
-        </androidx.constraintlayout.widget.ConstraintLayout>
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/unit_task_name_edit_text"
+                        style="@style/EnabledColorEditTextStyle"
+                        android:text="@={viewModel.name}" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/unit_task_home_unit_type_layout"
+                    style="@style/LargeTitleDropDownOutlineInputLayoutStyle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_small"
+                    android:enabled="@{viewModel.isEditMode}"
+                    android:hint="@string/unit_task_text_home_unit_type_title"
+                    app:endIconDropDownEnabled="@{viewModel.isEditMode}"
+                    app:helperText="@string/unit_task_text_home_unit_type_select_spinner_prompt"
+                    app:helperTextEnabled="@{viewModel.isEditMode}"
+                    app:hintEnabled="true"
+                    app:layout_constraintTop_toBottomOf="@id/unit_task_name_layout">
+
+                    <com.google.android.material.textview.MaterialAutoCompleteTextView
+                        android:id="@+id/unit_task_home_unit_type"
+                        style="@style/EnabledColorMaterialAutoCompleteTextViewStyle"
+                        app:entriesAutoComplete="@{viewModel.homeUnitTypeList}"
+                        app:value="@={viewModel.homeUnitType}" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/unit_task_home_unit_name_layout"
+                    style="@style/LargeTitleDropDownOutlineInputLayoutStyle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_small"
+                    android:enabled="@{viewModel.isEditMode}"
+                    android:hint="@string/unit_task_text_home_unit_name_title"
+                    app:endIconDropDownEnabled="@{viewModel.isEditMode}"
+                    app:helperText="@string/unit_task_text_home_unit_nam_select_spinner_prompt"
+                    app:helperTextEnabled="@{viewModel.isEditMode}"
+                    app:hintEnabled="true"
+                    app:layout_constraintTop_toBottomOf="@id/unit_task_home_unit_type_layout">
+
+                    <com.google.android.material.textview.MaterialAutoCompleteTextView
+                        android:id="@+id/unit_task_home_unit_name_text"
+                        style="@style/EnabledColorMaterialAutoCompleteTextViewStyle"
+                        app:entriesAutoComplete="@{viewModel.homeUnitNameList}"
+                        app:value="@={viewModel.homeUnitName}" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/unit_task_inverse_switch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:checked="@={viewModel.inverse}"
+                    android:clickable="@{safeUnbox(viewModel.isEditMode) ? true : false}"
+                    android:text="@string/unit_task_text_inverse_switch_title"
+                    app:layout_constraintTop_toBottomOf="@id/unit_task_home_unit_name_layout" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/unit_task_trigger_layout"
+                    style="@style/LargeTitleDropDownOutlineInputLayoutStyle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_small"
+                    android:enabled="@{viewModel.isEditMode}"
+                    android:hint="@string/unit_task_text_trigger_title"
+                    app:endIconDropDownEnabled="@{viewModel.isEditMode}"
+                    app:helperText="@string/unit_task_text_trigger_select_spinner_prompt"
+                    app:helperTextEnabled="@{viewModel.isEditMode}"
+                    app:hintEnabled="true"
+                    app:layout_constraintTop_toBottomOf="@id/unit_task_inverse_switch">
+
+                    <com.google.android.material.textview.MaterialAutoCompleteTextView
+                        android:id="@+id/unit_task_trigger_text"
+                        style="@style/EnabledColorMaterialAutoCompleteTextViewStyle"
+                        app:entriesWithEmptyAutoComplete="@{viewModel.triggerTypeList}"
+                        app:value="@={viewModel.trigger}" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </androidx.core.widget.NestedScrollView>
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clickable="true"
+            android:focusable="true"
+            android:visibility="@{safeUnbox(viewModel.showProgress) ? View.VISIBLE : View.GONE}">
+
+            <androidx.core.widget.ContentLoadingProgressBar
+                style="?android:attr/progressBarStyleLarge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center" />
+
+        </FrameLayout>
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
 </layout>

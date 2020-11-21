@@ -6,6 +6,7 @@ import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HOME_ACTION_STORAGE_UNITS
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.TRIGGER_TYPE_LIST
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.UnitTask
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomDetailFragment
 import com.krisbiketeam.smarthomeraspbpi3.ui.UnitTaskFragment
@@ -38,15 +39,9 @@ class UnitTaskViewModel(
     val isEditMode: MutableLiveData<Boolean> = MutableLiveData(addingNewUnit)
 
     val name: MutableLiveData<String?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.name } as MutableLiveData<String?>
-    val delay: MutableLiveData<Long?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.delay } as MutableLiveData<Long?>
-    val duration: MutableLiveData<Long?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.duration } as MutableLiveData<Long?>
-    val period: MutableLiveData<Long?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.period } as MutableLiveData<Long?>
-    val startTime: MutableLiveData<Long?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.startTime } as MutableLiveData<Long?>
-    val endTime: MutableLiveData<Long?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.endTime } as MutableLiveData<Long?>
-    val inverse: MutableLiveData<Boolean?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.inverse } as MutableLiveData<Boolean?>
 
     val homeUnitTypeList = HOME_ACTION_STORAGE_UNITS
-    val homeUnitType = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.homeUnitType } as MutableLiveData<String?>
+    val homeUnitType: MutableLiveData<String?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.homeUnitType } as MutableLiveData<String?>
 
     // List with all available HomeUnits to be used for this Task
     @ExperimentalCoroutinesApi
@@ -61,6 +56,18 @@ class UnitTaskViewModel(
         } else MutableLiveData(emptyList())
     }
     val homeUnitName: MutableLiveData<String?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.homeUnitName } as MutableLiveData<String?>
+
+    val triggerTypeList = TRIGGER_TYPE_LIST
+    val trigger: MutableLiveData<String?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.trigger } as MutableLiveData<String?>
+
+    val inverse: MutableLiveData<Boolean?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.inverse } as MutableLiveData<Boolean?>
+
+    val delay: MutableLiveData<Long?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.delay } as MutableLiveData<Long?>
+    val duration: MutableLiveData<Long?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.duration } as MutableLiveData<Long?>
+    val period: MutableLiveData<Long?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.period } as MutableLiveData<Long?>
+    val startTime: MutableLiveData<Long?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.startTime } as MutableLiveData<Long?>
+    val endTime: MutableLiveData<Long?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.endTime } as MutableLiveData<Long?>
+
 
     init {
         Timber.d("init taskName: $taskName")
@@ -83,11 +90,13 @@ class UnitTaskViewModel(
                     unit.homeUnitType == homeUnitName.value &&
                     unit.homeUnitName == homeUnitName.value &&
 //            unit.hwUnitName == hwUnitName.value &&
+                    unit.inverse == inverse.value &&
+                    unit.trigger == trigger.value &&
                     unit.delay == delay.value &&
+                    unit.duration == duration.value &&
                     unit.period == period.value &&
                     unit.startTime == startTime.value &&
-                    unit.endTime == endTime.value &&
-                    unit.inverse == inverse.value
+                    unit.endTime == endTime.value
         } ?: name.value.isNullOrEmpty() || homeUnitType.value.isNullOrEmpty() || homeUnitName.value.isNullOrEmpty()/* || hwUnitName.value.isNullOrEmpty())*/
     }
 
@@ -105,12 +114,16 @@ class UnitTaskViewModel(
             isEditMode.value = false
             unitTask.value?.let { unit ->
                 name.value = unit.name
+                homeUnitType.value = unit.homeUnitType
+                homeUnitName.value = unit.homeUnitName
 //                hwUnitName.value = unit.hwUnitName
+                inverse.value = unit.inverse
+                trigger.value = unit.trigger
                 delay.value = unit.delay
+                duration.value = unit.duration
                 period.value = unit.period
                 startTime.value = unit.startTime
                 endTime.value = unit.endTime
-                inverse.value = unit.inverse
             }
             false
         }
@@ -193,10 +206,13 @@ class UnitTaskViewModel(
                                     homeUnitName = homeUnitName,
                                     homeUnitType = homeUnitType,
                                     //hwUnitName = hwUnitName.value,
+                                    inverse = inverse.value,
+                                    trigger = trigger.value,
                                     delay = delay.value,
                                     duration = duration.value,
                                     period = period.value,
-                                    startTime = startTime.value
+                                    startTime = startTime.value,
+                                    endTime = endTime.value
                             ))
                 }
             }
