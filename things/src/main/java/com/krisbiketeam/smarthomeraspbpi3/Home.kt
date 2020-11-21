@@ -71,6 +71,8 @@ class Home(secureStorage: SecureStorage,
                     hwUnitsList[hwUnitName]?.let { taskHwUnit ->
                         Timber.d("booleanApplyFunction taskHwUnit: $taskHwUnit")
                         if (taskHwUnit is Actuator) {
+                            task.taskJob?.cancel()
+
                             if ((task.trigger == null || task.trigger == BOTH)
                                     || (task.trigger == RISING_EDGE && newVal)
                                     || (task.trigger == FALLING_EDGE && !newVal)) {
