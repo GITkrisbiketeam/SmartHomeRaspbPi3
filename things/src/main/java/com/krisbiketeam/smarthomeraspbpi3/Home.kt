@@ -14,6 +14,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.*
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.*
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.livedata.HomeUnitsLiveData
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.livedata.HwUnitsLiveData
+import com.krisbiketeam.smarthomeraspbpi3.common.updateValueMinMax
 import com.krisbiketeam.smarthomeraspbpi3.units.Actuator
 import com.krisbiketeam.smarthomeraspbpi3.units.BaseHwUnit
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
@@ -69,7 +70,7 @@ class Home(secureStorage: SecureStorage,
                 homeUnitsList[task.homeUnitType to task.homeUnitName]?.apply {
                     Timber.d("booleanApplyFunction task: $task for homeUnit: $this")
                     hwUnitsList[hwUnitName]?.let { taskHwUnit ->
-                        Timber.d("booleanApplyFunction taskHwUnit: $taskHwUnit")
+                        Timber.d("booleanApplyFunction taskHwUnit: ${taskHwUnit.hwUnit}")
                         if (taskHwUnit is Actuator) {
                             task.taskJob?.cancel()
 
@@ -78,18 +79,19 @@ class Home(secureStorage: SecureStorage,
                                     || (task.trigger == FALLING_EDGE && !newVal)) {
 
                                 val action: suspend (Boolean) -> Unit = { actionVal ->
-                                    value = task.inverse ?: false xor actionVal
-                                    Timber.d("booleanApplyFunction taskHwUnit setValue value: $value")
-                                    taskHwUnit.setValueWithException(actionVal)
+                                    val newActionVal = (task.inverse ?: false) xor actionVal
+                                    value = newActionVal
+                                    Timber.d("booleanApplyFunction taskHwUnit actionVal: $actionVal setValue value: $value")
+                                    taskHwUnit.setValueWithException(newActionVal)
                                     lastUpdateTime = taskHwUnit.valueUpdateTime
-                                    applyFunction(actionVal)
+                                    applyFunction(newActionVal)
                                     homeInformationRepository.saveHomeUnit(this)
                                     if (firebaseNotify && alarmEnabled) {
                                         Timber.d("booleanApplyFunction notify with FCM Message")
                                         homeInformationRepository.notifyHomeUnitEvent(this)
                                     }
                                 }
-                                task.delay?.let { delay ->
+                                task.delay.takeIf { it != null && it > 0 }?.let { delay ->
                                     task.taskJob = GlobalScope.launch(Dispatchers.Default) {
                                         delay(delay)
                                         action.invoke(newVal)
@@ -98,7 +100,7 @@ class Home(secureStorage: SecureStorage,
                                             action.invoke(!newVal)
                                         }
                                     }
-                                } ?: task.duration?.let { duration ->
+                                } ?: task.duration.takeIf { it != null && it > 0 }?.let { duration ->
                                     action.invoke(newVal)
                                     task.taskJob = GlobalScope.launch(Dispatchers.Default) {
                                         delay(duration)
@@ -413,21 +415,20 @@ class Home(secureStorage: SecureStorage,
                 if (unitValue is TemperatureAndPressure) {
                     Timber.d("Received TemperatureAndPressure ${homeUnit.value}")
                     if (homeUnit.type == HOME_TEMPERATURES) {
-                        homeUnit.value = unitValue.temperature
+                        updateValueMinMax(homeUnit, unitValue.temperature, updateTime)
                     } else if (homeUnit.type == HOME_PRESSURES) {
-                        homeUnit.value = unitValue.pressure
+                        updateValueMinMax(homeUnit, unitValue.pressure, updateTime)
                     }
                 } else if (unitValue is TemperatureAndHumidity) {
                     Timber.d("Received TemperatureAndHumidity ${homeUnit.value}")
                     if (homeUnit.type == HOME_TEMPERATURES) {
-                        homeUnit.value = unitValue.temperature
+                        updateValueMinMax(homeUnit, unitValue.temperature, updateTime)
                     } else if (homeUnit.type == HOME_HUMIDITY) {
-                        homeUnit.value = unitValue.humidity
+                        updateValueMinMax(homeUnit, unitValue.humidity, updateTime)
                     }
                 } else {
-                    homeUnit.value = unitValue
+                    updateValueMinMax(homeUnit, unitValue, updateTime)
                 }
-                homeUnit.lastUpdateTime = updateTime
                 homeUnit.value?.let { newValue ->
                     homeUnit.applyFunction.invoke(homeUnit, newValue)
                 }

@@ -139,7 +139,9 @@
                     android:layout_width="0dp"
                     android:layout_height="0dp"
                     android:visibility="@{safeUnbox(viewModel.isEditMode) ? View.GONE : View.VISIBLE}"
-                    app:constraint_referenced_ids="home_unit_value_title,home_unit_value, home_unit_value_last_update_time" />
+                    app:constraint_referenced_ids="home_unit_value_title,home_unit_value, home_unit_value_last_update_time,
+                    home_unit_min_value_title,home_unit_min_value, home_unit_min_value_last_update_time,
+                    home_unit_max_value_title,home_unit_max_value, home_unit_max_value_last_update_time" />
 
                 <TextView
                     android:id="@+id/home_unit_value_title"
@@ -168,13 +170,83 @@
                     android:id="@+id/home_unit_value_last_update_time"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/margin_small"
                     android:layout_marginStart="@dimen/margin_small"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+                    android:layout_marginTop="@dimen/margin_small"
                     android:text="@{viewModel.lastUpdateTime}"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Body1"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/home_unit_value_title" />
+
+                <TextView
+                    android:id="@+id/home_unit_min_value_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_normal"
+                    android:text="@string/add_edit_home_unit_text_min_value"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Title"
+                    app:layout_constraintEnd_toStartOf="@id/home_unit_min_value"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/home_unit_value_last_update_time" />
+
+                <TextView
+                    android:id="@+id/home_unit_min_value"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/margin_small"
+                    android:text="@{viewModel.minValue}"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Title"
+                    app:layout_constraintBottom_toBottomOf="@id/home_unit_min_value_title"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/home_unit_min_value_title"
+                    app:layout_constraintTop_toTopOf="@id/home_unit_min_value_title" />
+
+                <TextView
+                    android:id="@+id/home_unit_min_value_last_update_time"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/margin_small"
+                    android:layout_marginTop="@dimen/margin_small"
+                    android:text="@{viewModel.minLastUpdateTime}"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/home_unit_min_value_title" />
+
+                <TextView
+                    android:id="@+id/home_unit_max_value_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_normal"
+                    android:text="@string/add_edit_home_unit_text_max_value"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Title"
+                    app:layout_constraintEnd_toStartOf="@id/home_unit_max_value"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/home_unit_min_value_last_update_time" />
+
+                <TextView
+                    android:id="@+id/home_unit_max_value"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/margin_small"
+                    android:text="@{viewModel.maxValue}"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Title"
+                    app:layout_constraintBottom_toBottomOf="@id/home_unit_max_value_title"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/home_unit_max_value_title"
+                    app:layout_constraintTop_toTopOf="@id/home_unit_max_value_title" />
+
+                <TextView
+                    android:id="@+id/home_unit_max_value_last_update_time"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/margin_small"
+                    android:layout_marginTop="@dimen/margin_small"
+                    android:text="@{viewModel.maxLastUpdateTime}"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/home_unit_max_value_title" />
 
                 <androidx.constraintlayout.widget.Group
                     android:layout_width="0dp"
@@ -190,7 +262,7 @@
                     android:textAppearance="@style/TextAppearance.AppCompat.Title"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/home_unit_value_last_update_time" />
+                    app:layout_constraintTop_toBottomOf="@id/home_unit_max_value_last_update_time" />
 
                 <EditText
                     android:id="@+id/home_unit_name"

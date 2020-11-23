@@ -67,6 +67,8 @@
     <string name="add_edit_home_unit_text_room_title">Room:</string>
     <string name="add_edit_home_unit_text_hw_unit_title">Hardware Unit:</string>
     <string name="add_edit_home_unit_text_value">Value: </string>
+    <string name="add_edit_home_unit_text_min_value">Min value: </string>
+    <string name="add_edit_home_unit_text_max_value">Max value: </string>
     <string name="add_edit_home_unit_text_task_list_title">Unit Task List:</string>
     <string name="add_edit_home_unit_name_already_used">This Home Unit Name is already used, please use different one.</string>
     <string name="add_edit_home_unit_save_with_delete">Home Unit Name or Type was changed Dou you want to overwrite them?</string>

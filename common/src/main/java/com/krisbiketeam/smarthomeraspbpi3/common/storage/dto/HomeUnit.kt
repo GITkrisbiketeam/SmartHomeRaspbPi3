@@ -44,6 +44,10 @@ data class HomeUnit<T>(var name: String = "", // Name should be unique for all u
                        var hwUnitName: String = "",
                        var value: T? = null,
                        var lastUpdateTime: Long? = null,
+                       var min: T? = null,
+                       var minLastUpdateTime: Long? = null,
+                       var max: T? = null,
+                       var maxLastUpdateTime: Long? = null,
                        var firebaseNotify: Boolean = false,
                        var unitsTasks: Map<String,UnitTask> = HashMap()) {
     constructor(homeUnit: HomeUnit<T?>) : this(
@@ -53,6 +57,10 @@ data class HomeUnit<T>(var name: String = "", // Name should be unique for all u
             homeUnit.hwUnitName,
             homeUnit.value,
             homeUnit.lastUpdateTime,
+            homeUnit.min,
+            homeUnit.minLastUpdateTime,
+            homeUnit.max,
+            homeUnit.maxLastUpdateTime,
             homeUnit.firebaseNotify,
             homeUnit.unitsTasks)
 
@@ -69,6 +77,10 @@ data class HomeUnit<T>(var name: String = "", // Name should be unique for all u
                 hwUnitName,
                 value,
                 lastUpdateTime,
+                min,
+                minLastUpdateTime,
+                max,
+                maxLastUpdateTime,
                 firebaseNotify,
                 unitsTasks)
     }
@@ -79,6 +91,10 @@ data class HomeUnit<T>(var name: String = "", // Name should be unique for all u
                 room,
                 hwUnitName,
                 value,
-                lastUpdateTime)
+                lastUpdateTime,
+                min,
+                minLastUpdateTime,
+                max,
+                maxLastUpdateTime)
     }
 }

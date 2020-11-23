@@ -49,7 +49,7 @@ class RoomDetailHomeUnitListAdapter(private val homeInformationRepository: Fireb
             binding.apply {
                 clickListener = listener
                 homeUnit = item
-                lastUpdateTime = getLastUpdateTime(root.context, item)
+                lastUpdateTime = getLastUpdateTime(root.context, item.lastUpdateTime)
                 homeUnitItemSwitch.setOnCheckedChangeListener { _, isChecked ->
                     Timber.d("OnCheckedChangeListener isChecked: $isChecked item: $item")
                     if (item.value != isChecked) {
