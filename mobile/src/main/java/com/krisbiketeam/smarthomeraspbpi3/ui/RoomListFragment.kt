@@ -30,7 +30,7 @@ class RoomListFragment : Fragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         val binding: FragmentRoomListBinding = DataBindingUtil.inflate<FragmentRoomListBinding>(
                 inflater, R.layout.fragment_room_list, container, false).apply {
             viewModel = roomListViewModel
