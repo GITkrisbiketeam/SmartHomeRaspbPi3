@@ -5,6 +5,8 @@ import androidx.recyclerview.widget.DiffUtil
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.Room
 
+
+@Deprecated(message = "Please use other RoomList Adapter (RoomWithHomeUnitListAdapter)")
 class RoomHomeUnitListAdapterDiffCallback : DiffUtil.ItemCallback<Any>() {
 
     override fun areItemsTheSame(oldItem: Any, newItem: Any): Boolean {
