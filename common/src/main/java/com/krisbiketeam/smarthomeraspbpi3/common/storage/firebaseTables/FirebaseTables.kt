@@ -40,6 +40,11 @@ const val HOME_PRESSURES = "pressures"
 const val HOME_HUMIDITY = "humidity"
 const val HOME_BLINDS = "blinds"
 
+const val HOME_MIN_VAL = "min"
+const val HOME_MIN_VAL_LAST_UPDATE = "minLastUpdateTime"
+const val HOME_MAX_VAL = "max"
+const val HOME_MAX_VAL_LAST_UPDATE = "maxLastUpdateTime"
+
 // region unitTasks
 const val HOME_UNIT_TASKS = "unitsTasks"
 // endregion

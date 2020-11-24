@@ -179,6 +179,16 @@ class HomeUnitDetailViewModel(application: Application,
         }
     }
 
+    fun clearMinValue(): Task<Void>? {
+        Timber.d("clearMinValue homeUnit: ${homeUnit?.value}")
+        return homeUnit?.value?.let (homeRepository::clearMinHomeUnitValue)
+    }
+
+    fun clearMaxValue(): Task<Void>? {
+        Timber.d("clearMaxValue homeUnit: ${homeUnit?.value}")
+        return homeUnit?.value?.let (homeRepository::clearMaxHomeUnitValue)
+    }
+
     fun noChangesMade(): Boolean {
         return homeUnit?.value?.let { unit ->
             unit.name == name.value && unit.type == type.value && unit.room == roomName.value && unit.hwUnitName == hwUnitName.value && unit.firebaseNotify == firebaseNotify.value/* &&

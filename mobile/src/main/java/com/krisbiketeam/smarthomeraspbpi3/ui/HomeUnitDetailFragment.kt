@@ -39,7 +39,7 @@ class HomeUnitDetailFragment : Fragment() {
             inflater: LayoutInflater,
             container: ViewGroup?,
             savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         val rootBinding = DataBindingUtil.inflate<FragmentHomeUnitDetailBinding>(
                 inflater, R.layout.fragment_home_unit_detail, container, false).apply {
             viewModel = homeUnitDetailViewModel
@@ -88,6 +88,12 @@ class HomeUnitDetailFragment : Fragment() {
             if (hwUnitName != null && homeUnitDetailViewModel.isEditMode.value != true) {
                 findNavController().navigate(HomeUnitDetailFragmentDirections.actionHomeUnitDetailFragmentToAddEditHwUnitFragment(hwUnitName))
             }
+        }
+        home_unit_min_clear_button.setOnClickListener {
+            homeUnitDetailViewModel.clearMinValue()
+        }
+        home_unit_max_clear_button.setOnClickListener {
+            homeUnitDetailViewModel.clearMaxValue()
         }
     }
 

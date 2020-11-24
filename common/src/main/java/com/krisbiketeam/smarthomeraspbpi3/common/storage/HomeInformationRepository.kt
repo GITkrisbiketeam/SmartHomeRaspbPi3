@@ -273,6 +273,32 @@ class FirebaseHomeInformationRepository {
                     .removeValue()
         }
     }
+
+    /**
+     *  Clears givens @see[HomeUnit] min value from DB
+     */
+    fun <T> clearMinHomeUnitValue(homeUnit: HomeUnit<T>): Task<Void>? {
+        return homePathReference?.let {
+            FirebaseDatabase.getInstance().getReference("$it/$HOME_UNITS_BASE/${homeUnit.type}/${homeUnit.name}").let { reference ->
+                reference.child(HOME_MIN_VAL_LAST_UPDATE).removeValue().continueWithTask{
+                    reference.child(HOME_MIN_VAL).removeValue()
+                }
+            }
+        }
+    }
+
+    /**
+     *  Clears givens @see[HomeUnit] min value from DB
+     */
+    fun <T> clearMaxHomeUnitValue(homeUnit: HomeUnit<T>): Task<Void>? {
+        return homePathReference?.let {
+            FirebaseDatabase.getInstance().getReference("$it/$HOME_UNITS_BASE/${homeUnit.type}/${homeUnit.name}").let { reference ->
+                reference.child(HOME_MAX_VAL_LAST_UPDATE).removeValue().continueWithTask{
+                    reference.child(HOME_MAX_VAL).removeValue()
+                }
+            }
+        }
+    }
     // endregion
 
     // region UnitTask
@@ -570,4 +596,6 @@ class FirebaseHomeInformationRepository {
             // TODO: this will overLoad FirebaseDB
             // need to add separate node with only rooms list
             FirebaseDatabase.getInstance().reference.child(HOME_INFORMATION_BASE))
+
+    // endregion
 }
