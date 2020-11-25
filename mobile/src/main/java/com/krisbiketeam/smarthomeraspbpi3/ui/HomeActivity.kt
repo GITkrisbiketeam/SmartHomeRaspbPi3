@@ -9,7 +9,7 @@ import androidx.navigation.Navigation
 import androidx.navigation.findNavController
 import androidx.navigation.ui.NavigationUI
 import androidx.navigation.ui.setupActionBarWithNavController
-import androidx.navigation.ui.setupWithNavController
+import com.google.firebase.auth.FirebaseAuth
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
@@ -44,7 +44,8 @@ class HomeActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbar)
         setupActionBarWithNavController(navController, drawerLayout)
 
-        if (!secureStorage.isAuthenticated()) {
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        if (currentUser == null || !secureStorage.isAuthenticated()) {
             Timber.d("No Home Name defined, starting HomeSettingsFragment")
             navController.navigate(R.id.login_settings_fragment)
         } else if (secureStorage.homeName.isEmpty()) {
@@ -52,7 +53,7 @@ class HomeActivity : AppCompatActivity() {
             navController.navigate(R.id.home_settings_fragment)
         } else {
             homeInformationRepository.setHomeReference(secureStorage.homeName)
-            homeInformationRepository.setUserReference(secureStorage.firebaseCredentials.email)
+            homeInformationRepository.setUserReference(currentUser.uid)
         }
 
         DataBindingUtil.inflate<NavHeaderBinding>(layoutInflater, R.layout.nav_header,

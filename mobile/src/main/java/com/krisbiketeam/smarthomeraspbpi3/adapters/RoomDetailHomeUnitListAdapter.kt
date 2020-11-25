@@ -56,7 +56,7 @@ class RoomDetailHomeUnitListAdapter(private val homeInformationRepository: Fireb
                         item.copy().also { unit ->
                             unit.value = isChecked
                             unit.lastUpdateTime = System.currentTimeMillis()
-                            homeInformationRepository.saveHomeUnit(unit)
+                            homeInformationRepository.updateHomeUnitValue(unit)
                         }
                     }
                 }

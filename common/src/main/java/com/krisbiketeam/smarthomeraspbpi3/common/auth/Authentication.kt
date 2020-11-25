@@ -8,7 +8,7 @@ interface Authentication {
     fun addLoginResultListener(loginResultListener: LoginResultListener)
 
     interface LoginResultListener {
-        fun success()
+        fun success(uid: String?)
         fun failed(exception: Exception)
     }
 }
@@ -35,8 +35,8 @@ class FirebaseAuthentication : Authentication {
                     loginResultListener?.failed(exception)
                 }
                 .addOnSuccessListener {
-                    Timber.d("Login user success!")
-                    loginResultListener?.success()
+                    Timber.d("Login user success! user uid: ${it.user?.uid}")
+                    loginResultListener?.success(it.user?.uid)
                 }
     }
 }

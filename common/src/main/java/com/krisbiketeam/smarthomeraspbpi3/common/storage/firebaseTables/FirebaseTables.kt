@@ -30,16 +30,21 @@ const val HOME_ROOMS = "rooms"
 // region HomeUnits
 const val HOME_UNITS_BASE = "home_units"
 
+// actuators
 const val HOME_ACTUATORS = "actuators"
 const val HOME_LIGHTS = "lights"
+const val HOME_BLINDS = "blinds"
+// boolean sensord
 const val HOME_LIGHT_SWITCHES = "light_switches"
 const val HOME_REED_SWITCHES = "reed_switches"
 const val HOME_MOTIONS = "motions"
+// float sensors
 const val HOME_TEMPERATURES = "temperatures"
 const val HOME_PRESSURES = "pressures"
 const val HOME_HUMIDITY = "humidity"
-const val HOME_BLINDS = "blinds"
 
+const val HOME_VAL = "value"
+const val HOME_VAL_LAST_UPDATE = "lastUpdateTime"
 const val HOME_MIN_VAL = "min"
 const val HOME_MIN_VAL_LAST_UPDATE = "minLastUpdateTime"
 const val HOME_MAX_VAL = "max"

@@ -36,21 +36,24 @@ class LoginSettingsViewModel(private val authentication: AuthenticationLiveData,
                         "authenticationLivedata remoteLogin.value: ${remoteLogin.value} data: $data state: $state")
                 var updateValue = true
                 if (state == MyLiveDataState.DONE && data is FirebaseCredentials) {
-                    homeInformationRepository.writeNewUser(data.email.substringBefore("@"),
-                                                                   data.email)
-                    homeInformationRepository.setUserReference(data.email)
-                    updateValue = false
-                    getFirebaseAppToken { token ->
-                        Timber.d("getFirebaseAppToken token: $token")
-                        if (token?.let {
-                                    sendRegistrationToServer(homeInformationRepository, data.email, token)
-                                    if (remoteLogin.value == true) {
-                                        // initialize Nearby FirebaseCredentials transfer
-                                        nearByState.value = Pair(MyLiveDataState.CONNECTING, data)
-                                        false
-                                    } else true
-                                } != false) {
-                            loginState.value = pair
+                    val uid = data.uid
+                    if (uid != null) {
+                        homeInformationRepository.writeNewUser(uid, data.email.substringBefore("@"),
+                                data.email)
+                        homeInformationRepository.setUserReference(uid)
+                        updateValue = false
+                        getFirebaseAppToken { token ->
+                            Timber.d("getFirebaseAppToken token: $token")
+                            if (token?.let {
+                                        sendRegistrationToServer(homeInformationRepository, uid, token)
+                                        if (remoteLogin.value == true) {
+                                            // initialize Nearby FirebaseCredentials transfer
+                                            nearByState.value = Pair(MyLiveDataState.CONNECTING, data)
+                                            false
+                                        } else true
+                                    } != false) {
+                                loginState.value = pair
+                            }
                         }
                     }
                 }

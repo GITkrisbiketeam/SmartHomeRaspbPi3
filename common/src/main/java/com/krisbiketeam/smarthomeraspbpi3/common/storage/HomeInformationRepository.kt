@@ -35,6 +35,7 @@ class FirebaseHomeInformationRepository {
             FirebaseDatabase.getInstance().getReference("$it/$HW_ERROR_INFORMATION_BASE")
         }
     }
+
     // Reference for all hw error events
     private val referenceHwError: DatabaseReference? by referenceHwErrorDelegate
 
@@ -43,12 +44,14 @@ class FirebaseHomeInformationRepository {
             FirebaseDatabase.getInstance().getReference("$it/$HW_RESTART_INFORMATION_BASE")
         }
     }
+
     // Reference for all hw unit restart events
     private val referenceHwRestart: DatabaseReference? by referenceHwRestartDelegate
 
     private val referenceRoomsDelegate = resetableLazy {
         homePathReference?.let { FirebaseDatabase.getInstance().getReference("$it/$HOME_ROOMS") }
     }
+
     // Reference for all Rooms stored remotely
     private val referenceRooms: DatabaseReference? by referenceRoomsDelegate
 
@@ -57,6 +60,7 @@ class FirebaseHomeInformationRepository {
             FirebaseDatabase.getInstance().getReference("$it/$HOME_PREFERENCES_BASE")
         }
     }
+
     // Reference for all sharedPreferences stored remotely
     private val referenceHomePreferences: DatabaseReference? by referenceHomePreferencesDelegate
 
@@ -65,6 +69,7 @@ class FirebaseHomeInformationRepository {
             FirebaseDatabase.getInstance().getReference("$it/$LOG_INFORMATION_BASE")
         }
     }
+
     // Reference for all log related events
     private val referenceLog: DatabaseReference? by referenceLogDelegate
     // endregion
@@ -110,24 +115,23 @@ class FirebaseHomeInformationRepository {
         //FirebaseDatabase.getInstance().getReference(this).keepSynced(true)
     }
 
-    fun setUserReference(email: String) {
-        userPathReference = "$USER_INFORMATION_BASE/${email.hashCode()}"
+    fun setUserReference(uid: String) {
+        userPathReference = "$USER_INFORMATION_BASE/${uid}"
     }
 
     // region Firebase DB operations
     // region User and its Notification token handling
 
-    fun writeNewUser(name: String, email: String) {
-        referenceUsers.child(email.hashCode().toString())
-                .updateChildren(mapOf(Pair(USER_NAME, name), Pair(USER_EMAIL, email)))
+    fun writeNewUser(uid: String, name: String, email: String) {
+        referenceUsers.child(uid).updateChildren(mapOf(Pair(USER_NAME, name), Pair(USER_EMAIL, email)))
     }
 
-    fun addUserNotiToken(email: String, token: String) {
-        referenceUsers.child(email.hashCode().toString()).child(USER_NOTIFICATION_TOKENS)
+    fun addUserNotiToken(uid: String, token: String) {
+        referenceUsers.child(uid).child(USER_NOTIFICATION_TOKENS)
                 .child(token).setValue(true)
     }
 
-    fun startUserToFirebaseConnectionActiveMonitor(email: String) {
+    fun startUserToFirebaseConnectionActiveMonitor() {
         // Since I can connect from multiple devices, we store each connection instance separately
         // any time that connectionsRef's value is null (i.e. has no children) I am offline
         val myConnectionsRef = userPathReference?.let {
@@ -162,7 +166,7 @@ class FirebaseHomeInformationRepository {
 
     @ExperimentalCoroutinesApi
     fun isUserOnlineFlow(): Flow<Boolean?> =
-        genericReferenceFlow(userPathReference?.let{FirebaseDatabase.getInstance().getReference("$it/$USER_ONLINE")})
+            genericReferenceFlow(userPathReference?.let { FirebaseDatabase.getInstance().getReference("$it/$USER_ONLINE") })
 
     // endregion
 
@@ -264,6 +268,21 @@ class FirebaseHomeInformationRepository {
     }
 
     /**
+     *  Updates given @see[HomeUnit] value updateTime in DB
+     */
+    fun <T> updateHomeUnitValue(homeUnit: HomeUnit<T>): Task<Void>? {
+        Timber.w("saveHomeUnit $homeUnit")
+        return homePathReference?.let {
+            FirebaseDatabase.getInstance().getReference("$it/$HOME_UNITS_BASE/${homeUnit.type}/${homeUnit.name}")
+                    .let { reference ->
+                        reference.child(HOME_VAL).setValue(homeUnit.value).continueWithTask {
+                            reference.child(HOME_VAL_LAST_UPDATE).setValue(homeUnit.lastUpdateTime)
+                        }
+                    }
+        }
+    }
+
+    /**
      *  Deletes given @see[HomeUnit] from DB
      */
     fun <T> deleteHomeUnit(homeUnit: HomeUnit<T>): Task<Void>? {
@@ -280,7 +299,7 @@ class FirebaseHomeInformationRepository {
     fun <T> clearMinHomeUnitValue(homeUnit: HomeUnit<T>): Task<Void>? {
         return homePathReference?.let {
             FirebaseDatabase.getInstance().getReference("$it/$HOME_UNITS_BASE/${homeUnit.type}/${homeUnit.name}").let { reference ->
-                reference.child(HOME_MIN_VAL_LAST_UPDATE).removeValue().continueWithTask{
+                reference.child(HOME_MIN_VAL_LAST_UPDATE).removeValue().continueWithTask {
                     reference.child(HOME_MIN_VAL).removeValue()
                 }
             }
@@ -293,7 +312,7 @@ class FirebaseHomeInformationRepository {
     fun <T> clearMaxHomeUnitValue(homeUnit: HomeUnit<T>): Task<Void>? {
         return homePathReference?.let {
             FirebaseDatabase.getInstance().getReference("$it/$HOME_UNITS_BASE/${homeUnit.type}/${homeUnit.name}").let { reference ->
-                reference.child(HOME_MAX_VAL_LAST_UPDATE).removeValue().continueWithTask{
+                reference.child(HOME_MAX_VAL_LAST_UPDATE).removeValue().continueWithTask {
                     reference.child(HOME_MAX_VAL).removeValue()
                 }
             }
@@ -308,7 +327,7 @@ class FirebaseHomeInformationRepository {
     fun saveUnitTask(homeUnitType: String, homeUnitName: String, unitTask: UnitTask): Task<Void>? {
         return homePathReference?.let {
             FirebaseDatabase.getInstance().getReference(
-                            "$it/$HOME_UNITS_BASE/$homeUnitType/$homeUnitName/$HOME_UNIT_TASKS/${unitTask.name}")
+                    "$it/$HOME_UNITS_BASE/$homeUnitType/$homeUnitName/$HOME_UNIT_TASKS/${unitTask.name}")
                     .setValue(unitTask)
         }
     }
@@ -320,7 +339,7 @@ class FirebaseHomeInformationRepository {
                        unitTask: UnitTask): Task<Void>? {
         return homePathReference?.let {
             FirebaseDatabase.getInstance().getReference(
-                            "$it/$HOME_UNITS_BASE/$homeUnitType/$homeUnitName/$HOME_UNIT_TASKS/${unitTask.name}")
+                    "$it/$HOME_UNITS_BASE/$homeUnitType/$homeUnitName/$HOME_UNIT_TASKS/${unitTask.name}")
                     .removeValue()
         }
     }
@@ -469,6 +488,7 @@ class FirebaseHomeInformationRepository {
     fun hwUnitLiveData(hwUnitName: String): HwUnitLiveData {
         return HwUnitLiveData(referenceHWUnits, hwUnitName)
     }
+
     @ExperimentalCoroutinesApi
     fun hwUnitFlow(hwUnitName: String): Flow<HwUnit> {
         return genericReferenceFlow(referenceHWUnits?.child(hwUnitName))
@@ -523,7 +543,7 @@ class FirebaseHomeInformationRepository {
      */
     @ExperimentalCoroutinesApi
     fun homeUnitListFlow(unitType: String? = null): Flow<List<HomeUnit<Any?>>> {
-        return homePathReference?.let {home ->
+        return homePathReference?.let { home ->
             if (unitType != null) {
                 FirebaseDatabase.getInstance().getReference("$home/$HOME_UNITS_BASE/$unitType").let { reference ->
                     genericListReferenceFlow(reference)
@@ -533,8 +553,8 @@ class FirebaseHomeInformationRepository {
                     FirebaseDatabase.getInstance().getReference("$home/$HOME_UNITS_BASE/$type").let { reference ->
                         genericListReferenceFlow<HomeUnit<Any?>>(reference)
                     }
-                }){types ->
-                    types.flatMap {it}
+                }) { types ->
+                    types.flatMap { it }
                 }
             }
         } ?: emptyFlow()

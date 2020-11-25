@@ -11,83 +11,88 @@ import timber.log.Timber
 @ExperimentalCoroutinesApi
 inline fun <reified T> genericListReferenceFlow(databaseReference: DatabaseReference?) = callbackFlow<List<T>> {
     val typeIndicator = object : GenericTypeIndicator<T>() {}
-    databaseReference?.let { reference ->
-        val eventListener = reference.addValueEventListener(object : ValueEventListener {
-            override fun onCancelled(databaseError: DatabaseError) {
-                this@callbackFlow.close(databaseError.toException())
-            }
 
-            override fun onDataChange(dataSnapshot: DataSnapshot) {
-                // A new value has been added, add it to the displayed list
-                val list: ArrayList<T> = ArrayList()
-                for (child: DataSnapshot in dataSnapshot.children) {
-                    val value = child.getValue(typeIndicator)
-                    value?.run {
-                        list.add(value)
-                    }
+    val eventListener = databaseReference?.addValueEventListener(object : ValueEventListener {
+        override fun onCancelled(databaseError: DatabaseError) {
+            Timber.e("genericListReferenceFlow  onCancelled $databaseError")
+            this@callbackFlow.close(databaseError.toException())
+        }
+
+        override fun onDataChange(dataSnapshot: DataSnapshot) {
+            // A new value has been added, add it to the displayed list
+            val list: ArrayList<T> = ArrayList()
+            for (child: DataSnapshot in dataSnapshot.children) {
+                val value = child.getValue(typeIndicator)
+                value?.run {
+                    list.add(value)
                 }
-                Timber.e("onDataChange (key=${dataSnapshot.key})(homeUnits=$list)")
-                this@callbackFlow.sendBlocking(list)
             }
-        })
-        awaitClose {
-            reference.removeEventListener(eventListener)
+            Timber.e("genericListReferenceFlow onDataChange (key=${dataSnapshot.key})(homeUnits=$list)")
+            this@callbackFlow.sendBlocking(list)
+        }
+    })
+    awaitClose {
+        Timber.e("genericReferenceFlow  awaitClose")
+        eventListener?.let { eventListener ->
+            databaseReference.removeEventListener(eventListener)
         }
     }
-
 }.conflate()
 
 @ExperimentalCoroutinesApi
-inline fun <reified T> genericMapReferenceFlow(databaseReference: DatabaseReference?) = callbackFlow<Map<String,T>> {
+inline fun <reified T> genericMapReferenceFlow(databaseReference: DatabaseReference?) = callbackFlow<Map<String, T>> {
     val typeIndicator = object : GenericTypeIndicator<T>() {}
-    databaseReference?.let { reference ->
-        val eventListener = reference.addValueEventListener(object : ValueEventListener {
-            override fun onCancelled(databaseError: DatabaseError) {
-                this@callbackFlow.close(databaseError.toException())
-            }
 
-            override fun onDataChange(dataSnapshot: DataSnapshot) {
-                // A new value has been added, add it to the displayed list
-                val list: HashMap<String, T> = HashMap()
-                for (child: DataSnapshot in dataSnapshot.children) {
-                    val key: String? = child.key
-                    val value = child.getValue(typeIndicator)
-                    if(value != null && key != null) {
-                        list[key] = value
-                    }
+    val eventListener = databaseReference?.addValueEventListener(object : ValueEventListener {
+        override fun onCancelled(databaseError: DatabaseError) {
+            Timber.e("genericMapReferenceFlow onCancelled $databaseError")
+            this@callbackFlow.close(databaseError.toException())
+        }
+
+        override fun onDataChange(dataSnapshot: DataSnapshot) {
+            // A new value has been added, add it to the displayed list
+            val list: HashMap<String, T> = HashMap()
+            for (child: DataSnapshot in dataSnapshot.children) {
+                val key: String? = child.key
+                val value = child.getValue(typeIndicator)
+                if (value != null && key != null) {
+                    list[key] = value
                 }
-                Timber.e("onDataChange (key=${dataSnapshot.key})(homeUnits=$list)")
-                this@callbackFlow.sendBlocking(list)
             }
-        })
-        awaitClose {
-            reference.removeEventListener(eventListener)
+            Timber.e("genericMapReferenceFlow onDataChange (key=${dataSnapshot.key})(homeUnits=$list)")
+            this@callbackFlow.sendBlocking(list)
+        }
+    })
+    awaitClose {
+        Timber.e("genericReferenceFlow  awaitClose")
+        eventListener?.let { eventListener ->
+            databaseReference.removeEventListener(eventListener)
         }
     }
-
 }.conflate()
 
 @ExperimentalCoroutinesApi
 inline fun <reified T> genericReferenceFlow(databaseReference: DatabaseReference?) = callbackFlow<T> {
     val typeIndicator = object : GenericTypeIndicator<T>() {}
-    databaseReference?.let { reference ->
-        val eventListener = reference.addValueEventListener(object : ValueEventListener {
-            override fun onCancelled(databaseError: DatabaseError) {
-                this@callbackFlow.close(databaseError.toException())
-            }
+    val eventListener = databaseReference?.addValueEventListener(object : ValueEventListener {
+        override fun onCancelled(databaseError: DatabaseError) {
+            Timber.e("genericReferenceFlow  onCancelled $databaseError")
+            this@callbackFlow.close(databaseError.toException())
+        }
 
-            override fun onDataChange(dataSnapshot: DataSnapshot) {
-                // A new value has been added, add it to the displayed list
-                val value: T? = dataSnapshot.getValue(typeIndicator)
-                Timber.e("onDataChange (key=${dataSnapshot.key})(value=$value)")
-                if(value != null) {
-                    this@callbackFlow.sendBlocking(value)
-                }
+        override fun onDataChange(dataSnapshot: DataSnapshot) {
+            // A new value has been added, add it to the displayed list
+            val value: T? = dataSnapshot.getValue(typeIndicator)
+            Timber.e("genericReferenceFlow onDataChange (key=${dataSnapshot.key})(value=$value)")
+            if (value != null) {
+                this@callbackFlow.sendBlocking(value)
             }
-        })
-        awaitClose {
-            reference.removeEventListener(eventListener)
+        }
+    })
+    awaitClose {
+        Timber.e("genericReferenceFlow  awaitClose")
+        eventListener?.let { eventListener ->
+            databaseReference.removeEventListener(eventListener)
         }
     }
-
 }.conflate()
