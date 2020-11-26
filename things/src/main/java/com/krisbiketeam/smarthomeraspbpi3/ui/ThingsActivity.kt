@@ -144,8 +144,8 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
     }
 
     private val loginResultListener = object : Authentication.LoginResultListener {
-        override fun success() {
-            Timber.d("LoginResultListener success")
+        override fun success(uid: String?) {
+            Timber.d("LoginResultListener success $uid")
             led2.setValueWithException(true)
         }
 
