@@ -14,7 +14,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
-import com.krisbiketeam.smarthomeraspbpi3.databinding.ActivityHomeBinding
+import com.krisbiketeam.smarthomeraspbpi3.databinding.HomeActivityBinding
 import com.krisbiketeam.smarthomeraspbpi3.databinding.NavHeaderBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.NavigationViewModel
 import org.koin.android.ext.android.inject
@@ -31,12 +31,13 @@ class HomeActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val binding: ActivityHomeBinding =
-                DataBindingUtil.setContentView(this, R.layout.activity_home)
+        val binding = HomeActivityBinding.inflate(layoutInflater)
+        val view = binding.root
+        setContentView(view)
+
         drawerLayout = binding.drawerLayout
 
         val navController = findNavController(R.id.home_nav_fragment)
-
 
         // Set up navigation menu
         binding.navigationView.setupWithNavController(navController)
