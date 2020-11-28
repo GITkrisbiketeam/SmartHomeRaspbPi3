@@ -249,14 +249,14 @@ class Home(secureStorage: SecureStorage,
                                 if (hwUnit is Actuator) {
                                     Timber.d(
                                             "homeUnitsDataObserver NODE_ACTION_ADDED baseUnit setValue value: ${homeUnit.value}")
+                                    homeUnit.lastUpdateTime = hwUnit.valueUpdateTime
                                     homeUnit.value?.let { value ->
                                         hwUnit.setValueWithException(value)
                                     }
                                 } else if (hwUnit is Sensor) {
-                                    homeUnit.value = hwUnit.unitValue
+                                    updateHomeUnitValuesAndTimes(homeUnit, hwUnit.unitValue, hwUnit.valueUpdateTime)
                                     homeInformationRepository.saveHomeUnit(homeUnit)
                                 }
-                                homeUnit.lastUpdateTime = hwUnit.valueUpdateTime
                             }
                         }
                         homeUnitsList[homeUnit.type to homeUnit.name] = homeUnit
@@ -411,24 +411,7 @@ class Home(secureStorage: SecureStorage,
             homeUnitsList.values.filter {
                 it.hwUnitName == hwUnit.name
             }.forEach { homeUnit ->
-                // We need to handel differently values of non Basic Types
-                if (unitValue is TemperatureAndPressure) {
-                    Timber.d("Received TemperatureAndPressure ${homeUnit.value}")
-                    if (homeUnit.type == HOME_TEMPERATURES) {
-                        updateValueMinMax(homeUnit, unitValue.temperature, updateTime)
-                    } else if (homeUnit.type == HOME_PRESSURES) {
-                        updateValueMinMax(homeUnit, unitValue.pressure, updateTime)
-                    }
-                } else if (unitValue is TemperatureAndHumidity) {
-                    Timber.d("Received TemperatureAndHumidity ${homeUnit.value}")
-                    if (homeUnit.type == HOME_TEMPERATURES) {
-                        updateValueMinMax(homeUnit, unitValue.temperature, updateTime)
-                    } else if (homeUnit.type == HOME_HUMIDITY) {
-                        updateValueMinMax(homeUnit, unitValue.humidity, updateTime)
-                    }
-                } else {
-                    updateValueMinMax(homeUnit, unitValue, updateTime)
-                }
+                updateHomeUnitValuesAndTimes(homeUnit, unitValue, updateTime)
                 homeUnit.value?.let { newValue ->
                     homeUnit.applyFunction.invoke(homeUnit, newValue)
                 }
@@ -448,6 +431,27 @@ class Home(secureStorage: SecureStorage,
         }")
         GlobalScope.launch(Dispatchers.Default) {
             hwUnitsList[hwUnit.name]?.addHwUnitErrorEvent(Throwable(), "Error on $hwUnit : error")
+        }
+    }
+
+    private fun updateHomeUnitValuesAndTimes(homeUnit: HomeUnit<Any?>, unitValue: Any?, updateTime: Long){
+        // We need to handel differently values of non Basic Types
+        if (unitValue is TemperatureAndPressure) {
+            Timber.d("Received TemperatureAndPressure ${homeUnit.value}")
+            if (homeUnit.type == HOME_TEMPERATURES) {
+                updateValueMinMax(homeUnit, unitValue.temperature, updateTime)
+            } else if (homeUnit.type == HOME_PRESSURES) {
+                updateValueMinMax(homeUnit, unitValue.pressure, updateTime)
+            }
+        } else if (unitValue is TemperatureAndHumidity) {
+            Timber.d("Received TemperatureAndHumidity ${homeUnit.value}")
+            if (homeUnit.type == HOME_TEMPERATURES) {
+                updateValueMinMax(homeUnit, unitValue.temperature, updateTime)
+            } else if (homeUnit.type == HOME_HUMIDITY) {
+                updateValueMinMax(homeUnit, unitValue.humidity, updateTime)
+            }
+        } else {
+            updateValueMinMax(homeUnit, unitValue, updateTime)
         }
     }
 
