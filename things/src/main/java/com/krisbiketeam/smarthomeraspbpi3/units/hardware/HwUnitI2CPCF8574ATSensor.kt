@@ -55,7 +55,7 @@ open class HwUnitI2CPCF8574ATSensor(name: String, location: String, private val 
                                   exceptionHandler: CoroutineExceptionHandler) {
         Timber.d("registerListener")
         hwUnitListener = listener
-        (device as PCF8574AT).run {
+        (device as PCF8574AT?)?.run {
             val result = registerPinListener(ioPin, mPCF8574ATCallback)
             Timber.d("registerListener registerPinListener?: $result")
         }
@@ -63,7 +63,7 @@ open class HwUnitI2CPCF8574ATSensor(name: String, location: String, private val 
 
     override fun unregisterListener() {
         Timber.d("unregisterListener")
-        (device as PCF8574AT).run {
+        (device as PCF8574AT?)?.run {
             val result = unRegisterPinListener(ioPin, mPCF8574ATCallback)
             Timber.d("registerListener unRegisterPinListener?: $result")
         }
