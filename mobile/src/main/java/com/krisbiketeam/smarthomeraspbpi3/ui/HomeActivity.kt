@@ -6,7 +6,7 @@ import androidx.core.view.GravityCompat
 import androidx.databinding.DataBindingUtil
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.navigation.Navigation
-import androidx.navigation.findNavController
+import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.NavigationUI
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
@@ -37,7 +37,8 @@ class HomeActivity : AppCompatActivity() {
 
         drawerLayout = binding.drawerLayout
 
-        val navController = findNavController(R.id.home_nav_fragment)
+        val navHostFragment = supportFragmentManager.findFragmentById(R.id.home_nav_fragment) as NavHostFragment
+        val navController = navHostFragment.navController
 
         // Set up navigation menu
         binding.navigationView.setupWithNavController(navController)
