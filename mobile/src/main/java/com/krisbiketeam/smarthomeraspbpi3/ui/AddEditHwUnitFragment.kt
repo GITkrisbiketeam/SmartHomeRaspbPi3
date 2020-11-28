@@ -41,7 +41,7 @@ class AddEditHwUnitFragment : Fragment() {
             inflater: LayoutInflater,
             container: ViewGroup?,
             savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         rootBinding = DataBindingUtil.inflate<FragmentAddEditHwUnitBinding>(
                 inflater, R.layout.fragment_add_edit_hw_unit, container, false).apply {
             viewModel = addEditHwUnitViewModel
@@ -94,8 +94,8 @@ class AddEditHwUnitFragment : Fragment() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         // If showing progress do not allow app bar actions
-        if (addEditHwUnitViewModel.showProgress.value == true) {
-            return true
+        if (addEditHwUnitViewModel.showProgress.value != false) {
+            return super.onOptionsItemSelected(item)
         }
         return when (item.itemId) {
             R.id.action_edit -> {

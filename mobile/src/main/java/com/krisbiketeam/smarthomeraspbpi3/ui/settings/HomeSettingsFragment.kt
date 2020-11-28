@@ -11,7 +11,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.databinding.OnRebindCallback
 import androidx.databinding.ViewDataBinding
 import androidx.fragment.app.Fragment
-import androidx.navigation.Navigation
+import androidx.navigation.fragment.findNavController
 import androidx.transition.TransitionManager
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.krisbiketeam.smarthomeraspbpi3.R
@@ -31,7 +31,7 @@ class HomeSettingsFragment : Fragment() {
     private lateinit var binding: FragmentSettingsHomeBinding
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? {
+                              savedInstanceState: Bundle?): View {
 
         binding = DataBindingUtil.inflate<FragmentSettingsHomeBinding>(inflater,
                                                                        R.layout.fragment_settings_home,
@@ -81,9 +81,7 @@ class HomeSettingsFragment : Fragment() {
                     MyLiveDataState.CONNECTING -> {
                     }
                     MyLiveDataState.DONE       -> {
-                        activity?.let {
-                            Navigation.findNavController(it, R.id.home_nav_fragment).navigateUp()
-                        }
+                        findNavController().navigateUp()
                     }
                 }
             }

@@ -382,7 +382,7 @@
             android:layout_height="match_parent"
             android:clickable="true"
             android:focusable="true"
-            android:visibility="@{safeUnbox(viewModel.showProgress) ? View.VISIBLE : View.GONE}">
+            android:visibility="@{viewModel.showProgress == false ? View.GONE : View.VISIBLE}">
 
             <androidx.core.widget.ContentLoadingProgressBar
                 style="?android:attr/progressBarStyleLarge"
@@ -391,7 +391,6 @@
                 android:layout_gravity="center" />
 
         </FrameLayout>
-
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 

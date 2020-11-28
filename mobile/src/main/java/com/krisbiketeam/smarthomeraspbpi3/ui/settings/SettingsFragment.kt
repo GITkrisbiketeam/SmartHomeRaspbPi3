@@ -4,7 +4,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.core.os.bundleOf
 import androidx.lifecycle.asLiveData
-import androidx.navigation.Navigation
+import androidx.navigation.fragment.findNavController
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import com.google.firebase.analytics.FirebaseAnalytics
@@ -45,53 +45,50 @@ class SettingsFragment : PreferenceFragmentCompat() {
 
     override fun onPreferenceTreeClick(preference: Preference?): Boolean {
         Timber.d("onPreferenceTreeClick preference: $preference")
-        activity?.let {
-            when (preference?.key) {
-                getString(R.string.settings_wifi_fragment_key)                     -> {
-                    Timber.d("onPreferenceTreeClick go to WifiSettings")
-                    val direction =
-                            SettingsFragmentDirections.actionSettingsFragmentToWifiSettingsFragment()
-                    Navigation.findNavController(it, R.id.home_nav_fragment).navigate(direction)
-                    return true
-                }
-                getString(R.string.settings_login_fragment_key)                    -> {
-                    Timber.d("onPreferenceTreeClick go to LoginSettings")
-                    val direction =
-                            SettingsFragmentDirections.actionSettingsFragmentToLoginSettingsFragment()
-                    Navigation.findNavController(it, R.id.home_nav_fragment).navigate(direction)
-                    return true
-                }
-                getString(R.string.settings_home_fragment_key)                     -> {
-                    Timber.d("onPreferenceTreeClick go to HomeSettings")
-                    val direction =
-                            SettingsFragmentDirections.actionSettingsFragmentToHomeSettingsFragment()
-                    Navigation.findNavController(it, R.id.home_nav_fragment).navigate(direction)
-                    return true
-                }
-                getString(R.string.settings_hw_unit_list_fragment_key)             -> {
-                    Timber.d("onPreferenceTreeClick go to HwUnitList")
-                    val direction =
-                            SettingsFragmentDirections.actionSettingsFragmentToHwUnitListFragment()
-                    Navigation.findNavController(it, R.id.home_nav_fragment).navigate(direction)
-                    return true
-                }
-                getString(R.string.settings_hw_unit_error_event_list_fragment_key) -> {
-                    Timber.d("onPreferenceTreeClick go to HwUnitErrorEventList")
-                    val direction =
-                            SettingsFragmentDirections.actionSettingsFragmentToHwUnitErrorEventListFragment()
-                    Navigation.findNavController(it, R.id.home_nav_fragment).navigate(direction)
-                    return true
-                }
-                getString(R.string.settings_restart_rpi_things_app) -> {
-                    Timber.d("onPreferenceTreeClick restart Rpi Things App")
-                    homeRepository.setResetAppFlag()
-                    return true
-                }
-                else                                                               -> {
-                    return super.onPreferenceTreeClick(preference)
-                }
+        when (preference?.key) {
+            getString(R.string.settings_wifi_fragment_key) -> {
+                Timber.d("onPreferenceTreeClick go to WifiSettings")
+                val direction =
+                        SettingsFragmentDirections.actionSettingsFragmentToWifiSettingsFragment()
+                findNavController().navigate(direction)
+                return true
+            }
+            getString(R.string.settings_login_fragment_key) -> {
+                Timber.d("onPreferenceTreeClick go to LoginSettings")
+                val direction =
+                        SettingsFragmentDirections.actionSettingsFragmentToLoginSettingsFragment()
+                findNavController().navigate(direction)
+                return true
+            }
+            getString(R.string.settings_home_fragment_key) -> {
+                Timber.d("onPreferenceTreeClick go to HomeSettings")
+                val direction =
+                        SettingsFragmentDirections.actionSettingsFragmentToHomeSettingsFragment()
+                findNavController().navigate(direction)
+                return true
+            }
+            getString(R.string.settings_hw_unit_list_fragment_key) -> {
+                Timber.d("onPreferenceTreeClick go to HwUnitList")
+                val direction =
+                        SettingsFragmentDirections.actionSettingsFragmentToHwUnitListFragment()
+                findNavController().navigate(direction)
+                return true
+            }
+            getString(R.string.settings_hw_unit_error_event_list_fragment_key) -> {
+                Timber.d("onPreferenceTreeClick go to HwUnitErrorEventList")
+                val direction =
+                        SettingsFragmentDirections.actionSettingsFragmentToHwUnitErrorEventListFragment()
+                findNavController().navigate(direction)
+                return true
+            }
+            getString(R.string.settings_restart_rpi_things_app) -> {
+                Timber.d("onPreferenceTreeClick restart Rpi Things App")
+                homeRepository.setResetAppFlag()
+                return true
+            }
+            else -> {
+                return super.onPreferenceTreeClick(preference)
             }
         }
-        return super.onPreferenceTreeClick(preference)
     }
 }

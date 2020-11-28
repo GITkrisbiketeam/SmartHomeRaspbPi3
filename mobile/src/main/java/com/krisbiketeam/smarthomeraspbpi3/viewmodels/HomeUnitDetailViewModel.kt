@@ -191,10 +191,15 @@ class HomeUnitDetailViewModel(application: Application,
 
     fun noChangesMade(): Boolean {
         return homeUnit?.value?.let { unit ->
-            unit.name == name.value && unit.type == type.value && unit.room == roomName.value && unit.hwUnitName == hwUnitName.value && unit.firebaseNotify == firebaseNotify.value/* &&
+            unit.name == name.value
+                    && unit.type == type.value
+                    && unit.room == roomName.value
+                    && unit.hwUnitName == hwUnitName.value
+                    && unit.firebaseNotify == firebaseNotify.value/* &&
             unit.unitsTasks == unitTaskList.value*/
-        } ?: name.value.isNullOrEmpty()
-        /*?: type.value.isNullOrEmpty()
+        } ?: true
+        /*name.value.isNullOrEmpty()
+        ?: type.value.isNullOrEmpty()
         ?: roomName.value.isNullOrEmpty()
         ?: hwUnitName.value.isNullOrEmpty()*/ ?: true
     }

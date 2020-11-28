@@ -59,6 +59,10 @@ class HomeActivity : AppCompatActivity() {
             homeInformationRepository.setUserReference(currentUser.uid)
         }
 
+        /*FirebaseAuth.getInstance().addAuthStateListener { firebaseAuth ->
+            Timber.e("AuthStateListener  firebaseAuth:$firebaseAuth currentUser: ${firebaseAuth.currentUser}")
+        }*/
+
         DataBindingUtil.inflate<NavHeaderBinding>(layoutInflater, R.layout.nav_header,
                                                   binding.navigationView, false).apply {
             binding.navigationView.addHeaderView(root)

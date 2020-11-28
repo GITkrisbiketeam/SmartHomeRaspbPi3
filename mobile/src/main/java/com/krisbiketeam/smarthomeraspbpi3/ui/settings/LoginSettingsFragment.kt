@@ -11,7 +11,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.databinding.OnRebindCallback
 import androidx.databinding.ViewDataBinding
 import androidx.fragment.app.Fragment
-import androidx.navigation.Navigation
+import androidx.navigation.fragment.findNavController
 import androidx.transition.TransitionManager
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.krisbiketeam.smarthomeraspbpi3.R
@@ -35,7 +35,7 @@ class LoginSettingsFragment : Fragment() {
 
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? {
+                              savedInstanceState: Bundle?): View {
 
         binding = DataBindingUtil.inflate<FragmentSettingsLoginBinding>(inflater,
                                                                         R.layout.fragment_settings_login,
@@ -71,18 +71,22 @@ class LoginSettingsFragment : Fragment() {
             pair?.let { (state, data) ->
                 Timber.d("loginState changed state: $state data: $data")
                 when (state) {
-                    MyLiveDataState.ERROR      -> {
+                    MyLiveDataState.ERROR -> {
                         binding.passwordLayout.error = getString(R.string.error_incorrect_password)
                         binding.password.requestFocus()
                     }
-                    MyLiveDataState.INIT       -> Unit
+                    MyLiveDataState.INIT -> Unit
                     MyLiveDataState.CONNECTING -> Unit
-                    MyLiveDataState.DONE       -> {
+                    MyLiveDataState.DONE -> {
                         if (data is FirebaseCredentials) {
                             secureStorage.firebaseCredentials = data
                         }
-                        activity?.let {
-                            Navigation.findNavController(it, R.id.home_nav_fragment).navigateUp()
+
+                        if (secureStorage.homeName.isEmpty()) {
+                            Timber.d("No Home Name defined, starting HomeSettingsFragment")
+                            findNavController().navigate(R.id.home_settings_fragment)
+                        } else {
+                            findNavController().navigateUp()
                         }
                     }
                 }

@@ -126,8 +126,8 @@ class HomeUnitDetailFragment : Fragment() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         // If showing progress do not allow app bar actions
-        if (homeUnitDetailViewModel.showProgress.value == true) {
-            return false
+        if (homeUnitDetailViewModel.showProgress.value != false) {
+            return super.onOptionsItemSelected(item)
         }
         return when (item.itemId) {
             R.id.action_edit -> {

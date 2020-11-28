@@ -20,10 +20,10 @@ import timber.log.Timber
 class AddEditHwUnitViewModel(private val homeRepository: FirebaseHomeInformationRepository,
                              hwUnitName: String) : ViewModel() {
 
-    val isEditMode: MutableLiveData<Boolean> = MutableLiveData()
-
     private val hwUnitLiveData =
             if (hwUnitName.isNotEmpty()) homeRepository.hwUnitLiveData(hwUnitName) else null
+
+    val isEditMode: MutableLiveData<Boolean> = MutableLiveData(hwUnitLiveData == null)
 
     val typeList = BoardConfig.IO_HW_UNIT_TYPE_LIST
     val type = if (hwUnitLiveData == null) {
@@ -201,32 +201,30 @@ class AddEditHwUnitViewModel(private val homeRepository: FirebaseHomeInformation
 
     private var homeRepositoryTask: Task<Void>? = null
 
-    val showProgress: MutableLiveData<Boolean>
-
-    init {
-        Timber.d("init hwUnitName: $hwUnitName")
-
-        if (hwUnitLiveData == null) {
-            showProgress = MutableLiveData()
-
-            showProgress.value = false
-            isEditMode.value = true
-        } else {
-            showProgress = Transformations.map(hwUnitLiveData) { false } as MutableLiveData<Boolean>
-
-            showProgress.value = true
-            isEditMode.value = false
-        }
-
+    val showProgress: MutableLiveData<Boolean> = if (hwUnitLiveData == null) {
+        MutableLiveData(false)
+    } else {
+        Transformations.map(hwUnitLiveData) { false } as MutableLiveData<Boolean>
     }
 
     fun noChangesMade(): Boolean {
         return hwUnitLiveData?.value?.let { unit ->
-            unit.name == name.value && unit.location == location.value && unit.type == type.value && unit.pinName == pinName.value && unit.connectionType == connectionType.value && unit.softAddress == softAddress.value && unit.pinInterrupt == pinInterrupt.value && unit.ioPin == ioPin.value && unit.internalPullUp == internalPullUp.value && unit.inverse == inverse.value && unit.refreshRate == refreshRate.value
-        } ?: name.value.isNullOrEmpty()
-        /*?: type.value.isNullOrEmpty()
-        ?: roomName.value.isNullOrEmpty()
-        ?: hwUnitName.value.isNullOrEmpty()*/ ?: true
+            unit.name == name.value
+                    && unit.location == location.value
+                    && unit.type == type.value
+                    && unit.pinName == pinName.value
+                    && unit.connectionType == connectionType.value
+                    && unit.softAddress == softAddress.value
+                    && unit.pinInterrupt == pinInterrupt.value
+                    && unit.ioPin == ioPin.value
+                    && unit.internalPullUp == internalPullUp.value
+                    && unit.inverse == inverse.value
+                    && unit.refreshRate == refreshRate.value
+        } ?: true
+        /*name.value.isNullOrEmpty()
+       ?: type.value.isNullOrEmpty()
+       ?: roomName.value.isNullOrEmpty()
+       ?: hwUnitName.value.isNullOrEmpty()*/ ?: true
     }
 
     fun actionEdit() {
@@ -246,23 +244,13 @@ class AddEditHwUnitViewModel(private val homeRepository: FirebaseHomeInformation
                 location.value = unit.location
                 type.value = unit.type
                 pinName.value = unit.pinName
-                // connectionType  is automatically populated by type LiveData
-                // TODO: how to handle it like type
-                softAddress.value = when (unit.type) {
-                    BoardConfig.TEMP_SENSOR_TMP102                                                  -> BoardConfig.TEMP_SENSOR_TMP102_ADDR_LIST
-                    BoardConfig.TEMP_SENSOR_MCP9808                                                 -> BoardConfig.TEMP_SENSOR_MCP9808_ADDR_LIST
-                    BoardConfig.TEMP_RH_SENSOR_SI7021                                               -> BoardConfig.TEMP_RH_SENSOR_SI7021_ADDR_LIST
-                    BoardConfig.TEMP_PRESS_SENSOR_BMP280                                            -> BoardConfig.TEMP_PRESS_SENSOR_BMP280_ADDR_LIST
-                    BoardConfig.IO_EXTENDER_MCP23017_INPUT, BoardConfig.IO_EXTENDER_MCP23017_OUTPUT -> BoardConfig.IO_EXTENDER_MCP23017_ADDR_LIST
-                    else                                                                            -> emptyList()
-                }.indexOfFirst {
-                    it == unit.softAddress
-                }
-                //softAddress.value = unit.softAddress
+                connectionType.value = unit.connectionType
+                softAddress.value = unit.softAddress
                 pinInterrupt.value = unit.pinInterrupt
                 ioPin.value = unit.ioPin
                 internalPullUp.value = unit.internalPullUp
                 inverse.value = unit.inverse
+                refreshRate.value = unit.refreshRate
             }
             false
         }
