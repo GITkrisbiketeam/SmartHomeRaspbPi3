@@ -57,8 +57,8 @@ dependencies {
     implementation "com.google.android.gms:play-services-base:$playServicesVersion"
     implementation "com.google.android.gms:play-services-nearby:$playServicesNearbyVersion"
     implementation "com.google.firebase:firebase-core:$firebaseCoreVersion"
-    implementation "com.google.firebase:firebase-database:$firebaseDatabaseVersion"
-    implementation "com.google.firebase:firebase-auth:$firebaseAuthVersion"
+    implementation "com.google.firebase:firebase-database-ktx:$firebaseDatabaseVersion"
+    implementation "com.google.firebase:firebase-auth-ktx:$firebaseAuthVersion"
 
     // Recommended: Add the Firebase SDK for Google Analytics.
     implementation "com.google.firebase:firebase-analytics-ktx:$firebaseAnalytics"

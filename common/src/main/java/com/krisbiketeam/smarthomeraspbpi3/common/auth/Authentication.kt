@@ -1,6 +1,7 @@
 package com.krisbiketeam.smarthomeraspbpi3.common.auth
 
-import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import timber.log.Timber
 
 interface Authentication {
@@ -14,7 +15,6 @@ interface Authentication {
 }
 
 class FirebaseAuthentication : Authentication {
-    private val firebaseAuth = FirebaseAuth.getInstance()
     private var loginResultListener: Authentication.LoginResultListener? = null
 
     override fun login(firebaseCredentials: FirebaseCredentials) {
@@ -28,7 +28,7 @@ class FirebaseAuthentication : Authentication {
 
     // First we try to create the user
     private fun loginUser(firebaseCredentials: FirebaseCredentials) {
-        firebaseAuth.signInWithEmailAndPassword(firebaseCredentials.email, firebaseCredentials.password)
+        Firebase.auth.signInWithEmailAndPassword(firebaseCredentials.email, firebaseCredentials.password)
                 .addOnFailureListener { exception ->
                     exception.printStackTrace()
                     Timber.e(exception, "Login User failed!")

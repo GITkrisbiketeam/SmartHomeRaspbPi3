@@ -4,6 +4,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.google.android.gms.tasks.Task
 import com.google.firebase.database.*
+import com.google.firebase.database.ktx.database
+import com.google.firebase.ktx.Firebase
 import com.krisbiketeam.smarthomeraspbpi3.common.resetableLazy
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.*
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.*
@@ -26,13 +28,13 @@ class FirebaseHomeInformationRepository {
     private var userPathReference: String? = null
 
     private val referenceHWUnitsDelegate = resetableLazy {
-        homePathReference?.let { FirebaseDatabase.getInstance().getReference("$it/$HOME_HW_UNITS_BASE") }
+        homePathReference?.let { Firebase.database.getReference("$it/$HOME_HW_UNITS_BASE") }
     }
     private val referenceHWUnits: DatabaseReference? by referenceHWUnitsDelegate
 
     private val referenceHwErrorDelegate = resetableLazy {
         homePathReference?.let {
-            FirebaseDatabase.getInstance().getReference("$it/$HW_ERROR_INFORMATION_BASE")
+            Firebase.database.getReference("$it/$HW_ERROR_INFORMATION_BASE")
         }
     }
 
@@ -41,7 +43,7 @@ class FirebaseHomeInformationRepository {
 
     private val referenceHwRestartDelegate = resetableLazy {
         homePathReference?.let {
-            FirebaseDatabase.getInstance().getReference("$it/$HW_RESTART_INFORMATION_BASE")
+            Firebase.database.getReference("$it/$HW_RESTART_INFORMATION_BASE")
         }
     }
 
@@ -49,7 +51,7 @@ class FirebaseHomeInformationRepository {
     private val referenceHwRestart: DatabaseReference? by referenceHwRestartDelegate
 
     private val referenceRoomsDelegate = resetableLazy {
-        homePathReference?.let { FirebaseDatabase.getInstance().getReference("$it/$HOME_ROOMS") }
+        homePathReference?.let { Firebase.database.getReference("$it/$HOME_ROOMS") }
     }
 
     // Reference for all Rooms stored remotely
@@ -57,7 +59,7 @@ class FirebaseHomeInformationRepository {
 
     private val referenceHomePreferencesDelegate = resetableLazy {
         homePathReference?.let {
-            FirebaseDatabase.getInstance().getReference("$it/$HOME_PREFERENCES_BASE")
+            Firebase.database.getReference("$it/$HOME_PREFERENCES_BASE")
         }
     }
 
@@ -66,7 +68,7 @@ class FirebaseHomeInformationRepository {
 
     private val referenceLogDelegate = resetableLazy {
         homePathReference?.let {
-            FirebaseDatabase.getInstance().getReference("$it/$LOG_INFORMATION_BASE")
+            Firebase.database.getReference("$it/$LOG_INFORMATION_BASE")
         }
     }
 
@@ -76,23 +78,23 @@ class FirebaseHomeInformationRepository {
 
     // region Users
     // Reference for all users
-    private val referenceUsers by lazy { FirebaseDatabase.getInstance().getReference(USER_INFORMATION_BASE) }
+    private val referenceUsers by lazy { Firebase.database.getReference(USER_INFORMATION_BASE) }
     // endregion
 
     // region Notifications
     // Reference for all notifications
     private val referenceNotifications =
-            FirebaseDatabase.getInstance().getReference(NOTIFICATION_INFORMATION_BASE)
+            Firebase.database.getReference(NOTIFICATION_INFORMATION_BASE)
     // endregion
 
     // endregion
 
     init {
         // Enable offline this causes some huge delays :(
-        //FirebaseDatabase.getInstance().setPersistenceEnabled(true)
+        //Firebase.database.setPersistenceEnabled(true)
 
         // Keep tracking changes even if there are not active listeners
-        //FirebaseDatabase.getInstance().getReference(referenceHomePath).keepSynced(true)
+        //Firebase.database.getReference(referenceHomePath).keepSynced(true)
     }
 
     /**
@@ -112,7 +114,7 @@ class FirebaseHomeInformationRepository {
         referenceLogDelegate.reset()
 
         // Keep tracking changes even if there are not active listeners
-        //FirebaseDatabase.getInstance().getReference(this).keepSynced(true)
+        //Firebase.database.getReference(this).keepSynced(true)
     }
 
     fun setUserReference(uid: String) {
@@ -135,10 +137,10 @@ class FirebaseHomeInformationRepository {
         // Since I can connect from multiple devices, we store each connection instance separately
         // any time that connectionsRef's value is null (i.e. has no children) I am offline
         val myConnectionsRef = userPathReference?.let {
-            FirebaseDatabase.getInstance().getReference("$it/$USER_ONLINE")
+            Firebase.database.getReference("$it/$USER_ONLINE")
         }
 
-        val connectedRef = FirebaseDatabase.getInstance().getReference(".info/connected")
+        val connectedRef = Firebase.database.getReference(".info/connected")
 
         connectedRef.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
@@ -166,7 +168,7 @@ class FirebaseHomeInformationRepository {
 
     @ExperimentalCoroutinesApi
     fun isUserOnlineFlow(): Flow<Boolean?> =
-            genericReferenceFlow(userPathReference?.let { FirebaseDatabase.getInstance().getReference("$it/$USER_ONLINE") })
+            genericReferenceFlow(userPathReference?.let { Firebase.database.getReference("$it/$USER_ONLINE") })
 
     // endregion
 
@@ -262,7 +264,7 @@ class FirebaseHomeInformationRepository {
         Timber.w("saveHomeUnit $homeUnit")
         //return referenceHomeUnits?.child("${homeUnit.type}/${homeUnit.name}")?.setValue(homeUnit)
         return homePathReference?.let {
-            FirebaseDatabase.getInstance().getReference("$it/$HOME_UNITS_BASE/${homeUnit.type}/${homeUnit.name}")
+            Firebase.database.getReference("$it/$HOME_UNITS_BASE/${homeUnit.type}/${homeUnit.name}")
                     .setValue(homeUnit)
         }
     }
@@ -273,7 +275,7 @@ class FirebaseHomeInformationRepository {
     fun <T> updateHomeUnitValue(homeUnit: HomeUnit<T>): Task<Void>? {
         Timber.w("saveHomeUnit $homeUnit")
         return homePathReference?.let {
-            FirebaseDatabase.getInstance().getReference("$it/$HOME_UNITS_BASE/${homeUnit.type}/${homeUnit.name}")
+            Firebase.database.getReference("$it/$HOME_UNITS_BASE/${homeUnit.type}/${homeUnit.name}")
                     .let { reference ->
                         reference.child(HOME_VAL).setValue(homeUnit.value).continueWithTask {
                             reference.child(HOME_VAL_LAST_UPDATE).setValue(homeUnit.lastUpdateTime)
@@ -288,7 +290,7 @@ class FirebaseHomeInformationRepository {
     fun <T> deleteHomeUnit(homeUnit: HomeUnit<T>): Task<Void>? {
         //return referenceHomeUnits?.child("${homeUnit.type}/${homeUnit.name}")?.setValue(homeUnit)
         return homePathReference?.let {
-            FirebaseDatabase.getInstance().getReference("$it/$HOME_UNITS_BASE/${homeUnit.type}/${homeUnit.name}")
+            Firebase.database.getReference("$it/$HOME_UNITS_BASE/${homeUnit.type}/${homeUnit.name}")
                     .removeValue()
         }
     }
@@ -298,7 +300,7 @@ class FirebaseHomeInformationRepository {
      */
     fun <T> clearMinHomeUnitValue(homeUnit: HomeUnit<T>): Task<Void>? {
         return homePathReference?.let {
-            FirebaseDatabase.getInstance().getReference("$it/$HOME_UNITS_BASE/${homeUnit.type}/${homeUnit.name}").let { reference ->
+            Firebase.database.getReference("$it/$HOME_UNITS_BASE/${homeUnit.type}/${homeUnit.name}").let { reference ->
                 reference.child(HOME_MIN_VAL_LAST_UPDATE).removeValue().continueWithTask {
                     reference.child(HOME_MIN_VAL).removeValue()
                 }
@@ -311,7 +313,7 @@ class FirebaseHomeInformationRepository {
      */
     fun <T> clearMaxHomeUnitValue(homeUnit: HomeUnit<T>): Task<Void>? {
         return homePathReference?.let {
-            FirebaseDatabase.getInstance().getReference("$it/$HOME_UNITS_BASE/${homeUnit.type}/${homeUnit.name}").let { reference ->
+            Firebase.database.getReference("$it/$HOME_UNITS_BASE/${homeUnit.type}/${homeUnit.name}").let { reference ->
                 reference.child(HOME_MAX_VAL_LAST_UPDATE).removeValue().continueWithTask {
                     reference.child(HOME_MAX_VAL).removeValue()
                 }
@@ -326,7 +328,7 @@ class FirebaseHomeInformationRepository {
      */
     fun saveUnitTask(homeUnitType: String, homeUnitName: String, unitTask: UnitTask): Task<Void>? {
         return homePathReference?.let {
-            FirebaseDatabase.getInstance().getReference(
+            Firebase.database.getReference(
                     "$it/$HOME_UNITS_BASE/$homeUnitType/$homeUnitName/$HOME_UNIT_TASKS/${unitTask.name}")
                     .setValue(unitTask)
         }
@@ -338,7 +340,7 @@ class FirebaseHomeInformationRepository {
     fun deleteUnitTask(homeUnitType: String, homeUnitName: String,
                        unitTask: UnitTask): Task<Void>? {
         return homePathReference?.let {
-            FirebaseDatabase.getInstance().getReference(
+            Firebase.database.getReference(
                     "$it/$HOME_UNITS_BASE/$homeUnitType/$homeUnitName/$HOME_UNIT_TASKS/${unitTask.name}")
                     .removeValue()
         }
@@ -369,13 +371,13 @@ class FirebaseHomeInformationRepository {
         homePathReference?.run {
             // Since I can connect from multiple devices, we store each connection instance separately
             // any time that connectionsRef's value is null (i.e. has no children) I am offline
-            val myConnectionsRef = FirebaseDatabase.getInstance().getReference("$this/$HOME_ONLINE")
+            val myConnectionsRef = Firebase.database.getReference("$this/$HOME_ONLINE")
 
             // Stores the timestamp of my last disconnect (the last time I was seen online)
             val lastOnlineRef =
-                    FirebaseDatabase.getInstance().getReference("$this/$HOME_LAST_ONLINE_TIME")
+                    Firebase.database.getReference("$this/$HOME_LAST_ONLINE_TIME")
 
-            val connectedRef = FirebaseDatabase.getInstance().getReference(".info/connected")
+            val connectedRef = Firebase.database.getReference(".info/connected")
 
             connectedRef.addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
@@ -450,11 +452,11 @@ class FirebaseHomeInformationRepository {
     // region restarts
 
     fun setResetAppFlag(): Task<Void>? {
-        return homePathReference?.let { FirebaseDatabase.getInstance().getReference(it) }?.child(RESTART_APP)?.setValue(true)
+        return homePathReference?.let { Firebase.database.getReference(it) }?.child(RESTART_APP)?.setValue(true)
     }
 
     fun clearResetAppFlag(): Task<Void>? {
-        return homePathReference?.let { FirebaseDatabase.getInstance().getReference(it) }?.child(RESTART_APP)?.removeValue()
+        return homePathReference?.let { Firebase.database.getReference(it) }?.child(RESTART_APP)?.removeValue()
     }
 
     // endregion
@@ -485,8 +487,8 @@ class FirebaseHomeInformationRepository {
      * get instance of @see[HwUnitsLiveData] for listening to changes in entries in DB
      */
     @Deprecated("please use hwUnitFlow")
-    fun hwUnitLiveData(hwUnitName: String): HwUnitLiveData {
-        return HwUnitLiveData(referenceHWUnits, hwUnitName)
+    fun hwUnitLiveData(hwUnitName: String): LiveData<HwUnit> {
+        return FirebaseDBLiveData(hwUnitName, referenceHWUnits).getObjectLiveData()
     }
 
     @ExperimentalCoroutinesApi
@@ -530,10 +532,15 @@ class FirebaseHomeInformationRepository {
     }
 
     /**
-     * get instance of @see[RoomLiveData] for listening to changes in specific Room entry in DB
+     * get instance of @see[LiveData<Room>] for listening to changes in specific Room entry in DB
      */
-    fun roomLiveData(roomName: String): RoomLiveData {
-        return RoomLiveData(referenceRooms, roomName)
+    fun roomLiveData(roomName: String): LiveData<Room> {
+        return FirebaseDBLiveData(roomName, referenceRooms).getObjectLiveData()
+    }
+
+    @ExperimentalCoroutinesApi
+    fun roomUnitFlow(roomName: String): Flow<Room> {
+        return genericReferenceFlow(referenceRooms?.child(roomName))
     }
     // endregion
 
@@ -545,12 +552,12 @@ class FirebaseHomeInformationRepository {
     fun homeUnitListFlow(unitType: String? = null): Flow<List<HomeUnit<Any?>>> {
         return homePathReference?.let { home ->
             if (unitType != null) {
-                FirebaseDatabase.getInstance().getReference("$home/$HOME_UNITS_BASE/$unitType").let { reference ->
+                Firebase.database.getReference("$home/$HOME_UNITS_BASE/$unitType").let { reference ->
                     genericListReferenceFlow(reference)
                 }
             } else {
                 combine(HOME_STORAGE_UNITS.map { type ->
-                    FirebaseDatabase.getInstance().getReference("$home/$HOME_UNITS_BASE/$type").let { reference ->
+                    Firebase.database.getReference("$home/$HOME_UNITS_BASE/$type").let { reference ->
                         genericListReferenceFlow<HomeUnit<Any?>>(reference)
                     }
                 }) { types ->
@@ -568,10 +575,14 @@ class FirebaseHomeInformationRepository {
     }
 
     /**
-     * get instance of @see[HomeUnitLiveData] for listening to changes in given HomeUnit in DB
+     * get Flow of @see[HomeUnit<Any?>] for for given unit type and name for listening to changes
+     * in entries in DB
      */
-    fun homeUnitLiveData(unitType: String, unitName: String): HomeUnitLiveData {
-        return HomeUnitLiveData(homePathReference, unitType, unitName)
+    @ExperimentalCoroutinesApi
+    fun homeUnitFlow(unitType: String, unitName: String): Flow<HomeUnit<Any?>> {
+        return homePathReference?.let {
+            genericReferenceFlow(Firebase.database.getReference("$it/$HOME_UNITS_BASE/$unitType/$unitName"))
+        } ?: emptyFlow()
     }
 
     // endregion
@@ -590,7 +601,7 @@ class FirebaseHomeInformationRepository {
      */
     fun unitTaskListFlow(unitType: String, unitName: String): Flow<Map<String, UnitTask>> {
         return homePathReference?.let { home ->
-            FirebaseDatabase.getInstance().getReference("$home/$HOME_UNITS_BASE/$unitType/$unitName/$HOME_UNIT_TASKS").let { reference ->
+            Firebase.database.getReference("$home/$HOME_UNITS_BASE/$unitType/$unitName/$HOME_UNIT_TASKS").let { reference ->
                 genericListReferenceFlow<UnitTask>(reference)
             }.map { list ->
                 list.associateBy { it.name }
@@ -604,7 +615,7 @@ class FirebaseHomeInformationRepository {
     @ExperimentalCoroutinesApi
     fun restartAppFlow(): Flow<Boolean> {
         return homePathReference?.let { home ->
-            FirebaseDatabase.getInstance().getReference("$home/$RESTART_APP").let { reference ->
+            Firebase.database.getReference("$home/$RESTART_APP").let { reference ->
                 genericReferenceFlow(reference)
             }
         } ?: emptyFlow()
@@ -614,8 +625,8 @@ class FirebaseHomeInformationRepository {
 
     fun getHomes(): LiveData<List<String>> = HomesListLiveData(
             // TODO: this will overLoad FirebaseDB
-            // need to add separate node with only rooms list
-            FirebaseDatabase.getInstance().reference.child(HOME_INFORMATION_BASE))
+            // need to add separate node with only homes list
+            Firebase.database.reference.child(HOME_INFORMATION_BASE))
 
     // endregion
 }

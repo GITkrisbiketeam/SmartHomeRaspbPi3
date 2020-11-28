@@ -30,8 +30,8 @@ class HomeUnitDetailViewModel(application: Application,
     val unitTaskListAdapter = UnitTaskListAdapter(unitName, unitType)
 
     val homeUnit =
-            if (unitName.isEmpty() && unitType.isEmpty()) null else homeRepository.homeUnitLiveData(
-                    unitType, unitName)
+            if (unitName.isEmpty() && unitType.isEmpty()) null else homeRepository.homeUnitFlow(
+                    unitType, unitName).asLiveData(Dispatchers.Default)
 
     val showProgress: MutableLiveData<Boolean> =
             if (homeUnit == null) {

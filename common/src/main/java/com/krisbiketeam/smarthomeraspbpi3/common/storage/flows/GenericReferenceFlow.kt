@@ -1,6 +1,7 @@
 package com.krisbiketeam.smarthomeraspbpi3.common.storage.flows
 
 import com.google.firebase.database.*
+import com.google.firebase.database.ktx.getValue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.sendBlocking
@@ -10,8 +11,6 @@ import timber.log.Timber
 
 @ExperimentalCoroutinesApi
 inline fun <reified T> genericListReferenceFlow(databaseReference: DatabaseReference?) = callbackFlow<List<T>> {
-    val typeIndicator = object : GenericTypeIndicator<T>() {}
-
     val eventListener = databaseReference?.addValueEventListener(object : ValueEventListener {
         override fun onCancelled(databaseError: DatabaseError) {
             Timber.e("genericListReferenceFlow  onCancelled $databaseError")
@@ -22,7 +21,7 @@ inline fun <reified T> genericListReferenceFlow(databaseReference: DatabaseRefer
             // A new value has been added, add it to the displayed list
             val list: ArrayList<T> = ArrayList()
             for (child: DataSnapshot in dataSnapshot.children) {
-                val value = child.getValue(typeIndicator)
+                val value = child.getValue<T>()
                 value?.run {
                     list.add(value)
                 }
@@ -41,8 +40,6 @@ inline fun <reified T> genericListReferenceFlow(databaseReference: DatabaseRefer
 
 @ExperimentalCoroutinesApi
 inline fun <reified T> genericMapReferenceFlow(databaseReference: DatabaseReference?) = callbackFlow<Map<String, T>> {
-    val typeIndicator = object : GenericTypeIndicator<T>() {}
-
     val eventListener = databaseReference?.addValueEventListener(object : ValueEventListener {
         override fun onCancelled(databaseError: DatabaseError) {
             Timber.e("genericMapReferenceFlow onCancelled $databaseError")
@@ -54,7 +51,7 @@ inline fun <reified T> genericMapReferenceFlow(databaseReference: DatabaseRefere
             val list: HashMap<String, T> = HashMap()
             for (child: DataSnapshot in dataSnapshot.children) {
                 val key: String? = child.key
-                val value = child.getValue(typeIndicator)
+                val value = child.getValue<T>()
                 if (value != null && key != null) {
                     list[key] = value
                 }
@@ -73,7 +70,6 @@ inline fun <reified T> genericMapReferenceFlow(databaseReference: DatabaseRefere
 
 @ExperimentalCoroutinesApi
 inline fun <reified T> genericReferenceFlow(databaseReference: DatabaseReference?) = callbackFlow<T> {
-    val typeIndicator = object : GenericTypeIndicator<T>() {}
     val eventListener = databaseReference?.addValueEventListener(object : ValueEventListener {
         override fun onCancelled(databaseError: DatabaseError) {
             Timber.e("genericReferenceFlow  onCancelled $databaseError")
@@ -82,7 +78,7 @@ inline fun <reified T> genericReferenceFlow(databaseReference: DatabaseReference
 
         override fun onDataChange(dataSnapshot: DataSnapshot) {
             // A new value has been added, add it to the displayed list
-            val value: T? = dataSnapshot.getValue(typeIndicator)
+            val value: T? = dataSnapshot.getValue<T>()
             Timber.e("genericReferenceFlow onDataChange (key=${dataSnapshot.key})(value=$value)")
             if (value != null) {
                 this@callbackFlow.sendBlocking(value)

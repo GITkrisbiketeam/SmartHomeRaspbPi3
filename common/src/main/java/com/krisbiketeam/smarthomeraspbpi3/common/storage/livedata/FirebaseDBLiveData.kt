@@ -2,14 +2,20 @@ package com.krisbiketeam.smarthomeraspbpi3.common.storage.livedata
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Transformations
-import com.google.firebase.database.*
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.ktx.database
+import com.google.firebase.database.ktx.getValue
+import com.google.firebase.ktx.Firebase
 import timber.log.Timber
 
-class FirebaseDBLiveData(private val refName: String) : LiveData<DataSnapshot>() {
+class FirebaseDBLiveData(private val refName: String, reference: DatabaseReference? = null) : LiveData<DataSnapshot>() {
     private val listener = MyValueEventListener()
 
     private val databaseReference: DatabaseReference by lazy {
-        FirebaseDatabase.getInstance().getReference(refName)
+        reference?.child(refName) ?: Firebase.database.getReference(refName)
     }
 
     override fun onActive() {
@@ -33,7 +39,6 @@ class FirebaseDBLiveData(private val refName: String) : LiveData<DataSnapshot>()
     }
 
     inline fun <reified E> getObjectLiveData(): LiveData<E> = Transformations.map(this) {
-        it.getValue(E::class.java)
+        it.getValue<E>()
     }
 }
-

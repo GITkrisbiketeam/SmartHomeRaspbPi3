@@ -2,6 +2,8 @@ package com.krisbiketeam.smarthomeraspbpi3.common.storage.livedata
 
 import androidx.lifecycle.LiveData
 import com.google.firebase.database.*
+import com.google.firebase.database.ktx.database
+import com.google.firebase.ktx.Firebase
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.ChildEventType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.*
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.*
@@ -14,7 +16,7 @@ class HomeUnitsLiveData(private val homeNamePath: String?) :
         homeNamePath?.let { homePath ->
             HOME_STORAGE_UNITS.map { storageUnit ->
                 MyChildEventListener(storageUnit).let { childListener ->
-                    FirebaseDatabase.getInstance()
+                    Firebase.database
                             .getReference("$homePath/$HOME_UNITS_BASE/${childListener.childNode}") to
                             childListener
                 }
