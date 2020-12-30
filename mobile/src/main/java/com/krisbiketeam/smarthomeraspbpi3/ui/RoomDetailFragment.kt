@@ -8,6 +8,8 @@ import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.krisbiketeam.smarthomeraspbpi3.R
@@ -33,6 +35,30 @@ class RoomDetailFragment : Fragment() {
 
     private val analytics: Analytics by inject()
 
+    private val itemTouchHelper by lazy {
+        ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP or
+                ItemTouchHelper.DOWN or
+                ItemTouchHelper.START or
+                ItemTouchHelper.END, 0) {
+
+            override fun onMove(recyclerView: RecyclerView,
+                                viewHolder: RecyclerView.ViewHolder,
+                                target: RecyclerView.ViewHolder): Boolean {
+
+                val from = viewHolder.adapterPosition
+                val to = target.adapterPosition
+
+                roomDetailViewModel.moveItem(from, to)
+
+                return true
+            }
+
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder,
+                                  direction: Int) {
+            }
+        })
+    }
+
     init {
         Timber.w("init $this")
     }
@@ -41,7 +67,7 @@ class RoomDetailFragment : Fragment() {
             inflater: LayoutInflater,
             container: ViewGroup?,
             savedInstanceState: Bundle?
-    ): View? {
+    ): View {
 
         Timber.w("onCreateView $this")
         val binding: FragmentRoomDetailBinding = DataBindingUtil.inflate<FragmentRoomDetailBinding>(
@@ -58,8 +84,9 @@ class RoomDetailFragment : Fragment() {
             subscribeUi(adapter)
         }
 
-        roomDetailViewModel.isEditMode.observe(viewLifecycleOwner, {
+        roomDetailViewModel.isEditMode.observe(viewLifecycleOwner, { editMode ->
             activity?.invalidateOptionsMenu()
+            itemTouchHelper.attachToRecyclerView(if(editMode)binding.homeUnitList else null)
         })
 
         setHasOptionsMenu(true)

@@ -25,6 +25,7 @@ const val HW_RESTART_INFORMATION_BASE = "hw_restart"
 
 // region Rooms
 const val HOME_ROOMS = "rooms"
+const val HOME_ROOMS_ORDER = "roomsOrder"
 // endregion
 
 // region HomeUnits
@@ -34,7 +35,7 @@ const val HOME_UNITS_BASE = "home_units"
 const val HOME_ACTUATORS = "actuators"
 const val HOME_LIGHTS = "lights"
 const val HOME_BLINDS = "blinds"
-// boolean sensord
+// boolean sensor
 const val HOME_LIGHT_SWITCHES = "light_switches"
 const val HOME_REED_SWITCHES = "reed_switches"
 const val HOME_MOTIONS = "motions"

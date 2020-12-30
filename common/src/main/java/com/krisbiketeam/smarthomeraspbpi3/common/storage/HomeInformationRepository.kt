@@ -254,6 +254,14 @@ class FirebaseHomeInformationRepository {
     fun deleteRoom(roomName: String): Task<Void>? {
         return referenceRooms?.child(roomName)?.removeValue()
     }
+
+    /**
+     *  Saves/updates given order of Rooms/HomeUnit of home screen in DB
+     */
+    fun saveRoomListOrder(listOrder: List<String>): Task<Void>? {
+        return setHomePreference(HOME_ROOMS_ORDER, listOrder)
+    }
+
     // endregion
 
     // region HomeUnit
@@ -351,8 +359,8 @@ class FirebaseHomeInformationRepository {
     /**
      *  Sets Firebase homePreference key/Value
      */
-    fun setHomePreference(key: String, value: Any?) {
-        referenceHomePreferences?.child(key)?.setValue(value)
+    fun setHomePreference(key: String, value: Any?): Task<Void>? {
+        return referenceHomePreferences?.child(key)?.setValue(value)
     }
 
     /**
@@ -541,6 +549,11 @@ class FirebaseHomeInformationRepository {
     @ExperimentalCoroutinesApi
     fun roomUnitFlow(roomName: String): Flow<Room> {
         return genericReferenceFlow(referenceRooms?.child(roomName))
+    }
+
+    @ExperimentalCoroutinesApi
+    fun roomListOrderFlow() : Flow<List<String>> {
+        return genericListReferenceFlow(getHomePreference(HOME_ROOMS_ORDER))
     }
     // endregion
 
