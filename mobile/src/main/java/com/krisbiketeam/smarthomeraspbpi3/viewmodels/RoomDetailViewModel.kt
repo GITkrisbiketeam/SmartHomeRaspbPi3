@@ -45,11 +45,11 @@ class RoomDetailViewModel(
             homeUnitList.forEach {
                 if (it.room == room.value?.name) {
                     Timber.e("homeUnitsMap Flow filter")
-                    map[it.name] = it
+                    map[it.type + '.' + it.name] = it
                 }
             }
-            map.values.filterNotNull().also {
-                val newOrder = it.map(HomeUnit<Any?>::name)
+            map.values.filterNotNull().also { unitsList ->
+                val newOrder = unitsList.map { it.type + '.' + it.name }
                 if (newOrder != orderList || newOrderList.isNullOrEmpty()) {
                     homeUnitsOrderStateFlow.value = newOrder
                 }

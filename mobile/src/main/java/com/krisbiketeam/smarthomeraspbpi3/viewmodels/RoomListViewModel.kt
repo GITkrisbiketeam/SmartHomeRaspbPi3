@@ -44,7 +44,7 @@ class RoomListViewModel(private val homeRepository: FirebaseHomeInformationRepos
             }
             // Add HomeUnits without Room set
             homeUnitsListCopy.forEach {
-                roomListAdapterModelMap[it.name] = RoomListAdapterModel(null, it, hwUnitErrorEventList.firstOrNull { hwUnitLog -> hwUnitLog.name == it.hwUnitName } != null)
+                roomListAdapterModelMap[it.type +'.'+ it.name] = RoomListAdapterModel(null, it, hwUnitErrorEventList.firstOrNull { hwUnitLog -> hwUnitLog.name == it.hwUnitName } != null)
             }
 
             // save current RoomListOrder
@@ -59,8 +59,8 @@ class RoomListViewModel(private val homeRepository: FirebaseHomeInformationRepos
                 addAll(roomListAdapterModelMap.values)
                 // save new updated order
                 apply {
-                    val newItemsOrder = this.mapNotNull {
-                        it.room?.name?:it.homeUnit?.name
+                    val newItemsOrder = this.mapNotNull { model ->
+                        model.room?.name?:model.homeUnit?.let{it.type +'.'+ it.name}
                     }
                     if (newItemsOrder != localItemsOrder) {
                         localItemsOrder = newItemsOrder
