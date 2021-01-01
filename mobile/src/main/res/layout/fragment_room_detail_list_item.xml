@@ -18,7 +18,14 @@
             type="com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit"/>
 
         <variable
+            name="value"
+            type="String"/>
+
+        <variable
             name="lastUpdateTime"
+            type="String"/>
+        <variable
+            name="secondLastUpdateTime"
             type="String"/>
     </data>
 
@@ -74,26 +81,41 @@
 
         <TextView
                 android:id="@+id/home_unit_item_value"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/margin_normal"
-                android:layout_marginEnd="@dimen/margin_normal"
                 android:layout_marginStart="@dimen/margin_small"
                 android:layout_marginTop="@dimen/margin_small"
                 android:textAppearance="?attr/textAppearanceListItem"
-                android:text='@{homeUnit.value instanceof java.lang.Double || homeUnit.value instanceof java.lang.Float ? String.format("%.2f", homeUnit.value) : String.valueOf(homeUnit.value)}'
-                app:layout_constraintEnd_toStartOf="@+id/home_unit_item_switch"
+                android:text='@{value}'
                 app:layout_constraintStart_toEndOf="@+id/home_unit_item_image"
                 app:layout_constraintTop_toBottomOf="@+id/home_unit_item_value_update_time"
                 app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintHorizontal_chainStyle="packed"
                 tools:text="Value"/>
+
+        <TextView
+            android:id="@+id/home_unit_item_value_update_time_bottom"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/margin_normal"
+            android:layout_marginStart="@dimen/margin_small"
+            android:textAppearance="?attr/textAppearanceCaption"
+            android:text="@{secondLastUpdateTime}"
+            app:layout_constraintEnd_toStartOf="@+id/home_unit_item_switch"
+            app:layout_constraintStart_toEndOf="@+id/home_unit_item_value"
+            app:layout_constraintTop_toTopOf="@+id/home_unit_item_value"
+            app:layout_constraintBottom_toBottomOf="@+id/home_unit_item_value"
+            tools:text="Last Updated:"/>
+
+
 
         <androidx.appcompat.widget.SwitchCompat
             android:id="@+id/home_unit_item_switch"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             app:setChecked="@{homeUnit.value}"
-            android:visibility="@{FirebaseTablesKt.HOME_LIGHTS.equals(homeUnit.type) || FirebaseTablesKt.HOME_ACTUATORS.equals(homeUnit.type) || FirebaseTablesKt.HOME_BLINDS.equals(homeUnit.type) ? View.VISIBLE : View.GONE}"
+            android:visibility="@{FirebaseTablesKt.HOME_LIGHT_SWITCHES.equals(homeUnit.type) || FirebaseTablesKt.HOME_ACTUATORS.equals(homeUnit.type) || FirebaseTablesKt.HOME_BLINDS.equals(homeUnit.type) ? View.VISIBLE : View.GONE}"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent" />

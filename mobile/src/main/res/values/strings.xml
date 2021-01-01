@@ -66,7 +66,9 @@
     <string name="add_edit_home_unit_text_room_spinner_prompt">Select Room:</string>
     <string name="add_edit_home_unit_text_room_title">Room:</string>
     <string name="add_edit_home_unit_text_hw_unit_title">Hardware Unit:</string>
+    <string name="add_edit_home_unit_text_second_hw_unit_title">Switch hardware Unit:</string>
     <string name="add_edit_home_unit_text_value">Value: </string>
+    <string name="add_edit_home_unit_text_second_value">Switch value: </string>
     <string name="add_edit_home_unit_text_min_value">Min value: </string>
     <string name="add_edit_home_unit_text_max_value">Max value: </string>
     <string name="add_edit_home_unit_text_task_list_title">Unit Task List:</string>
@@ -77,6 +79,7 @@
     <string name="add_edit_home_unit_empty_name">Home Unit name cannot be empty</string>
     <string name="add_edit_home_unit_empty_unit_type">Unit Type cannot be empty</string>
     <string name="add_edit_home_unit_empty_unit_hw_unit">Hardware Unit cannot be empty</string>
+    <string name="add_edit_home_unit_empty_unit_second_hw_unit">Switch hardware Unit cannot be empty</string>
     <string name="add_edit_home_unit_delete_home_unit_prompt">Do you really want to delete this Home Unit?</string>
     <string name="add_edit_home_unit_notify_firebase_switch_text">Notify remote App about this Home Unit changes?</string>
     <string name="add_edit_home_unit_discard_changes">Discard any changes?</string>

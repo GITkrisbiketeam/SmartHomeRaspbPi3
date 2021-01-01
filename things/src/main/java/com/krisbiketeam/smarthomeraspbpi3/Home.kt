@@ -14,7 +14,6 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.*
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.*
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.livedata.HomeUnitsLiveData
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.livedata.HwUnitsLiveData
-import com.krisbiketeam.smarthomeraspbpi3.common.updateValueMinMax
 import com.krisbiketeam.smarthomeraspbpi3.units.Actuator
 import com.krisbiketeam.smarthomeraspbpi3.units.BaseHwUnit
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
@@ -231,7 +230,7 @@ class Home(secureStorage: SecureStorage,
                         Timber.d(
                                 "homeUnitsDataObserver NODE_ACTION_ADDED EXISTING $existingUnit ; NEW  $homeUnit")
                         when (homeUnit.type) {
-                            HOME_LIGHTS, HOME_ACTUATORS, HOME_LIGHT_SWITCHES, HOME_REED_SWITCHES, HOME_MOTIONS -> {
+                            HOME_ACTUATORS, HOME_LIGHT_SWITCHES, HOME_REED_SWITCHES, HOME_MOTIONS -> {
                                 Timber.d(
                                         "homeUnitsDataObserver NODE_ACTION_ADDED set boolean apply function")
                                 homeUnit.applyFunction = booleanApplyFunction
@@ -409,10 +408,15 @@ class Home(secureStorage: SecureStorage,
 
         GlobalScope.launch(Dispatchers.Default) {
             homeUnitsList.values.filter {
-                it.hwUnitName == hwUnit.name
+                if (it.type != HOME_LIGHT_SWITCHES) {
+                    it.hwUnitName == hwUnit.name
+                } else {
+                    it.secondHwUnitName == hwUnit.name
+                }
             }.forEach { homeUnit ->
                 updateHomeUnitValuesAndTimes(homeUnit, unitValue, updateTime)
-                homeUnit.value?.let { newValue ->
+                val newValue = if (homeUnit.type != HOME_LIGHT_SWITCHES) homeUnit.value else homeUnit.secondValue
+                if (newValue != null) {
                     homeUnit.applyFunction.invoke(homeUnit, newValue)
                 }
                 homeInformationRepository.saveHomeUnit(homeUnit)
@@ -452,6 +456,28 @@ class Home(secureStorage: SecureStorage,
             }
         } else {
             updateValueMinMax(homeUnit, unitValue, updateTime)
+        }
+    }
+
+    private fun updateValueMinMax(homeUnit: HomeUnit<Any?>, unitValue: Any?, updateTime: Long) {
+        if (homeUnit.type != HOME_LIGHT_SWITCHES) {
+            homeUnit.value = unitValue
+            homeUnit.lastUpdateTime = updateTime
+        } else {
+            homeUnit.secondValue = unitValue
+            homeUnit.secondLastUpdateTime = updateTime
+        }
+        when (unitValue) {
+            is Float -> {
+                if (unitValue <= (homeUnit.min.takeIf { it is Number? } as Number?)?.toFloat() ?: Float.MAX_VALUE) {
+                    homeUnit.min = unitValue
+                    homeUnit.minLastUpdateTime = updateTime
+                }
+                if (unitValue >= (homeUnit.max.takeIf { it is Number? } as Number?)?.toFloat() ?: Float.MIN_VALUE) {
+                    homeUnit.max = unitValue
+                    homeUnit.maxLastUpdateTime = updateTime
+                }
+            }
         }
     }
 

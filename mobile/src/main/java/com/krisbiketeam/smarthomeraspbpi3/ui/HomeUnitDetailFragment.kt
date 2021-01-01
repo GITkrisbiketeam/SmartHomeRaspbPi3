@@ -90,6 +90,21 @@ class HomeUnitDetailFragment : Fragment() {
                 findNavController().navigate(HomeUnitDetailFragmentDirections.actionHomeUnitDetailFragmentToAddEditHwUnitFragment(hwUnitName))
             }
         }
+        rootBinding.secondHwUnitNameSpinner.setOnLongClickListener {
+            val hwUnitName = homeUnitDetailViewModel.secondHwUnitName.value
+            if (hwUnitName != null && homeUnitDetailViewModel.isEditMode.value == true) {
+                findNavController().navigate(HomeUnitDetailFragmentDirections.actionHomeUnitDetailFragmentToAddEditHwUnitFragment(hwUnitName))
+                true
+            } else {
+                false
+            }
+        }
+        rootBinding.secondHwUnitNameSpinner.setOnClickListener {
+            val hwUnitName = homeUnitDetailViewModel.secondHwUnitName.value
+            if (hwUnitName != null && homeUnitDetailViewModel.isEditMode.value != true) {
+                findNavController().navigate(HomeUnitDetailFragmentDirections.actionHomeUnitDetailFragmentToAddEditHwUnitFragment(hwUnitName))
+            }
+        }
         rootBinding.homeUnitMinClearButton.setOnClickListener {
             homeUnitDetailViewModel.clearMinValue()
         }

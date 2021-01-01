@@ -3,6 +3,7 @@ package com.krisbiketeam.smarthomeraspbpi3.viewmodels
 import android.app.Application
 import androidx.lifecycle.*
 import com.google.android.gms.tasks.Task
+import com.google.android.gms.tasks.Tasks
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.adapters.UnitTaskListAdapter
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
@@ -10,6 +11,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HOME_STORAGE_UNITS
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.Room
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.UnitTask
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_LIGHT_SWITCHES
 import com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitDetailFragment
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomDetailFragment
 import com.krisbiketeam.smarthomeraspbpi3.utils.getLastUpdateTime
@@ -91,7 +93,7 @@ class HomeUnitDetailViewModel(application: Application,
                             }
                             hwUnitList.map {
                                 Pair(it.name,
-                                        homeUnitList.find { unit -> unit.hwUnitName == it.name } != null)
+                                        homeUnitList.find { unit -> unit.hwUnitName == it.name || unit.secondHwUnitName == it.name } != null)
                             }
                         }.asLiveData(Dispatchers.Default)
                     }
@@ -105,11 +107,24 @@ class HomeUnitDetailViewModel(application: Application,
         Transformations.map(homeUnit) { unit -> unit.hwUnitName }
     } as MutableLiveData<String?>
 
+    val secondHwUnitName = if (homeUnit == null) {
+        MutableLiveData()
+    } else {
+        Transformations.map(homeUnit) { unit -> unit.secondHwUnitName }
+    } as MutableLiveData<String?>
+
     val value: MutableLiveData<String> =
             if (homeUnit == null) MutableLiveData() else Transformations.map(homeUnit) { unit -> unit.value.toString() } as MutableLiveData<String>
     val lastUpdateTime: MutableLiveData<String> =
             if (homeUnit == null) MutableLiveData() else Transformations.map(homeUnit) { unit ->
                 getLastUpdateTime(application, unit.lastUpdateTime)
+            } as MutableLiveData<String>
+
+    val secondValue: MutableLiveData<String> =
+            if (homeUnit == null) MutableLiveData() else Transformations.map(homeUnit) { unit -> unit.secondValue.toString() } as MutableLiveData<String>
+    val secondLastUpdateTime: MutableLiveData<String> =
+            if (homeUnit == null) MutableLiveData() else Transformations.map(homeUnit) { unit ->
+                getLastUpdateTime(application, unit.secondLastUpdateTime)
             } as MutableLiveData<String>
 
     val minValue: MutableLiveData<String> =
@@ -195,6 +210,7 @@ class HomeUnitDetailViewModel(application: Application,
                     && unit.type == type.value
                     && unit.room == roomName.value
                     && unit.hwUnitName == hwUnitName.value
+                    && unit.secondHwUnitName == secondHwUnitName.value
                     && unit.firebaseNotify == firebaseNotify.value/* &&
             unit.unitsTasks == unitTaskList.value*/
         } ?: true
@@ -221,6 +237,7 @@ class HomeUnitDetailViewModel(application: Application,
                 type.value = unit.type
                 roomName.value = unit.room
                 hwUnitName.value = unit.hwUnitName
+                secondHwUnitName.value = unit.secondHwUnitName
                 firebaseNotify.value = unit.firebaseNotify
             }
             false
@@ -243,6 +260,9 @@ class HomeUnitDetailViewModel(application: Application,
                 hwUnitName.value?.trim()
                         .isNullOrEmpty() -> return Pair(
                         R.string.add_edit_home_unit_empty_unit_hw_unit, null)
+                type.value?.trim() == HOME_LIGHT_SWITCHES && secondHwUnitName.value?.trim()
+                        .isNullOrEmpty() -> return Pair(
+                        R.string.add_edit_home_unit_empty_unit_second_hw_unit, null)
                 homeUnitOfSelectedTypeList.find { unit -> unit.name == name.value?.trim() } != null -> {
                     //This name is already used
                     Timber.d("This name is already used")
@@ -308,19 +328,33 @@ class HomeUnitDetailViewModel(application: Application,
             type.value?.let { type ->
                 roomName.value?.let { room ->
                     hwUnitName.value?.let { hwUnitName ->
-                        firebaseNotify.value?.let { firebaseNotify ->
-                            //unitTaskList.value?.let { unitTaskList ->
-                            showProgress.value = true
-                            homeRepository.saveHomeUnit(
-                                    HomeUnit(name = name, type = type, room = room,
-                                            hwUnitName = hwUnitName,
-                                            firebaseNotify = firebaseNotify,
-                                            value = homeUnit?.value?.value,
-                                            lastUpdateTime = homeUnit?.value?.lastUpdateTime,
-                                            unitsTasks = unitTaskList.value?.toMutableMap()?.also {
-                                                it.remove("")
-                                            } ?: HashMap()))
-                            //}
+                        secondHwUnitName.value?.let { secondHwUnitName ->
+                            firebaseNotify.value?.let { firebaseNotify ->
+                                //unitTaskList.value?.let { unitTaskList ->
+                                showProgress.value = true
+                                homeRepository.saveHomeUnit(
+                                        HomeUnit(name = name, type = type, room = room,
+                                                hwUnitName = hwUnitName,
+                                                secondHwUnitName = secondHwUnitName,
+                                                firebaseNotify = firebaseNotify,
+                                                value = homeUnit?.value?.value,
+                                                lastUpdateTime = homeUnit?.value?.lastUpdateTime,
+                                                unitsTasks = unitTaskList.value?.toMutableMap()?.also {
+                                                    it.remove("")
+                                                } ?: HashMap()))?.continueWithTask {
+                                    if (type == HOME_LIGHT_SWITCHES) {
+                                        homeRepository.saveUnitTask(type, name,
+                                                UnitTask(
+                                                        name = name,
+                                                        homeUnitName = name,
+                                                        homeUnitType = type
+                                                ))
+                                    } else {
+                                        Tasks.forResult(null)
+                                    }
+                                }
+                                //}
+                            }
                         }
                     }
                 }
