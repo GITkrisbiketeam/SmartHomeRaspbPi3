@@ -79,15 +79,17 @@ class Home(secureStorage: SecureStorage,
 
                                 val action: suspend (Boolean) -> Unit = { actionVal ->
                                     val newActionVal = (task.inverse ?: false) xor actionVal
-                                    value = newActionVal
-                                    Timber.d("booleanApplyFunction taskHwUnit actionVal: $actionVal setValue value: $value")
-                                    taskHwUnit.setValueWithException(newActionVal)
-                                    lastUpdateTime = taskHwUnit.valueUpdateTime
-                                    applyFunction(newActionVal)
-                                    homeInformationRepository.saveHomeUnit(this)
-                                    if (firebaseNotify && alarmEnabled) {
-                                        Timber.d("booleanApplyFunction notify with FCM Message")
-                                        homeInformationRepository.notifyHomeUnitEvent(this)
+                                    if (value != newActionVal) {
+                                        value = newActionVal
+                                        Timber.d("booleanApplyFunction taskHwUnit actionVal: $actionVal setValue value: $value")
+                                        taskHwUnit.setValueWithException(newActionVal)
+                                        lastUpdateTime = taskHwUnit.valueUpdateTime
+                                        applyFunction(newActionVal)
+                                        homeInformationRepository.saveHomeUnit(this)
+                                        if (firebaseNotify && alarmEnabled) {
+                                            Timber.d("booleanApplyFunction notify with FCM Message")
+                                            homeInformationRepository.notifyHomeUnitEvent(this)
+                                        }
                                     }
                                 }
                                 task.delay.takeIf { it != null && it > 0 }?.let { delay ->
