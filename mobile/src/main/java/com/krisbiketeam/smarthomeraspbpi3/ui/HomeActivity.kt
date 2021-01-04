@@ -6,14 +6,16 @@ import androidx.core.view.GravityCompat
 import androidx.databinding.DataBindingUtil
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.navigation.Navigation
-import androidx.navigation.findNavController
+import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.NavigationUI
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
-import com.krisbiketeam.smarthomeraspbpi3.databinding.ActivityHomeBinding
+import com.krisbiketeam.smarthomeraspbpi3.databinding.HomeActivityBinding
 import com.krisbiketeam.smarthomeraspbpi3.databinding.NavHeaderBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.NavigationViewModel
 import org.koin.android.ext.android.inject
@@ -30,12 +32,14 @@ class HomeActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val binding: ActivityHomeBinding =
-                DataBindingUtil.setContentView(this, R.layout.activity_home)
+        val binding = HomeActivityBinding.inflate(layoutInflater)
+        val view = binding.root
+        setContentView(view)
+
         drawerLayout = binding.drawerLayout
 
-        val navController = findNavController(R.id.home_nav_fragment)
-
+        val navHostFragment = supportFragmentManager.findFragmentById(R.id.home_nav_fragment) as NavHostFragment
+        val navController = navHostFragment.navController
 
         // Set up navigation menu
         binding.navigationView.setupWithNavController(navController)
@@ -44,7 +48,8 @@ class HomeActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbar)
         setupActionBarWithNavController(navController, drawerLayout)
 
-        if (!secureStorage.isAuthenticated()) {
+        val currentUser = Firebase.auth.currentUser
+        if (currentUser == null || !secureStorage.isAuthenticated()) {
             Timber.d("No Home Name defined, starting HomeSettingsFragment")
             navController.navigate(R.id.login_settings_fragment)
         } else if (secureStorage.homeName.isEmpty()) {
@@ -52,7 +57,12 @@ class HomeActivity : AppCompatActivity() {
             navController.navigate(R.id.home_settings_fragment)
         } else {
             homeInformationRepository.setHomeReference(secureStorage.homeName)
+            homeInformationRepository.setUserReference(currentUser.uid)
         }
+
+        /*FirebaseAuth.getInstance().addAuthStateListener { firebaseAuth ->
+            Timber.e("AuthStateListener  firebaseAuth:$firebaseAuth currentUser: ${firebaseAuth.currentUser}")
+        }*/
 
         DataBindingUtil.inflate<NavHeaderBinding>(layoutInflater, R.layout.nav_header,
                                                   binding.navigationView, false).apply {

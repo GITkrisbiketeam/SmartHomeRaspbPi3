@@ -2,6 +2,7 @@ package com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver
 
 import android.annotation.SuppressLint
 import android.view.ViewConfiguration
+import androidx.annotation.MainThread
 import com.google.android.things.pio.Gpio
 import com.google.android.things.pio.GpioCallback
 import com.google.android.things.pio.I2cDevice
@@ -104,35 +105,70 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
 
     private var recheckIntCallbackJob: Job? = null
 
-    private val mIntCallback = GpioCallback { gpio: Gpio ->
-        if (debounceDelay != NO_DEBOUNCE_DELAY) {
-            Timber.d("mIntCallback onGpioEdge ${gpio.value}")
-            debounceIntCallbackJob?.cancel()
-            debounceIntCallbackJob = GlobalScope.launch(Dispatchers.IO) {
-                delay(debounceDelay.toLong())
+    private val mIntCallback = object : GpioCallback {
+        override fun onGpioEdge(gpio: Gpio): Boolean {
+            if (debounceDelay != NO_DEBOUNCE_DELAY) {
+                Timber.d("mIntCallback onGpioEdge ${gpio.value}")
+                debounceIntCallbackJob?.cancel()
+                debounceIntCallbackJob = GlobalScope.launch(Dispatchers.Main) {
+                    delay(debounceDelay.toLong())
+                    try {
+                        if (this.isActive) {
+                            checkInterrupt()
+                        }
+                    } catch (e: Exception) {
+                        Timber.e(e, "mIntCallback")
+                        mListeners.flatMap { it.value }.forEach {
+                            Timber.d("mIntCallback  dispatch onErrof to: $it")
+                            it.onError("mIntCallback Exception: $e")
+                        }//throw Exception("mIntCallback Exception", e)
+                    } finally {
+                        debounceIntCallbackJob?.cancel()
+                    }
+                }
+            } else {
+                debounceIntCallbackJob?.cancel()
                 try {
-                    checkInterrupt()
-                } finally {
-                    debounceIntCallbackJob?.cancel()
+                    GlobalScope.launch(Dispatchers.Main) {
+                        checkInterrupt()
+                    }
+                } catch (e: Exception) {
+                    Timber.e(e, "mIntCallback")
+                    mListeners.flatMap { it.value }.forEach {
+                        Timber.d("mIntCallback  dispatch onErrof to: $it")
+                        it.onError("mIntCallback Exception: $e")
+                    }//throw Exception("mIntCallback Exception", e)
                 }
             }
-        } else {
-            debounceIntCallbackJob?.cancel()
-            checkInterrupt()
+
+            recheckIntCallbackJob?.cancel()
+            recheckIntCallbackJob = GlobalScope.launch(Dispatchers.Main) {
+                delay(RECHECK_INT_DELAY)
+                try {
+                    Timber.e("mIntCallback recheckIntCallbackJob mGpioInt: ${mGpioInt?.value}")
+                    if (this.isActive) {
+                        checkInterrupt()
+                    }
+                } catch (e: Exception) {
+                    Timber.e(e, "mIntCallback")
+                    mListeners.flatMap { it.value }.forEach {
+                        Timber.d("mIntCallback  dispatch onErrof to: $it")
+                        it.onError("mIntCallback Exception: $e")
+                    }//throw Exception("mIntCallback Exception", e)
+                } finally {
+                    recheckIntCallbackJob?.cancel()
+                }
+            }
+            // Return true to keep callback active.
+            return true
         }
 
-        recheckIntCallbackJob?.cancel()
-        recheckIntCallbackJob = GlobalScope.launch(Dispatchers.IO) {
-            delay(RECHECK_INT_DELAY)
-            try {
-                Timber.e("mIntCallback recheckIntCallbackJob mGpioInt: ${mGpioInt?.value}")
-                checkInterrupt()
-            } finally {
-                recheckIntCallbackJob?.cancel()
+        override fun onGpioError(gpio: Gpio?, error: Int) {
+            mListeners.flatMap { it.value }.forEach {
+                Timber.e("mIntCallback ${gpio.toString()} : Error event $error on: $this")
+                it.onError("\"mIntCallback ${gpio.toString()} : Error event $error on: $this\"")
             }
         }
-        // Return true to keep callback active.
-        true
     }
 
     init {
@@ -166,6 +202,7 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
     }
 
     @Throws(Exception::class)
+    @MainThread
     private fun connectGpio() {
         if (intGpio != null && mGpioInt == null) {
             val manager = PeripheralManager.getInstance()
@@ -189,6 +226,7 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
     }
 
     @Throws(Exception::class)
+    @MainThread
     private fun disconnectGpio() {
         Timber.d("disconnect int Gpio ")
         mGpioInt = mGpioInt?.run {
@@ -202,7 +240,7 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
     private fun startMonitor() {
         if (pollingTime != NO_POLLING_TIME) {
             // if the monitor has not been started, then start it now
-            monitorJob = GlobalScope.launch(Dispatchers.IO) {
+            monitorJob = GlobalScope.launch(Dispatchers.Main) {
                 // We could also check for true as suspending delay() method is cancellable
                 while (isActive) {
                     try {
@@ -229,6 +267,7 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
      * Close the driver and the underlying device.
      */
     @Throws(Exception::class)
+    @MainThread
     override fun close() {
         // if a monitor is running, then shut it down now
         stopMonitor()
@@ -246,14 +285,17 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
 
 
     @Throws(Exception::class)
+    @MainThread
     private fun readRegister(i2cDevice: I2cDevice?, reg: Int): Int? = i2cDevice?.readRegByte(
             reg)?.toInt()?.and(0xff)
 
     @Throws(Exception::class)
+    @MainThread
     private fun writeRegister(i2cDevice: I2cDevice?, reg: Int,
                               regVal: Int) = i2cDevice?.writeRegByte(reg, regVal.toByte())
 
     @Throws(Exception::class)
+    @MainThread
     private fun resetToDefaults(i2cDevice: I2cDevice?) {
         // set all default pins directions
         writeRegister(i2cDevice, REGISTER_IODIR_A, 0)
@@ -284,6 +326,7 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
 
     // Set Input or output mode functions
     @Throws(Exception::class)
+    @MainThread
     fun setMode(pin: Pin, mode: PinMode) {
         // determine A or B port based on pin address
         if (pin.address < GPIO_B_OFFSET) {
@@ -304,6 +347,7 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
     }
 
     @Throws(Exception::class)
+    @MainThread
     private fun setModeA(pin: Pin, mode: PinMode) {
         // determine register and pin address
         val pinAddress = pin.address - GPIO_A_OFFSET
@@ -326,6 +370,7 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
     }
 
     @Throws(Exception::class)
+    @MainThread
     private fun setModeB(pin: Pin, mode: PinMode) {
         // determine register and pin address
         val pinAddress = pin.address - GPIO_B_OFFSET
@@ -365,6 +410,7 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
 
     // Set Output state functions
     @Throws(Exception::class)
+    @MainThread
     fun setState(pin: Pin, state: PinState) {
         // determine A or B port based on pin address
         if (pin.address < GPIO_B_OFFSET) {
@@ -375,6 +421,7 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
     }
 
     @Throws(Exception::class)
+    @MainThread
     private fun setStateA(pin: Pin, state: PinState) {
         // determine pin address
         val pinAddress = pin.address - GPIO_A_OFFSET
@@ -393,6 +440,7 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
     }
 
     @Throws(Exception::class)
+    @MainThread
     private fun setStateB(pin: Pin, state: PinState) {
         // determine pin address
         val pinAddress = pin.address - GPIO_B_OFFSET
@@ -412,6 +460,7 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
 
     // Get Input state functions
     @Throws(Exception::class)
+    @MainThread
     fun getState(pin: Pin): PinState {
         // determine A or B port based on pin address
         return if (pin.address < GPIO_B_OFFSET) {
@@ -518,6 +567,9 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
         return if (getMode(pin) == PinMode.DIGITAL_INPUT) {
             val pinListeners = mListeners.computeIfAbsent(pin) { ArrayList(1) }
             pinListeners.add(listener)
+            GlobalScope.launch(Dispatchers.Main) {
+                checkInterrupt()
+            }
             true
         } else {
             // Given pin not set for input
@@ -531,7 +583,8 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
     }
 
     @Throws(Exception::class)
-    private fun checkInterrupt() {
+    @MainThread
+    private suspend fun checkInterrupt() {
         Timber.v("checkInterrupt")
 
         var pinInterruptRegStateA: Int? = null
@@ -550,7 +603,7 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
                 Timber.v("checkInterrupt pinInterruptRegStateB:$pinInterruptRegStateB")
             }
         }
-        GlobalScope.launch(Dispatchers.Default) {
+        withContext(Dispatchers.Default) {
             pinInterruptRegStateA?.let { evaluatePinForChangeA(it) }
             pinInterruptRegStateB?.let { evaluatePinForChangeB(it) }
         }

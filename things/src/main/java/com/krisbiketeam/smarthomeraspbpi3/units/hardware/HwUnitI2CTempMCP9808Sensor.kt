@@ -8,7 +8,6 @@ import com.krisbiketeam.smarthomeraspbpi3.units.HwUnitI2C
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
 import kotlinx.coroutines.*
 import timber.log.Timber
-import java.util.*
 
 private const val REFRESH_RATE = 10000L // 10 sec
 
@@ -22,7 +21,7 @@ class HwUnitI2CTempMCP9808Sensor(name: String, location: String, private val pin
             HwUnit(name, location, BoardConfig.TEMP_SENSOR_MCP9808, pinName, ConnectionType.I2C,
                    softAddress, refreshRate = refreshRate)
     override var unitValue: Float? = null
-    override var valueUpdateTime: String = ""
+    override var valueUpdateTime: Long = System.currentTimeMillis()
 
     private var job: Job? = null
     private var hwUnitListener: Sensor.HwUnitListener<Float>? = null
@@ -38,12 +37,12 @@ class HwUnitI2CTempMCP9808Sensor(name: String, location: String, private val pin
         Timber.d("registerListener")
         hwUnitListener = listener
         job?.cancel()
-        job = GlobalScope.plus(exceptionHandler).launch(Dispatchers.IO) {
+        job = GlobalScope.plus(exceptionHandler).launch(Dispatchers.Main) {
             // We could also check for true as suspending delay() method is cancellable
             while (isActive) {
+                delay(refreshRate ?: REFRESH_RATE)
                 // Cancel will not stop non suspending oneShotReadValue function
                 oneShotReadValue()
-                delay(refreshRate ?: REFRESH_RATE)
             }
         }
     }
@@ -65,12 +64,13 @@ class HwUnitI2CTempMCP9808Sensor(name: String, location: String, private val pin
     private fun oneShotReadValue() {
         // We do not want to block I2C buss so open device to only display some data and then immediately close it.
         // use block automatically closes resources referenced to mcp9808
-        MCP9808(pinName, softAddress).use {
+        MCP9808(pinName, softAddress).let {
             it.readOneShotTemperature { value ->
                 unitValue = value
-                valueUpdateTime = Date().toString()
+                valueUpdateTime = System.currentTimeMillis()
                 Timber.d("temperature:$unitValue")
                 hwUnitListener?.onHwUnitChanged(hwUnit, unitValue, valueUpdateTime)
+                it.close()
             }
         }
     }
@@ -81,7 +81,7 @@ class HwUnitI2CTempMCP9808Sensor(name: String, location: String, private val pin
         // use block automatically closes resources referenced to tmp102
         MCP9808(pinName, softAddress).use {
             unitValue = it.readTemperature()
-            valueUpdateTime = Date().toString()
+            valueUpdateTime = System.currentTimeMillis()
             Timber.d("temperature:$unitValue")
         }
         return unitValue

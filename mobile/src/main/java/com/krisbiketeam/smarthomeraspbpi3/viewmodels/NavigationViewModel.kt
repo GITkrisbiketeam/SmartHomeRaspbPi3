@@ -21,9 +21,10 @@ class NavigationViewModel(secureStorage: SecureStorage, homeRepository: Firebase
     init {
         Timber.d("init")
         user = Transformations.map(secureStorage.firebaseCredentialsLiveData) {
-            if (it.email.isEmpty()) {
+            if (it.uid.isNullOrEmpty()) {
                 "Login to Firebase"
             } else {
+                homeRepository.startUserToFirebaseConnectionActiveMonitor()
                 it.email
             }
         }

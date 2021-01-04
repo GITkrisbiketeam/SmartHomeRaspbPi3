@@ -15,7 +15,13 @@ class AuthenticationLiveData(private val authentication: Authentication) : LiveD
     }
 
     private val loginResultListener = object : Authentication.LoginResultListener {
-        override fun success() {
+        override fun success(uid: String?) {
+            data.let{ loginData ->
+                if (loginData is FirebaseCredentials) {
+                    data = FirebaseCredentials(loginData.email, loginData.password, uid)
+                }
+            }
+
             value = Pair(MyLiveDataState.DONE, data)
         }
 

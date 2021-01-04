@@ -5,6 +5,7 @@ import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.ktx.getValue
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.ChildEventType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
 import timber.log.Timber
@@ -22,7 +23,7 @@ class HwUnitsLiveData(private val databaseReference: DatabaseReference?) :
         override fun onChildAdded(dataSnapshot: DataSnapshot, previousChildName: String?) {
             // A new value has been added, add it to the displayed list
             val key = dataSnapshot.key
-            val hwUnit = dataSnapshot.getValue(HwUnit::class.java)
+            val hwUnit = dataSnapshot.getValue<HwUnit>()
             Timber.d("onChildAdded (key=$key)(hwUnit=$hwUnit)")
             hwUnit?.let {
                 value = ChildEventType.NODE_ACTION_ADDED to hwUnit
@@ -33,7 +34,7 @@ class HwUnitsLiveData(private val databaseReference: DatabaseReference?) :
             // A value has changed, use the key to determine if we are displaying this
             // value and if so displayed the changed value.
             val key = dataSnapshot.key
-            val hwUnit = dataSnapshot.getValue(HwUnit::class.java)
+            val hwUnit = dataSnapshot.getValue<HwUnit>()
             Timber.d("onChildChanged (key=$key)(hwUnit=$hwUnit)")
             hwUnit?.let {
                 value = ChildEventType.NODE_ACTION_CHANGED to hwUnit
@@ -44,7 +45,7 @@ class HwUnitsLiveData(private val databaseReference: DatabaseReference?) :
             // A value has changed, use the key to determine if we are displaying this
             // value and if so remove it.
             val key = dataSnapshot.key
-            val hwUnit = dataSnapshot.getValue(HwUnit::class.java)
+            val hwUnit = dataSnapshot.getValue<HwUnit>()
             Timber.d("onChildRemoved (key=$key)(hwUnit=$hwUnit)")
             hwUnit?.let {
                 value = ChildEventType.NODE_ACTION_DELETED to hwUnit
@@ -56,7 +57,7 @@ class HwUnitsLiveData(private val databaseReference: DatabaseReference?) :
             // A value has changed position, use the key to determine if we are
             // displaying this value and if so move it.
             val key = dataSnapshot.key
-            val room = dataSnapshot.getValue(HwUnit::class.java)
+            val room = dataSnapshot.getValue<HwUnit>()
             Timber.d("onChildMoved (key=$key)(room=$room)")
             //TODO does it also cover onChildChanged ??? or are those events both called???
         }

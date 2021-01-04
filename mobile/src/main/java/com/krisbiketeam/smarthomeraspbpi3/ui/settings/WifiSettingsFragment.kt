@@ -9,18 +9,21 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.widget.TextView
+import androidx.core.os.bundleOf
 import androidx.databinding.DataBindingUtil
 import androidx.databinding.OnRebindCallback
 import androidx.databinding.ViewDataBinding
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
-import androidx.navigation.Navigation
+import androidx.navigation.fragment.findNavController
 import androidx.transition.TransitionManager
+import com.google.firebase.analytics.FirebaseAnalytics
 import com.krisbiketeam.smarthomeraspbpi3.R
+import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
 import com.krisbiketeam.smarthomeraspbpi3.common.MyLiveDataState
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.WifiCredentials
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentSettingsWifiBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.settings.WifiSettingsViewModel
+import org.koin.android.ext.android.inject
 import org.koin.android.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
 import timber.log.Timber
@@ -31,10 +34,12 @@ class WifiSettingsFragment : Fragment() {
                      context?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager)
     }
 
+    private val analytics: Analytics by inject()
+
     private lateinit var binding: FragmentSettingsWifiBinding
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? {
+                              savedInstanceState: Bundle?): View {
 
         binding = DataBindingUtil.inflate<FragmentSettingsWifiBinding>(inflater,
                                                                        R.layout.fragment_settings_wifi,
@@ -48,7 +53,7 @@ class WifiSettingsFragment : Fragment() {
                 }
                 false
             })
-            wifiSettingsViewModel.password.observe(viewLifecycleOwner, Observer {
+            wifiSettingsViewModel.password.observe(viewLifecycleOwner, {
                 binding.passwordLayout.error = null
             })
 
@@ -67,9 +72,7 @@ class WifiSettingsFragment : Fragment() {
             lifecycleOwner = this@WifiSettingsFragment
         }
 
-
-
-        wifiSettingsViewModel.nearByState.observe(viewLifecycleOwner, Observer { pair ->
+        wifiSettingsViewModel.nearByState.observe(viewLifecycleOwner, { pair ->
             pair?.let { (state, data) ->
 
                 when (state) {
@@ -86,14 +89,15 @@ class WifiSettingsFragment : Fragment() {
                     MyLiveDataState.CONNECTING -> {
                     }
                     MyLiveDataState.DONE       -> {
-                        activity?.let {
-                            Navigation.findNavController(it, R.id.home_nav_fragment).navigateUp()
-                        }
+                        findNavController().navigateUp()
                     }
                 }
             }
         })
 
+        analytics.firebaseAnalytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW, bundleOf(
+                FirebaseAnalytics.Param.SCREEN_NAME to this::class.simpleName
+        ))
 
         return binding.root
     }

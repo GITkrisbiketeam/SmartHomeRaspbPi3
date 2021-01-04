@@ -1,5 +1,6 @@
 package com.krisbiketeam.smarthomeraspbpi3.units.hardware
 
+import androidx.annotation.MainThread
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver.MCP23017
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver.MCP23017Pin.*
@@ -9,7 +10,6 @@ import com.krisbiketeam.smarthomeraspbpi3.units.HwUnitI2C
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
 import kotlinx.coroutines.CoroutineExceptionHandler
 import timber.log.Timber
-import java.util.*
 
 open class HwUnitI2CMCP23017Sensor(name: String, location: String, private val pinName: String,
                                    private val address: Int, private val pinInterrupt: String,
@@ -23,7 +23,7 @@ open class HwUnitI2CMCP23017Sensor(name: String, location: String, private val p
             HwUnit(name, location, BoardConfig.IO_EXTENDER_MCP23017_INPUT, pinName,
                    ConnectionType.I2C, address, pinInterrupt, ioPin.name, internalPullUp, inverse = inverse)
     override var unitValue: Boolean? = null
-    override var valueUpdateTime: String = ""
+    override var valueUpdateTime: Long = System.currentTimeMillis()
 
     var hwUnitListener: Sensor.HwUnitListener<Boolean>? = null
 
@@ -31,13 +31,18 @@ open class HwUnitI2CMCP23017Sensor(name: String, location: String, private val p
         override fun onPinStateChanged(pin: Pin, state: PinState) {
             Timber.d("onPinStateChanged pin: ${pin.name} state: $state")
             unitValue = if(inverse) state != PinState.HIGH else state == PinState.HIGH
-            valueUpdateTime = Date().toString()
+            valueUpdateTime = System.currentTimeMillis()
             hwUnitListener?.onHwUnitChanged(hwUnit, unitValue, valueUpdateTime)
 
+        }
+
+        override fun onError(error: String) {
+            hwUnitListener?.onHwUnitError(hwUnit, error, System.currentTimeMillis())
         }
     }
 
     @Throws(Exception::class)
+    @MainThread
     override fun connect() {
         device = HwUnitI2CMCP23017.getMcp23017Instance(pinName, address).apply {
             intGpio = pinInterrupt
@@ -49,6 +54,7 @@ open class HwUnitI2CMCP23017Sensor(name: String, location: String, private val p
     }
 
     @Throws(Exception::class)
+    @MainThread
     override fun close() {
         unregisterListener()
         // We do not want to close this device if it is used by another instance of this class
@@ -72,7 +78,7 @@ open class HwUnitI2CMCP23017Sensor(name: String, location: String, private val p
         Timber.d("unregisterListener")
         (device as MCP23017?)?.run {
             val result = unRegisterPinListener(ioPin, mMCP23017Callback)
-            Timber.d("registerListener unRegisterPinListener?: $result")
+            Timber.d("unregisterListener unRegisterPinListener?: $result")
         }
         hwUnitListener = null
     }

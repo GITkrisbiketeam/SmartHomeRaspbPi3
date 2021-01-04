@@ -1,30 +1,40 @@
 package com.krisbiketeam.smarthomeraspbpi3.ui
 
-import androidx.lifecycle.Observer
-import androidx.databinding.DataBindingUtil
 import android.os.Bundle
-import com.google.android.material.snackbar.Snackbar
+import android.view.*
+import androidx.appcompat.app.AlertDialog
+import androidx.core.os.bundleOf
+import androidx.databinding.DataBindingUtil
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.MutableLiveData
+import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import androidx.transition.Fade
 import androidx.transition.TransitionManager
-import androidx.fragment.app.Fragment
-import androidx.appcompat.app.AlertDialog
-import android.view.*
-import androidx.navigation.fragment.findNavController
+import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.analytics.FirebaseAnalytics
 import com.krisbiketeam.smarthomeraspbpi3.R
+import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentUnitTaskBinding
+import com.krisbiketeam.smarthomeraspbpi3.utils.showTimePicker
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.UnitTaskViewModel
+import org.koin.android.ext.android.inject
 import org.koin.android.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
 import timber.log.Timber
 
-
 class UnitTaskFragment : Fragment() {
+
+    private val args: UnitTaskFragmentArgs by navArgs()
+
     private val unitTaskViewModel: UnitTaskViewModel by viewModel {
         parametersOf(
-                arguments?.let { UnitTaskFragmentArgs.fromBundle(it).taskName}?: "",
-                arguments?.let { UnitTaskFragmentArgs.fromBundle(it).homeUnitName}?: "",
-                arguments?.let { UnitTaskFragmentArgs.fromBundle(it).homeUnitType}?: "")
+                arguments?.let { args.taskName } ?: "",
+                arguments?.let { args.homeUnitName } ?: "",
+                arguments?.let { args.homeUnitType } ?: "")
     }
+
+    private val analytics: Analytics by inject()
 
     private lateinit var rootBinding: FragmentUnitTaskBinding
 
@@ -34,15 +44,15 @@ class UnitTaskFragment : Fragment() {
                 inflater, R.layout.fragment_unit_task, container, false).apply {
             viewModel = unitTaskViewModel
             lifecycleOwner = this@UnitTaskFragment
+            unitTaskDelayGroup.setOnClickListener {
+                onClickShowTimePicker(unitTaskViewModel.delay)
+            }
+            unitTaskDurationGroup.setOnClickListener {
+                onClickShowTimePicker(unitTaskViewModel.duration)
+            }
         }
 
-        unitTaskViewModel.isEditMode.observe(viewLifecycleOwner, Observer { isEditMode ->
-            // in Edit Mode we need to listen for homeUnitList, as there is no reference in xml layout to trigger its observer, but can we find some better way
-            if (isEditMode == true) {
-                unitTaskViewModel.homeUnitNameList.observe(viewLifecycleOwner, Observer { })
-            } else {
-                unitTaskViewModel.homeUnitNameList.removeObservers(viewLifecycleOwner)
-            }
+        unitTaskViewModel.isEditMode.observe(viewLifecycleOwner, { isEditMode ->
             activity?.invalidateOptionsMenu()
             // Animate Layout edit mode change
             TransitionManager.beginDelayedTransition(rootBinding.root as ViewGroup, Fade())
@@ -50,8 +60,14 @@ class UnitTaskFragment : Fragment() {
 
         setHasOptionsMenu(true)
 
+        analytics.firebaseAnalytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW, bundleOf(
+                FirebaseAnalytics.Param.SCREEN_NAME to this::class.simpleName,
+                FirebaseAnalytics.Param.ITEM_NAME to args.taskName
+        ))
+
         return rootBinding.root
     }
+
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.menu_unit_task, menu)
         super.onCreateOptionsMenu(menu, inflater)
@@ -65,7 +81,7 @@ class UnitTaskFragment : Fragment() {
                 menu.findItem((R.id.action_save))?.isVisible = true
                 menu.findItem((R.id.action_delete))?.isVisible =
                         arguments?.let {
-                            UnitTaskFragmentArgs.fromBundle(it).homeUnitName.isNotEmpty()
+                            args.homeUnitName.isNotEmpty()
                         } ?: false
                 menu.findItem((R.id.action_edit))?.isVisible = false
             }
@@ -126,7 +142,7 @@ class UnitTaskFragment : Fragment() {
             }
             R.id.action_delete -> {
                 showDialog(R.string.add_edit_home_unit_delete_home_unit_prompt, R.string.menu_delete) {
-                    unitTaskViewModel.deleteHomeUnit()?.addOnCompleteListener {
+                    unitTaskViewModel.deleteUnitTask()?.addOnCompleteListener {
                         // navigate back Up from this Fragment
                         findNavController().navigateUp()
                     }
@@ -146,5 +162,9 @@ class UnitTaskFragment : Fragment() {
                     .setNegativeButton(R.string.cancel) { _, _ -> }
                     .show()
         }
+    }
+
+    private fun onClickShowTimePicker(liveData: MutableLiveData<Long?>) {
+        showTimePicker(context, liveData)
     }
 }

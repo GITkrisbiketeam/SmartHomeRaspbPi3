@@ -23,6 +23,7 @@ private const val HOME_UNIT_TYPE_HEADER = 3
 /**
  * Adapter for the [RecyclerView] in [RoomListFragment].
  */
+@Deprecated(message = "Please use other RoomList Adapter (RoomWithHomeUnitListAdapter)")
 class RoomHomeUnitListAdapter : ListAdapter<Any, RoomHomeUnitListAdapter.ViewHolder>(RoomHomeUnitListAdapterDiffCallback()) {
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {

@@ -3,14 +3,18 @@ package com.krisbiketeam.smarthomeraspbpi3.ui
 import android.os.Bundle
 import android.view.*
 import androidx.appcompat.app.AlertDialog
+import androidx.core.os.bundleOf
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
+import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.analytics.FirebaseAnalytics
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.adapters.RoomDetailHomeUnitListAdapter
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
+import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentRoomDetailBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.RoomDetailViewModel
 import org.koin.android.ext.android.inject
@@ -23,8 +27,36 @@ import timber.log.Timber
  */
 class RoomDetailFragment : Fragment() {
 
+    private val args: RoomDetailFragmentArgs by navArgs()
+
     private val roomDetailViewModel: RoomDetailViewModel by viewModel {
-        parametersOf(arguments?.let { RoomDetailFragmentArgs.fromBundle(it).roomName}?: "")
+        parametersOf(arguments?.let { args.roomName}?: "")
+    }
+
+    private val analytics: Analytics by inject()
+
+    private val itemTouchHelper by lazy {
+        ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP or
+                ItemTouchHelper.DOWN or
+                ItemTouchHelper.START or
+                ItemTouchHelper.END, 0) {
+
+            override fun onMove(recyclerView: RecyclerView,
+                                viewHolder: RecyclerView.ViewHolder,
+                                target: RecyclerView.ViewHolder): Boolean {
+
+                val from = viewHolder.adapterPosition
+                val to = target.adapterPosition
+
+                roomDetailViewModel.moveItem(from, to)
+
+                return true
+            }
+
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder,
+                                  direction: Int) {
+            }
+        })
     }
 
     init {
@@ -35,7 +67,7 @@ class RoomDetailFragment : Fragment() {
             inflater: LayoutInflater,
             container: ViewGroup?,
             savedInstanceState: Bundle?
-    ): View? {
+    ): View {
 
         Timber.w("onCreateView $this")
         val binding: FragmentRoomDetailBinding = DataBindingUtil.inflate<FragmentRoomDetailBinding>(
@@ -52,19 +84,25 @@ class RoomDetailFragment : Fragment() {
             subscribeUi(adapter)
         }
 
-        roomDetailViewModel.isEditMode.observe(viewLifecycleOwner, Observer {
+        roomDetailViewModel.isEditMode.observe(viewLifecycleOwner, { editMode ->
             activity?.invalidateOptionsMenu()
+            itemTouchHelper.attachToRecyclerView(if(editMode)binding.homeUnitList else null)
         })
 
         setHasOptionsMenu(true)
+
+        analytics.firebaseAnalytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW, bundleOf(
+                FirebaseAnalytics.Param.SCREEN_CLASS to this::class.simpleName,
+                FirebaseAnalytics.Param.ITEM_NAME to args.roomName
+        ))
 
         return binding.root
     }
 
     private fun subscribeUi(adapter: RoomDetailHomeUnitListAdapter) {
-        roomDetailViewModel.homeUnitsMap.observe(viewLifecycleOwner, Observer<MutableMap<String, HomeUnit<Any?>>> { homeUnitsMap ->
-            Timber.d("subscribeUi homeUnitsMap: $homeUnitsMap")
-            adapter.submitList(homeUnitsMap.values.toList())
+        roomDetailViewModel.homeUnitsList.observe(viewLifecycleOwner, { homeUnitsList ->
+            Timber.d("subscribeUi homeUnitsList: $homeUnitsList")
+            adapter.submitList(homeUnitsList)
         })
     }
 

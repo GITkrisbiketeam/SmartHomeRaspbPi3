@@ -1,20 +1,25 @@
 package com.krisbiketeam.smarthomeraspbpi3.ui
 
-import androidx.lifecycle.Observer
-import androidx.databinding.DataBindingUtil
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.*
+import androidx.core.os.bundleOf
+import androidx.databinding.DataBindingUtil
+import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import com.google.firebase.analytics.FirebaseAnalytics
 import com.krisbiketeam.smarthomeraspbpi3.R
+import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentHwUnitListBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.HwUnitListViewModel
+import org.koin.android.ext.android.inject
 import org.koin.android.viewmodel.ext.android.viewModel
 
 
 class HwUnitListFragment : Fragment() {
 
     private val hwUnitListViewModel by viewModel<HwUnitListViewModel>()
+
+    private val analytics: Analytics by inject()
 
     override fun onCreateView(
             inflater: LayoutInflater,
@@ -28,12 +33,16 @@ class HwUnitListFragment : Fragment() {
         }
 
         hwUnitListViewModel.apply {
-            hwUnitList.observe(viewLifecycleOwner, Observer { hwUnitList ->
+            hwUnitList.observe(viewLifecycleOwner, { hwUnitList ->
                 hwUnitListAdapter.submitList(hwUnitList)
             })
         }
 
         setHasOptionsMenu(true)
+
+        analytics.firebaseAnalytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW, bundleOf(
+                FirebaseAnalytics.Param.SCREEN_NAME to this::class.simpleName
+        ))
 
         return binding.root
     }

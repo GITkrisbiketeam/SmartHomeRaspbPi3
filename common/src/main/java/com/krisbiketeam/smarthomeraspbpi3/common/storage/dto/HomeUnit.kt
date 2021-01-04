@@ -17,6 +17,8 @@ typealias TemperatureType = Float
 typealias Temperature = HomeUnit<TemperatureType?>
 typealias PressureType = Float
 typealias Pressure = HomeUnit<PressureType?>
+typealias HumidityType = Float
+typealias Humidity = HomeUnit<HumidityType?>
 typealias BlindType = Int
 typealias Blind = HomeUnit<BlindType?>
 
@@ -28,25 +30,24 @@ val homeUnitTypeIndicatorMap: HashMap<String, Class<out Any?>> = hashMapOf(
         HOME_MOTIONS to MotionType::class.java,
         HOME_TEMPERATURES to TemperatureType::class.java,
         HOME_PRESSURES to PressureType::class.java,
+        HOME_HUMIDITY to HumidityType::class.java,
         HOME_BLINDS to BlindType::class.java
 )
 
-val HOME_STORAGE_UNITS: List<String> = listOf(
-        HOME_LIGHTS,
-        HOME_ACTUATORS,
-        HOME_LIGHT_SWITCHES,
-        HOME_REED_SWITCHES,
-        HOME_MOTIONS,
-        HOME_TEMPERATURES,
-        HOME_PRESSURES,
-        HOME_BLINDS)
+val HOME_STORAGE_UNITS: List<String> = homeUnitTypeIndicatorMap.keys.toList()
+
+val HOME_ACTION_STORAGE_UNITS: List<String> = listOf(HOME_LIGHTS, HOME_BLINDS, HOME_ACTUATORS)
 
 data class HomeUnit<T>(var name: String = "", // Name should be unique for all units
                        var type: String = "",
                        var room: String = "",
                        var hwUnitName: String = "",
                        var value: T? = null,
-                       var lastUpdateTime: String? = null,
+                       var lastUpdateTime: Long? = null,
+                       var min: T? = null,
+                       var minLastUpdateTime: Long? = null,
+                       var max: T? = null,
+                       var maxLastUpdateTime: Long? = null,
                        var firebaseNotify: Boolean = false,
                        var unitsTasks: Map<String,UnitTask> = HashMap()) {
     constructor(homeUnit: HomeUnit<T?>) : this(
@@ -56,13 +57,17 @@ data class HomeUnit<T>(var name: String = "", // Name should be unique for all u
             homeUnit.hwUnitName,
             homeUnit.value,
             homeUnit.lastUpdateTime,
+            homeUnit.min,
+            homeUnit.minLastUpdateTime,
+            homeUnit.max,
+            homeUnit.maxLastUpdateTime,
             homeUnit.firebaseNotify,
             homeUnit.unitsTasks)
 
     @Exclude
     @set:Exclude
     @get:Exclude
-    var applyFunction: HomeUnit<T>.(Any) -> Unit = { Unit}
+    var applyFunction: suspend HomeUnit<T>.(Any) -> Unit = { Unit}
 
     fun makeInvariant(): HomeUnit<Any?>{
         return HomeUnit(
@@ -72,6 +77,10 @@ data class HomeUnit<T>(var name: String = "", // Name should be unique for all u
                 hwUnitName,
                 value,
                 lastUpdateTime,
+                min,
+                minLastUpdateTime,
+                max,
+                maxLastUpdateTime,
                 firebaseNotify,
                 unitsTasks)
     }
@@ -82,6 +91,10 @@ data class HomeUnit<T>(var name: String = "", // Name should be unique for all u
                 room,
                 hwUnitName,
                 value,
-                lastUpdateTime)
+                lastUpdateTime,
+                min,
+                minLastUpdateTime,
+                max,
+                maxLastUpdateTime)
     }
 }

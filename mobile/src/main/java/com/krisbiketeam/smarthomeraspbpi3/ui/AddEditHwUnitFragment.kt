@@ -1,31 +1,39 @@
 package com.krisbiketeam.smarthomeraspbpi3.ui
 
-import android.app.TimePickerDialog
 import android.os.Bundle
 import android.view.*
-import android.widget.TimePicker
 import androidx.appcompat.app.AlertDialog
+import androidx.core.os.bundleOf
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import androidx.transition.Fade
 import androidx.transition.TransitionManager
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.analytics.FirebaseAnalytics
 import com.krisbiketeam.smarthomeraspbpi3.R
+import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentAddEditHwUnitBinding
+import com.krisbiketeam.smarthomeraspbpi3.utils.showTimePicker
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.AddEditHwUnitViewModel
+import org.koin.android.ext.android.inject
 import org.koin.android.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
 import timber.log.Timber
 
 
 class AddEditHwUnitFragment : Fragment() {
+
+    private val args: AddEditHwUnitFragmentArgs by navArgs()
+
     private val addEditHwUnitViewModel: AddEditHwUnitViewModel by viewModel {
         parametersOf(arguments?.let {
-            AddEditHwUnitFragmentArgs.fromBundle(it).hwUnitName
+            args.hwUnitName
         } ?: "")
     }
+
+    private val analytics: Analytics by inject()
 
     private lateinit var rootBinding: FragmentAddEditHwUnitBinding
 
@@ -33,22 +41,27 @@ class AddEditHwUnitFragment : Fragment() {
             inflater: LayoutInflater,
             container: ViewGroup?,
             savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         rootBinding = DataBindingUtil.inflate<FragmentAddEditHwUnitBinding>(
                 inflater, R.layout.fragment_add_edit_hw_unit, container, false).apply {
             viewModel = addEditHwUnitViewModel
             lifecycleOwner = this@AddEditHwUnitFragment
             hwUnitSensorRefreshRate.setOnClickListener {
-                showTimePicker()
+                onClickShowTimePicker()
             }
         }
-        addEditHwUnitViewModel.isEditMode.observe(viewLifecycleOwner, Observer {
+        addEditHwUnitViewModel.isEditMode.observe(viewLifecycleOwner, {
             activity?.invalidateOptionsMenu()
             // Animate Layout edit mode change
             TransitionManager.beginDelayedTransition(rootBinding.root as ViewGroup, Fade())
         })
 
         setHasOptionsMenu(true)
+
+        analytics.firebaseAnalytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW, bundleOf(
+                FirebaseAnalytics.Param.SCREEN_NAME to this::class.simpleName,
+                FirebaseAnalytics.Param.ITEM_NAME to args.hwUnitName
+        ))
 
         return rootBinding.root
     }
@@ -66,7 +79,7 @@ class AddEditHwUnitFragment : Fragment() {
                 menu.findItem((R.id.action_save))?.isVisible = true
                 menu.findItem((R.id.action_delete))?.isVisible =
                         arguments?.let {
-                            AddEditHwUnitFragmentArgs.fromBundle(it).hwUnitName.isNotEmpty()
+                            args.hwUnitName.isNotEmpty()
                         } ?: false
                 menu.findItem((R.id.action_edit))?.isVisible = false
             }
@@ -81,8 +94,8 @@ class AddEditHwUnitFragment : Fragment() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         // If showing progress do not allow app bar actions
-        if (addEditHwUnitViewModel.showProgress.value == true) {
-            //return false
+        if (addEditHwUnitViewModel.showProgress.value != false) {
+            return super.onOptionsItemSelected(item)
         }
         return when (item.itemId) {
             R.id.action_edit -> {
@@ -149,12 +162,7 @@ class AddEditHwUnitFragment : Fragment() {
         }
     }
 
-    private fun showTimePicker() {
-        // TODO: Add proper Time Picker
-        context?.let {
-            TimePickerDialog(context, { _: TimePicker, hourOfDay: Int, minute: Int ->
-                addEditHwUnitViewModel.refreshRate.value = (minute * 1000 + hourOfDay * 60 * 1000).toLong()
-            }, 0, 0, true).show()
-        }
+    private fun onClickShowTimePicker() {
+        showTimePicker(context, addEditHwUnitViewModel.refreshRate)
     }
 }

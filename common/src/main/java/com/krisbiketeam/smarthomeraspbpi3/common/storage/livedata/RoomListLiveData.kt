@@ -5,9 +5,11 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.ktx.getValue
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.Room
 import timber.log.Timber
 
+@Deprecated("please use GenericListReferenceFlow")
 class RoomListLiveData(private val databaseReference: DatabaseReference?) : LiveData<List<Room>>() {
 
     private val roomsListener: ValueEventListener by lazy {
@@ -17,7 +19,7 @@ class RoomListLiveData(private val databaseReference: DatabaseReference?) : Live
                 val key = dataSnapshot.key
                 val rooms: ArrayList<Room> = ArrayList()
                 for (r: DataSnapshot in dataSnapshot.children) {
-                    val room = r.getValue(Room::class.java)
+                    val room = r.getValue<Room>()
                     room?.let {
                         rooms.add(room)
                     }

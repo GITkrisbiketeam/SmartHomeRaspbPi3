@@ -15,6 +15,7 @@ import kotlin.reflect.KProperty
 private const val SHARED_FILE = "androidThingsExample"
 private const val EMAIL_KEY = "secureEmailKey"
 private const val PASSWORD_KEY = "securePasswordKey"
+private const val UID_KEY = "secureUidKey"
 private const val HOME_NAME_KEY = "homeNameKey"
 private const val ALARM_ENABLED_KEY = "alarmEnabledKey"
 
@@ -115,7 +116,7 @@ class NotSecureStorage(context: Context, homeInformationRepository: FirebaseHome
             }
 
     override fun isAuthenticated(): Boolean {
-        return firebaseCredentials.email.isNotEmpty() && firebaseCredentials.password.isNotEmpty()
+        return firebaseCredentials.email.isNotEmpty() && firebaseCredentials.password.isNotEmpty() && !firebaseCredentials.uid.isNullOrEmpty()
     }
 
     private fun SharedPreferences.firebaseCredentials():
@@ -124,11 +125,13 @@ class NotSecureStorage(context: Context, homeInformationRepository: FirebaseHome
             override fun getValue(thisRef: Any, property: KProperty<*>) =
                     FirebaseCredentials(
                             getString(EMAIL_KEY, "") ?: "",
-                            getString(PASSWORD_KEY, "") ?: "")
+                            getString(PASSWORD_KEY, "") ?: "",
+                            getString(UID_KEY, "") ?: "")
 
             override fun setValue(thisRef: Any, property: KProperty<*>, value: FirebaseCredentials) {
                 edit().putString(EMAIL_KEY, value.email).apply()
                 edit().putString(PASSWORD_KEY, value.password).apply()
+                edit().putString(UID_KEY, value.uid).apply()
             }
         }
     }

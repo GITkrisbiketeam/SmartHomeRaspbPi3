@@ -48,4 +48,45 @@ data class HwUnitLog<T>(
             value,
             logMessage,
             localtime)
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as HwUnitLog<*>
+
+        if (name != other.name) return false
+        if (location != other.location) return false
+        if (type != other.type) return false
+        if (pinName != other.pinName) return false
+        if (connectionType != other.connectionType) return false
+        if (softAddress != other.softAddress) return false
+        if (pinInterrupt != other.pinInterrupt) return false
+        if (ioPin != other.ioPin) return false
+        if (internalPullUp != other.internalPullUp) return false
+        if (refreshRate != other.refreshRate) return false
+        if (value != other.value) return false
+        if (logMessage != other.logMessage) return false
+        if (localtime != other.localtime) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = name.hashCode()
+        result = 31 * result + location.hashCode()
+        result = 31 * result + type.hashCode()
+        result = 31 * result + pinName.hashCode()
+        result = 31 * result + (connectionType?.hashCode() ?: 0)
+        result = 31 * result + (softAddress ?: 0)
+        result = 31 * result + (pinInterrupt?.hashCode() ?: 0)
+        result = 31 * result + (ioPin?.hashCode() ?: 0)
+        result = 31 * result + (internalPullUp?.hashCode() ?: 0)
+        result = 31 * result + (refreshRate?.hashCode() ?: 0)
+        result = 31 * result + (value?.hashCode() ?: 0)
+        result = 31 * result + (logMessage?.hashCode() ?: 0)
+        return result
+    }
+
+
 }

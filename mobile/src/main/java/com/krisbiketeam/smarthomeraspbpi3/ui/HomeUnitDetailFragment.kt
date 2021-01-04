@@ -1,54 +1,60 @@
 package com.krisbiketeam.smarthomeraspbpi3.ui
 
-import androidx.lifecycle.Observer
-import androidx.databinding.DataBindingUtil
 import android.os.Bundle
-import com.google.android.material.snackbar.Snackbar
+import android.view.*
+import androidx.appcompat.app.AlertDialog
+import androidx.core.os.bundleOf
+import androidx.databinding.DataBindingUtil
+import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import androidx.transition.Fade
 import androidx.transition.TransitionManager
-import androidx.fragment.app.Fragment
-import androidx.appcompat.app.AlertDialog
-import android.view.*
-import androidx.navigation.fragment.findNavController
+import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.analytics.FirebaseAnalytics
 import com.krisbiketeam.smarthomeraspbpi3.R
+import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentHomeUnitDetailBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.HomeUnitDetailViewModel
+import org.koin.android.ext.android.inject
 import org.koin.android.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
 import timber.log.Timber
 
 class HomeUnitDetailFragment : Fragment() {
+
+    private val args: HomeUnitDetailFragmentArgs by navArgs()
+
+    private lateinit var rootBinding: FragmentHomeUnitDetailBinding
+
     private val homeUnitDetailViewModel: HomeUnitDetailViewModel by viewModel {
         parametersOf(
-                arguments?.let { HomeUnitDetailFragmentArgs.fromBundle(it).roomName} ?: "",
-                arguments?.let { HomeUnitDetailFragmentArgs.fromBundle(it).homeUnitName} ?: "",
-                arguments?.let { HomeUnitDetailFragmentArgs.fromBundle(it).homeUnitType} ?: "")
+                arguments?.let { args.roomName} ?: "",
+                arguments?.let { args.homeUnitName} ?: "",
+                arguments?.let { args.homeUnitType} ?: "")
     }
+
+    private val analytics: Analytics by inject()
 
     override fun onCreateView(
             inflater: LayoutInflater,
             container: ViewGroup?,
             savedInstanceState: Bundle?
-    ): View? {
-        val rootBinding = DataBindingUtil.inflate<FragmentHomeUnitDetailBinding>(
+    ): View {
+        rootBinding = DataBindingUtil.inflate<FragmentHomeUnitDetailBinding>(
                 inflater, R.layout.fragment_home_unit_detail, container, false).apply {
             viewModel = homeUnitDetailViewModel
             lifecycleOwner = this@HomeUnitDetailFragment
         }
 
-        homeUnitDetailViewModel.isEditMode.observe(viewLifecycleOwner, Observer { isEditMode ->
+        homeUnitDetailViewModel.isEditMode.observe(viewLifecycleOwner, { isEditMode ->
             // in Edit Mode we need to listen for homeUnitList, as there is no reference in xml layout to trigger its observer, but can we find some better way???
             Timber.d("onCreateView isEditMode: $isEditMode")
-            if (isEditMode == true) {
-                homeUnitDetailViewModel.homeUnitList.observe(viewLifecycleOwner, Observer { })
-            } else {
-                homeUnitDetailViewModel.homeUnitList.removeObservers(viewLifecycleOwner)
-            }
             activity?.invalidateOptionsMenu()
             // Animate Layout edit mode change
             TransitionManager.beginDelayedTransition(rootBinding.root as ViewGroup, Fade())
         })
-        homeUnitDetailViewModel.unitTaskList.observe(viewLifecycleOwner, Observer { taskList ->
+        homeUnitDetailViewModel.unitTaskList.observe(viewLifecycleOwner, { taskList ->
             taskList?.let {
                 Timber.d("onCreateView unitTaskList Observer it: $it")
                 // Update UnitTask list
@@ -58,7 +64,38 @@ class HomeUnitDetailFragment : Fragment() {
 
         setHasOptionsMenu(true)
 
+        analytics.firebaseAnalytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW, bundleOf(
+                FirebaseAnalytics.Param.SCREEN_NAME to this::class.simpleName,
+                FirebaseAnalytics.Param.ITEM_NAME to args.roomName
+        ))
+
         return rootBinding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        rootBinding.hwUnitNameSpinner.setOnLongClickListener {
+            val hwUnitName = homeUnitDetailViewModel.hwUnitName.value
+            if (hwUnitName != null && homeUnitDetailViewModel.isEditMode.value == true) {
+                findNavController().navigate(HomeUnitDetailFragmentDirections.actionHomeUnitDetailFragmentToAddEditHwUnitFragment(hwUnitName))
+                true
+            } else {
+                false
+            }
+        }
+        rootBinding.hwUnitNameSpinner.setOnClickListener {
+            val hwUnitName = homeUnitDetailViewModel.hwUnitName.value
+            if (hwUnitName != null && homeUnitDetailViewModel.isEditMode.value != true) {
+                findNavController().navigate(HomeUnitDetailFragmentDirections.actionHomeUnitDetailFragmentToAddEditHwUnitFragment(hwUnitName))
+            }
+        }
+        rootBinding.homeUnitMinClearButton.setOnClickListener {
+            homeUnitDetailViewModel.clearMinValue()
+        }
+        rootBinding.homeUnitMaxClearButton.setOnClickListener {
+            homeUnitDetailViewModel.clearMaxValue()
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -74,7 +111,7 @@ class HomeUnitDetailFragment : Fragment() {
                 menu.findItem((R.id.action_save))?.isVisible = true
                 menu.findItem((R.id.action_delete))?.isVisible =
                         arguments?.let {
-                            HomeUnitDetailFragmentArgs.fromBundle(it).homeUnitName.isNotEmpty()
+                            args.homeUnitName.isNotEmpty()
                         } ?: false
                 menu.findItem((R.id.action_edit))?.isVisible = false
             }
@@ -89,8 +126,8 @@ class HomeUnitDetailFragment : Fragment() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         // If showing progress do not allow app bar actions
-        if (homeUnitDetailViewModel.showProgress.value == true) {
-            return false
+        if (homeUnitDetailViewModel.showProgress.value != false) {
+            return super.onOptionsItemSelected(item)
         }
         return when (item.itemId) {
             R.id.action_edit -> {

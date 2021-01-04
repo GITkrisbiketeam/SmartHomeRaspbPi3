@@ -15,7 +15,7 @@ class MobileApplication : Application() {
         FirebaseApp.initializeApp(this)
         Timber.plant(object : Timber.DebugTree() {
             override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
-                super.log(priority, "SHRP3_$tag", message, t)
+                super.log(priority, "[${Thread.currentThread().name}] SHRP3_$tag", message, t)
             }
         })
         startKoin {

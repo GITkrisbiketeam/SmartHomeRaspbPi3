@@ -45,4 +45,10 @@
             app:title="Enable/Disable Alarm"
             />
 
+    <Preference
+            app:key="@string/settings_restart_rpi_things_app"
+            app:title="Restart RPi Things App"
+            />
+
+
 </PreferenceScreen>

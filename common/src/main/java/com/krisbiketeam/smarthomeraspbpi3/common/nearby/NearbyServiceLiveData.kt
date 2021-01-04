@@ -34,7 +34,7 @@ class NearbyServiceLiveData(private val nearbyService: NearbyService) : LiveData
         super.observeForever(observer)
     }
 
-    override fun getValue(): Pair<MyLiveDataState, Any>? {
+    override fun getValue(): Pair<MyLiveDataState, Any> {
         return Pair(state, data)
     }
 

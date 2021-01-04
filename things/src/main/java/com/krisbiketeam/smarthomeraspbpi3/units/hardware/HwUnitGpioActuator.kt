@@ -6,7 +6,6 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.ConnectionType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
 import com.krisbiketeam.smarthomeraspbpi3.units.Actuator
 import com.krisbiketeam.smarthomeraspbpi3.units.HwUnitGpio
-import java.util.*
 
 class HwUnitGpioActuator(name: String, location: String, pinName: String,
                          private val activeType: Int, override var gpio: Gpio? = null) :
@@ -15,13 +14,13 @@ class HwUnitGpioActuator(name: String, location: String, pinName: String,
     override val hwUnit: HwUnit =
             HwUnit(name, location, BoardConfig.GPIO_OUTPUT, pinName, ConnectionType.GPIO)
     override var unitValue: Boolean? = null
-    override var valueUpdateTime: String = ""
+    override var valueUpdateTime: Long = System.currentTimeMillis()
 
     @Throws(Exception::class)
     override fun setValue(value: Boolean) {
         unitValue = value
         gpio?.value = value
-        valueUpdateTime = Date().toString()
+        valueUpdateTime = System.currentTimeMillis()
     }
 
     @Throws(Exception::class)

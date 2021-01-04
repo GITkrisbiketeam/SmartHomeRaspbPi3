@@ -1,6 +1,7 @@
 package com.krisbiketeam.smarthomeraspbpi3.ui
 
 import android.content.Context
+import android.content.Intent
 import android.net.wifi.WifiConfiguration
 import android.net.wifi.WifiManager
 import android.os.Bundle
@@ -11,6 +12,11 @@ import androidx.appcompat.app.AppCompatActivity
 import com.google.android.things.userdriver.UserDriverManager
 import com.google.android.things.userdriver.input.InputDriver
 import com.google.android.things.userdriver.input.InputDriverEvent
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.analytics.ktx.analytics
+import com.google.firebase.analytics.ktx.logEvent
+import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.google.firebase.ktx.Firebase
 import com.krisbiketeam.smarthomeraspbpi3.Home
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.Authentication
@@ -31,6 +37,7 @@ import com.krisbiketeam.smarthomeraspbpi3.units.hardware.HwUnitI2CPCF8574ATSenso
 import com.krisbiketeam.smarthomeraspbpi3.utils.ConsoleLoggerTree
 import com.squareup.moshi.Moshi
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.collectLatest
 import org.koin.android.ext.android.inject
 import timber.log.Timber
 import java.io.IOException
@@ -50,6 +57,8 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
     private val homeInformationRepository: FirebaseHomeInformationRepository by inject()
     private lateinit var networkConnectionMonitor: NetworkConnectionMonitor
     private lateinit var wifiManager: WifiManager
+
+    private lateinit var firebaseAnalytics: FirebaseAnalytics
 
     private lateinit var home: Home
     private val ledA: HwUnitI2CPCF8574ATActuator
@@ -135,8 +144,8 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
     }
 
     private val loginResultListener = object : Authentication.LoginResultListener {
-        override fun success() {
-            Timber.d("LoginResultListener success")
+        override fun success(uid: String?) {
+            Timber.d("LoginResultListener success $uid")
             led2.setValueWithException(true)
         }
 
@@ -151,6 +160,10 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
         ConsoleLoggerTree.setLogConsole(this)
+
+        firebaseAnalytics = Firebase.analytics
+
+        homeInformationRepository.clearResetAppFlag()
 
         ledA.connectValueWithException()
         ledB.connectValueWithException()
@@ -186,12 +199,12 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
         led1.setValueWithException(false)
         led2.setValueWithException(false)
 
-        home = Home(secureStorage, homeInformationRepository)
+        home = Home(secureStorage, homeInformationRepository, firebaseAnalytics)
         //home.saveToRepository()
 
         //homeInformationRepository.setHomeReference("test home")
 
-        connectAndSetupJob = launch {
+        connectAndSetupJob = launch(Dispatchers.Default) {
             if (networkConnectionMonitor.isNetworkConnected) {
                 led1.setValueWithException(true)
             } else {
@@ -416,6 +429,11 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
         Timber.d("onStart")
         super.onStart()
 
+        firebaseAnalytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW) {
+            param(FirebaseAnalytics.Param.SCREEN_NAME, "Home")
+            param(FirebaseAnalytics.Param.SCREEN_CLASS, this@ThingsActivity::class.simpleName?: "ThingsActivity")
+        }
+
         networkConnectionMonitor.startListen(networkConnectionListener)
 
         buttonAInputDriver.registerListenerWithException(this)
@@ -429,6 +447,17 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
                 connectAndSetupJob?.join()
                 Timber.d("onStart home.start()")
                 home.start()
+            }
+        }
+
+        launch(Dispatchers.Default) {
+            connectAndSetupJob?.join()
+            homeInformationRepository.restartAppFlow().collectLatest {
+                Timber.e("Remote restart app $it")
+                if (it) {
+                    homeInformationRepository.clearResetAppFlag()
+                    restartApp()
+                }
             }
         }
     }
@@ -464,9 +493,9 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
         super.onDestroy()
     }
 
-    override fun onHwUnitChanged(hwUnit: HwUnit, unitValue: Boolean?, updateTime: String) {
+    override fun onHwUnitChanged(hwUnit: HwUnit, unitValue: Boolean?, updateTime: Long) {
         Timber.d(
-                "onHwUnitChanged hwUnit: $hwUnit ; unitValue: $unitValue ; updateTime: $updateTime")
+                "onHwUnitChanged hwUnit: $hwUnit ; unitValue: $unitValue ; updateTime: ${Date(updateTime)}")
         unitValue?.let {
 
             val keyCode = when (hwUnit.ioPin) {
@@ -515,6 +544,10 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
                         ledA.setValueWithException(true)
                         // start listen for LongKeyPress event
                         event.startTracking()
+
+                        if (ledB.unitValue == true) {
+                            restartApp()
+                        }
                         return true
                     }
                     50 -> {
@@ -541,6 +574,10 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
                         ledB.setValueWithException(true)
                         // start listen for LongKeyPress event
                         event.startTracking()
+
+                        if (ledA.unitValue == true) {
+                            restartApp()
+                        }
                         return true
                     }
                     50 -> {
@@ -623,6 +660,14 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
         authentication.login(secureStorage.firebaseCredentials)
     }
 
+    private fun restartApp() {
+        // TODO: restart app logic
+        val intent = Intent(this, ThingsActivity::class.java)
+        intent.addFlags(
+                Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        startActivity(intent)
+    }
+
     private fun addWiFi(wifiManager: WifiManager, wifiCredentials: WifiCredentials) {
 
         // only WPA is supported right now
@@ -670,14 +715,14 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
         }
     }
 
-    private fun <T: Any>Actuator<T>.setValueWithException(value: T){
+    private fun <T : Any>Actuator<T>.setValueWithException(value: T){
         try {
             setValue(value)
         } catch (e: Exception) {
             addHwUnitErrorEvent(e, "Error updating hwUnit value on $hwUnit")
         }
     }
-    private fun <T: Any>Sensor<T>.readValueWithException(): T?{
+    private fun <T : Any>Sensor<T>.readValueWithException(): T?{
         return try {
             readValue()
         } catch (e: Exception) {
@@ -685,21 +730,21 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
             null
         }
     }
-    private fun <T: Any>Sensor<T>.registerListenerWithException(listener: Sensor.HwUnitListener<T>){
+    private fun <T : Any>Sensor<T>.registerListenerWithException(listener: Sensor.HwUnitListener<T>){
         try {
             registerListener(listener)
         } catch (e: Exception) {
             addHwUnitErrorEvent(e, "Error registerListener hwUnit on $hwUnit")
         }
     }
-    private fun <T: Any> BaseHwUnit<T>.closeValueWithException(){
+    private fun <T : Any> BaseHwUnit<T>.closeValueWithException(){
         try {
             close()
         } catch (e: Exception) {
             addHwUnitErrorEvent(e, "Error closing hwUnit on $hwUnit")
         }
     }
-    private fun <T: Any> BaseHwUnit<T>.connectValueWithException(){
+    private fun <T : Any> BaseHwUnit<T>.connectValueWithException(){
         try {
             connect()
         } catch (e: Exception) {
@@ -710,6 +755,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
     private fun <T : Any> BaseHwUnit<T>.addHwUnitErrorEvent(e: Throwable, logMessage: String) {
         homeInformationRepository.addHwUnitErrorEvent(
                 HwUnitLog(hwUnit, unitValue, e.message, Date().toString()))
+        FirebaseCrashlytics.getInstance().recordException(e)
         Timber.e(e, logMessage)
     }
 }

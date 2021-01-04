@@ -3,10 +3,7 @@ package com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver
 import androidx.annotation.VisibleForTesting
 import com.google.android.things.pio.I2cDevice
 import com.google.android.things.pio.PeripheralManager
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 
 import timber.log.Timber
 
@@ -279,9 +276,10 @@ class MCP9808(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS) : Aut
     init {
         if (bus != null) {
             try {
+                Timber.d("Init")
                 mDevice = PeripheralManager.getInstance()?.openI2cDevice(bus, address)
                 mConfig = readSample16(MCO9808_REG_CONF) ?: 0
-                Timber.d("connect mConfig: $mConfig")
+                Timber.d("Init mConfig: $mConfig")
             } catch (e: Exception) {
                 close()
                 throw Exception("Error Initializing MCP9808", e)
@@ -306,12 +304,13 @@ class MCP9808(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS) : Aut
      */
     @Throws(Exception::class)
     override fun close(){
-        Timber.d("close")
+        Timber.d("close started")
         try {
             mDevice?.close()
         } catch (e: Exception) {
             throw Exception("Error closing MCP9808", e)
         } finally {
+            Timber.d("close finished")
             mDevice = null
         }
     }
@@ -335,7 +334,7 @@ class MCP9808(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS) : Aut
     fun readOneShotTemperature(onResult: (Float?)-> Unit) {
         if (shutdownMode) {
             synchronized(mBuffer) {
-                GlobalScope.launch(Dispatchers.IO) {
+                GlobalScope.launch(Dispatchers.Main) {
                     //disable shutdown
                     shutdownMode = false
                     // Wait 250 ms for conversion to complete

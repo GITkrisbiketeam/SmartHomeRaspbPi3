@@ -11,8 +11,8 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentRoomDetailListItemBinding
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomDetailFragmentDirections
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomListFragment
+import com.krisbiketeam.smarthomeraspbpi3.utils.getLastUpdateTime
 import timber.log.Timber
-import java.util.*
 
 /**
  * Adapter for the [RecyclerView] in [RoomListFragment].
@@ -49,13 +49,14 @@ class RoomDetailHomeUnitListAdapter(private val homeInformationRepository: Fireb
             binding.apply {
                 clickListener = listener
                 homeUnit = item
+                lastUpdateTime = getLastUpdateTime(root.context, item.lastUpdateTime)
                 homeUnitItemSwitch.setOnCheckedChangeListener { _, isChecked ->
                     Timber.d("OnCheckedChangeListener isChecked: $isChecked item: $item")
-                    homeUnit?.apply {
-                        if (value != isChecked) {
-                            value = isChecked
-                            lastUpdateTime = Date().toString()
-                            homeInformationRepository.saveHomeUnit(this)
+                    if (item.value != isChecked) {
+                        item.copy().also { unit ->
+                            unit.value = isChecked
+                            unit.lastUpdateTime = System.currentTimeMillis()
+                            homeInformationRepository.updateHomeUnitValue(unit)
                         }
                     }
                 }

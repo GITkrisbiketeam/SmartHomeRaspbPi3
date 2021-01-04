@@ -41,9 +41,9 @@ fun getFirebaseAppToken(tokenReceived: (String?) -> Unit) {
  *
  * @param token The new token.
  */
-fun sendRegistrationToServer(homeInformationRepository: FirebaseHomeInformationRepository, email: String, token: String) {
-    Timber.d("sendRegistrationToServer email: $email, token: $token")
-    homeInformationRepository.addUserNotiToken(email, token)
+fun sendRegistrationToServer(homeInformationRepository: FirebaseHomeInformationRepository, uid: String, token: String) {
+    Timber.d("sendRegistrationToServer uid: $uid, token: $token")
+    homeInformationRepository.addUserNotiToken(uid, token)
 }
 
 class MyFirebaseMessagingService : FirebaseMessagingService() {
@@ -103,8 +103,8 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         // manage this apps subscriptions on the server side, send the
         // Instance ID token to your app server.
         token.let {
-            secureStorage.firebaseCredentials.email.let { email ->
-                if (email.isNotEmpty()) sendRegistrationToServer(homeInformationRepository, email, token)
+            secureStorage.firebaseCredentials.uid.let { uid ->
+                if (!uid.isNullOrEmpty()) sendRegistrationToServer(homeInformationRepository, uid, token)
             }
         }
     }
