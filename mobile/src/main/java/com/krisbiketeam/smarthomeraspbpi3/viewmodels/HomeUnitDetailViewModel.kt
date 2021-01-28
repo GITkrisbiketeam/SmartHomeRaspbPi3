@@ -180,7 +180,7 @@ class HomeUnitDetailViewModel(application: Application,
     private var homeRepositoryTask: Task<Void>? = null
 
     // used for checking if given homeUnit name is not already used this is populated in hwUnitNameList
-    private var homeUnitOfSelectedTypeList: List<HomeUnit<Any?>> = emptyList()
+    private var homeUnitOfSelectedTypeList: List<HomeUnit<Any>> = emptyList()
 
     init {
         Timber.d("init unitName: $unitName unitType: $unitType roomName: $roomName")

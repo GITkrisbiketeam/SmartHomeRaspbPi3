@@ -12,7 +12,7 @@ import timber.log.Timber
 
 @Deprecated("please use HomeUnitListFlow")
 class HomeUnitListLiveData(private val homeNamePath: String?, private val unitType: String) :
-        LiveData<List<HomeUnit<Any?>>>() {
+        LiveData<List<HomeUnit<Any>>>() {
 
     private val databaseReference: DatabaseReference? by lazy {
         homeNamePath?.let {
@@ -24,9 +24,9 @@ class HomeUnitListLiveData(private val homeNamePath: String?, private val unitTy
         object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 // A new value has been added, add it to the displayed list
-                val homeUnits: ArrayList<HomeUnit<Any?>> = ArrayList()
+                val homeUnits: ArrayList<HomeUnit<Any>> = ArrayList()
                 for (child: DataSnapshot in dataSnapshot.children) {
-                    val homeUnit = child.getValue<HomeUnit<Any?>>()
+                    val homeUnit = child.getValue<HomeUnit<Any>>()
                     homeUnit?.run {
                         homeUnits.add(homeUnit)
                     }

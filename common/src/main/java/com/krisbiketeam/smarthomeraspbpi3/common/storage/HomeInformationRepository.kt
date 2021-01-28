@@ -176,7 +176,7 @@ class FirebaseHomeInformationRepository {
     /**
      *  Adds given @see[HomeUnit] to the log @see[NOTIFICATION_INFORMATION_BASE] list in DB
      */
-    fun notifyHomeUnitEvent(homeUnit: HomeUnit<out Any?>) {
+    fun notifyHomeUnitEvent(homeUnit: HomeUnit<out Any>) {
         referenceNotifications.push().setValue(homeUnit.makeNotification())
     }
     // endregion
@@ -268,7 +268,7 @@ class FirebaseHomeInformationRepository {
     /**
      *  Saves/updates given @see[HomeUnit] in DB
      */
-    fun <T> saveHomeUnit(homeUnit: HomeUnit<T>): Task<Void>? {
+    fun saveHomeUnit(homeUnit: HomeUnit<Any>): Task<Void>? {
         Timber.w("saveHomeUnit $homeUnit")
         //return referenceHomeUnits?.child("${homeUnit.type}/${homeUnit.name}")?.setValue(homeUnit)
         return homePathReference?.let {
@@ -280,7 +280,7 @@ class FirebaseHomeInformationRepository {
     /**
      *  Updates given @see[HomeUnit] value updateTime in DB
      */
-    fun <T> updateHomeUnitValue(homeUnit: HomeUnit<T>): Task<Void>? {
+    fun updateHomeUnitValue(homeUnit: HomeUnit<Any>): Task<Void>? {
         Timber.w("saveHomeUnit $homeUnit")
         return homePathReference?.let {
             Firebase.database.getReference("$it/$HOME_UNITS_BASE/${homeUnit.type}/${homeUnit.name}")
@@ -295,7 +295,7 @@ class FirebaseHomeInformationRepository {
     /**
      *  Deletes given @see[HomeUnit] from DB
      */
-    fun <T> deleteHomeUnit(homeUnit: HomeUnit<T>): Task<Void>? {
+    fun deleteHomeUnit(homeUnit: HomeUnit<Any>): Task<Void>? {
         //return referenceHomeUnits?.child("${homeUnit.type}/${homeUnit.name}")?.setValue(homeUnit)
         return homePathReference?.let {
             Firebase.database.getReference("$it/$HOME_UNITS_BASE/${homeUnit.type}/${homeUnit.name}")
@@ -306,7 +306,7 @@ class FirebaseHomeInformationRepository {
     /**
      *  Clears givens @see[HomeUnit] min value from DB
      */
-    fun <T> clearMinHomeUnitValue(homeUnit: HomeUnit<T>): Task<Void>? {
+    fun clearMinHomeUnitValue(homeUnit: HomeUnit<Any>): Task<Void>? {
         return homePathReference?.let {
             Firebase.database.getReference("$it/$HOME_UNITS_BASE/${homeUnit.type}/${homeUnit.name}").let { reference ->
                 reference.child(HOME_MIN_VAL_LAST_UPDATE).removeValue().continueWithTask {
@@ -319,7 +319,7 @@ class FirebaseHomeInformationRepository {
     /**
      *  Clears givens @see[HomeUnit] min value from DB
      */
-    fun <T> clearMaxHomeUnitValue(homeUnit: HomeUnit<T>): Task<Void>? {
+    fun clearMaxHomeUnitValue(homeUnit: HomeUnit<Any>): Task<Void>? {
         return homePathReference?.let {
             Firebase.database.getReference("$it/$HOME_UNITS_BASE/${homeUnit.type}/${homeUnit.name}").let { reference ->
                 reference.child(HOME_MAX_VAL_LAST_UPDATE).removeValue().continueWithTask {
@@ -559,10 +559,10 @@ class FirebaseHomeInformationRepository {
 
     // region HomeUnit
     /**
-     * get Flow of @see[List<HomeUnit<Any?>>] for listening to changes in entries in DB
+     * get Flow of @see[List<HomeUnit<Any>>] for listening to changes in entries in DB
      */
     @ExperimentalCoroutinesApi
-    fun homeUnitListFlow(unitType: String? = null): Flow<List<HomeUnit<Any?>>> {
+    fun homeUnitListFlow(unitType: String? = null): Flow<List<HomeUnit<Any>>> {
         return homePathReference?.let { home ->
             if (unitType != null) {
                 Firebase.database.getReference("$home/$HOME_UNITS_BASE/$unitType").let { reference ->
@@ -571,7 +571,7 @@ class FirebaseHomeInformationRepository {
             } else {
                 combine(HOME_STORAGE_UNITS.map { type ->
                     Firebase.database.getReference("$home/$HOME_UNITS_BASE/$type").let { reference ->
-                        genericListReferenceFlow<HomeUnit<Any?>>(reference)
+                        genericListReferenceFlow<HomeUnit<Any>>(reference)
                     }
                 }) { types ->
                     types.flatMap { it }
@@ -588,11 +588,11 @@ class FirebaseHomeInformationRepository {
     }
 
     /**
-     * get Flow of @see[HomeUnit<Any?>] for for given unit type and name for listening to changes
+     * get Flow of @see[HomeUnit<Any>] for for given unit type and name for listening to changes
      * in entries in DB
      */
     @ExperimentalCoroutinesApi
-    fun homeUnitFlow(unitType: String, unitName: String): Flow<HomeUnit<Any?>> {
+    fun homeUnitFlow(unitType: String, unitName: String): Flow<HomeUnit<Any>> {
         return homePathReference?.let {
             genericReferenceFlow(Firebase.database.getReference("$it/$HOME_UNITS_BASE/$unitType/$unitName"))
         } ?: emptyFlow()

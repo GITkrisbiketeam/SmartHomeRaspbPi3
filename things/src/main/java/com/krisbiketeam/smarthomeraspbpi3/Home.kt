@@ -45,7 +45,7 @@ class Home(secureStorage: SecureStorage,
            private val firebaseAnalytics: FirebaseAnalytics) :
         Sensor.HwUnitListener<Any> {
     private var homeUnitsLiveData: HomeUnitsLiveData? = null
-    private val homeUnitsList: MutableMap<Pair<String, String>, HomeUnit<Any?>> = ConcurrentHashMap()
+    private val homeUnitsList: MutableMap<Pair<String, String>, HomeUnit<Any>> = ConcurrentHashMap()
 
     private var hwUnitsLiveData: HwUnitsLiveData? = null
     private val hwUnitsList: MutableMap<String, BaseHwUnit<Any>> = ConcurrentHashMap()
@@ -66,49 +66,12 @@ class Home(secureStorage: SecureStorage,
         Timber.d("booleanApplyFunction newVal: $newVal called from: $this")
         if (newVal is Boolean) {
             unitsTasks.values.forEach { task ->
-                homeUnitsList[task.homeUnitType to task.homeUnitName]?.apply {
-                    Timber.d("booleanApplyFunction task: $task for homeUnit: $this")
-                    hwUnitsList[hwUnitName]?.let { taskHwUnit ->
+                homeUnitsList[task.homeUnitType to task.homeUnitName]?.let { taskHomeUnit ->
+                    Timber.d("booleanApplyFunction task: $task for homeUnit: $taskHomeUnit")
+                    hwUnitsList[taskHomeUnit.hwUnitName]?.let { taskHwUnit ->
                         Timber.d("booleanApplyFunction taskHwUnit: ${taskHwUnit.hwUnit}")
-                        if (taskHwUnit is Actuator) {
-                            task.taskJob?.cancel()
-
-                            if ((task.trigger == null || task.trigger == BOTH)
-                                    || (task.trigger == RISING_EDGE && newVal)
-                                    || (task.trigger == FALLING_EDGE && !newVal)) {
-
-                                val action: suspend (Boolean) -> Unit = { actionVal ->
-                                    val newActionVal = (task.inverse ?: false) xor actionVal
-                                    if (value != newActionVal) {
-                                        value = newActionVal
-                                        Timber.d("booleanApplyFunction taskHwUnit actionVal: $actionVal setValue value: $value")
-                                        taskHwUnit.setValueWithException(newActionVal)
-                                        lastUpdateTime = taskHwUnit.valueUpdateTime
-                                        applyFunction(newActionVal)
-                                        homeInformationRepository.saveHomeUnit(this)
-                                        if (firebaseNotify && alarmEnabled) {
-                                            Timber.d("booleanApplyFunction notify with FCM Message")
-                                            homeInformationRepository.notifyHomeUnitEvent(this)
-                                        }
-                                    }
-                                }
-                                task.delay.takeIf { it != null && it > 0 }?.let { delay ->
-                                    task.taskJob = GlobalScope.launch(Dispatchers.Default) {
-                                        delay(delay)
-                                        action.invoke(newVal)
-                                        task.duration?.let { duration ->
-                                            delay(duration)
-                                            action.invoke(!newVal)
-                                        }
-                                    }
-                                } ?: task.duration.takeIf { it != null && it > 0 }?.let { duration ->
-                                    action.invoke(newVal)
-                                    task.taskJob = GlobalScope.launch(Dispatchers.Default) {
-                                        delay(duration)
-                                        action.invoke(!newVal)
-                                    }
-                                } ?: action.invoke(newVal)
-                            }
+                        if (taskHwUnit is Actuator && taskHwUnit.unitValue is Boolean?) {
+                            booleanTaskApply(newVal, task, taskHomeUnit, taskHwUnit)
                         }
                     }
                 }
@@ -122,25 +85,12 @@ class Home(secureStorage: SecureStorage,
         Timber.d("sensorApplyFunction newVal: $newVal this: $this")
         if (newVal is Float) {
             unitsTasks.values.forEach { task ->
-                if (this.name == task.homeUnitName) {
-                    task.delay
-                } else {
-                    homeUnitsList[task.homeUnitType to task.homeUnitName]?.apply {
-                        Timber.d("sensorApplyFunction task: $task for homeUnit: $this")
-                        hwUnitsList[hwUnitName]?.let { taskHwUnit ->
-                            Timber.d("sensorApplyFunction taskHwUnit: $taskHwUnit")
-                            if (taskHwUnit is Actuator) {
-                                value = newVal
-                                Timber.d("sensorApplyFunction taskHwUnit setValue value: $value")
-                                taskHwUnit.setValueWithException(newVal)
-                                lastUpdateTime = taskHwUnit.valueUpdateTime
-                                applyFunction(newVal)
-                                homeInformationRepository.saveHomeUnit(this)
-                                if (firebaseNotify && alarmEnabled) {
-                                    Timber.d("sensorApplyFunction notify with FCM Message")
-                                    homeInformationRepository.notifyHomeUnitEvent(this)
-                                }
-                            }
+                homeUnitsList[task.homeUnitType to task.homeUnitName]?.let { taskHomeUnit ->
+                    Timber.d("sensorApplyFunction task: $task for homeUnit: $this")
+                    hwUnitsList[hwUnitName]?.let { taskHwUnit ->
+                        Timber.d("sensorApplyFunction taskHwUnit: $taskHwUnit")
+                        if (taskHwUnit is Actuator && taskHwUnit.unitValue is Boolean?) {
+                            sensorTaskApply(newVal, task, taskHomeUnit, taskHwUnit)
                         }
                     }
                 }
@@ -150,41 +100,7 @@ class Home(secureStorage: SecureStorage,
         }
     }
 
-    fun start() {
-        Timber.e("start; hwUnitsList.size: ${hwUnitsList.size}")
-        homeUnitsLiveData = homeInformationRepository.homeUnitsLiveData().apply {
-            observeForever(homeUnitsDataObserver)
-        }
-        hwUnitsLiveData = homeInformationRepository.hwUnitsLiveData().apply {
-            observeForever(hwUnitsDataObserver)
-        }
-        hwUnitErrorEventListJob = GlobalScope.launch(Dispatchers.Default) {
-            homeInformationRepository.hwUnitErrorEventListFlow().distinctUntilChanged().collect {
-                hwUnitErrorEventListDataProcessor(it)
-            }
-        }
-        hwUnitRestartListJob = GlobalScope.launch(Dispatchers.Default) {
-            homeInformationRepository.hwUnitRestartListFlow().distinctUntilChanged().collect {
-                hwUnitRestartListProcessor(it)
-            }
-        }
-        alarmEnabledLiveData.observeForever {
-            alarmEnabled = it
-        }
-    }
-
-    fun stop() {
-        Timber.e("stop; hwUnitsList.size: ${hwUnitsList.size}")
-        homeUnitsLiveData?.removeObserver(homeUnitsDataObserver)
-        hwUnitsLiveData?.removeObserver(hwUnitsDataObserver)
-        hwUnitErrorEventListJob?.cancel()
-        hwUnitRestartListJob?.cancel()
-        GlobalScope.launch(Dispatchers.Default) {
-            hwUnitsList.values.forEach { hwUnitStop(it) }
-        }
-    }
-
-    private val homeUnitsDataObserver = Observer<Pair<ChildEventType, HomeUnit<Any?>>> { pair ->
+    private val homeUnitsDataObserver = Observer<Pair<ChildEventType, HomeUnit<Any>>> { pair ->
         Timber.d("homeUnitsDataObserver changed: $pair")
         GlobalScope.launch(Dispatchers.Default) {
             pair?.let { (action, homeUnit) ->
@@ -250,9 +166,10 @@ class Home(secureStorage: SecureStorage,
                                 if (hwUnit is Actuator) {
                                     Timber.d(
                                             "homeUnitsDataObserver NODE_ACTION_ADDED baseUnit setValue value: ${homeUnit.value}")
-                                    homeUnit.lastUpdateTime = hwUnit.valueUpdateTime
                                     homeUnit.value?.let { value ->
                                         hwUnit.setValueWithException(value)
+                                        homeUnit.lastUpdateTime = hwUnit.valueUpdateTime
+
                                     }
                                 } else if (hwUnit is Sensor) {
                                     updateHomeUnitValuesAndTimes(homeUnit, hwUnit.unitValue, hwUnit.valueUpdateTime)
@@ -339,6 +256,40 @@ class Home(secureStorage: SecureStorage,
         }
     }
 
+    fun start() {
+        Timber.e("start; hwUnitsList.size: ${hwUnitsList.size}")
+        homeUnitsLiveData = homeInformationRepository.homeUnitsLiveData().apply {
+            observeForever(homeUnitsDataObserver)
+        }
+        hwUnitsLiveData = homeInformationRepository.hwUnitsLiveData().apply {
+            observeForever(hwUnitsDataObserver)
+        }
+        hwUnitErrorEventListJob = GlobalScope.launch(Dispatchers.Default) {
+            homeInformationRepository.hwUnitErrorEventListFlow().distinctUntilChanged().collect {
+                hwUnitErrorEventListDataProcessor(it)
+            }
+        }
+        hwUnitRestartListJob = GlobalScope.launch(Dispatchers.Default) {
+            homeInformationRepository.hwUnitRestartListFlow().distinctUntilChanged().collect {
+                hwUnitRestartListProcessor(it)
+            }
+        }
+        alarmEnabledLiveData.observeForever {
+            alarmEnabled = it
+        }
+    }
+
+    fun stop() {
+        Timber.e("stop; hwUnitsList.size: ${hwUnitsList.size}")
+        homeUnitsLiveData?.removeObserver(homeUnitsDataObserver)
+        hwUnitsLiveData?.removeObserver(hwUnitsDataObserver)
+        hwUnitErrorEventListJob?.cancel()
+        hwUnitRestartListJob?.cancel()
+        GlobalScope.launch(Dispatchers.Default) {
+            hwUnitsList.values.forEach { hwUnitStop(it) }
+        }
+    }
+
     private suspend fun hwUnitErrorEventListDataProcessor(errorEventList: List<HwUnitLog<Any>>) {
         Timber.e(
                 "hwUnitErrorEventListDataProcessor errorEventList: $errorEventList; errorEventList.size: ${errorEventList.size}")
@@ -419,14 +370,13 @@ class Home(secureStorage: SecureStorage,
                 updateHomeUnitValuesAndTimes(homeUnit, unitValue, updateTime)
                 val newValue = if (homeUnit.type != HOME_LIGHT_SWITCHES) homeUnit.value else homeUnit.secondValue
                 if (newValue != null) {
-                    homeUnit.applyFunction.invoke(homeUnit, newValue)
+                    homeUnit.applyFunction(homeUnit, newValue)
                 }
                 homeInformationRepository.saveHomeUnit(homeUnit)
                 if (homeUnit.firebaseNotify && alarmEnabled) {
                     Timber.d("onHwUnitChanged notify with FCM Message")
                     homeInformationRepository.notifyHomeUnitEvent(homeUnit)
                 }
-
             }
         }
     }
@@ -437,49 +387,6 @@ class Home(secureStorage: SecureStorage,
         }")
         GlobalScope.launch(Dispatchers.Default) {
             hwUnitsList[hwUnit.name]?.addHwUnitErrorEvent(Throwable(), "Error on $hwUnit : error")
-        }
-    }
-
-    private fun updateHomeUnitValuesAndTimes(homeUnit: HomeUnit<Any?>, unitValue: Any?, updateTime: Long){
-        // We need to handel differently values of non Basic Types
-        if (unitValue is TemperatureAndPressure) {
-            Timber.d("Received TemperatureAndPressure ${homeUnit.value}")
-            if (homeUnit.type == HOME_TEMPERATURES) {
-                updateValueMinMax(homeUnit, unitValue.temperature, updateTime)
-            } else if (homeUnit.type == HOME_PRESSURES) {
-                updateValueMinMax(homeUnit, unitValue.pressure, updateTime)
-            }
-        } else if (unitValue is TemperatureAndHumidity) {
-            Timber.d("Received TemperatureAndHumidity ${homeUnit.value}")
-            if (homeUnit.type == HOME_TEMPERATURES) {
-                updateValueMinMax(homeUnit, unitValue.temperature, updateTime)
-            } else if (homeUnit.type == HOME_HUMIDITY) {
-                updateValueMinMax(homeUnit, unitValue.humidity, updateTime)
-            }
-        } else {
-            updateValueMinMax(homeUnit, unitValue, updateTime)
-        }
-    }
-
-    private fun updateValueMinMax(homeUnit: HomeUnit<Any?>, unitValue: Any?, updateTime: Long) {
-        if (homeUnit.type != HOME_LIGHT_SWITCHES) {
-            homeUnit.value = unitValue
-            homeUnit.lastUpdateTime = updateTime
-        } else {
-            homeUnit.secondValue = unitValue
-            homeUnit.secondLastUpdateTime = updateTime
-        }
-        when (unitValue) {
-            is Float -> {
-                if (unitValue <= (homeUnit.min.takeIf { it is Number? } as Number?)?.toFloat() ?: Float.MAX_VALUE) {
-                    homeUnit.min = unitValue
-                    homeUnit.minLastUpdateTime = updateTime
-                }
-                if (unitValue >= (homeUnit.max.takeIf { it is Number? } as Number?)?.toFloat() ?: Float.MIN_VALUE) {
-                    homeUnit.max = unitValue
-                    homeUnit.maxLastUpdateTime = updateTime
-                }
-            }
         }
     }
 
@@ -562,9 +469,71 @@ class Home(secureStorage: SecureStorage,
         unit.closeValueWithException()
     }
 
+    // region applyFunction helper methods
+
+    private suspend fun booleanTaskApply(newVal: Boolean, task: UnitTask, taskHomeUnit: HomeUnit<Any>, taskHwUnit: Actuator<in Boolean>) {
+        task.taskJob?.cancel()
+
+        if ((task.trigger == null || task.trigger == BOTH)
+                || (task.trigger == RISING_EDGE && newVal)
+                || (task.trigger == FALLING_EDGE && !newVal)) {
+            booleanTaskTimed(newVal, task, taskHomeUnit, taskHwUnit)
+        }
+    }
+
+    private suspend fun sensorTaskApply(newVal: Float, task: UnitTask, taskHomeUnit: HomeUnit<Any>, taskHwUnit: Actuator<in Boolean>) {
+        task.threshold?.let { threshold ->
+            if (newVal >= threshold + (task.hysteresis ?: 0f)) {
+                task.taskJob?.cancel()
+                booleanTaskTimed(true, task, taskHomeUnit, taskHwUnit)
+            } else if (newVal <= threshold - (task.hysteresis ?: 0f)) {
+                task.taskJob?.cancel()
+                booleanTaskTimed(false, task, taskHomeUnit, taskHwUnit)
+            }
+        }
+    }
+
+    private suspend fun booleanTaskTimed(newVal: Boolean, task: UnitTask, taskHomeUnit: HomeUnit<Any>, taskHwUnit: Actuator<in Boolean>) {
+        task.delay.takeIf { it != null && it > 0 }?.let { delay ->
+            task.taskJob = GlobalScope.launch(Dispatchers.Default) {
+                delay(delay)
+                booleanApplyAction(newVal, task.inverse, taskHomeUnit, taskHwUnit)
+                task.duration?.let { duration ->
+                    delay(duration)
+                    booleanApplyAction(!newVal, task.inverse, taskHomeUnit, taskHwUnit)
+
+                }
+            }
+        } ?: task.duration.takeIf { it != null && it > 0 }?.let { duration ->
+            booleanApplyAction(newVal, task.inverse, taskHomeUnit, taskHwUnit)
+            task.taskJob = GlobalScope.launch(Dispatchers.Default) {
+                delay(duration)
+                booleanApplyAction(!newVal, task.inverse, taskHomeUnit, taskHwUnit)
+            }
+        } ?: booleanApplyAction(newVal, task.inverse, taskHomeUnit, taskHwUnit)
+    }
+
+    private suspend fun booleanApplyAction(actionVal: Boolean, inverse: Boolean?, taskHomeUnit: HomeUnit<Any>, taskHwUnit: Actuator<in Boolean>) {
+        val newActionVal: Boolean = (inverse ?: false) xor actionVal
+        if (taskHomeUnit.value != newActionVal) {
+            taskHomeUnit.value = newActionVal
+            Timber.d("booleanApplyAction taskHwUnit actionVal: $actionVal setValue value: $newActionVal")
+            taskHwUnit.setValueWithException(newActionVal)
+            taskHomeUnit.lastUpdateTime = taskHwUnit.valueUpdateTime
+            taskHomeUnit.applyFunction(taskHomeUnit, newActionVal)
+            homeInformationRepository.saveHomeUnit(taskHomeUnit)
+            if (taskHomeUnit.firebaseNotify && alarmEnabled) {
+                Timber.d("booleanApplyAction notify with FCM Message")
+                homeInformationRepository.notifyHomeUnitEvent(taskHomeUnit)
+            }
+        }
+    }
+
+    // endregion
+
     // region HwUnit helperFunctions handling HwUnit Exceptions
 
-    private suspend fun <T : Any> Actuator<T>.setValueWithException(value: T) {
+    private suspend fun <T : Any> Actuator<in T>.setValueWithException(value: T) {
         try {
             withContext(Dispatchers.Main) {
                 setValue(value)
@@ -578,7 +547,7 @@ class Home(secureStorage: SecureStorage,
         }
     }
 
-    private suspend fun <T : Any> Sensor<T>.readValueWithException(): T? {
+    private suspend fun <T : Any> Sensor<out T>.readValueWithException(): T? {
         return try {
             withContext(Dispatchers.Main) {
                 readValue()
@@ -594,7 +563,7 @@ class Home(secureStorage: SecureStorage,
         }
     }
 
-    private suspend fun <T : Any> Sensor<T>.registerListenerWithException(
+    private suspend fun <T : Any> Sensor<out T>.registerListenerWithException(
             listener: Sensor.HwUnitListener<T>) {
         try {
             withContext(Dispatchers.Main) {
@@ -613,7 +582,7 @@ class Home(secureStorage: SecureStorage,
         }
     }
 
-    private suspend fun <T : Any> BaseHwUnit<T>.closeValueWithException() {
+    private suspend fun <T : Any> BaseHwUnit<in T>.closeValueWithException() {
         try {
             withContext(Dispatchers.Main) {
                 close()
@@ -626,7 +595,7 @@ class Home(secureStorage: SecureStorage,
         }
     }
 
-    private suspend fun <T : Any> BaseHwUnit<T>.connectValueWithException(): Boolean {
+    private suspend fun <T : Any> BaseHwUnit<in T>.connectValueWithException(): Boolean {
         return try {
             withContext(Dispatchers.Main) {
                 connect()
@@ -641,8 +610,8 @@ class Home(secureStorage: SecureStorage,
         }
     }
 
-    private suspend fun <T : Any> BaseHwUnit<T>.addHwUnitErrorEvent(e: Throwable,
-                                                                    logMessage: String) {
+    private suspend fun <T : Any> BaseHwUnit<in T>.addHwUnitErrorEvent(e: Throwable,
+                                                                       logMessage: String) {
 
         if (!hwUnitErrorEventList.containsKey(hwUnit.name)) {
             hwUnitsList.remove(hwUnit.name)?.let {
@@ -665,3 +634,50 @@ class Home(secureStorage: SecureStorage,
     // endregion
 
 }
+
+// region  HomeUnit values update helper methods
+
+private fun updateHomeUnitValuesAndTimes(homeUnit: HomeUnit<Any>, unitValue: Any?, updateTime: Long) {
+    // We need to handel differently values of non Basic Types
+    if (unitValue is TemperatureAndPressure) {
+        Timber.d("Received TemperatureAndPressure ${homeUnit.value}")
+        if (homeUnit.type == HOME_TEMPERATURES) {
+            updateValueMinMax(homeUnit, unitValue.temperature, updateTime)
+        } else if (homeUnit.type == HOME_PRESSURES) {
+            updateValueMinMax(homeUnit, unitValue.pressure, updateTime)
+        }
+    } else if (unitValue is TemperatureAndHumidity) {
+        Timber.d("Received TemperatureAndHumidity ${homeUnit.value}")
+        if (homeUnit.type == HOME_TEMPERATURES) {
+            updateValueMinMax(homeUnit, unitValue.temperature, updateTime)
+        } else if (homeUnit.type == HOME_HUMIDITY) {
+            updateValueMinMax(homeUnit, unitValue.humidity, updateTime)
+        }
+    } else {
+        updateValueMinMax(homeUnit, unitValue, updateTime)
+    }
+}
+
+private fun updateValueMinMax(homeUnit: HomeUnit<Any>, unitValue: Any?, updateTime: Long) {
+    if (homeUnit.type != HOME_LIGHT_SWITCHES) {
+        homeUnit.value = unitValue
+        homeUnit.lastUpdateTime = updateTime
+    } else {
+        homeUnit.secondValue = unitValue
+        homeUnit.secondLastUpdateTime = updateTime
+    }
+    when (unitValue) {
+        is Float -> {
+            if (unitValue <= (homeUnit.min.takeIf { it is Number? } as Number?)?.toFloat() ?: Float.MAX_VALUE) {
+                homeUnit.min = unitValue
+                homeUnit.minLastUpdateTime = updateTime
+            }
+            if (unitValue >= (homeUnit.max.takeIf { it is Number? } as Number?)?.toFloat() ?: Float.MIN_VALUE) {
+                homeUnit.max = unitValue
+                homeUnit.maxLastUpdateTime = updateTime
+            }
+        }
+    }
+}
+
+// endregion
