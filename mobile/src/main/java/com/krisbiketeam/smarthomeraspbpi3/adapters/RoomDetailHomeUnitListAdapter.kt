@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_LIGHT_SWITCHES
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentRoomDetailListItemBinding
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomDetailFragmentDirections
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomListFragment
@@ -50,6 +51,19 @@ class RoomDetailHomeUnitListAdapter(private val homeInformationRepository: Fireb
                 clickListener = listener
                 homeUnit = item
                 lastUpdateTime = getLastUpdateTime(root.context, item.lastUpdateTime)
+                secondLastUpdateTime = if (item.type == HOME_LIGHT_SWITCHES) {
+                    getLastUpdateTime(root.context, item.secondLastUpdateTime)
+                } else {
+                    null
+                }
+                value = if(item.value is Double || item.value is Float) {
+                    String.format("%.2f", item.value)
+                } else if(item.type == HOME_LIGHT_SWITCHES) {
+                    item.secondValue.toString()
+                } else{
+                    item.value.toString()
+                }
+
                 homeUnitItemSwitch.setOnCheckedChangeListener { _, isChecked ->
                     Timber.d("OnCheckedChangeListener isChecked: $isChecked item: $item")
                     if (item.value != isChecked) {

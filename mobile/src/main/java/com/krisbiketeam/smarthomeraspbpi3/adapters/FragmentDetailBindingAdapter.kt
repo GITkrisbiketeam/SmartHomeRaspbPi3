@@ -116,7 +116,7 @@ var MaterialAutoCompleteTextView.selectedValue: Any?
     }
     set(value) {
         val newValue =
-                value ?: adapter?.getItem(if (adapter.count > 0) 0 else ListView.INVALID_POSITION)
+                value ?: if (adapter?.count?: ListView.INVALID_POSITION > 0) adapter?.getItem(0) else null
         // Disable filtering so that we can select different item from already preselected one
         setText(newValue?.toString(), (adapter as AutoCompleteAdapter?)?.filterable ?: false)
         (adapter as AutoCompleteAdapter?)?.let {
