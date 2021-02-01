@@ -87,8 +87,8 @@ class Home(secureStorage: SecureStorage,
             unitsTasks.values.forEach { task ->
                 homeUnitsList[task.homeUnitType to task.homeUnitName]?.let { taskHomeUnit ->
                     Timber.d("sensorApplyFunction task: $task for homeUnit: $this")
-                    hwUnitsList[hwUnitName]?.let { taskHwUnit ->
-                        Timber.d("sensorApplyFunction taskHwUnit: $taskHwUnit")
+                    hwUnitsList[taskHomeUnit.hwUnitName]?.let { taskHwUnit ->
+                        Timber.d("sensorApplyFunction taskHwUnit: ${taskHwUnit.hwUnit}")
                         if (taskHwUnit is Actuator && taskHwUnit.unitValue is Boolean?) {
                             sensorTaskApply(newVal, task, taskHomeUnit, taskHwUnit)
                         }

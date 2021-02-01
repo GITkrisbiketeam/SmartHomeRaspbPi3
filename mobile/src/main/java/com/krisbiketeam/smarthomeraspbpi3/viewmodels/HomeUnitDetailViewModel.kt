@@ -328,33 +328,31 @@ class HomeUnitDetailViewModel(application: Application,
             type.value?.let { type ->
                 roomName.value?.let { room ->
                     hwUnitName.value?.let { hwUnitName ->
-                        secondHwUnitName.value?.let { secondHwUnitName ->
-                            firebaseNotify.value?.let { firebaseNotify ->
-                                //unitTaskList.value?.let { unitTaskList ->
-                                showProgress.value = true
-                                homeRepository.saveHomeUnit(
-                                        HomeUnit(name = name, type = type, room = room,
-                                                hwUnitName = hwUnitName,
-                                                secondHwUnitName = secondHwUnitName,
-                                                firebaseNotify = firebaseNotify,
-                                                value = homeUnit?.value?.value,
-                                                lastUpdateTime = homeUnit?.value?.lastUpdateTime,
-                                                unitsTasks = unitTaskList.value?.toMutableMap()?.also {
-                                                    it.remove("")
-                                                } ?: HashMap()))?.continueWithTask {
-                                    if (type == HOME_LIGHT_SWITCHES) {
-                                        homeRepository.saveUnitTask(type, name,
-                                                UnitTask(
-                                                        name = name,
-                                                        homeUnitName = name,
-                                                        homeUnitType = type
-                                                ))
-                                    } else {
-                                        Tasks.forResult(null)
-                                    }
+                        firebaseNotify.value?.let { firebaseNotify ->
+                            //unitTaskList.value?.let { unitTaskList ->
+                            showProgress.value = true
+                            homeRepository.saveHomeUnit(
+                                    HomeUnit(name = name, type = type, room = room,
+                                            hwUnitName = hwUnitName,
+                                            secondHwUnitName = secondHwUnitName.value,
+                                            firebaseNotify = firebaseNotify,
+                                            value = homeUnit?.value?.value,
+                                            lastUpdateTime = homeUnit?.value?.lastUpdateTime,
+                                            unitsTasks = unitTaskList.value?.toMutableMap()?.also {
+                                                it.remove("")
+                                            } ?: HashMap()))?.continueWithTask {
+                                if (type == HOME_LIGHT_SWITCHES) {
+                                    homeRepository.saveUnitTask(type, name,
+                                            UnitTask(
+                                                    name = name,
+                                                    homeUnitName = name,
+                                                    homeUnitType = type
+                                            ))
+                                } else {
+                                    Tasks.forResult(null)
                                 }
-                                //}
                             }
+                            //}
                         }
                     }
                 }
