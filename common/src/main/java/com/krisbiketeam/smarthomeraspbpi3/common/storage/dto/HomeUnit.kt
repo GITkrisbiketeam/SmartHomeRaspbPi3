@@ -4,23 +4,23 @@ import com.google.firebase.database.Exclude
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.*
 
 typealias LightType = Boolean
-typealias Light = HomeUnit<LightType?>
+typealias Light = HomeUnit<LightType>
 typealias ActuatorType = Boolean
-typealias Actuator = HomeUnit<LightType?>
+typealias Actuator = HomeUnit<LightType>
 typealias LightSwitchType = Boolean
-typealias LightSwitch = HomeUnit<LightSwitchType?>
+typealias LightSwitch = HomeUnit<LightSwitchType>
 typealias ReedSwitchType = Boolean
-typealias ReedSwitch = HomeUnit<ReedSwitchType?>
+typealias ReedSwitch = HomeUnit<ReedSwitchType>
 typealias MotionType = Boolean
-typealias Motion = HomeUnit<MotionType?>
+typealias Motion = HomeUnit<MotionType>
 typealias TemperatureType = Float
-typealias Temperature = HomeUnit<TemperatureType?>
+typealias Temperature = HomeUnit<TemperatureType>
 typealias PressureType = Float
-typealias Pressure = HomeUnit<PressureType?>
+typealias Pressure = HomeUnit<PressureType>
 typealias HumidityType = Float
-typealias Humidity = HomeUnit<HumidityType?>
+typealias Humidity = HomeUnit<HumidityType>
 typealias BlindType = Int
-typealias Blind = HomeUnit<BlindType?>
+typealias Blind = HomeUnit<BlindType>
 
 val homeUnitTypeIndicatorMap: HashMap<String, Class<out Any?>> = hashMapOf(
         HOME_ACTUATORS to ActuatorType::class.java,
@@ -37,7 +37,7 @@ val HOME_STORAGE_UNITS: List<String> = homeUnitTypeIndicatorMap.keys.toList()
 
 val HOME_ACTION_STORAGE_UNITS: List<String> = listOf(HOME_LIGHT_SWITCHES, HOME_BLINDS, HOME_ACTUATORS)
 
-data class HomeUnit<T>(var name: String = "", // Name should be unique for all units
+data class HomeUnit<T:Any>(var name: String = "", // Name should be unique for all units
                        var type: String = "",
                        var room: String = "",
                        var hwUnitName: String = "",
@@ -52,7 +52,7 @@ data class HomeUnit<T>(var name: String = "", // Name should be unique for all u
                        var maxLastUpdateTime: Long? = null,
                        var firebaseNotify: Boolean = false,
                        var unitsTasks: Map<String,UnitTask> = HashMap()) {
-    constructor(homeUnit: HomeUnit<T?>) : this(
+    constructor(homeUnit: HomeUnit<T>) : this(
             homeUnit.name,
             homeUnit.type,
             homeUnit.room,
@@ -72,9 +72,9 @@ data class HomeUnit<T>(var name: String = "", // Name should be unique for all u
     @Exclude
     @set:Exclude
     @get:Exclude
-    var applyFunction: suspend HomeUnit<T>.(Any) -> Unit = { }
+    var applyFunction: suspend HomeUnit<in Any>.(Any) -> Unit = { }
 
-    fun makeInvariant(): HomeUnit<Any?>{
+    fun makeInvariant(): HomeUnit<Any>{
         return HomeUnit(
                 name,
                 type,
@@ -92,7 +92,7 @@ data class HomeUnit<T>(var name: String = "", // Name should be unique for all u
                 firebaseNotify,
                 unitsTasks)
     }
-    fun makeNotification(): HomeUnit<Any?>{
+    fun makeNotification(): HomeUnit<T>{
         return HomeUnit(
                 name,
                 type,

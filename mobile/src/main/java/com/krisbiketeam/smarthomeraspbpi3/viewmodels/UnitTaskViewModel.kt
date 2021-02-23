@@ -8,6 +8,9 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HOME_ACTION_STORAGE
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.TRIGGER_TYPE_LIST
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.UnitTask
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_HUMIDITY
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_PRESSURES
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_TEMPERATURES
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomDetailFragment
 import com.krisbiketeam.smarthomeraspbpi3.ui.UnitTaskFragment
 import kotlinx.coroutines.Dispatchers
@@ -26,6 +29,8 @@ class UnitTaskViewModel(
         private val unitType: String
 ) : ViewModel() {
     private val addingNewUnit = taskName.isEmpty()
+
+    val isBooleanApplySensor = MutableLiveData(!(unitType == HOME_TEMPERATURES || unitType == HOME_PRESSURES  || unitType == HOME_HUMIDITY))
 
     // Helper LiveData for UnitTaskList
     private val unitTaskList: LiveData<Map<String, UnitTask>> = homeRepository.unitTaskListLiveData(unitType, unitName)
@@ -50,7 +55,7 @@ class UnitTaskViewModel(
         if (edit) {
             Transformations.switchMap(homeUnitType) { type ->
                 homeRepository.homeUnitListFlow(type).map { homeUnitList ->
-                    homeUnitList.map(HomeUnit<Any?>::name)
+                    homeUnitList.map(HomeUnit<Any>::name)
                 }.asLiveData(Dispatchers.Default)
             }
         } else MutableLiveData(emptyList())
@@ -64,6 +69,10 @@ class UnitTaskViewModel(
 
     val delay: MutableLiveData<Long?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.delay } as MutableLiveData<Long?>
     val duration: MutableLiveData<Long?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.duration } as MutableLiveData<Long?>
+
+    val threshold: MutableLiveData<String?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.threshold.toString() } as MutableLiveData<String?>
+    val hysteresis: MutableLiveData<String?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.hysteresis.toString() } as MutableLiveData<String?>
+
     val period: MutableLiveData<Long?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.period } as MutableLiveData<Long?>
     val startTime: MutableLiveData<Long?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.startTime } as MutableLiveData<Long?>
     val endTime: MutableLiveData<Long?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.endTime } as MutableLiveData<Long?>
@@ -96,7 +105,9 @@ class UnitTaskViewModel(
                     unit.duration == duration.value &&
                     unit.period == period.value &&
                     unit.startTime == startTime.value &&
-                    unit.endTime == endTime.value
+                    unit.endTime == endTime.value &&
+                    unit.threshold == threshold.value?.toFloatOrNull() &&
+                    unit.hysteresis == hysteresis.value?.toFloatOrNull()
         } ?: name.value.isNullOrEmpty() || homeUnitType.value.isNullOrEmpty() || homeUnitName.value.isNullOrEmpty()/* || hwUnitName.value.isNullOrEmpty())*/
     }
 
@@ -124,6 +135,8 @@ class UnitTaskViewModel(
                 period.value = unit.period
                 startTime.value = unit.startTime
                 endTime.value = unit.endTime
+                threshold.value = unit.threshold.toString()
+                hysteresis.value = unit.hysteresis.toString()
             }
             false
         }
@@ -212,7 +225,9 @@ class UnitTaskViewModel(
                                     duration = duration.value,
                                     period = period.value,
                                     startTime = startTime.value,
-                                    endTime = endTime.value
+                                    endTime = endTime.value,
+                                    threshold = threshold.value?.toFloatOrNull(),
+                                    hysteresis = hysteresis.value?.toFloatOrNull()
                             ))
                 }
             }

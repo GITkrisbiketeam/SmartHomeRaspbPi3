@@ -19,7 +19,7 @@ import timber.log.Timber
  * Adapter for the [RecyclerView] in [RoomListFragment].
  */
 
-class RoomDetailHomeUnitListAdapter(private val homeInformationRepository: FirebaseHomeInformationRepository) : ListAdapter<HomeUnit<Any?>, RoomDetailHomeUnitListAdapter.ViewHolder>(RoomDetailHomeUnitListAdapterDiffCallback()) {
+class RoomDetailHomeUnitListAdapter(private val homeInformationRepository: FirebaseHomeInformationRepository) : ListAdapter<HomeUnit<Any>, RoomDetailHomeUnitListAdapter.ViewHolder>(RoomDetailHomeUnitListAdapterDiffCallback()) {
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val homeUnit = getItem(position)
         holder.apply {
@@ -33,7 +33,7 @@ class RoomDetailHomeUnitListAdapter(private val homeInformationRepository: Fireb
                 LayoutInflater.from(parent.context), parent, false), homeInformationRepository)
     }
 
-    private fun createOnClickListener(item: HomeUnit<Any?>): View.OnClickListener {
+    private fun createOnClickListener(item: HomeUnit<Any>): View.OnClickListener {
         return View.OnClickListener { view ->
             Timber.d("onClick item: $item")
             val direction = RoomDetailFragmentDirections.actionRoomDetailFragmentToHomeUnitDetailFragment(item.room, item.name, item.type)
@@ -46,7 +46,7 @@ class RoomDetailHomeUnitListAdapter(private val homeInformationRepository: Fireb
             private val homeInformationRepository: FirebaseHomeInformationRepository
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(listener: View.OnClickListener, item: HomeUnit<Any?>) {
+        fun bind(listener: View.OnClickListener, item: HomeUnit<Any>) {
             binding.apply {
                 clickListener = listener
                 homeUnit = item

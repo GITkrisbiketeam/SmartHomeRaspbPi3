@@ -126,6 +126,11 @@
     <string name="unit_task_text_delay">Set Trigger delay</string>
     <string name="unit_task_text_duration_title">Trigger duration:</string>
     <string name="unit_task_text_duration">Set Trigger duration</string>
+    <string name="unit_task_text_threshold_title">Threshold:</string>
+    <string name="unit_task_text_threshold_prompt">Enter Threshold Value</string>
+    <string name="unit_task_text_hysteresis_title">Hysteresis:</string>
+    <string name="unit_task_text_hysteresis_prompt">Enter Hysteresis Value</string>
+
     <string name="unit_task_empty_name_unit_or_hw">Empty Unit Task, please fill in required fields</string>
     <string name="unit_task_empty_home_unit_type">Empty Home Unit Type, please fill in required fields</string>
     <string name="unit_task_empty_home_unit_name">Empty Home Unit Name, please fill in required fields</string>

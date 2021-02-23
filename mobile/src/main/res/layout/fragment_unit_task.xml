@@ -107,6 +107,13 @@
                     android:text="@string/unit_task_text_inverse_switch_title"
                     app:layout_constraintTop_toBottomOf="@id/unit_task_home_unit_name_layout" />
 
+                <androidx.constraintlayout.widget.Group
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    app:constraint_referenced_ids="unit_task_trigger_layout,unit_task_delay_title,unit_task_delay,unit_task_delay_group,unit_task_duration_title,unit_task_duration,unit_task_duration_group"
+                    android:visibility="@{viewModel.isBooleanApplySensor ? View.VISIBLE : View.GONE}"
+                    />
+
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/unit_task_trigger_layout"
                     style="@style/LargeTitleDropDownOutlineInputLayoutStyle"
@@ -190,6 +197,57 @@
                     android:layout_height="0dp"
                     app:layout_constraintBottom_toBottomOf="@+id/unit_task_duration_title"
                     app:layout_constraintTop_toTopOf="@+id/unit_task_duration_title" />
+
+                <androidx.constraintlayout.widget.Group
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:visibility="@{viewModel.isBooleanApplySensor ? View.GONE : View.VISIBLE}"
+                    app:constraint_referenced_ids="unit_task_threshold_layout,unit_task_hysteresis_layout" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/unit_task_threshold_layout"
+                    style="@style/LargeTitleOutlineTextInputLayoutStyle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_small"
+                    android:enabled="@{viewModel.isEditMode}"
+                    android:hint="@string/unit_task_text_threshold_title"
+                    app:errorEnabled="true"
+                    app:helperText="@string/unit_task_text_threshold_prompt"
+                    app:helperTextEnabled="@{viewModel.isEditMode}"
+                    app:hintEnabled="true"
+                    app:layout_constraintTop_toBottomOf="@id/unit_task_inverse_switch">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/unit_task_threshold_edit_text"
+                        style="@style/EnabledColorEditTextStyle"
+                        android:inputType="numberDecimal|numberSigned"
+                        android:text="@={viewModel.threshold}" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/unit_task_hysteresis_layout"
+                    style="@style/LargeTitleOutlineTextInputLayoutStyle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_small"
+                    android:enabled="@{viewModel.isEditMode}"
+                    android:hint="@string/unit_task_text_hysteresis_title"
+                    app:errorEnabled="true"
+                    app:helperText="@string/unit_task_text_hysteresis_prompt"
+                    app:helperTextEnabled="@{viewModel.isEditMode}"
+                    app:hintEnabled="true"
+                    app:layout_constraintTop_toBottomOf="@id/unit_task_threshold_layout">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/unit_task_hysteresis_edit_text"
+                        style="@style/EnabledColorEditTextStyle"
+                        android:inputType="number"
+                        android:text="@={viewModel.hysteresis}" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
