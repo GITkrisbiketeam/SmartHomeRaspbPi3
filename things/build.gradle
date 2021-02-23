@@ -28,6 +28,9 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
 
     buildFeatures {
         // Determines whether to generate a BuildConfig class.
@@ -69,7 +72,7 @@ dependencies {
 
     implementation "androidx.lifecycle:lifecycle-extensions:$androidxLifecycleExtensionsVersion"
 
-    implementation "org.koin:koin-android:2.0.1"
+    implementation "org.koin:koin-android:$koin_version"
 
     implementation "com.squareup.moshi:moshi:$moshiVersion"
     implementation "com.jakewharton.timber:timber:$timberVersion"
