@@ -1,6 +1,7 @@
 package com.krisbiketeam.smarthomeraspbpi3.ui
 
 import android.os.Bundle
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.databinding.DataBindingUtil
@@ -10,6 +11,7 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.NavigationUI
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import com.krisbiketeam.smarthomeraspbpi3.R
@@ -29,10 +31,13 @@ class HomeActivity : AppCompatActivity() {
 
     private val navigationViewModel by viewModel<NavigationViewModel>()
 
+    private lateinit var binding: HomeActivityBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val binding = HomeActivityBinding.inflate(layoutInflater)
+        Timber.d("onCreate homeInformationRepository:$homeInformationRepository")
+        binding = HomeActivityBinding.inflate(layoutInflater)
         val view = binding.root
         setContentView(view)
 
@@ -60,9 +65,14 @@ class HomeActivity : AppCompatActivity() {
             homeInformationRepository.setUserReference(currentUser.uid)
         }
 
-        /*FirebaseAuth.getInstance().addAuthStateListener { firebaseAuth ->
-            Timber.e("AuthStateListener  firebaseAuth:$firebaseAuth currentUser: ${firebaseAuth.currentUser}")
-        }*/
+        FirebaseAuth.getInstance().addAuthStateListener { firebaseAuth ->
+            Timber.e("AuthStateListener  firebaseAuth:$firebaseAuth currentUser: ${firebaseAuth.currentUser?.email}")
+        }
+
+        homeInformationRepository.isUserOnline().observe(this) { userOnline ->
+            Timber.d("isUserOnline  userOnline:$userOnline")
+            binding.homeActivityConnectionProgress.visibility = if (userOnline == true) View.GONE else View.VISIBLE
+        }
 
         DataBindingUtil.inflate<NavHeaderBinding>(layoutInflater, R.layout.nav_header,
                                                   binding.navigationView, false).apply {
@@ -83,5 +93,26 @@ class HomeActivity : AppCompatActivity() {
         } else {
             super.onBackPressed()
         }
+    }
+
+    override fun onDestroy() {
+        Timber.v("onDestroy")
+        super.onDestroy()
+    }
+
+    override fun onResume() {
+        Timber.v("onResume")
+        if (!secureStorage.isAuthenticated()) {
+            binding.homeActivityConnectionProgress.visibility = View.GONE
+        }
+        super.onResume()
+    }
+
+    override fun onPause() {
+        Timber.v("onPause")
+        if (secureStorage.isAuthenticated()) {
+            binding.homeActivityConnectionProgress.visibility = View.VISIBLE
+        }
+        super.onPause()
     }
 }

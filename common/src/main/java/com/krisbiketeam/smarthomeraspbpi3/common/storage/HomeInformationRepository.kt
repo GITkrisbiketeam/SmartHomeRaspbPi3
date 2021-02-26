@@ -90,6 +90,7 @@ class FirebaseHomeInformationRepository {
     // endregion
 
     init {
+        Timber.d("init FirebaseHomeInformationRepository")
         // Enable offline this causes some huge delays :(
         //Firebase.database.setPersistenceEnabled(true)
 
