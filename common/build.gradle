@@ -2,16 +2,12 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
-    buildToolsVersion buildToolsVersion
     compileSdkVersion compileWithSDK
     defaultConfig {
         minSdkVersion minSdkVersionApp
         targetSdkVersion targetedSDK
-        versionCode 1
-        versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-
     }
 
     buildTypes {
@@ -25,15 +21,18 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
 }
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinxCoroutinesAndroid"
+
     implementation "com.jakewharton.timber:timber:$timberVersion"
     implementation "androidx.lifecycle:lifecycle-extensions:$androidxLifecycleExtensionsVersion"
     implementation "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycleLivedataKtxVersion"
-
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinxCoroutinesAndroid"
 
     implementation "androidx.legacy:legacy-support-v4:$androidxLegacySupportV4"
     implementation "androidx.appcompat:appcompat:$androidxAppcompatVersion"

@@ -12,11 +12,14 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import com.krisbiketeam.smarthomeraspbpi3.NavHomeDirections
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.databinding.HomeActivityBinding
 import com.krisbiketeam.smarthomeraspbpi3.databinding.NavHeaderBinding
+import com.krisbiketeam.smarthomeraspbpi3.devicecontrols.CONTROL_ID
+import com.krisbiketeam.smarthomeraspbpi3.devicecontrols.getHomeUnitTypeAndName
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.NavigationViewModel
 import org.koin.android.ext.android.inject
 import org.koin.android.viewmodel.ext.android.viewModel
@@ -51,15 +54,21 @@ class HomeActivity : AppCompatActivity() {
         val currentUser = Firebase.auth.currentUser
         if (currentUser == null || !secureStorage.isAuthenticated()) {
             Timber.d("No Home Name defined, starting HomeSettingsFragment")
-            navController.navigate(R.id.login_settings_fragment)
+            navController.navigate(NavHomeDirections.goToLoginSettingsFragment())
         } else if (secureStorage.homeName.isEmpty()) {
             Timber.d("No Home Name defined, starting HomeSettingsFragment")
-            navController.navigate(R.id.home_settings_fragment)
+            navController.navigate(NavHomeDirections.goToHomeSettingsFragment())
         } else {
             homeInformationRepository.setHomeReference(secureStorage.homeName)
             homeInformationRepository.setUserReference(currentUser.uid)
         }
 
+        val controlId = intent.extras?.getString(CONTROL_ID)
+        if (controlId != null) {
+            val (type, name) = controlId.getHomeUnitTypeAndName()
+            Timber.e("onCreate controlId:$controlId")
+            navController.navigate(NavHomeDirections.goToHomeUnitDetailFragment("", name, type))
+        }
         /*FirebaseAuth.getInstance().addAuthStateListener { firebaseAuth ->
             Timber.e("AuthStateListener  firebaseAuth:$firebaseAuth currentUser: ${firebaseAuth.currentUser}")
         }*/

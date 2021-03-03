@@ -2,12 +2,10 @@ package com.krisbiketeam.smarthomeraspbpi3.ui
 
 import android.app.Activity
 import android.content.Context
-import android.content.Context.WIFI_SERVICE
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
-import android.net.wifi.WifiManager
 import timber.log.Timber
 
 
@@ -48,7 +46,7 @@ class NetworkConnectionMonitor(activity: Activity) : ConnectivityManager.Network
         networkConnectionListener = null
     }
 
-    override fun onLost(network: Network?) {
+    override fun onLost(network: Network) {
         Timber.e("onLost network: $network")
         networkConnectionListener?.onNetworkAvailable(false)
     }
@@ -59,7 +57,7 @@ class NetworkConnectionMonitor(activity: Activity) : ConnectivityManager.Network
     }
 
     @Suppress("DEPRECATION")
-    override fun onAvailable(network: Network?) {
+    override fun onAvailable(network: Network) {
         networkConnectionListener?.onNetworkAvailable(true)
     }
 }

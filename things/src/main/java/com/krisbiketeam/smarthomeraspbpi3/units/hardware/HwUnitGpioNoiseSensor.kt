@@ -43,8 +43,9 @@ class HwUnitGpioNoiseSensor(name: String, location: String, pinName: String, act
                 // Clear any pending checks
                 removeDebounceCallback()
                 // Set a new pending check
-                mPendingCheckDebounce = CheckDebounce(value)
-                mDebounceHandler.postDelayed(mPendingCheckDebounce, debounceDelay)
+                mPendingCheckDebounce = CheckDebounce(value).apply {
+                    mDebounceHandler.postDelayed(this, debounceDelay)
+                }
             }
             // Continue listening for more interrupts
             return true
@@ -78,10 +79,8 @@ class HwUnitGpioNoiseSensor(name: String, location: String, pinName: String, act
      * Clear pending debounce check
      */
     private fun removeDebounceCallback() {
-        if (mPendingCheckDebounce != null) {
-            mDebounceHandler.removeCallbacks(mPendingCheckDebounce)
-            mPendingCheckDebounce = null
-        }
+        mPendingCheckDebounce?.run(mDebounceHandler::removeCallbacks)
+        mPendingCheckDebounce = null
     }
 
     /**

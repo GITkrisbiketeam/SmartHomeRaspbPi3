@@ -293,6 +293,21 @@ class FirebaseHomeInformationRepository {
     }
 
     /**
+     *  Updates given @see[HomeUnit] value updateTime in DB
+     */
+    fun updateHomeUnitValue(homeUnitType: String, homeUnitName: String, newVal: Any?): Task<Void>? {
+        Timber.w("saveHomeUnit $homeUnitType $homeUnitName")
+        return homePathReference?.let {
+            Firebase.database.getReference("$it/$HOME_UNITS_BASE/$homeUnitType/$homeUnitName")
+                    .let { reference ->
+                        reference.child(HOME_VAL).setValue(newVal).continueWithTask {
+                            reference.child(HOME_VAL_LAST_UPDATE).setValue(System.currentTimeMillis())
+                        }
+                    }
+        }
+    }
+
+    /**
      *  Deletes given @see[HomeUnit] from DB
      */
     fun deleteHomeUnit(homeUnit: HomeUnit<Any>): Task<Void>? {

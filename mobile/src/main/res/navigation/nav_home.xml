@@ -2,6 +2,7 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_home"
     app:startDestination="@+id/room_list_fragment">
 
     <fragment
@@ -229,5 +230,35 @@
         android:name="com.krisbiketeam.smarthomeraspbpi3.ui.settings.HomeSettingsFragment"
         android:label="@string/settings_home_title"
         tools:layout="@layout/fragment_settings_home" />
+
+    <action
+        android:id="@+id/goToHomeUnitDetailFragment"
+        app:destination="@id/home_unit_detail_fragment"
+        app:enterAnim="@anim/slide_in_right"
+        app:exitAnim="@anim/slide_out_left"
+        app:popEnterAnim="@anim/slide_in_left"
+        app:popExitAnim="@anim/slide_out_right"
+        >
+    </action>
+
+    <action
+        android:id="@+id/goToLoginSettingsFragment"
+        app:destination="@id/login_settings_fragment"
+        app:enterAnim="@anim/slide_in_right"
+        app:exitAnim="@anim/slide_out_left"
+        app:popEnterAnim="@anim/slide_in_left"
+        app:popExitAnim="@anim/slide_out_right"
+        >
+    </action>
+
+    <action
+        android:id="@+id/goToHomeSettingsFragment"
+        app:destination="@id/home_settings_fragment"
+        app:enterAnim="@anim/slide_in_right"
+        app:exitAnim="@anim/slide_out_left"
+        app:popEnterAnim="@anim/slide_in_left"
+        app:popExitAnim="@anim/slide_out_right"
+        >
+    </action>
 
 </navigation>

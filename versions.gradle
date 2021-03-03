@@ -1,11 +1,14 @@
 ext {
-    targetedSDK = 28
-    compileWithSDK = 28
+    targetedSDK = 30
+    compileWithSDK = 30
     minSdkVersionApp = 23
     minSdkVersionThings = 27
 
     // Languages
     kotlinVersion = '1.4.10'
+
+    kotlinxCoroutinesAndroid = '1.4.2'
+    kotlinxCoroutinesReactive = '1.4.2'
 
     // ClassPath
     gradlePluginVersion = '4.1.1'
@@ -38,9 +41,6 @@ ext {
     contraintLayoutVersion = '1.1.3'
     androidArchComponentsVersion = '1.1.1'
     navigationVersion = '2.3.0'
-    ktxVersion = '0.3'
-    kotlinxCoroutinesAndroid = '1.3.6'
-    kotlinxCoroutinesCore = '1.3.0'
 
     // Things
     rainbowhatVersion = '1.0'
