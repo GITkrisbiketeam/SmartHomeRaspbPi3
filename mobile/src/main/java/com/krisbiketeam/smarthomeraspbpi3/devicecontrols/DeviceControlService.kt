@@ -70,7 +70,7 @@ class DeviceControlService : ControlsProviderService() {
                                         // Required: The name of the control
                                         .setTitle(homeUnit.name)
                                         // Required: Usually the room where the control is located
-                                        .setSubtitle(homeUnit.hwUnitName)
+                                        .setSubtitle(homeUnit.hwUnitName ?: "")
                                         // Optional: Structure where the control is located, an example would be a house
                                         //.setStructure(homeUnit.room)
                                         // Optional: Structure where the control is located, an example would be a house
@@ -88,7 +88,7 @@ class DeviceControlService : ControlsProviderService() {
                                         // Required: The name of the control
                                         .setTitle(homeUnit.name)
                                         // Required: Usually the room where the control is located
-                                        .setSubtitle(homeUnit.hwUnitName)
+                                        .setSubtitle(homeUnit.hwUnitName ?: "")
                                         // Optional: Structure where the control is located, an example would be a house
                                         //.setStructure(homeUnit.room)
                                         // Optional: Structure where the control is located, an example would be a house

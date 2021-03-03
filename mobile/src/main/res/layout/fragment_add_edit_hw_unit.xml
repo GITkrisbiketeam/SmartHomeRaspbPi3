@@ -212,7 +212,8 @@
                     <com.google.android.material.textview.MaterialAutoCompleteTextView
                         android:id="@+id/hw_unit_pin_extender_io_pin_spinner"
                         style="@style/EnabledColorMaterialAutoCompleteTextViewStyle"
-                        app:entriesUsedAutoComplete="@{viewModel.ioPinList}"
+                        app:entriesAutoComplete="@{viewModel.ioPinList}"
+                        app:entriesUsed="@{true}"
                         app:value="@={viewModel.ioPin}" />
 
                 </com.google.android.material.textfield.TextInputLayout>
@@ -236,7 +237,8 @@
                     <com.google.android.material.textview.MaterialAutoCompleteTextView
                         android:id="@+id/hw_unit_pin_interrupt_spinner"
                         style="@style/EnabledColorMaterialAutoCompleteTextViewStyle"
-                        app:entriesUsedAutoComplete="@{viewModel.pinInterruptList}"
+                        app:entriesAutoComplete="@{viewModel.pinInterruptList}"
+                        app:entriesUsed="@{true}"
                         app:value="@={viewModel.pinInterrupt}" />
 
                 </com.google.android.material.textfield.TextInputLayout>

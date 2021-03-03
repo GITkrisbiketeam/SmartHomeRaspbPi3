@@ -44,7 +44,7 @@ fun stateBasedVisibility(view: View, pair: Pair<MyLiveDataState, Any>?) {
     Timber.d("stateBasedVisibility pair: $pair; view: $view")
     pair?.let {
         when (it.first) {
-            MyLiveDataState.CONNECTING                                        -> {
+            MyLiveDataState.CONNECTING -> {
                 view.visibility = if (view is ProgressBar) View.VISIBLE else View.GONE
             }
             MyLiveDataState.INIT, MyLiveDataState.ERROR, MyLiveDataState.DONE -> {
@@ -73,7 +73,7 @@ fun bindSetChecked(switch: SwitchCompat, value: Any?) {
 fun bindEndIconDropDownEnabled(textInputLayout: TextInputLayout, enabled: Boolean? = true) {
     Timber.d("endIconDropDownEnabled BindingAdapter enabled: $enabled")
     if (enabled is Boolean) {
-        if(enabled) {
+        if (enabled) {
             textInputLayout.endIconMode = TextInputLayout.END_ICON_DROPDOWN_MENU
         } else {
             textInputLayout.endIconMode = TextInputLayout.END_ICON_NONE
@@ -116,9 +116,10 @@ var MaterialAutoCompleteTextView.selectedValue: Any?
     }
     set(value) {
         val newValue =
-                value ?: if (adapter?.count?: ListView.INVALID_POSITION > 0) adapter?.getItem(0) else null
+                value
+                        ?: if (adapter?.count ?: ListView.INVALID_POSITION > 0) adapter?.getItem(0) else null
         // Disable filtering so that we can select different item from already preselected one
-        setText(newValue?.toString(), (adapter as AutoCompleteAdapter?)?.filterable ?: false)
+        setText(newValue?.toString(), false)
         (adapter as AutoCompleteAdapter?)?.let {
             if (it.count > 0) {
                 val position = it.getPosition(newValue)
@@ -127,34 +128,11 @@ var MaterialAutoCompleteTextView.selectedValue: Any?
         }
     }
 
-// entriesFilterable does not really work as expected
-@BindingAdapter("entriesAutoComplete", "entriesFilterable", requireAll = false)
-fun MaterialAutoCompleteTextView.setItems(entries: List<Any>?, filterable: Boolean = false) {
+@BindingAdapter("entriesAutoComplete", "entriesWithEmpty", "entriesUsed", requireAll = false)
+fun MaterialAutoCompleteTextView.setItems(entries: List<Any>?, withEmpty: Boolean = false, entriesUsed:Boolean = false) {
     // This is for dynamic entries list, like form ViewModel LiveData
     Timber.d("bindEntriesData entriesAutoComplete: $entries tag: $tag")
     if (entries != null) {
-        setAdapter(
-                AutoCompleteAdapter(context, AutoCompleteAdapterType.DEFAULT, entries, filterable))
-    }
-}
-
-@BindingAdapter("entriesUsedAutoComplete", "entriesFilterable", requireAll = false)
-fun MaterialAutoCompleteTextView.setItemsUsed(entries: List<Any>?, filterable: Boolean = false) {
-    // This is for dynamic entries list, like form ViewModel LiveData
-    Timber.d("bindEntriesData entriesUsedAutoComplete: $entries tag: $tag")
-    if (entries != null) {
-        setAdapter(AutoCompleteAdapter(context, AutoCompleteAdapterType.ENTRIES_USED, entries,
-                                       filterable))
-    }
-}
-
-@BindingAdapter("entriesWithEmptyAutoComplete", "entriesFilterable", requireAll = false)
-fun MaterialAutoCompleteTextView.setItemsWithEmpty(entries: List<Any>?,
-                                                   filterable: Boolean = false) {
-    // This is for dynamic entries list, like form ViewModel LiveData
-    Timber.d("bindEntriesData entriesWithEmptyAutoComplete: $entries tag: $tag")
-    if (entries != null) {
-        setAdapter(AutoCompleteAdapter(context, AutoCompleteAdapterType.WITH_EMPTY, entries,
-                                       filterable))
+        setAdapter(AutoCompleteAdapter(context, entries,entriesUsed,  withEmpty))
     }
 }

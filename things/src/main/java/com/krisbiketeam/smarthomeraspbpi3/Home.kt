@@ -118,25 +118,25 @@ class Home(secureStorage: SecureStorage,
                                     value.taskJob?.cancel()
                                 }
                             }
-                            hwUnitsList[homeUnit.hwUnitName]?.let { hwUnit ->
-                                Timber.d(
-                                        "homeUnitsDataObserver NODE_ACTION_CHANGED hwUnit: ${hwUnit.hwUnit}")
-                                // Actuators can be changed from remote mobile App so apply HomeUnitState to hwUnitState if it changed
-                                if (hwUnit is Actuator) {
-                                    if (homeUnit.value != value) {
+                            homeUnit.value?.let { newValue ->
+                                if (newValue != value) {
+                                    hwUnitsList[homeUnit.hwUnitName]?.let { hwUnit ->
                                         Timber.d(
-                                                "homeUnitsDataObserver NODE_ACTION_CHANGED baseUnit setValue value: ${homeUnit.value}")
-                                        homeUnit.value?.let { newValue ->
+                                                "homeUnitsDataObserver NODE_ACTION_CHANGED hwUnit: ${hwUnit.hwUnit}")
+                                        // Actuators can be changed from remote mobile App so apply HomeUnitState to hwUnitState if it changed
+                                        if (hwUnit is Actuator) {
+                                            Timber.d(
+                                                    "homeUnitsDataObserver NODE_ACTION_CHANGED baseUnit setValue newValue: $newValue")
                                             hwUnit.setValueWithException(newValue)
                                             homeUnit.lastUpdateTime = hwUnit.valueUpdateTime
-                                            homeUnit.applyFunction(newValue)
                                         }
+                                    }
+                                    homeUnit.applyFunction(newValue)
 
-                                        if (homeUnit.firebaseNotify && alarmEnabled) {
-                                            Timber.d(
-                                                    "homeUnitsDataObserver NODE_ACTION_CHANGED notify with FCM Message")
-                                            homeInformationRepository.notifyHomeUnitEvent(homeUnit)
-                                        }
+                                    if (homeUnit.firebaseNotify && alarmEnabled) {
+                                        Timber.d(
+                                                "homeUnitsDataObserver NODE_ACTION_CHANGED notify with FCM Message")
+                                        homeInformationRepository.notifyHomeUnitEvent(homeUnit)
                                     }
                                 }
                             }
@@ -178,10 +178,6 @@ class Home(secureStorage: SecureStorage,
                             }
                         }
                         homeUnitsList[homeUnit.type to homeUnit.name] = homeUnit
-                        //TODO: should we also call applyFunction ???
-                        homeUnit.value?.let { value ->
-                            homeUnit.applyFunction(homeUnit, value)
-                        }
                     }
                     ChildEventType.NODE_ACTION_DELETED -> {
                         val result = homeUnitsList.remove(homeUnit.type to homeUnit.name)

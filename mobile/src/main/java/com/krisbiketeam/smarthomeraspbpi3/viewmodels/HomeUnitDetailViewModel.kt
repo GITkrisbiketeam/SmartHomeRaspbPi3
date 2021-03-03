@@ -217,7 +217,7 @@ class HomeUnitDetailViewModel(application: Application,
         /*name.value.isNullOrEmpty()
         ?: type.value.isNullOrEmpty()
         ?: roomName.value.isNullOrEmpty()
-        ?: hwUnitName.value.isNullOrEmpty()*/ ?: true
+        ?: hwUnitName.value.isNullOrEmpty() ?: true*/
     }
 
     fun actionEdit() {
@@ -257,9 +257,9 @@ class HomeUnitDetailViewModel(application: Application,
                 type.value?.trim()
                         .isNullOrEmpty() -> return Pair(
                         R.string.add_edit_home_unit_empty_unit_type, null)
-                hwUnitName.value?.trim()
+                /*hwUnitName.value?.trim()
                         .isNullOrEmpty() -> return Pair(
-                        R.string.add_edit_home_unit_empty_unit_hw_unit, null)
+                        R.string.add_edit_home_unit_empty_unit_hw_unit, null)*/
                 type.value?.trim() == HOME_LIGHT_SWITCHES && secondHwUnitName.value?.trim()
                         .isNullOrEmpty() -> return Pair(
                         R.string.add_edit_home_unit_empty_unit_second_hw_unit, null)
@@ -327,13 +327,13 @@ class HomeUnitDetailViewModel(application: Application,
         return name.value?.let { name ->
             type.value?.let { type ->
                 roomName.value?.let { room ->
-                    hwUnitName.value?.let { hwUnitName ->
+                    //hwUnitName.value?.let { hwUnitName ->
                         firebaseNotify.value?.let { firebaseNotify ->
                             //unitTaskList.value?.let { unitTaskList ->
                             showProgress.value = true
                             homeRepository.saveHomeUnit(
                                     HomeUnit(name = name, type = type, room = room,
-                                            hwUnitName = hwUnitName,
+                                            hwUnitName = hwUnitName.value,
                                             secondHwUnitName = secondHwUnitName.value,
                                             firebaseNotify = firebaseNotify,
                                             value = homeUnit?.value?.value,
@@ -354,7 +354,7 @@ class HomeUnitDetailViewModel(application: Application,
                             }
                             //}
                         }
-                    }
+                    //}
                 }
             }
         }

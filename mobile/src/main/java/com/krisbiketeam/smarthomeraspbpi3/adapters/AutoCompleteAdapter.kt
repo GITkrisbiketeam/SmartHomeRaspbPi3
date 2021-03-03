@@ -9,20 +9,13 @@ import android.widget.TextView
 import androidx.appcompat.widget.AppCompatImageView
 import com.krisbiketeam.smarthomeraspbpi3.R
 
-enum class AutoCompleteAdapterType {
-    DEFAULT,
-    ENTRIES_USED,
-    WITH_EMPTY
-}
-
-class AutoCompleteAdapter(context: Context, val type: AutoCompleteAdapterType, entries: List<Any>,
-                          val filterable: Boolean) :
-        ArrayAdapter<Any>(context, if (type == AutoCompleteAdapterType.ENTRIES_USED) {
+class AutoCompleteAdapter(context: Context, entries: List<Any>, private val entriesUsed: Boolean = false, withEmpty: Boolean = false) :
+        ArrayAdapter<Any>(context, if (entriesUsed) {
             R.layout.spinner_custom_item
         } else {
             android.R.layout.simple_spinner_dropdown_item
         }, android.R.id.text1, entries.toMutableList().apply {
-            if (type == AutoCompleteAdapterType.WITH_EMPTY) {
+            if (withEmpty) {
                 when {
                     all { it is String } -> add(0, "")
                     all { it is Int } -> add(0, "")
@@ -35,7 +28,7 @@ class AutoCompleteAdapter(context: Context, val type: AutoCompleteAdapterType, e
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
         return super.getView(position, convertView, parent).apply {
-            if (AutoCompleteAdapterType.ENTRIES_USED == type) {
+            if (entriesUsed) {
                 val iconView: AppCompatImageView? = findViewById(R.id.icon1)
                 val textView: TextView? = findViewById(android.R.id.text1)
                 //Timber.d("getDropDownView pos: $position iconView: $iconView")

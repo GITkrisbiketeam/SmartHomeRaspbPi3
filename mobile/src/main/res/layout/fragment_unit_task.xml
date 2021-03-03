@@ -131,7 +131,8 @@
                     <com.google.android.material.textview.MaterialAutoCompleteTextView
                         android:id="@+id/unit_task_trigger_text"
                         style="@style/EnabledColorMaterialAutoCompleteTextViewStyle"
-                        app:entriesWithEmptyAutoComplete="@{viewModel.triggerTypeList}"
+                        app:entriesAutoComplete="@{viewModel.triggerTypeList}"
+                        app:entriesWithEmpty="@{true}"
                         app:value="@={viewModel.trigger}" />
 
                 </com.google.android.material.textfield.TextInputLayout>
