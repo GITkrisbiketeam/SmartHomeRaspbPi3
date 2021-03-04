@@ -515,8 +515,8 @@ class FirebaseHomeInformationRepository {
     }
 
     @ExperimentalCoroutinesApi
-    fun hwUnitFlow(hwUnitName: String): Flow<HwUnit> {
-        return genericReferenceFlow(referenceHWUnits?.child(hwUnitName))
+    fun hwUnitFlow(hwUnitName: String, closeOnEmpty: Boolean = false): Flow<HwUnit> {
+        return genericReferenceFlow(referenceHWUnits?.child(hwUnitName), closeOnEmpty)
     }
 
     // region HW Unit Error/Restart
@@ -562,8 +562,8 @@ class FirebaseHomeInformationRepository {
     }
 
     @ExperimentalCoroutinesApi
-    fun roomUnitFlow(roomName: String): Flow<Room> {
-        return genericReferenceFlow(referenceRooms?.child(roomName))
+    fun roomUnitFlow(roomName: String, closeOnEmpty: Boolean = false): Flow<Room> {
+        return genericReferenceFlow(referenceRooms?.child(roomName), closeOnEmpty)
     }
 
     @ExperimentalCoroutinesApi
@@ -607,9 +607,9 @@ class FirebaseHomeInformationRepository {
      * in entries in DB
      */
     @ExperimentalCoroutinesApi
-    fun homeUnitFlow(unitType: String, unitName: String): Flow<HomeUnit<Any>> {
+    fun homeUnitFlow(unitType: String, unitName: String, closeOnEmpty: Boolean = false): Flow<HomeUnit<Any>> {
         return homePathReference?.let {
-            genericReferenceFlow(Firebase.database.getReference("$it/$HOME_UNITS_BASE/$unitType/$unitName"))
+            genericReferenceFlow(Firebase.database.getReference("$it/$HOME_UNITS_BASE/$unitType/$unitName"), closeOnEmpty)
         } ?: emptyFlow()
     }
 

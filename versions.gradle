@@ -5,7 +5,7 @@ ext {
     minSdkVersionThings = 27
 
     // Languages
-    kotlinVersion = '1.4.10'
+    kotlinVersion = '1.4.31'
 
     kotlinxCoroutinesAndroid = '1.4.2'
     kotlinxCoroutinesReactive = '1.4.2'
