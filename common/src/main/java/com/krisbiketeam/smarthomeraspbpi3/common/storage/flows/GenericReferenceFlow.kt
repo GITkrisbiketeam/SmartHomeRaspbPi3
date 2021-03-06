@@ -8,9 +8,10 @@ import kotlinx.coroutines.channels.sendBlocking
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.conflate
 import timber.log.Timber
+import java.util.concurrent.CancellationException
 
 @ExperimentalCoroutinesApi
-inline fun <reified T> genericListReferenceFlow(databaseReference: DatabaseReference?) = callbackFlow<List<T>> {
+inline fun <reified T> genericListReferenceFlow(databaseReference: DatabaseReference?, closeOnEmpty: Boolean = false) = callbackFlow<List<T>> {
     val eventListener = databaseReference?.addValueEventListener(object : ValueEventListener {
         override fun onCancelled(databaseError: DatabaseError) {
             Timber.e("genericListReferenceFlow  onCancelled $databaseError")
@@ -18,6 +19,10 @@ inline fun <reified T> genericListReferenceFlow(databaseReference: DatabaseRefer
         }
 
         override fun onDataChange(dataSnapshot: DataSnapshot) {
+            if (closeOnEmpty && !dataSnapshot.exists()) {
+                this@callbackFlow.close(CancellationException("Data does not exists ${databaseReference.key}"))
+                return
+            }
             // A new value has been added, add it to the displayed list
             val list: ArrayList<T> = ArrayList()
             for (child: DataSnapshot in dataSnapshot.children) {
@@ -39,7 +44,7 @@ inline fun <reified T> genericListReferenceFlow(databaseReference: DatabaseRefer
 }.conflate()
 
 @ExperimentalCoroutinesApi
-inline fun <reified T> genericMapReferenceFlow(databaseReference: DatabaseReference?) = callbackFlow<Map<String, T>> {
+inline fun <reified T> genericMapReferenceFlow(databaseReference: DatabaseReference?, closeOnEmpty: Boolean = false) = callbackFlow<Map<String, T>> {
     val eventListener = databaseReference?.addValueEventListener(object : ValueEventListener {
         override fun onCancelled(databaseError: DatabaseError) {
             Timber.e("genericMapReferenceFlow onCancelled $databaseError")
@@ -47,6 +52,10 @@ inline fun <reified T> genericMapReferenceFlow(databaseReference: DatabaseRefere
         }
 
         override fun onDataChange(dataSnapshot: DataSnapshot) {
+            if (closeOnEmpty && !dataSnapshot.exists()) {
+                this@callbackFlow.close(CancellationException("Data does not exists ${databaseReference.key}"))
+                return
+            }
             // A new value has been added, add it to the displayed list
             val list: HashMap<String, T> = HashMap()
             for (child: DataSnapshot in dataSnapshot.children) {
@@ -69,7 +78,7 @@ inline fun <reified T> genericMapReferenceFlow(databaseReference: DatabaseRefere
 }.conflate()
 
 @ExperimentalCoroutinesApi
-inline fun <reified T> genericReferenceFlow(databaseReference: DatabaseReference?) = callbackFlow<T> {
+inline fun <reified T> genericReferenceFlow(databaseReference: DatabaseReference?, closeOnEmpty: Boolean = false) = callbackFlow<T> {
     val eventListener = databaseReference?.addValueEventListener(object : ValueEventListener {
         override fun onCancelled(databaseError: DatabaseError) {
             Timber.e("genericReferenceFlow  onCancelled $databaseError")
@@ -77,6 +86,10 @@ inline fun <reified T> genericReferenceFlow(databaseReference: DatabaseReference
         }
 
         override fun onDataChange(dataSnapshot: DataSnapshot) {
+            if (closeOnEmpty && !dataSnapshot.exists()) {
+                this@callbackFlow.close(CancellationException("Data does not exists ${databaseReference.key}"))
+                return
+            }
             // A new value has been added, add it to the displayed list
             val value: T? = dataSnapshot.getValue<T>()
             Timber.e("genericReferenceFlow onDataChange (key=${dataSnapshot.key})(value=$value)")
