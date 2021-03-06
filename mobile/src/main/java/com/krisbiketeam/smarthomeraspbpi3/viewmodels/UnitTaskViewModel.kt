@@ -64,6 +64,7 @@ class UnitTaskViewModel(
 
     val triggerTypeList = TRIGGER_TYPE_LIST
     val trigger: MutableLiveData<String?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.trigger } as MutableLiveData<String?>
+    val resetOnInverseTrigger: MutableLiveData<Boolean?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.resetOnInverseTrigger } as MutableLiveData<Boolean?>
 
     val inverse: MutableLiveData<Boolean?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.inverse } as MutableLiveData<Boolean?>
 
@@ -99,8 +100,9 @@ class UnitTaskViewModel(
                     unit.homeUnitType == homeUnitType.value &&
                     unit.homeUnitName == homeUnitName.value &&
 //            unit.hwUnitName == hwUnitName.value &&
-                    unit.inverse == inverse.value &&
                     unit.trigger == trigger.value &&
+                    unit.resetOnInverseTrigger == resetOnInverseTrigger.value &&
+                    unit.inverse == inverse.value &&
                     unit.delay == delay.value &&
                     unit.duration == duration.value &&
                     unit.period == period.value &&
@@ -128,8 +130,9 @@ class UnitTaskViewModel(
                 homeUnitType.value = unit.homeUnitType
                 homeUnitName.value = unit.homeUnitName
 //                hwUnitName.value = unit.hwUnitName
-                inverse.value = unit.inverse
                 trigger.value = unit.trigger
+                resetOnInverseTrigger.value = unit.resetOnInverseTrigger
+                inverse.value = unit.inverse
                 delay.value = unit.delay
                 duration.value = unit.duration
                 period.value = unit.period
@@ -221,6 +224,7 @@ class UnitTaskViewModel(
                                     //hwUnitName = hwUnitName.value,
                                     inverse = inverse.value,
                                     trigger = trigger.value,
+                                    resetOnInverseTrigger = resetOnInverseTrigger.value,
                                     delay = delay.value,
                                     duration = duration.value,
                                     period = period.value,

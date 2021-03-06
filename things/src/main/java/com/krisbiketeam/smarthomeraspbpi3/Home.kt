@@ -474,6 +474,8 @@ class Home(secureStorage: SecureStorage,
                 || (task.trigger == RISING_EDGE && newVal)
                 || (task.trigger == FALLING_EDGE && !newVal)) {
             booleanTaskTimed(newVal, task, taskHomeUnit, taskHwUnit)
+        } else if(task.resetOnInverseTrigger == true){
+            booleanApplyAction(newVal, task.inverse, taskHomeUnit, taskHwUnit)
         }
     }
 

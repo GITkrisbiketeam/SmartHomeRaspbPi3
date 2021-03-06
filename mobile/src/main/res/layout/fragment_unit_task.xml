@@ -110,7 +110,7 @@
                 <androidx.constraintlayout.widget.Group
                     android:layout_width="0dp"
                     android:layout_height="0dp"
-                    app:constraint_referenced_ids="unit_task_trigger_layout,unit_task_delay_title,unit_task_delay,unit_task_delay_group,unit_task_duration_title,unit_task_duration,unit_task_duration_group"
+                    app:constraint_referenced_ids="unit_task_trigger_layout,unit_task_reset_on_inverse_trigger_switch,unit_task_delay_title,unit_task_delay,unit_task_delay_group,unit_task_duration_title,unit_task_duration,unit_task_duration_group"
                     android:visibility="@{viewModel.isBooleanApplySensor ? View.VISIBLE : View.GONE}"
                     />
 
@@ -137,6 +137,16 @@
 
                 </com.google.android.material.textfield.TextInputLayout>
 
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/unit_task_reset_on_inverse_trigger_switch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:checked="@={viewModel.resetOnInverseTrigger}"
+                    android:clickable="@{safeUnbox(viewModel.isEditMode) ? true : false}"
+                    android:text="@string/unit_task_text_reset_on_inverse_trigger_switch_title"
+                    app:layout_constraintTop_toBottomOf="@id/unit_task_trigger_layout" />
+
+
                 <TextView
                     android:id="@+id/unit_task_delay_title"
                     android:layout_width="wrap_content"
@@ -145,7 +155,7 @@
                     android:text="@string/unit_task_text_delay_title"
                     android:textColor="@color/colorSecondary"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/unit_task_trigger_layout" />
+                    app:layout_constraintTop_toBottomOf="@id/unit_task_reset_on_inverse_trigger_switch" />
 
                 <TextView
                     android:id="@+id/unit_task_delay"

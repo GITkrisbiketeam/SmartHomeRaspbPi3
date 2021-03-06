@@ -120,6 +120,7 @@
     <string name="unit_task_text_hw_unit_select_spinner_prompt"
             tools:keep="@string/unit_task_text_hw_unit_select_spinner_prompt">Select Hw Unit</string>
     <string name="unit_task_text_inverse_switch_title">Inverse trigger logic</string>
+    <string name="unit_task_text_reset_on_inverse_trigger_switch_title">Reset state on inverse Trigger</string>
     <string name="unit_task_text_trigger_title">Trigger Type:</string>
     <string name="unit_task_text_trigger_select_spinner_prompt">Select Trigger Type</string>
     <string name="unit_task_text_delay_title">Trigger delay:</string>
