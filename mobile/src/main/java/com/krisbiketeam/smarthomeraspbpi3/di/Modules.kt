@@ -3,6 +3,7 @@ package com.krisbiketeam.smarthomeraspbpi3.di
 import android.net.ConnectivityManager
 import android.net.wifi.WifiManager
 import com.krisbiketeam.smarthomeraspbpi3.adapters.RoomDetailHomeUnitListAdapter
+import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.Authentication
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.AuthenticationLiveData
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.FirebaseAuthentication
@@ -10,9 +11,8 @@ import com.krisbiketeam.smarthomeraspbpi3.common.nearby.NearbyService
 import com.krisbiketeam.smarthomeraspbpi3.common.nearby.NearbyServiceLiveData
 import com.krisbiketeam.smarthomeraspbpi3.common.nearby.NearbyServiceProvider
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.NotSecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
-import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorageImpl
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.*
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.settings.HomeSettingsViewModel
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.settings.LoginSettingsViewModel
@@ -49,7 +49,7 @@ val myModule: Module = module {
     viewModel { HwUnitErrorEventListViewModel(get()) }
 
     single { FirebaseHomeInformationRepository() }
-    single<SecureStorage> { NotSecureStorage(androidApplication(), get()) }
+    single<SecureStorage> { SecureStorageImpl(androidApplication(), get()) }
     single<Authentication> { FirebaseAuthentication() }
     single { Moshi.Builder().build() }
     single { Analytics() }

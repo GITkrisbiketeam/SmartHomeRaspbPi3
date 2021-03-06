@@ -39,10 +39,8 @@ class HomeUnitDetailViewModel(application: Application,
             if (homeUnit == null) {
                 MutableLiveData(false)
             } else {
-                Transformations.switchMap(homeUnit) {
-                    Transformations.map(homeRepository.isUserOnline()) { online ->
-                        online != true
-                    }
+                Transformations.map(homeUnit) {
+                    false
                 } as MutableLiveData<Boolean>
             }
 
