@@ -74,7 +74,7 @@ class UnitTaskViewModel(
     val threshold: MutableLiveData<String?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.threshold.toString() } as MutableLiveData<String?>
     val hysteresis: MutableLiveData<String?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.hysteresis.toString() } as MutableLiveData<String?>
 
-    val period: MutableLiveData<Long?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.period } as MutableLiveData<Long?>
+    val periodically: MutableLiveData<Boolean?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.periodically } as MutableLiveData<Boolean?>
     val startTime: MutableLiveData<Long?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.startTime } as MutableLiveData<Long?>
     val endTime: MutableLiveData<Long?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.endTime } as MutableLiveData<Long?>
 
@@ -105,7 +105,7 @@ class UnitTaskViewModel(
                     unit.inverse == inverse.value &&
                     unit.delay == delay.value &&
                     unit.duration == duration.value &&
-                    unit.period == period.value &&
+                    unit.periodically == periodically.value &&
                     unit.startTime == startTime.value &&
                     unit.endTime == endTime.value &&
                     unit.threshold == threshold.value?.toFloatOrNull() &&
@@ -135,7 +135,7 @@ class UnitTaskViewModel(
                 inverse.value = unit.inverse
                 delay.value = unit.delay
                 duration.value = unit.duration
-                period.value = unit.period
+                periodically.value = unit.periodically
                 startTime.value = unit.startTime
                 endTime.value = unit.endTime
                 threshold.value = unit.threshold.toString()
@@ -227,7 +227,7 @@ class UnitTaskViewModel(
                                     resetOnInverseTrigger = resetOnInverseTrigger.value,
                                     delay = delay.value,
                                     duration = duration.value,
-                                    period = period.value,
+                                    periodically = periodically.value,
                                     startTime = startTime.value,
                                     endTime = endTime.value,
                                     threshold = threshold.value?.toFloatOrNull(),

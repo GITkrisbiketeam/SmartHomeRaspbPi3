@@ -499,7 +499,9 @@ class Home(secureStorage: SecureStorage,
                 task.duration?.let { duration ->
                     delay(duration)
                     booleanApplyAction(!newVal, task.inverse, taskHomeUnit, taskHwUnit)
-
+                    if (task.periodically == true) {
+                        booleanTaskTimed(newVal, task, taskHomeUnit, taskHwUnit)
+                    }
                 }
             }
         } ?: task.duration.takeIf { it != null && it > 0 }?.let { duration ->
