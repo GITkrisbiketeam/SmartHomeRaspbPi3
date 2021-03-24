@@ -26,6 +26,7 @@ import kotlinx.coroutines.sync.withLock
 import timber.log.Timber
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.coroutines.CoroutineContext
 
 
 const val EVENT_SENSOR_EXCEPTION = "sensor_exception"
@@ -468,12 +469,17 @@ class Home(secureStorage: SecureStorage,
     // region applyFunction helper methods
 
     private suspend fun booleanTaskApply(newVal: Boolean, task: UnitTask, taskHomeUnit: HomeUnit<Any>, taskHwUnit: Actuator<in Boolean>) {
+        Timber.e("booleanTaskApply before cancel task.taskJob:${task.taskJob} isActive:${task.taskJob?.isActive} isCancelled:${task.taskJob?.isCancelled} isCompleted:${task.taskJob?.isCompleted}")
         task.taskJob?.cancel()
+        Timber.e("booleanTaskApply after cancel task.taskJob:${task.taskJob} isActive:${task.taskJob?.isActive} isCancelled:${task.taskJob?.isCancelled} isCompleted:${task.taskJob?.isCompleted}")
 
         if ((task.trigger == null || task.trigger == BOTH)
                 || (task.trigger == RISING_EDGE && newVal)
                 || (task.trigger == FALLING_EDGE && !newVal)) {
-            booleanTaskTimed(newVal, task, taskHomeUnit, taskHwUnit)
+            task.taskJob = GlobalScope.launch(Dispatchers.Default) {
+                booleanTaskTimed(this.coroutineContext, newVal, task, taskHomeUnit, taskHwUnit)
+            }
+            Timber.e("booleanTaskApply after booleanTaskTimed task.taskJob:${task.taskJob} isActive:${task.taskJob?.isActive} isCancelled:${task.taskJob?.isCancelled} isCompleted:${task.taskJob?.isCompleted}")
         } else if(task.resetOnInverseTrigger == true){
             booleanApplyAction(newVal, task.inverse, taskHomeUnit, taskHwUnit)
         }
@@ -483,33 +489,35 @@ class Home(secureStorage: SecureStorage,
         task.threshold?.let { threshold ->
             if (newVal >= threshold + (task.hysteresis ?: 0f)) {
                 task.taskJob?.cancel()
-                booleanTaskTimed(true, task, taskHomeUnit, taskHwUnit)
+                task.taskJob = GlobalScope.launch(Dispatchers.Default) {
+                    booleanTaskTimed(this.coroutineContext, true, task, taskHomeUnit, taskHwUnit)
+                }
             } else if (newVal <= threshold - (task.hysteresis ?: 0f)) {
                 task.taskJob?.cancel()
-                booleanTaskTimed(false, task, taskHomeUnit, taskHwUnit)
+                task.taskJob = GlobalScope.launch(Dispatchers.Default) {
+                    booleanTaskTimed(this.coroutineContext, false, task, taskHomeUnit, taskHwUnit)
+                }
             }
         }
     }
 
-    private suspend fun booleanTaskTimed(newVal: Boolean, task: UnitTask, taskHomeUnit: HomeUnit<Any>, taskHwUnit: Actuator<in Boolean>) {
+    private suspend fun booleanTaskTimed(coroutineContext: CoroutineContext, newVal: Boolean, task: UnitTask, taskHomeUnit: HomeUnit<Any>, taskHwUnit: Actuator<in Boolean>) {
         task.delay.takeIf { it != null && it > 0 }?.let { delay ->
-            task.taskJob = GlobalScope.launch(Dispatchers.Default) {
-                delay(delay)
-                booleanApplyAction(newVal, task.inverse, taskHomeUnit, taskHwUnit)
-                task.duration?.let { duration ->
-                    delay(duration)
-                    booleanApplyAction(!newVal, task.inverse, taskHomeUnit, taskHwUnit)
-                    if (task.periodically == true) {
-                        booleanTaskTimed(newVal, task, taskHomeUnit, taskHwUnit)
+            delay(delay)
+            booleanApplyAction(newVal, task.inverse, taskHomeUnit, taskHwUnit)
+            task.duration?.let { duration ->
+                delay(duration)
+                booleanApplyAction(!newVal, task.inverse, taskHomeUnit, taskHwUnit)
+                if (task.periodically == true) {
+                    withContext(coroutineContext) {
+                        booleanTaskTimed(coroutineContext, newVal, task, taskHomeUnit, taskHwUnit)
                     }
                 }
             }
         } ?: task.duration.takeIf { it != null && it > 0 }?.let { duration ->
             booleanApplyAction(newVal, task.inverse, taskHomeUnit, taskHwUnit)
-            task.taskJob = GlobalScope.launch(Dispatchers.Default) {
-                delay(duration)
-                booleanApplyAction(!newVal, task.inverse, taskHomeUnit, taskHwUnit)
-            }
+            delay(duration)
+            booleanApplyAction(!newVal, task.inverse, taskHomeUnit, taskHwUnit)
         } ?: booleanApplyAction(newVal, task.inverse, taskHomeUnit, taskHwUnit)
     }
 
@@ -517,7 +525,7 @@ class Home(secureStorage: SecureStorage,
         val newActionVal: Boolean = (inverse ?: false) xor actionVal
         if (taskHomeUnit.value != newActionVal) {
             taskHomeUnit.value = newActionVal
-            Timber.d("booleanApplyAction taskHwUnit actionVal: $actionVal setValue value: $newActionVal")
+            Timber.w("booleanApplyAction taskHwUnit actionVal: $actionVal setValue value: $newActionVal")
             taskHwUnit.setValueWithException(newActionVal)
             taskHomeUnit.lastUpdateTime = taskHwUnit.valueUpdateTime
             taskHomeUnit.applyFunction(taskHomeUnit, newActionVal)
