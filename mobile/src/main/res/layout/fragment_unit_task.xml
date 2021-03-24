@@ -110,7 +110,7 @@
                 <androidx.constraintlayout.widget.Group
                     android:layout_width="0dp"
                     android:layout_height="0dp"
-                    app:constraint_referenced_ids="unit_task_trigger_layout,unit_task_reset_on_inverse_trigger_switch,unit_task_delay_title,unit_task_delay,unit_task_delay_group,unit_task_duration_title,unit_task_duration,unit_task_duration_group,unit_task_periodically_switch"
+                    app:constraint_referenced_ids="unit_task_trigger_layout,unit_task_reset_on_inverse_trigger_switch,unit_task_delay_title,unit_task_delay,unit_task_delay_group,unit_task_duration_title,unit_task_duration,unit_task_duration_group,unit_task_periodically_switch, unit_task_periodically_only_hw_switch"
                     android:visibility="@{viewModel.isBooleanApplySensor ? View.VISIBLE : View.GONE}"
                     />
 
@@ -174,6 +174,7 @@
                     android:id="@+id/unit_task_delay_group"
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
+                    android:clickable="@{safeUnbox(viewModel.isEditMode) ? true : false}"
                     app:layout_constraintBottom_toBottomOf="@+id/unit_task_delay_title"
                     app:layout_constraintTop_toTopOf="@+id/unit_task_delay_title" />
 
@@ -205,6 +206,7 @@
                     android:id="@+id/unit_task_duration_group"
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
+                    android:clickable="@{safeUnbox(viewModel.isEditMode) ? true : false}"
                     app:layout_constraintBottom_toBottomOf="@+id/unit_task_duration_title"
                     app:layout_constraintTop_toTopOf="@+id/unit_task_duration_title" />
 
@@ -216,6 +218,16 @@
                     android:clickable="@{safeUnbox(viewModel.isEditMode) ? true : false}"
                     android:text="@string/unit_task_text_periodically_switch_title"
                     app:layout_constraintTop_toBottomOf="@id/unit_task_duration" />
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/unit_task_periodically_only_hw_switch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:checked="@={viewModel.periodicallyOnlyHw}"
+                    android:clickable="@{safeUnbox(viewModel.isEditMode) ? true : false}"
+                    android:visibility="@{viewModel.periodically ? View.VISIBLE : View.GONE}"
+                    android:text="@string/unit_task_text_periodically_only_hw_switch_title"
+                    app:layout_constraintTop_toBottomOf="@id/unit_task_periodically_switch" />
 
                 <androidx.constraintlayout.widget.Group
                     android:layout_width="0dp"

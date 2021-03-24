@@ -75,6 +75,8 @@ class UnitTaskViewModel(
     val hysteresis: MutableLiveData<String?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.hysteresis.toString() } as MutableLiveData<String?>
 
     val periodically: MutableLiveData<Boolean?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.periodically } as MutableLiveData<Boolean?>
+    val periodicallyOnlyHw: MutableLiveData<Boolean?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.periodicallyOnlyHw } as MutableLiveData<Boolean?>
+
     val startTime: MutableLiveData<Long?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.startTime } as MutableLiveData<Long?>
     val endTime: MutableLiveData<Long?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.endTime } as MutableLiveData<Long?>
 
@@ -106,6 +108,7 @@ class UnitTaskViewModel(
                     unit.delay == delay.value &&
                     unit.duration == duration.value &&
                     unit.periodically == periodically.value &&
+                    unit.periodicallyOnlyHw == periodicallyOnlyHw.value &&
                     unit.startTime == startTime.value &&
                     unit.endTime == endTime.value &&
                     unit.threshold == threshold.value?.toFloatOrNull() &&
@@ -136,6 +139,7 @@ class UnitTaskViewModel(
                 delay.value = unit.delay
                 duration.value = unit.duration
                 periodically.value = unit.periodically
+                periodicallyOnlyHw.value = unit.periodicallyOnlyHw
                 startTime.value = unit.startTime
                 endTime.value = unit.endTime
                 threshold.value = unit.threshold.toString()
@@ -228,6 +232,7 @@ class UnitTaskViewModel(
                                     delay = delay.value,
                                     duration = duration.value,
                                     periodically = periodically.value,
+                                    periodicallyOnlyHw = periodicallyOnlyHw.value,
                                     startTime = startTime.value,
                                     endTime = endTime.value,
                                     threshold = threshold.value?.toFloatOrNull(),

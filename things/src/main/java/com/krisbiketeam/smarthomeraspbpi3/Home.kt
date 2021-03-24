@@ -26,7 +26,6 @@ import kotlinx.coroutines.sync.withLock
 import timber.log.Timber
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.coroutines.CoroutineContext
 
 
 const val EVENT_SENSOR_EXCEPTION = "sensor_exception"
@@ -477,11 +476,13 @@ class Home(secureStorage: SecureStorage,
                 || (task.trigger == RISING_EDGE && newVal)
                 || (task.trigger == FALLING_EDGE && !newVal)) {
             task.taskJob = GlobalScope.launch(Dispatchers.Default) {
-                booleanTaskTimed(this.coroutineContext, newVal, task, taskHomeUnit, taskHwUnit)
+                do {
+                    booleanTaskTimed(newVal, task, taskHomeUnit, taskHwUnit)
+                } while (this.isActive && task.periodically == true && task.delay.isValidTime() && task.duration.isValidTime())
             }
             Timber.e("booleanTaskApply after booleanTaskTimed task.taskJob:${task.taskJob} isActive:${task.taskJob?.isActive} isCancelled:${task.taskJob?.isCancelled} isCompleted:${task.taskJob?.isCompleted}")
-        } else if(task.resetOnInverseTrigger == true){
-            booleanApplyAction(newVal, task.inverse, taskHomeUnit, taskHwUnit)
+        } else if (task.resetOnInverseTrigger == true) {
+            booleanApplyAction(newVal, task.inverse, task.periodicallyOnlyHw, taskHomeUnit, taskHwUnit)
         }
     }
 
@@ -490,49 +491,46 @@ class Home(secureStorage: SecureStorage,
             if (newVal >= threshold + (task.hysteresis ?: 0f)) {
                 task.taskJob?.cancel()
                 task.taskJob = GlobalScope.launch(Dispatchers.Default) {
-                    booleanTaskTimed(this.coroutineContext, true, task, taskHomeUnit, taskHwUnit)
+                    booleanTaskTimed(true, task, taskHomeUnit, taskHwUnit)
                 }
             } else if (newVal <= threshold - (task.hysteresis ?: 0f)) {
                 task.taskJob?.cancel()
                 task.taskJob = GlobalScope.launch(Dispatchers.Default) {
-                    booleanTaskTimed(this.coroutineContext, false, task, taskHomeUnit, taskHwUnit)
+                    booleanTaskTimed(false, task, taskHomeUnit, taskHwUnit)
                 }
             }
         }
     }
 
-    private suspend fun booleanTaskTimed(coroutineContext: CoroutineContext, newVal: Boolean, task: UnitTask, taskHomeUnit: HomeUnit<Any>, taskHwUnit: Actuator<in Boolean>) {
+    private suspend fun booleanTaskTimed(newVal: Boolean, task: UnitTask, taskHomeUnit: HomeUnit<Any>, taskHwUnit: Actuator<in Boolean>) {
         task.delay.takeIf { it != null && it > 0 }?.let { delay ->
             delay(delay)
-            booleanApplyAction(newVal, task.inverse, taskHomeUnit, taskHwUnit)
+            booleanApplyAction(newVal, task.inverse, task.periodicallyOnlyHw, taskHomeUnit, taskHwUnit)
             task.duration?.let { duration ->
                 delay(duration)
-                booleanApplyAction(!newVal, task.inverse, taskHomeUnit, taskHwUnit)
-                if (task.periodically == true) {
-                    withContext(coroutineContext) {
-                        booleanTaskTimed(coroutineContext, newVal, task, taskHomeUnit, taskHwUnit)
-                    }
-                }
+                booleanApplyAction(!newVal, task.inverse, task.periodicallyOnlyHw, taskHomeUnit, taskHwUnit)
             }
         } ?: task.duration.takeIf { it != null && it > 0 }?.let { duration ->
-            booleanApplyAction(newVal, task.inverse, taskHomeUnit, taskHwUnit)
+            booleanApplyAction(newVal, task.inverse, task.periodicallyOnlyHw, taskHomeUnit, taskHwUnit)
             delay(duration)
-            booleanApplyAction(!newVal, task.inverse, taskHomeUnit, taskHwUnit)
-        } ?: booleanApplyAction(newVal, task.inverse, taskHomeUnit, taskHwUnit)
+            booleanApplyAction(!newVal, task.inverse, task.periodicallyOnlyHw, taskHomeUnit, taskHwUnit)
+        } ?: booleanApplyAction(newVal, task.inverse, task.periodicallyOnlyHw, taskHomeUnit, taskHwUnit)
     }
 
-    private suspend fun booleanApplyAction(actionVal: Boolean, inverse: Boolean?, taskHomeUnit: HomeUnit<Any>, taskHwUnit: Actuator<in Boolean>) {
+    private suspend fun booleanApplyAction(actionVal: Boolean, inverse: Boolean?, periodicallyOnlyHw: Boolean?, taskHomeUnit: HomeUnit<Any>, taskHwUnit: Actuator<in Boolean>) {
         val newActionVal: Boolean = (inverse ?: false) xor actionVal
         if (taskHomeUnit.value != newActionVal) {
             taskHomeUnit.value = newActionVal
             Timber.w("booleanApplyAction taskHwUnit actionVal: $actionVal setValue value: $newActionVal")
-            taskHwUnit.setValueWithException(newActionVal)
-            taskHomeUnit.lastUpdateTime = taskHwUnit.valueUpdateTime
-            taskHomeUnit.applyFunction(taskHomeUnit, newActionVal)
-            homeInformationRepository.saveHomeUnit(taskHomeUnit)
-            if (taskHomeUnit.firebaseNotify && alarmEnabled) {
-                Timber.d("booleanApplyAction notify with FCM Message")
-                homeInformationRepository.notifyHomeUnitEvent(taskHomeUnit)
+            taskHwUnit.setValueWithException(newActionVal, periodicallyOnlyHw != true)
+            if (periodicallyOnlyHw != true) {
+                taskHomeUnit.lastUpdateTime = taskHwUnit.valueUpdateTime
+                taskHomeUnit.applyFunction(taskHomeUnit, newActionVal)
+                homeInformationRepository.saveHomeUnit(taskHomeUnit)
+                if (taskHomeUnit.firebaseNotify && alarmEnabled) {
+                    Timber.d("booleanApplyAction notify with FCM Message")
+                    homeInformationRepository.notifyHomeUnitEvent(taskHomeUnit)
+                }
             }
         }
     }
@@ -541,14 +539,16 @@ class Home(secureStorage: SecureStorage,
 
     // region HwUnit helperFunctions handling HwUnit Exceptions
 
-    private suspend fun <T : Any> Actuator<in T>.setValueWithException(value: T) {
+    private suspend fun <T : Any> Actuator<in T>.setValueWithException(value: T, logEvent: Boolean = true) {
         try {
             withContext(Dispatchers.Main) {
                 setValue(value)
             }
-            firebaseAnalytics.logEvent(EVENT_SENSOR_SET_VALUE) {
-                param(SENSOR_NAME, this@setValueWithException.hwUnit.name)
-                param(SENSOR_VALUE, value.toString())
+            if (logEvent) {
+                firebaseAnalytics.logEvent(EVENT_SENSOR_SET_VALUE) {
+                    param(SENSOR_NAME, this@setValueWithException.hwUnit.name)
+                    param(SENSOR_VALUE, value.toString())
+                }
             }
         } catch (e: Exception) {
             addHwUnitErrorEvent(e, "Error updating hwUnit value on $hwUnit")
@@ -689,3 +689,7 @@ private fun updateValueMinMax(homeUnit: HomeUnit<Any>, unitValue: Any?, updateTi
 }
 
 // endregion
+
+private fun Long?.isValidTime(): Boolean {
+    return this != null && this > 0
+}
