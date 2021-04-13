@@ -7,10 +7,7 @@ import com.google.android.gms.tasks.Tasks
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.adapters.UnitTaskListAdapter
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HOME_STORAGE_UNITS
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.Room
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.UnitTask
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.*
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_LIGHT_SWITCHES
 import com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitDetailFragment
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomDetailFragment
@@ -343,8 +340,9 @@ class HomeUnitDetailViewModel(application: Application,
                                     homeRepository.saveUnitTask(type, name,
                                             UnitTask(
                                                     name = name,
-                                                    homeUnitName = name,
-                                                    homeUnitType = type
+                                                    //homeUnitName = name,
+                                                    //homeUnitType = type,
+                                                    homeUnitsList = listOf(UnitTaskHomeUnit(type, name))
                                             ))
                                 } else {
                                     Tasks.forResult(null)

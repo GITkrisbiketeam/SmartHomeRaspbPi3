@@ -16,8 +16,9 @@ const val FALLING_EDGE = "falling_edge"
 val TRIGGER_TYPE_LIST: List<String> = listOf(BOTH, RISING_EDGE,FALLING_EDGE)
 
 data class UnitTask(var name: String = "",
-                    var homeUnitName: String = "",
-                    var homeUnitType: String = "",
+                    //var homeUnitName: String = "",
+                    //var homeUnitType: String = "",
+                    var homeUnitsList: List<UnitTaskHomeUnit> = emptyList(),
                     //var hwUnitName: String? = null,
                     @TriggerType var trigger: String? = null,
                     var inverse: Boolean? = null,
@@ -36,3 +37,5 @@ data class UnitTask(var name: String = "",
     @get:Exclude
     var taskJob: Job? = null
 }
+
+data class UnitTaskHomeUnit(val type:String = "", val name: String = "")

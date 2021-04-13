@@ -447,7 +447,7 @@ class FirebaseHomeInformationRepository {
      *  Adds given @see[HwUnitLog] to the log @see[LOG_INFORMATION_BASE] list in DB
      */
     fun logUnitEvent(hwUnitLog: HwUnitLog<out Any>) {
-        referenceLog?.push()?.setValue(hwUnitLog)
+        referenceLog?.child(hwUnitLog.name)?.push()?.setValue(hwUnitLog)
     }
 
     /**

@@ -4,6 +4,7 @@ import android.text.TextUtils
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ListView
+import android.widget.MultiAutoCompleteTextView
 import android.widget.ProgressBar
 import androidx.appcompat.widget.SwitchCompat
 import androidx.constraintlayout.widget.Group
@@ -133,6 +134,36 @@ fun MaterialAutoCompleteTextView.setItems(entries: List<Any>?, withEmpty: Boolea
     // This is for dynamic entries list, like form ViewModel LiveData
     Timber.d("bindEntriesData entriesAutoComplete: $entries tag: $tag")
     if (entries != null) {
-        setAdapter(AutoCompleteAdapter(context, entries,entriesUsed,  withEmpty))
+        setAdapter(AutoCompleteAdapter(context, entries, entriesUsed,  withEmpty))
+    }
+}
+
+@BindingAdapter("entries")
+fun MultiAutoCompleteTextView.setItems(entries: List<Any>?) {
+    // This is for dynamic entries list, like form ViewModel LiveData
+    Timber.d("bindEntriesData entriesAutoComplete: $entries tag: $tag")
+    if (entries != null) {
+        setAdapter(AutoCompleteAdapter(context, entries, false,  false))
+    }
+}
+
+@BindingAdapter("defaultComaTokenizer")
+fun defaultComaTokenizer(view: MultiAutoCompleteTextView, add: Boolean?) {
+    Timber.d("defaultComaTokenizer $add")
+    if (add == true) {
+        view.setTokenizer(object : MultiAutoCompleteTextView.CommaTokenizer(){
+            override fun terminateToken(text: CharSequence): CharSequence {
+                return if(view.text.contains(text, ignoreCase = true)){
+                    // selecting the same item will remove it so return empty text and remove this text from MultiAutoCompleteTextView in separate thread
+                    view.post {
+                        val startIdx = view.text.indexOf(text.toString(), 0, true)
+                        view.text = view.text.replace(startIdx, kotlin.math.min(startIdx + text.length + 2, view.text.length), "")
+                    }
+                    ""
+                } else {
+                    super.terminateToken(text)
+                }
+            }
+        })
     }
 }

@@ -55,6 +55,30 @@
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/unit_task_home_unit_type_name_list_layout"
+                    style="@style/LargeTitleDropDownOutlineInputLayoutStyle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_small"
+                    android:enabled="@{viewModel.isEditMode}"
+                    android:hint="@string/unit_task_text_home_unit_name_title"
+                    app:endIconDropDownEnabled="@{viewModel.isEditMode}"
+                    app:helperText="@string/unit_task_text_home_unit_nam_select_spinner_prompt"
+                    app:helperTextEnabled="@{viewModel.isEditMode}"
+                    app:hintEnabled="true"
+                    app:layout_constraintTop_toBottomOf="@id/unit_task_name_layout">
+
+                    <MultiAutoCompleteTextView
+                        android:id="@+id/unit_task_home_type_name_list"
+                        style="@style/EnabledColorMaterialAutoCompleteTextViewStyle"
+                        app:defaultComaTokenizer="@{true}"
+                        app:entries="@{viewModel.homeUnitsTypeNameList}"
+                        android:text="@={viewModel.homeUnitsTypeName}"
+                        />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!--<com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/unit_task_home_unit_type_layout"
                     style="@style/LargeTitleDropDownOutlineInputLayoutStyle"
                     android:layout_width="match_parent"
@@ -66,7 +90,8 @@
                     app:helperText="@string/unit_task_text_home_unit_type_select_spinner_prompt"
                     app:helperTextEnabled="@{viewModel.isEditMode}"
                     app:hintEnabled="true"
-                    app:layout_constraintTop_toBottomOf="@id/unit_task_name_layout">
+                    app:layout_constraintTop_toBottomOf="@id/unit_task_home_unit_type_name_list_layout"
+                    android:visibility="gone">
 
                     <com.google.android.material.textview.MaterialAutoCompleteTextView
                         android:id="@+id/unit_task_home_unit_type"
@@ -88,7 +113,8 @@
                     app:helperText="@string/unit_task_text_home_unit_nam_select_spinner_prompt"
                     app:helperTextEnabled="@{viewModel.isEditMode}"
                     app:hintEnabled="true"
-                    app:layout_constraintTop_toBottomOf="@id/unit_task_home_unit_type_layout">
+                    app:layout_constraintTop_toBottomOf="@id/unit_task_home_unit_type_layout"
+                    android:visibility="gone">
 
                     <com.google.android.material.textview.MaterialAutoCompleteTextView
                         android:id="@+id/unit_task_home_unit_name_text"
@@ -96,7 +122,7 @@
                         app:entriesAutoComplete="@{viewModel.homeUnitNameList}"
                         app:value="@={viewModel.homeUnitName}" />
 
-                </com.google.android.material.textfield.TextInputLayout>
+                </com.google.android.material.textfield.TextInputLayout>-->
 
                 <androidx.appcompat.widget.SwitchCompat
                     android:id="@+id/unit_task_inverse_switch"
@@ -105,7 +131,7 @@
                     android:checked="@={viewModel.inverse}"
                     android:clickable="@{safeUnbox(viewModel.isEditMode) ? true : false}"
                     android:text="@string/unit_task_text_inverse_switch_title"
-                    app:layout_constraintTop_toBottomOf="@id/unit_task_home_unit_name_layout" />
+                    app:layout_constraintTop_toBottomOf="@id/unit_task_home_unit_type_name_list_layout" />
 
                 <androidx.constraintlayout.widget.Group
                     android:layout_width="0dp"

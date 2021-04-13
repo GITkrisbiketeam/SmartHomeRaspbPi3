@@ -14,6 +14,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_LIGHT_SWITCHES
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentHomeUnitDetailBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.HomeUnitDetailViewModel
 import org.koin.android.ext.android.inject
@@ -55,10 +56,11 @@ class HomeUnitDetailFragment : Fragment() {
             TransitionManager.beginDelayedTransition(rootBinding.root as ViewGroup, Fade())
         })
         homeUnitDetailViewModel.unitTaskList.observe(viewLifecycleOwner, { taskList ->
-            taskList?.let {
-                Timber.d("onCreateView unitTaskList Observer it: $it")
+            taskList?.let { taskListMap ->
+                Timber.d("onCreateView unitTaskList Observer taskListMap: $taskListMap")
                 // Update UnitTask list
-                homeUnitDetailViewModel.unitTaskListAdapter.submitList(it.values.toMutableList())
+                // Do not show default HOME_LIGHT_SWITCHES UnitTask (with UnitTask name same as HomeUnit name) responsible for linking two hwUnits
+                homeUnitDetailViewModel.unitTaskListAdapter.submitList(taskListMap.values.filterNot { args.homeUnitType == HOME_LIGHT_SWITCHES && it.name == args.homeUnitName })
             }
         })
 

@@ -8,7 +8,7 @@ interface SecureStorage {
     val firebaseCredentialsLiveData: LiveData<FirebaseCredentials>
     var homeName: String
     val homeNameLiveData: LiveData<String>
-    val alarmEnabled: Boolean
+    var alarmEnabled: Boolean
     val alarmEnabledLiveData : LiveData<Boolean>
 
     fun isAuthenticated(): Boolean
