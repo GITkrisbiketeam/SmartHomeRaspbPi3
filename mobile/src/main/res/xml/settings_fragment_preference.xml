@@ -39,7 +39,7 @@
             />
 
     <SwitchPreferenceCompat
-            app:key="alarmEnabledKey"
+            app:key="@string/settings_alarm_enabled_key"
             app:summaryOff="Alarm disabled"
             app:summaryOn="Alarm enabled"
             app:title="Enable/Disable Alarm"

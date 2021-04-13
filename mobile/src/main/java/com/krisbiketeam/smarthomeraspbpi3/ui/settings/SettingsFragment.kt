@@ -7,10 +7,12 @@ import androidx.lifecycle.asLiveData
 import androidx.navigation.fragment.findNavController
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
+import androidx.preference.SwitchPreferenceCompat
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import org.koin.android.ext.android.inject
 import timber.log.Timber
 
@@ -22,6 +24,8 @@ class SettingsFragment : PreferenceFragmentCompat() {
     private val analytics: Analytics by inject()
 
     private val homeRepository: FirebaseHomeInformationRepository by inject()
+
+    private val secureStorage: SecureStorage by inject()
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         // Load the preferences from an XML resource
@@ -41,6 +45,18 @@ class SettingsFragment : PreferenceFragmentCompat() {
                         findPreference<Preference>(getString(R.string.settings_restart_rpi_things_app))?.summary = getString(R.string.settings_restarting)
                     }
                 })
+
+        // TODO: This will not be secure
+        val alarmSwitch:SwitchPreferenceCompat? = findPreference(resources
+                .getString(R.string.settings_alarm_enabled_key))
+        alarmSwitch?.onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, newValue ->
+            if (newValue is Boolean) {
+                secureStorage.alarmEnabled = newValue
+                true
+            } else {
+                false
+            }
+        }
     }
 
     override fun onPreferenceTreeClick(preference: Preference?): Boolean {
