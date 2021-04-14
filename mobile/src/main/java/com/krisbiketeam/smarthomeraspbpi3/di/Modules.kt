@@ -26,6 +26,7 @@ import org.koin.dsl.module
 
 val myModule: Module = module {
     viewModel { RoomListViewModel(get(), get()) }
+    viewModel { TaskListViewModel(get(), get()) }
     viewModel { NewRoomDialogViewModel(androidApplication(), get()) }
     viewModel { (roomName: String) ->
         RoomDetailViewModel(get(), roomName)

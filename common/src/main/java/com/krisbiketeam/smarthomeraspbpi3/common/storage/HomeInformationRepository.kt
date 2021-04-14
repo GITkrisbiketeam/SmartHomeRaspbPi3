@@ -265,6 +265,18 @@ class FirebaseHomeInformationRepository {
 
     // endregion
 
+    // region Task
+
+    /**
+     *  Saves/updates given order of Rooms/HomeUnit of home screen in DB
+     */
+
+    fun saveTaskListOrder(listOrder: List<String>): Task<Void>? {
+        return setHomePreference(HOME_TASKS_ORDER, listOrder)
+    }
+
+    // endregion
+
     // region HomeUnit
     /**
      *  Saves/updates given @see[HomeUnit] in DB
@@ -571,6 +583,15 @@ class FirebaseHomeInformationRepository {
     fun roomListOrderFlow() : Flow<List<String>> {
         return genericListReferenceFlow(getHomePreference(HOME_ROOMS_ORDER))
     }
+    // endregion
+
+    // region Task
+
+    @ExperimentalCoroutinesApi
+    fun taskListOrderFlow() : Flow<List<String>> {
+        return genericListReferenceFlow(getHomePreference(HOME_TASKS_ORDER))
+    }
+
     // endregion
 
     // region HomeUnit

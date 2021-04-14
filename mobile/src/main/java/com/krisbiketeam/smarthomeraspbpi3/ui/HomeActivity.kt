@@ -60,8 +60,11 @@ class HomeActivity : AppCompatActivity() {
         // Set up ActionBar
         setSupportActionBar(binding.toolbar)
 
-        appBarConfiguration = AppBarConfiguration(setOf(R.id.room_list_fragment, R.id.room_detail_fragment), drawerLayout)
+        appBarConfiguration = AppBarConfiguration(setOf(R.id.room_list_fragment, R.id.task_list_fragment, R.id.room_detail_fragment), drawerLayout)
         setupActionBarWithNavController(navController, appBarConfiguration)
+
+        // Set up BottomBar
+        binding.bottomNavigation.setupWithNavController(navController)
 
         val currentUser = Firebase.auth.currentUser
         if (currentUser == null || !secureStorage.isAuthenticated()) {

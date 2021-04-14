@@ -28,6 +28,10 @@ const val HOME_ROOMS = "rooms"
 const val HOME_ROOMS_ORDER = "roomsOrder"
 // endregion
 
+// region Tasks
+const val HOME_TASKS_ORDER = "tasksOrder"
+// endregion
+
 // region HomeUnits
 const val HOME_UNITS_BASE = "home_units"
 

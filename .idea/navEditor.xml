@@ -20,6 +20,26 @@
                       </LayoutPositions>
                     </value>
                   </entry>
+                  <entry key="goToHomeSettingsFragment">
+                    <value>
+                      <LayoutPositions />
+                    </value>
+                  </entry>
+                  <entry key="goToHomeUnitDetailFragment">
+                    <value>
+                      <LayoutPositions />
+                    </value>
+                  </entry>
+                  <entry key="goToLoginSettingsFragment">
+                    <value>
+                      <LayoutPositions />
+                    </value>
+                  </entry>
+                  <entry key="goToRoomFragment">
+                    <value>
+                      <LayoutPositions />
+                    </value>
+                  </entry>
                   <entry key="home_settings_fragment">
                     <value>
                       <LayoutPositions>
@@ -229,6 +249,37 @@
                               </value>
                             </entry>
                             <entry key="action_settings_fragment_to_wifi_settings_fragment">
+                              <value>
+                                <LayoutPositions />
+                              </value>
+                            </entry>
+                          </map>
+                        </option>
+                      </LayoutPositions>
+                    </value>
+                  </entry>
+                  <entry key="ta_list_fragment">
+                    <value>
+                      <LayoutPositions>
+                        <option name="myPosition">
+                          <Point>
+                            <option name="x" value="12" />
+                            <option name="y" value="12" />
+                          </Point>
+                        </option>
+                        <option name="myPositions">
+                          <map>
+                            <entry key="action_room_list_fragment_to_home_unit_detail_fragment">
+                              <value>
+                                <LayoutPositions />
+                              </value>
+                            </entry>
+                            <entry key="action_room_list_fragment_to_new_room_dialog_fragment">
+                              <value>
+                                <LayoutPositions />
+                              </value>
+                            </entry>
+                            <entry key="action_room_list_fragment_to_room_detail_fragment">
                               <value>
                                 <LayoutPositions />
                               </value>
