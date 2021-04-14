@@ -1,16 +1,16 @@
 package com.krisbiketeam.smarthomeraspbpi3.ui
 
 import android.os.Bundle
+import android.view.Menu
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.databinding.DataBindingUtil
 import androidx.drawerlayout.widget.DrawerLayout
-import androidx.navigation.Navigation
+import androidx.lifecycle.asLiveData
+import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
-import androidx.navigation.ui.NavigationUI
-import androidx.navigation.ui.setupActionBarWithNavController
-import androidx.navigation.ui.setupWithNavController
+import androidx.navigation.ui.*
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
@@ -18,11 +18,15 @@ import com.krisbiketeam.smarthomeraspbpi3.NavHomeDirections
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.Room
 import com.krisbiketeam.smarthomeraspbpi3.databinding.HomeActivityBinding
 import com.krisbiketeam.smarthomeraspbpi3.databinding.NavHeaderBinding
 import com.krisbiketeam.smarthomeraspbpi3.devicecontrols.CONTROL_ID
 import com.krisbiketeam.smarthomeraspbpi3.devicecontrols.getHomeUnitTypeAndName
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.NavigationViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.combine
 import org.koin.android.ext.android.inject
 import org.koin.android.viewmodel.ext.android.viewModel
 import timber.log.Timber
@@ -36,6 +40,10 @@ class HomeActivity : AppCompatActivity() {
 
     private lateinit var binding: HomeActivityBinding
 
+    private lateinit var appBarConfiguration: AppBarConfiguration
+    private lateinit var navController: NavController
+
+    @ExperimentalCoroutinesApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -47,14 +55,16 @@ class HomeActivity : AppCompatActivity() {
         drawerLayout = binding.drawerLayout
 
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.home_nav_fragment) as NavHostFragment
-        val navController = navHostFragment.navController
+        navController = navHostFragment.navController
 
         // Set up navigation menu
         binding.navigationView.setupWithNavController(navController)
 
         // Set up ActionBar
         setSupportActionBar(binding.toolbar)
-        setupActionBarWithNavController(navController, drawerLayout)
+
+        appBarConfiguration = AppBarConfiguration(setOf(R.id.room_list_fragment, R.id.room_detail_fragment), drawerLayout)
+        setupActionBarWithNavController(navController, appBarConfiguration)
 
         val currentUser = Firebase.auth.currentUser
         if (currentUser == null || !secureStorage.isAuthenticated()) {
@@ -89,16 +99,17 @@ class HomeActivity : AppCompatActivity() {
             viewModel = navigationViewModel
             lifecycleOwner = this@HomeActivity
         }
+
+        fillNavigationViewDrawer()
     }
 
     override fun onSupportNavigateUp(): Boolean {
-        return NavigationUI.navigateUp(Navigation.findNavController(this, R.id.home_nav_fragment),
-                                       drawerLayout)
+        return NavigationUI.navigateUp(navController, appBarConfiguration)
     }
 
     override fun onBackPressed() {
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
-            drawerLayout.closeDrawer(GravityCompat.START)
+            drawerLayout.closeDrawers()
         } else {
             super.onBackPressed()
         }
@@ -123,5 +134,37 @@ class HomeActivity : AppCompatActivity() {
             binding.homeActivityConnectionProgress.visibility = View.VISIBLE
         }
         super.onPause()
+    }
+
+    private fun fillNavigationViewDrawer(){
+        combine(homeInformationRepository.roomListFlow(), homeInformationRepository.roomListOrderFlow()) {roomList, itemsOrder ->
+            mutableListOf<Room>().apply {
+                itemsOrder.forEach { name ->
+                    roomList.firstOrNull { name == it.name }?.run(this::add)
+                }
+            }
+        }.asLiveData(Dispatchers.Default).observe(this) { roomList ->
+            Timber.d("roomList :$roomList")
+            binding.navigationView.menu.removeGroup(R.id.room_list_fragment)
+            if (roomList.isNullOrEmpty()) {
+                binding.navigationView.menu.add(R.id.room_list_fragment, R.id.room_list_fragment, Menu.FIRST, R.string.new_room_dialog_title).setIcon(R.drawable.ic_baseline_add_box_24)
+            } else {
+                binding.navigationView.menu.add(R.id.room_list_fragment, R.id.room_list_fragment, Menu.FIRST, R.string.menu_navigation_room_list).setIcon(R.drawable.ic_baseline_other_houses_24)
+
+                roomList.forEachIndexed { index, room ->
+                    binding.navigationView.menu.add(R.id.room_list_fragment, R.id.home_unit_detail_fragment, index + 1, "  ${room.name}").setOnMenuItemClickListener {
+                        navController.navigate(RoomListFragmentDirections.goToRoomFragment(room.name))
+                        it.isChecked = true
+                        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                            drawerLayout.closeDrawers()
+                        }
+                        true
+                    }.setIcon(R.drawable.ic_outline_label_24)
+                }
+            }
+        }
+        binding.navigationView.menu.add(Menu.NONE,R.id.logs_fragment,Menu.CATEGORY_SECONDARY + 1, R.string.menu_navigation_logs).setIcon(R.drawable.ic_baseline_view_headline_24)
+        binding.navigationView.menu.add(Menu.NONE,R.id.settings_fragment,Menu.CATEGORY_SECONDARY + 2, R.string.menu_navigation_settings).setIcon(R.drawable.ic_baseline_settings_24)
+
     }
 }

@@ -242,6 +242,17 @@
     </action>
 
     <action
+        android:id="@+id/goToRoomFragment"
+        app:destination="@id/room_detail_fragment"
+        app:enterAnim="@anim/slide_in_right"
+        app:exitAnim="@anim/slide_out_left"
+        app:popEnterAnim="@anim/slide_in_left"
+        app:popExitAnim="@anim/slide_out_right"
+        app:popUpTo="@id/room_list_fragment"
+        >
+    </action>
+
+    <action
         android:id="@+id/goToLoginSettingsFragment"
         app:destination="@id/login_settings_fragment"
         app:enterAnim="@anim/slide_in_right"
