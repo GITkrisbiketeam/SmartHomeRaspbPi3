@@ -10,6 +10,10 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.FirebaseCredentials
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.channels.sendBlocking
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.conflate
 import timber.log.Timber
 import java.io.IOException
 import java.security.GeneralSecurityException
@@ -21,12 +25,6 @@ private const val SHARED_PREFERENCES_FILE_NAME = "smarthomeraspbpi3_preferences"
 private const val ENCRYPTED_SHARED_PREFERENCES_FILE_NAME = "smarthomeraspbpi3_encrypted_preferences"
 
 private const val ENCRYPTED_SHARED_PREFERENCES_MAX_RETRY_COUNT = 3
-
-private const val EMAIL_KEY = "secureEmailKey"
-private const val PASSWORD_KEY = "securePasswordKey"
-private const val UID_KEY = "secureUidKey"
-private const val HOME_NAME_KEY = "homeNameKey"
-private const val ALARM_ENABLED_KEY = "alarmEnabledKey"
 
 class SecureStorageImpl(private val context: Context, homeInformationRepository: FirebaseHomeInformationRepository) : SecureStorage {
     private val encryptedSharedPreferences = getEncryptedSharedPreferences()
@@ -42,8 +40,10 @@ class SecureStorageImpl(private val context: Context, homeInformationRepository:
     override val firebaseCredentialsLiveData: LiveData<FirebaseCredentials> =
             object : LiveData<FirebaseCredentials>() {
                 private val preferenceChangeListener =
-                        SharedPreferences.OnSharedPreferenceChangeListener { _, _ ->
-                            value = firebaseCredentials
+                        SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+                            if (key == EMAIL_KEY || key == PASSWORD_KEY || key == UID_KEY) {
+                                value = firebaseCredentials
+                            }
                         }
 
                 override fun onActive() {
@@ -61,8 +61,10 @@ class SecureStorageImpl(private val context: Context, homeInformationRepository:
     override val homeNameLiveData: LiveData<String> =
             object : LiveData<String>() {
                 private val preferenceChangeListener =
-                        SharedPreferences.OnSharedPreferenceChangeListener { _, _ ->
-                            value = homeName
+                        SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+                            if (key == HOME_NAME_KEY) {
+                                value = homeName
+                            }
                         }
 
                 override fun onActive() {
@@ -77,11 +79,32 @@ class SecureStorageImpl(private val context: Context, homeInformationRepository:
                 }
             }
 
+    override fun homeNameFlow() = callbackFlow {
+        val preferenceChangeListener =
+                SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+                    Timber.e("homeNameFlow  changed $key")
+                    if (key == HOME_NAME_KEY) {
+                        this@callbackFlow.sendBlocking(homeName)
+                    }
+                }
+        this@callbackFlow.sendBlocking(homeName)
+        Timber.e("homeNameFlow  register")
+        encryptedSharedPreferences.registerOnSharedPreferenceChangeListener(preferenceChangeListener)
+        awaitClose {
+            Timber.e("homeNameFlow  awaitClose")
+            encryptedSharedPreferences.unregisterOnSharedPreferenceChangeListener(preferenceChangeListener)
+        }
+    }.conflate()
+
+
+    //TODO refactor this is preference needed here?
     override val alarmEnabledLiveData: LiveData<Boolean> =
             object : LiveData<Boolean>() {
                 private val preferenceChangeListener =
-                        SharedPreferences.OnSharedPreferenceChangeListener { _, _ ->
-                            homeInformationRepository.setHomePreference(ALARM_ENABLED_KEY, alarmEnabled)
+                        SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+                            if (key == ALARM_ENABLED_KEY) {
+                                homeInformationRepository.setHomePreference(ALARM_ENABLED_KEY, alarmEnabled)
+                            }
                         }
 
                 private val alarmListener: ValueEventListener = object : ValueEventListener {
@@ -184,7 +207,7 @@ class SecureStorageImpl(private val context: Context, homeInformationRepository:
                                             prefs.all.keys.forEach(this::remove)
                                         }
                                     }
-                            // additionally delete encrepted SharedPref file
+                            // additionally delete encrypted SharedPref file
                             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
                                 context.deleteSharedPreferences(ENCRYPTED_SHARED_PREFERENCES_FILE_NAME)
                             }

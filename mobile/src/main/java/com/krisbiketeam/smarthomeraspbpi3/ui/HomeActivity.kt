@@ -5,9 +5,9 @@ import android.view.Menu
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
+import androidx.core.view.iterator
 import androidx.databinding.DataBindingUtil
 import androidx.drawerlayout.widget.DrawerLayout
-import androidx.lifecycle.asLiveData
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.*
@@ -18,15 +18,12 @@ import com.krisbiketeam.smarthomeraspbpi3.NavHomeDirections
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.Room
 import com.krisbiketeam.smarthomeraspbpi3.databinding.HomeActivityBinding
 import com.krisbiketeam.smarthomeraspbpi3.databinding.NavHeaderBinding
 import com.krisbiketeam.smarthomeraspbpi3.devicecontrols.CONTROL_ID
 import com.krisbiketeam.smarthomeraspbpi3.devicecontrols.getHomeUnitTypeAndName
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.NavigationViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.combine
 import org.koin.android.ext.android.inject
 import org.koin.android.viewmodel.ext.android.viewModel
 import timber.log.Timber
@@ -136,20 +133,20 @@ class HomeActivity : AppCompatActivity() {
         super.onPause()
     }
 
-    private fun fillNavigationViewDrawer(){
-        combine(homeInformationRepository.roomListFlow(), homeInformationRepository.roomListOrderFlow()) {roomList, itemsOrder ->
-            mutableListOf<Room>().apply {
-                itemsOrder.forEach { name ->
-                    roomList.firstOrNull { name == it.name }?.run(this::add)
-                }
-            }
-        }.asLiveData(Dispatchers.Default).observe(this) { roomList ->
+    private fun fillNavigationViewDrawer() {
+        navigationViewModel.roomListMenu.observe(this) { roomList ->
             Timber.d("roomList :$roomList")
             binding.navigationView.menu.removeGroup(R.id.room_list_fragment)
             if (roomList.isNullOrEmpty()) {
-                binding.navigationView.menu.add(R.id.room_list_fragment, R.id.room_list_fragment, Menu.FIRST, R.string.new_room_dialog_title).setIcon(R.drawable.ic_baseline_add_box_24)
+                binding.navigationView.menu.add(R.id.room_list_fragment, R.id.room_list_fragment, Menu.FIRST, R.string.new_room_dialog_title).setOnMenuItemClickListener {
+                    navController.navigate(RoomListFragmentDirections.actionRoomListFragmentToNewRoomDialogFragment())
+                    if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                        drawerLayout.closeDrawers()
+                    }
+                    true
+                }.setIcon(R.drawable.ic_baseline_add_box_24)
             } else {
-                binding.navigationView.menu.add(R.id.room_list_fragment, R.id.room_list_fragment, Menu.FIRST, R.string.menu_navigation_room_list).setIcon(R.drawable.ic_baseline_other_houses_24)
+                binding.navigationView.menu.add(R.id.room_list_fragment, R.id.room_list_fragment, Menu.FIRST, R.string.menu_navigation_room_list).setIcon(R.drawable.ic_baseline_other_houses_24).setChecked(true)
 
                 roomList.forEachIndexed { index, room ->
                     binding.navigationView.menu.add(R.id.room_list_fragment, R.id.home_unit_detail_fragment, index + 1, "  ${room.name}").setOnMenuItemClickListener {
@@ -163,8 +160,19 @@ class HomeActivity : AppCompatActivity() {
                 }
             }
         }
-        binding.navigationView.menu.add(Menu.NONE,R.id.logs_fragment,Menu.CATEGORY_SECONDARY + 1, R.string.menu_navigation_logs).setIcon(R.drawable.ic_baseline_view_headline_24)
-        binding.navigationView.menu.add(Menu.NONE,R.id.settings_fragment,Menu.CATEGORY_SECONDARY + 2, R.string.menu_navigation_settings).setIcon(R.drawable.ic_baseline_settings_24)
+        binding.navigationView.menu.add(Menu.NONE, R.id.logs_fragment, Menu.CATEGORY_SECONDARY + 1, R.string.menu_navigation_logs).setIcon(R.drawable.ic_baseline_view_headline_24)
+        binding.navigationView.menu.add(Menu.NONE, R.id.settings_fragment, Menu.CATEGORY_SECONDARY + 2, R.string.menu_navigation_settings).setIcon(R.drawable.ic_baseline_settings_24)
 
+        navController.addOnDestinationChangedListener { _, destination, arguments ->
+            if (destination.id == R.id.room_detail_fragment) {
+                for (menuItem in binding.navigationView.menu.iterator()) {
+                    if (menuItem.title.contains(arguments?.get("roomName").toString())) {
+                        menuItem.setChecked(true)
+                        break
+                    }
+
+                }
+            }
+        }
     }
 }

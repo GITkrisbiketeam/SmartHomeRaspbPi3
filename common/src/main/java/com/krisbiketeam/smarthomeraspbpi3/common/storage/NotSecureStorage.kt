@@ -8,16 +8,12 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.FirebaseCredentials
+import kotlinx.coroutines.flow.Flow
 import timber.log.Timber
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
 private const val SHARED_FILE = "androidThingsExample"
-private const val EMAIL_KEY = "secureEmailKey"
-private const val PASSWORD_KEY = "securePasswordKey"
-private const val UID_KEY = "secureUidKey"
-private const val HOME_NAME_KEY = "homeNameKey"
-private const val ALARM_ENABLED_KEY = "alarmEnabledKey"
 
 // Todo: implement a encrypted secure storage since this is not secure
 class NotSecureStorage(context: Context, homeInformationRepository: FirebaseHomeInformationRepository) : SecureStorage {
@@ -107,6 +103,10 @@ class NotSecureStorage(context: Context, homeInformationRepository: FirebaseHome
 
     override fun isAuthenticated(): Boolean {
         return firebaseCredentials.email.isNotEmpty() && firebaseCredentials.password.isNotEmpty() && !firebaseCredentials.uid.isNullOrEmpty()
+    }
+
+    override fun homeNameFlow(): Flow<String> {
+        TODO("Not yet implemented")
     }
 
     private fun SharedPreferences.firebaseCredentials():

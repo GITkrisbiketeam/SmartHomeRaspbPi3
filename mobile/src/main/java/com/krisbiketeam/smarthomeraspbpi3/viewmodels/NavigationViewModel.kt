@@ -1,15 +1,18 @@
 package com.krisbiketeam.smarthomeraspbpi3.viewmodels
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Transformations
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.*
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.Room
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import timber.log.Timber
 import java.text.DateFormat
 import java.util.*
 
+@ExperimentalCoroutinesApi
 class NavigationViewModel(secureStorage: SecureStorage, homeRepository: FirebaseHomeInformationRepository) :
         ViewModel() {
 
@@ -17,6 +20,7 @@ class NavigationViewModel(secureStorage: SecureStorage, homeRepository: Firebase
     val home: LiveData<String>
     val alarm: LiveData<String>
     val online: LiveData<String>
+    val roomListMenu: LiveData<List<Room>>
 
     init {
         Timber.d("init")
@@ -60,5 +64,14 @@ class NavigationViewModel(secureStorage: SecureStorage, homeRepository: Firebase
                 }
             }
         }
+        roomListMenu = secureStorage.homeNameFlow().flatMapLatest {
+            combine(homeRepository.roomListFlow(), homeRepository.roomListOrderFlow()) { roomList, itemsOrder ->
+                mutableListOf<Room>().apply {
+                    itemsOrder.forEach { name ->
+                        roomList.firstOrNull { name == it.name }?.run(this::add)
+                    }
+                }
+            }
+        }.asLiveData(Dispatchers.Default)
     }
 }
