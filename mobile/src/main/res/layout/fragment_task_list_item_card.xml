@@ -10,20 +10,21 @@
             type="android.view.View.OnClickListener" />
 
         <variable
-            name="room"
-            type="com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.Room" />
+            name="taskModel"
+            type="com.krisbiketeam.smarthomeraspbpi3.model.TaskListAdapterModel" />
     </data>
 
     <com.google.android.material.card.MaterialCardView
-        android:id="@+id/setupConnectionQRguide"
         style="@style/MaterialCardView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="@dimen/margin_small">
+        android:layout_margin="@dimen/margin_small"
+        android:backgroundTint='@{taskModel.error ? @color/colorError : @color/colorOnError}'
+        >
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:background="?attr/selectableItemBackground"
             android:onClick="@{clickListener}">
             <!--app:imageFromUrl="@{roomName.imageUrl}"-->
@@ -40,14 +41,29 @@
 
             <TextView
                 android:id="@+id/room_item_title"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_margin="@dimen/margin_normal"
-                android:text="@{room.name}"
+                android:text="@{taskModel.room != null ? taskModel.room.name : taskModel.homeUnit != null ? taskModel.homeUnit.name : null}"
                 android:textAppearance="?attr/textAppearanceHeadline5"
+                android:maxLines="2"
+                android:gravity="center_horizontal"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
+                tools:text="Room" />
+
+            <TextView
+                android:id="@+id/room_item_item1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/margin_normal"
+                android:text='@{taskModel.homeUnit != null ? taskModel.homeUnit.value instanceof java.lang.Double || taskModel.homeUnit.value instanceof java.lang.Float ? String.format("%.2f", taskModel.homeUnit.value) : taskModel.homeUnit.value.toString() : null}'
+                android:textAppearance="?attr/textAppearanceHeadline5"
+                android:gravity="center_horizontal"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/room_item_title"
                 tools:text="Room" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>

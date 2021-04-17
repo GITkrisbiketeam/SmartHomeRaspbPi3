@@ -141,30 +141,51 @@ class HomeActivity : AppCompatActivity() {
             Timber.d("roomList :$roomList")
             binding.navigationView.menu.removeGroup(R.id.room_list_fragment)
             if (roomList.isNullOrEmpty()) {
-                binding.navigationView.menu.add(R.id.room_list_fragment, R.id.room_list_fragment, Menu.FIRST, R.string.new_room_dialog_title).setOnMenuItemClickListener {
-                    navController.navigate(RoomListFragmentDirections.actionRoomListFragmentToNewRoomDialogFragment())
-                    if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
-                        drawerLayout.closeDrawers()
-                    }
-                    true
-                }.setIcon(R.drawable.ic_baseline_add_box_24)
+                binding.navigationView.menu.add(R.id.room_list_fragment,
+                                                R.id.room_list_fragment,
+                                                Menu.FIRST,
+                                                R.string.new_room_dialog_title)
+                        .setOnMenuItemClickListener {
+                            navController.navigate(RoomListFragmentDirections.actionRoomListFragmentToNewRoomDialogFragment())
+                            if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                                drawerLayout.closeDrawers()
+                            }
+                            true
+                        }.setIcon(R.drawable.ic_baseline_add_box_24)
             } else {
-                binding.navigationView.menu.add(R.id.room_list_fragment, R.id.room_list_fragment, Menu.FIRST, R.string.menu_navigation_room_list).setIcon(R.drawable.ic_baseline_other_houses_24).setChecked(true)
+                binding.navigationView.menu.add(R.id.room_list_fragment,
+                                                R.id.room_list_fragment,
+                                                Menu.FIRST,
+                                                R.string.menu_navigation_room_list)
+                        .setIcon(R.drawable.ic_baseline_other_houses_24)
+                        .setChecked(true)
 
                 roomList.forEachIndexed { index, room ->
-                    binding.navigationView.menu.add(R.id.room_list_fragment, R.id.home_unit_detail_fragment, index + 1, "  ${room.name}").setOnMenuItemClickListener {
-                        navController.navigate(RoomListFragmentDirections.goToRoomFragment(room.name))
-                        it.isChecked = true
-                        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
-                            drawerLayout.closeDrawers()
-                        }
-                        true
-                    }.setIcon(R.drawable.ic_outline_label_24)
+                    binding.navigationView.menu.add(R.id.room_list_fragment,
+                                                    R.id.home_unit_detail_fragment,
+                                            index + 1,
+                                            "\t\t${room.name}")
+                            .setOnMenuItemClickListener {
+                                navController.navigate(RoomListFragmentDirections.goToRoomFragment(room.name))
+                                it.isChecked = true
+                                if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                                    drawerLayout.closeDrawers()
+                                }
+                                true
+                            }.setIcon(R.drawable.ic_outline_label_24)
                 }
             }
         }
-        binding.navigationView.menu.add(Menu.NONE, R.id.logs_fragment, Menu.CATEGORY_SECONDARY + 1, R.string.menu_navigation_logs).setIcon(R.drawable.ic_baseline_view_headline_24)
-        binding.navigationView.menu.add(Menu.NONE, R.id.settings_fragment, Menu.CATEGORY_SECONDARY + 2, R.string.menu_navigation_settings).setIcon(R.drawable.ic_baseline_settings_24)
+        binding.navigationView.menu.add(Menu.NONE,
+                                        R.id.logs_fragment,
+                                 Menu.CATEGORY_SECONDARY + 1,
+                                        R.string.menu_navigation_logs)
+                .setIcon(R.drawable.ic_baseline_view_headline_24)
+        binding.navigationView.menu.add(Menu.NONE,
+                                        R.id.settings_fragment,
+                                        Menu.CATEGORY_SECONDARY + 2,
+                                        R.string.menu_navigation_settings)
+                .setIcon(R.drawable.ic_baseline_settings_24)
 
         navController.addOnDestinationChangedListener { _, destination, arguments ->
             if (destination.id == R.id.room_detail_fragment) {

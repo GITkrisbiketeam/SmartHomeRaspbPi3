@@ -5,13 +5,14 @@ import android.view.*
 import androidx.core.os.bundleOf
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.ItemTouchHelper.*
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.krisbiketeam.smarthomeraspbpi3.R
-import com.krisbiketeam.smarthomeraspbpi3.adapters.RoomWithHomeUnitListAdapter
+import com.krisbiketeam.smarthomeraspbpi3.adapters.TaskListAdapter
 import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentTaskListBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.TaskListViewModel
@@ -59,14 +60,14 @@ class TaskListFragment : Fragment() {
             viewModel = taskListViewModel
             lifecycleOwner = this@TaskListFragment
             fab.setOnClickListener {
-                /*val direction = TaskListFragmentDirections.actionTaskListFragmentToHomeUnitDetailFragment("","","")
-                findNavController().navigate(direction)*/
+                val direction = TaskListFragmentDirections.actionTaskListFragmentToHomeUnitDetailFragment("","","")
+                findNavController().navigate(direction)
             }
-            val adapter = RoomWithHomeUnitListAdapter()
+            val adapter = TaskListAdapter()
             taskList.layoutManager = GridLayoutManager(requireContext(), 2)
             taskList.adapter = adapter
 
-            subscribeRoomHomeUnitList(adapter)
+            subscribeTaskList(adapter)
         }
         taskListViewModel.isEditMode.observe(viewLifecycleOwner, { editMode ->
             activity?.invalidateOptionsMenu()
@@ -114,7 +115,7 @@ class TaskListFragment : Fragment() {
     }
 
     @ExperimentalCoroutinesApi
-    private fun subscribeRoomHomeUnitList(adapter: RoomWithHomeUnitListAdapter) {
+    private fun subscribeTaskList(adapter: TaskListAdapter) {
         taskListViewModel.taskListFromFlow.observe(viewLifecycleOwner,
                 { taskUnitsList ->
                     Timber.d("subscribeUi taskUnitsList: $taskUnitsList")

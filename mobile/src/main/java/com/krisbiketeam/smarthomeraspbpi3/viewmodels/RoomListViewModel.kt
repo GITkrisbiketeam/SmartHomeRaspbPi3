@@ -30,7 +30,6 @@ class RoomListViewModel(private val homeRepository: FirebaseHomeInformationRepos
                 it.name to RoomListAdapterModel(it)
             }.toMutableMap()
 
-            val homeUnitsListCopy = homeUnitsList.toMutableList()
             homeUnitsList.forEach {
                 if (roomListAdapterModelMap.containsKey(it.room)) {
                     // set Given room Temperature if present
@@ -39,12 +38,7 @@ class RoomListViewModel(private val homeRepository: FirebaseHomeInformationRepos
                     }
                     roomListAdapterModelMap[it.room]?.error =
                             roomListAdapterModelMap[it.room]?.error == true || hwUnitErrorEventList.firstOrNull { hwUnitLog -> hwUnitLog.name == it.hwUnitName } != null
-                    homeUnitsListCopy.remove(it)
                 }
-            }
-            // Add HomeUnits without Room set
-            homeUnitsListCopy.forEach {
-                roomListAdapterModelMap[it.type +'.'+ it.name] = RoomListAdapterModel(null, it, hwUnitErrorEventList.firstOrNull { hwUnitLog -> hwUnitLog.name == it.hwUnitName } != null)
             }
 
             // save current RoomListOrder

@@ -113,6 +113,9 @@ class HomeUnitDetailFragment : Fragment() {
         rootBinding.homeUnitMaxClearButton.setOnClickListener {
             homeUnitDetailViewModel.clearMaxValue()
         }
+        rootBinding.homeUnitValueSwitch.setOnCheckedChangeListener { _, isChecked ->
+            homeUnitDetailViewModel.setValueFromSwitch(isChecked)
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {

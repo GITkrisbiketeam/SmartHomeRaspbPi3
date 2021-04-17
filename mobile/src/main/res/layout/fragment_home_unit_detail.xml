@@ -73,7 +73,7 @@
                     android:layout_width="0dp"
                     android:layout_height="0dp"
                     android:visibility="@{safeUnbox(viewModel.isEditMode) ? View.GONE : View.VISIBLE}"
-                    app:constraint_referenced_ids="home_unit_value_title,home_unit_value, home_unit_value_last_update_time,
+                    app:constraint_referenced_ids="home_unit_value_title,home_unit_value, home_unit_value_switch, home_unit_value_last_update_time,
                     home_unit_values_separator" />
 
                 <TextView
@@ -92,13 +92,27 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/margin_small"
-                    android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                    android:layout_marginEnd="@dimen/margin_small"
                     android:text="@{viewModel.value}"
                     android:textAppearance="@style/TextAppearance.AppCompat.Title"
                     app:layout_constraintBottom_toBottomOf="@id/home_unit_value_title"
-                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/home_unit_value_switch"
                     app:layout_constraintStart_toEndOf="@+id/home_unit_value_title"
-                    app:layout_constraintTop_toTopOf="@id/home_unit_value_title" />
+                    app:layout_constraintTop_toTopOf="@id/home_unit_value_title"
+                    tools:text="false"/>
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/home_unit_value_switch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/margin_small"
+                    android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                    app:setChecked="@{viewModel.value}"
+                    android:visibility="@{FirebaseTablesKt.HOME_LIGHT_SWITCHES.equals(viewModel.type) || FirebaseTablesKt.HOME_ACTUATORS.equals(viewModel.type) || FirebaseTablesKt.HOME_BLINDS.equals(viewModel.type) ? View.VISIBLE : View.GONE}"
+                    app:layout_constraintBottom_toBottomOf="@id/home_unit_value_title"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/home_unit_value"
+                    app:layout_constraintTop_toTopOf="@id/home_unit_value_title"  />
 
                 <TextView
                     android:id="@+id/home_unit_value_last_update_time"

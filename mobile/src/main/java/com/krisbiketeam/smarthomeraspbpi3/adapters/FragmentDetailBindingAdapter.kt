@@ -67,6 +67,8 @@ fun bindSetChecked(switch: SwitchCompat, value: Any?) {
     Timber.d("setSwitch BindingAdapter value: $value")
     if (value is Boolean) {
         switch.isChecked = value
+    } else {
+        switch.isChecked = true.toString() == value
     }
 }
 

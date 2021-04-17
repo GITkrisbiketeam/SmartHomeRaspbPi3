@@ -3,7 +3,7 @@ package com.krisbiketeam.smarthomeraspbpi3.viewmodels
 import androidx.lifecycle.*
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
-import com.krisbiketeam.smarthomeraspbpi3.model.RoomListAdapterModel
+import com.krisbiketeam.smarthomeraspbpi3.model.TaskListAdapterModel
 import com.krisbiketeam.smarthomeraspbpi3.ui.TaskListFragment
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -21,23 +21,23 @@ class TaskListViewModel(private val homeRepository: FirebaseHomeInformationRepos
     private var localItemsOrder: List<String> = listOf()
 
     @ExperimentalCoroutinesApi
-    val taskListFromFlow: LiveData<List<RoomListAdapterModel>> = secureStorage.homeNameLiveData.switchMap {
+    val taskListFromFlow: LiveData<List<TaskListAdapterModel>> = secureStorage.homeNameLiveData.switchMap {
         Timber.e("secureStorage.homeNameLiveData")
         combine(homeRepository.homeUnitListFlow().debounce(100), homeRepository.hwUnitErrorEventListFlow(), homeRepository.taskListOrderFlow()) { homeUnitsList, hwUnitErrorEventList, itemsOrder ->
             Timber.e("taskListAdapterModelMap")
-            val taskListAdapterModelMap: MutableMap<String, RoomListAdapterModel> = mutableMapOf()
+            val taskListAdapterModelMap: MutableMap<String, TaskListAdapterModel> = mutableMapOf()
             // Add HomeUnits without Room set
             homeUnitsList.filter {
-                it.room.isEmpty()
+                it.room.isEmpty() || it.hwUnitName.isNullOrEmpty()
             }.forEach {
-                taskListAdapterModelMap[it.type +'.'+ it.name] = RoomListAdapterModel(null, it, hwUnitErrorEventList.firstOrNull { hwUnitLog -> hwUnitLog.name == it.hwUnitName } != null)
+                taskListAdapterModelMap[it.type +'.'+ it.name] = TaskListAdapterModel(null, it, hwUnitErrorEventList.firstOrNull { hwUnitLog -> hwUnitLog.name == it.hwUnitName } != null)
             }
 
             // save current RoomListOrder
             localItemsOrder = itemsOrder
 
             // return sorted list
-            mutableListOf<RoomListAdapterModel>().apply {
+            mutableListOf<TaskListAdapterModel>().apply {
                 itemsOrder.forEach {
                     taskListAdapterModelMap.remove(it)?.run(this::add)
                 }

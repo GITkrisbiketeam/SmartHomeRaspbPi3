@@ -199,6 +199,18 @@ class HomeUnitDetailViewModel(application: Application,
         return homeUnit?.value?.let (homeRepository::clearMaxHomeUnitValue)
     }
 
+    fun setValueFromSwitch(isChecked: Boolean): Task<Void>? {
+        Timber.d("OnCheckedChangeListener isChecked: $isChecked")
+        if (homeUnit?.value?.value != isChecked) {
+            homeUnit?.value?.copy()?.also { unit ->
+                unit.value = isChecked
+                unit.lastUpdateTime = System.currentTimeMillis()
+                homeRepository.updateHomeUnitValue(unit)
+            }
+        }
+        return homeUnit?.value?.let (homeRepository::clearMaxHomeUnitValue)
+    }
+
     fun noChangesMade(): Boolean {
         return homeUnit?.value?.let { unit ->
             unit.name == name.value
