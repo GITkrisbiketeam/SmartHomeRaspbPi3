@@ -51,7 +51,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_margin="@dimen/margin_normal"
-                android:text="@{taskModel.room != null ? taskModel.room.name : taskModel.homeUnit != null ? taskModel.homeUnit.name : null}"
+                android:text="@{taskModel.homeUnit != null ? taskModel.homeUnit.name : null}"
                 android:textAppearance="?attr/textAppearanceHeadline5"
                 android:maxLines="2"
                 android:gravity="center_horizontal"
