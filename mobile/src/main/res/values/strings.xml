@@ -41,8 +41,6 @@
 
     <string name="navigation_drawer_header_content_description">navigation_drawer_header_content_description</string>
 
-    <string name="menu_filter_by_grow_zone">filter by grow zone</string>
-
     <string name="menu_add">Add</string>
     <string name="menu_delete">Delete</string>
     <string name="menu_edit">Edit</string>

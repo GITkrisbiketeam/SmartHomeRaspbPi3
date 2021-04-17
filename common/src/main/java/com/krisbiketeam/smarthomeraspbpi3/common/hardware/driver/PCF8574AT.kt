@@ -49,7 +49,7 @@ class PCF8574AT(bus: String? = null,
     private var mDevice: I2cDevice? = null
     private var mGpioInt: Gpio? = null
 
-    private val mListeners = HashMap<PCF8574ATPin.Pin, MutableList<PCF8574ATPin.PCF8574ATPinStateChangeListener>>()
+    private val mListeners = HashMap<Pin, MutableList<PCF8574ATPinStateChangeListener>>()
 
     private var monitorJob: Job? = null
 
@@ -188,7 +188,7 @@ class PCF8574AT(bus: String? = null,
 
 
     @Throws(Exception::class)
-    private fun readRegister(): Int? {
+    private fun readRegister(): Int {
         val byteArray = ByteArray(1)
         mDevice?.read(byteArray, 1)
         return byteArray[0].toInt().and(0xff)

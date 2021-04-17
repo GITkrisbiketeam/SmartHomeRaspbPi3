@@ -26,7 +26,7 @@ class NewRoomFragmentDialog : Fragment() {
             inflater: LayoutInflater,
             container: ViewGroup?,
             savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         val binding: FragmentNewRoomDialogFragmentBinding = DataBindingUtil.inflate<FragmentNewRoomDialogFragmentBinding>(
                 inflater, R.layout.fragment_new_room_dialog_fragment, container, false).apply {
             viewModel = newRoomViewModel

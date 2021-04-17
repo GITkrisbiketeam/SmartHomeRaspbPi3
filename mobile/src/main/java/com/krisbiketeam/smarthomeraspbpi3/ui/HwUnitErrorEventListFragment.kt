@@ -24,7 +24,7 @@ class HwUnitErrorEventListFragment : Fragment() {
             inflater: LayoutInflater,
             container: ViewGroup?,
             savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         val binding = DataBindingUtil.inflate<FragmentHwUnitErrorEventListBinding>(
                 inflater, R.layout.fragment_hw_unit_error_event_list, container, false).apply {
             viewModel = hwUnitErrorEventListViewModel

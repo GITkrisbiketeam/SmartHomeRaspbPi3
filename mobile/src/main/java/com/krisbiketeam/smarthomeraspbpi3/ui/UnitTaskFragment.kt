@@ -39,7 +39,7 @@ class UnitTaskFragment : Fragment() {
     private lateinit var rootBinding: FragmentUnitTaskBinding
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? {
+                              savedInstanceState: Bundle?): View {
         rootBinding = DataBindingUtil.inflate<FragmentUnitTaskBinding>(
                 inflater, R.layout.fragment_unit_task, container, false).apply {
             viewModel = unitTaskViewModel
