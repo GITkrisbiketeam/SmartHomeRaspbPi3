@@ -92,7 +92,7 @@
                     app:hintEnabled="true"
                     app:layout_constraintTop_toTopOf="parent">
 
-                    <com.google.android.material.textview.MaterialAutoCompleteTextView
+                    <com.google.android.material.textfield.MaterialAutoCompleteTextView
                         android:id="@+id/hw_unit_type_spinner"
                         style="@style/EnabledColorMaterialAutoCompleteTextViewStyle"
                         app:entriesAutoComplete="@{viewModel.typeList}"
@@ -162,7 +162,7 @@
                     app:hintEnabled="true"
                     app:layout_constraintTop_toBottomOf="@id/hw_unit_location_layout">
 
-                    <com.google.android.material.textview.MaterialAutoCompleteTextView
+                    <com.google.android.material.textfield.MaterialAutoCompleteTextView
                         android:id="@+id/hw_unit_pin_name_spinner"
                         style="@style/EnabledColorMaterialAutoCompleteTextViewStyle"
                         app:entriesAutoComplete="@{viewModel.pinNameList}"
@@ -185,7 +185,7 @@
                     app:hintEnabled="true"
                     app:layout_constraintTop_toBottomOf="@id/hw_unit_pin_name_spinner_layout">
 
-                    <com.google.android.material.textview.MaterialAutoCompleteTextView
+                    <com.google.android.material.textfield.MaterialAutoCompleteTextView
                         android:id="@+id/hw_unit_soft_address_spinner"
                         style="@style/EnabledColorMaterialAutoCompleteTextViewStyle"
                         app:entriesAutoComplete="@{viewModel.softAddressList}"
@@ -209,7 +209,7 @@
                     app:layout_constraintTop_toBottomOf="@id/hw_unit_soft_address_spinner_layout">
 
                     <!--entriesUsed-->
-                    <com.google.android.material.textview.MaterialAutoCompleteTextView
+                    <com.google.android.material.textfield.MaterialAutoCompleteTextView
                         android:id="@+id/hw_unit_pin_extender_io_pin_spinner"
                         style="@style/EnabledColorMaterialAutoCompleteTextViewStyle"
                         app:entriesAutoComplete="@{viewModel.ioPinList}"
@@ -234,7 +234,7 @@
                     app:layout_constraintTop_toBottomOf="@id/hw_unit_pin_extender_io_pin_spinner_layout">
 
                     <!--entriesUsed-->
-                    <com.google.android.material.textview.MaterialAutoCompleteTextView
+                    <com.google.android.material.textfield.MaterialAutoCompleteTextView
                         android:id="@+id/hw_unit_pin_interrupt_spinner"
                         style="@style/EnabledColorMaterialAutoCompleteTextViewStyle"
                         app:entriesAutoComplete="@{viewModel.pinInterruptList}"

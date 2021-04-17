@@ -158,6 +158,7 @@ class HomeActivity : AppCompatActivity() {
                                                 Menu.FIRST,
                                                 R.string.menu_navigation_room_list)
                         .setIcon(R.drawable.ic_baseline_other_houses_24)
+                        .setCheckable(true)
                         .setChecked(true)
 
                 roomList.forEachIndexed { index, room ->
@@ -173,6 +174,7 @@ class HomeActivity : AppCompatActivity() {
                                 }
                                 true
                             }.setIcon(R.drawable.ic_outline_label_24)
+                            .setCheckable(true)
                 }
             }
         }

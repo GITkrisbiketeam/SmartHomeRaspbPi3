@@ -308,7 +308,7 @@
                     app:hintEnabled="true"
                     app:layout_constraintTop_toBottomOf="@id/home_unit_values_separator">
 
-                    <com.google.android.material.textview.MaterialAutoCompleteTextView
+                    <com.google.android.material.textfield.MaterialAutoCompleteTextView
                         android:id="@+id/unit_type_spinner"
                         style="@style/EnabledColorMaterialAutoCompleteTextViewStyle"
                         app:entriesAutoComplete="@{viewModel.typeList}"
@@ -330,7 +330,7 @@
                     app:hintEnabled="true"
                     app:layout_constraintTop_toBottomOf="@id/unit_type_layout">
 
-                    <com.google.android.material.textview.MaterialAutoCompleteTextView
+                    <com.google.android.material.textfield.MaterialAutoCompleteTextView
                         android:id="@+id/room_name_spinner"
                         style="@style/EnabledColorMaterialAutoCompleteTextViewStyle"
                         app:entriesAutoComplete="@{viewModel.roomNameList}"
@@ -352,7 +352,7 @@
                     app:hintEnabled="true"
                     app:layout_constraintTop_toBottomOf="@id/room_name_layout">
 
-                    <com.google.android.material.textview.MaterialAutoCompleteTextView
+                    <com.google.android.material.textfield.MaterialAutoCompleteTextView
                         android:id="@+id/hw_unit_name_spinner"
                         style="@style/EnabledColorMaterialAutoCompleteTextViewStyle"
                         android:clickable="@{viewModel.isEditMode}"
@@ -378,7 +378,7 @@
                     app:hintEnabled="true"
                     app:layout_constraintTop_toBottomOf="@id/hw_unit_name_layout">
 
-                    <com.google.android.material.textview.MaterialAutoCompleteTextView
+                    <com.google.android.material.textfield.MaterialAutoCompleteTextView
                         android:id="@+id/second_hw_unit_name_spinner"
                         style="@style/EnabledColorMaterialAutoCompleteTextViewStyle"
                         android:clickable="@{viewModel.isEditMode}"

@@ -15,7 +15,7 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.textfield.TextInputLayout
-import com.google.android.material.textview.MaterialAutoCompleteTextView
+import com.google.android.material.textfield.MaterialAutoCompleteTextView
 import com.krisbiketeam.smarthomeraspbpi3.common.MyLiveDataState
 import timber.log.Timber
 
