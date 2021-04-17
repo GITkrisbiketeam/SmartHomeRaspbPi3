@@ -63,7 +63,7 @@ class TaskListFragment : Fragment() {
                 val direction = TaskListFragmentDirections.actionTaskListFragmentToHomeUnitDetailFragment("","","")
                 findNavController().navigate(direction)
             }
-            val adapter = TaskListAdapter()
+            val adapter: TaskListAdapter by inject()
             taskList.layoutManager = GridLayoutManager(requireContext(), 2)
             taskList.adapter = adapter
 

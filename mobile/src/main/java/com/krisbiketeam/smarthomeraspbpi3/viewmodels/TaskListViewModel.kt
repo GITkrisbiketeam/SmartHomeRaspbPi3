@@ -28,7 +28,7 @@ class TaskListViewModel(private val homeRepository: FirebaseHomeInformationRepos
             val taskListAdapterModelMap: MutableMap<String, TaskListAdapterModel> = mutableMapOf()
             // Add HomeUnits without Room set
             homeUnitsList.filter {
-                it.room.isEmpty() || it.hwUnitName.isNullOrEmpty()
+                it.room.isEmpty() || it.hwUnitName.isNullOrEmpty() || it.showInTaskList
             }.forEach {
                 taskListAdapterModelMap[it.type +'.'+ it.name] = TaskListAdapterModel(null, it, hwUnitErrorEventList.firstOrNull { hwUnitLog -> hwUnitLog.name == it.hwUnitName } != null)
             }

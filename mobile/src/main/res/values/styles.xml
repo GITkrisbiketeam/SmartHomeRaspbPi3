@@ -24,7 +24,6 @@
 
         <item name="textInputStyle">@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox
         </item>
-        <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.App.SmallComponent</item>
         <item name="navigationViewStyle">@style/Widget.App.NavigationView</item>
     </style>
 
@@ -81,7 +80,7 @@
     </style>
 
     <style name="ShapeAppearance.App.SmallComponent" parent="ShapeAppearance.MaterialComponents.SmallComponent">
-        <item name="cornerFamily">cut</item>
+        <item name="cornerFamily">rounded</item>
         <item name="cornerSize">4dp</item>
     </style>
 
@@ -89,5 +88,6 @@
         <item name="itemIconTint">@color/navigation_item_color</item>
         <item name="itemTextColor">@color/navigation_item_color</item>
         <item name="itemShapeFillColor">@color/navigation_item_background_color</item>
+        <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.App.SmallComponent</item>
     </style>
 </resources>

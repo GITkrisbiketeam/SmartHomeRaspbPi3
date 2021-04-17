@@ -3,6 +3,7 @@ package com.krisbiketeam.smarthomeraspbpi3.di
 import android.net.ConnectivityManager
 import android.net.wifi.WifiManager
 import com.krisbiketeam.smarthomeraspbpi3.adapters.RoomDetailHomeUnitListAdapter
+import com.krisbiketeam.smarthomeraspbpi3.adapters.TaskListAdapter
 import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.Authentication
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.AuthenticationLiveData
@@ -57,6 +58,7 @@ val myModule: Module = module {
 
     factory { AuthenticationLiveData(get()) }
     factory { RoomDetailHomeUnitListAdapter(get()) }
+    factory { TaskListAdapter(get()) }
 
     factory { NearbyServiceLiveData(get()) }
     factory<NearbyService> { NearbyServiceProvider(androidApplication(), get()) }

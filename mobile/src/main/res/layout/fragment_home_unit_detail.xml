@@ -430,6 +430,19 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/home_unit_name" />
 
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/home_unit_show_in_task_list_switch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="@dimen/activity_horizontal_margin"
+                    android:checked="@={viewModel.showInTaskList}"
+                    android:clickable="@{safeUnbox(viewModel.isEditMode) ? true : false}"
+                    android:visibility="@{FirebaseTablesKt.HOME_LIGHT_SWITCHES.equals(viewModel.type) || FirebaseTablesKt.HOME_ACTUATORS.equals(viewModel.type) || FirebaseTablesKt.HOME_BLINDS.equals(viewModel.type) ? View.VISIBLE : View.GONE}"
+                    android:text="@string/add_edit_home_unit_notify_firebase_switch_text"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/home_unit_notify_firebase_switch" />
+
                 <TextView
                     android:id="@+id/unit_task_list_title"
                     android:layout_width="match_parent"
@@ -441,7 +454,7 @@
                     android:visibility="@{viewModel.homeUnit != null ? View.VISIBLE : View.GONE}"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/home_unit_notify_firebase_switch" />
+                    app:layout_constraintTop_toBottomOf="@id/home_unit_show_in_task_list_switch" />
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/unit_task_list"
