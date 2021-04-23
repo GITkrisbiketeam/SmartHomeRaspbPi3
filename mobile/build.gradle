@@ -8,6 +8,14 @@ apply plugin: 'com.google.firebase.crashlytics'
 apply plugin: 'com.google.firebase.firebase-perf'
 
 android {
+    signingConfigs {
+        test {
+            storeFile file('/Users/krzysztofplotczyk/workspace/SmartHomeRaspbPi3/Untitled')
+            storePassword 'testpassword'
+            keyAlias 'test'
+            keyPassword 'testpassword'
+        }
+    }
     compileSdkVersion compileWithSDK
     defaultConfig {
         applicationId "com.krisbiketeam.smarthomeraspbpi3"
@@ -16,6 +24,7 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        signingConfig signingConfigs.test
     }
     buildTypes {
         release {
@@ -69,17 +78,17 @@ dependencies {
     implementation "com.google.android.material:material:$androidMaterialVesrion"
     implementation "com.google.android.gms:play-services-base:$playServicesVersion"
 
-    implementation "com.google.firebase:firebase-core:$firebaseCoreVersion"
-    implementation "com.google.firebase:firebase-database-ktx:$firebaseDatabaseVersion"
-    implementation "com.google.firebase:firebase-auth-ktx:$firebaseAuthVersion"
-    implementation "com.google.firebase:firebase-messaging:$firebaseMessaging"
-
+    implementation platform("com.google.firebase:firebase-bom:$firebaseBom")
+    implementation 'com.google.firebase:firebase-core'
+    implementation 'com.google.firebase:firebase-database-ktx'
+    implementation 'com.google.firebase:firebase-auth-ktx'
+    implementation 'com.google.firebase:firebase-messaging'
     // Recommended: Add the Firebase SDK for Google Analytics.
-    implementation "com.google.firebase:firebase-analytics-ktx:$firebaseAnalytics"
+    implementation 'com.google.firebase:firebase-analytics-ktx'
     // Add the Firebase Crashlytics SDK.
-    implementation "com.google.firebase:firebase-crashlytics-ktx:$firebaseCrashlytics"
+    implementation 'com.google.firebase:firebase-crashlytics-ktx'
     // Add the dependency for the Performance Monitoring library
-    implementation "com.google.firebase:firebase-perf-ktx:$firebasePerf"
+    implementation 'com.google.firebase:firebase-perf-ktx'
 
     implementation "androidx.lifecycle:lifecycle-extensions:$androidxLifecycleExtensionsVersion"
     implementation "androidx.navigation:navigation-fragment-ktx:$navigationVersion"

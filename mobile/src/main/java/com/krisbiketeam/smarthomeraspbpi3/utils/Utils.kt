@@ -1,8 +1,6 @@
 package com.krisbiketeam.smarthomeraspbpi3.utils
 
-import android.app.TimePickerDialog
 import android.content.Context
-import android.widget.TimePicker
 import androidx.lifecycle.MutableLiveData
 import com.krisbiketeam.smarthomeraspbpi3.R
 import java.text.SimpleDateFormat
@@ -22,17 +20,21 @@ fun getLastUpdateTime(context: Context, lastUpdateTime: Long?): String {
     timeFormat.format(date)
     return if (days > 0) {
         context.resources.getQuantityString(R.plurals.last_update_time, days,
-                                            timeFormat.format(date), days)
+                timeFormat.format(date), days)
     } else {
         context.resources.getString(R.string.last_update_time, timeFormat.format(date))
     }
 }
 
 fun showTimePicker(context: Context?, liveData: MutableLiveData<Long?>) {
-    // TODO: Add proper Time Picker
     context?.let {
-        TimePickerDialog(context, { _: TimePicker, hourOfDay: Int, minute: Int ->
-            liveData.value = (minute * 1000 + hourOfDay * 60 * 1000).toLong()
-        }, 0, 0, true).show()
+        val (currentHours, currentMinutes, currentSeconds) = liveData.value?.run {
+            Triple((this / (1000 * 60 * 60) % 24).toInt(),
+                    ((this / (1000 * 60) % 60)).toInt(),
+                    ((this / 1000) % 60).toInt())
+        } ?: Triple(0, 0, 0)
+        TimeDurationPicker(context, { hours: Int, minutes: Int, seconds: Int ->
+            liveData.value = (seconds * 1000 + minutes * 1000 * 60 + hours * 60 * 60 * 1000).toLong()
+        }, currentHours, currentMinutes, currentSeconds).show()
     }
 }

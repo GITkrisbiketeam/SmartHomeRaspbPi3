@@ -46,6 +46,7 @@
     <string name="menu_edit">Edit</string>
     <string name="menu_save">Save</string>
     <string name="menu_discard">Discard</string>
+    <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
     <string name="overwrite">Overwrite</string>
     <string name="menu_clear_all">Clear All</string>
@@ -82,6 +83,7 @@
     <string name="add_edit_home_unit_empty_unit_second_hw_unit">Switch hardware Unit cannot be empty</string>
     <string name="add_edit_home_unit_delete_home_unit_prompt">Do you really want to delete this Home Unit?</string>
     <string name="add_edit_home_unit_notify_firebase_switch_text">Notify remote App about this Home Unit changes?</string>
+    <string name="add_edit_home_unit_show_in_task_list_switch_text">Show in Task List</string>
     <string name="add_edit_home_unit_discard_changes">Discard any changes?</string>
     <string name="add_edit_home_unit_no_changes">No changes were made.</string>
     <string name="add_edit_home_unit_task_list_add_new_task">Add New Unit Task</string>
@@ -181,6 +183,9 @@
     <string name="nav_header_alarm_state_title">Alarm state:</string>
 
     <string name="last_update_time">Updated at: %s</string>
+    <string name="widget_time_duration_picker_hours">Hours:</string>
+    <string name="widget_time_duration_picker_seconds">Seconds:</string>
+    <string name="widget_time_duration_picker_minutes">Minutes:</string>
     <plurals name="last_update_time">
         <item quantity="one">Updated at: %s, %d day ago</item>
         <item quantity="other">Updated at: %s, %d days ago</item>

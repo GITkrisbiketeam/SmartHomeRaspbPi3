@@ -12,20 +12,13 @@ ext {
 
     // ClassPath
     gradlePluginVersion = '4.1.3'
-    googleServicesClassVersion = '4.3.3'
+    googleServicesClassVersion = '4.3.5'
 
     // Google
-    playServicesVersion = '17.5.0'
+    playServicesVersion = '17.6.0'
     playServicesNearbyVersion = '17.0.0'
 
-    firebaseCoreVersion = '18.0.0'
-    firebaseDatabaseVersion = '19.5.1'
-    firebaseAuthVersion = '20.0.0'
-    firebaseMessaging = '20.1.0'
-
-    firebaseAnalytics = '18.0.3'
-    firebaseCrashlytics = '17.4.1'
-    firebasePerf = '19.1.1'
+    firebaseBom = '27.1.0'
 
     androidxAppcompatVersion = '1.2.0'
     androidxLifecycleExtensionsVersion = '2.2.0'
