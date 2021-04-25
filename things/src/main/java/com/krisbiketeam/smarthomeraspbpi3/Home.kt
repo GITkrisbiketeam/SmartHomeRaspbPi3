@@ -2,9 +2,8 @@ package com.krisbiketeam.smarthomeraspbpi3
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
-import com.google.firebase.analytics.FirebaseAnalytics
-import com.google.firebase.analytics.ktx.logEvent
 import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver.MCP23017Pin
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.ChildEventType
@@ -43,7 +42,7 @@ const val SENSOR_VALUE = "value"
 
 class Home(secureStorage: SecureStorage,
            private val homeInformationRepository: FirebaseHomeInformationRepository,
-           private val firebaseAnalytics: FirebaseAnalytics) :
+           private val analytics: Analytics) :
         Sensor.HwUnitListener<Any> {
     private var homeUnitsLiveData: HomeUnitsLiveData? = null
     private val homeUnitsList: MutableMap<Pair<String, String>, HomeUnit<Any>> = ConcurrentHashMap()
@@ -305,7 +304,7 @@ class Home(secureStorage: SecureStorage,
                                     }
                                 } else {
                                     newErrorOccurred = true
-                                    hwUnitsList.get(hwUnitErrorEvent.name)
+                                    hwUnitsList[hwUnitErrorEvent.name]
                                 }
                         Triple(hwUnitErrorEvent.localtime, count, baseHwUnit ?: third)
                     } else {
@@ -576,7 +575,7 @@ class Home(secureStorage: SecureStorage,
                 setValue(value)
             }
             if (logEvent) {
-                firebaseAnalytics.logEvent(EVENT_SENSOR_SET_VALUE) {
+                analytics.logEvent(EVENT_SENSOR_SET_VALUE) {
                     param(SENSOR_NAME, this@setValueWithException.hwUnit.name)
                     param(SENSOR_VALUE, value.toString())
                 }
@@ -591,7 +590,7 @@ class Home(secureStorage: SecureStorage,
             withContext(Dispatchers.Main) {
                 readValue()
             }.also {
-                firebaseAnalytics.logEvent(EVENT_SENSOR_READ_VALUE) {
+                analytics.logEvent(EVENT_SENSOR_READ_VALUE) {
                     param(SENSOR_NAME, this@readValueWithException.hwUnit.name)
                     param(SENSOR_VALUE, it.toString())
                 }
@@ -612,7 +611,7 @@ class Home(secureStorage: SecureStorage,
                                 "Error registerListener CoroutineExceptionHandler hwUnit on $hwUnit")
                     }
                 })
-                firebaseAnalytics.logEvent(EVENT_REGISTER_LISTENER) {
+                analytics.logEvent(EVENT_REGISTER_LISTENER) {
                     param(SENSOR_NAME, this@registerListenerWithException.toString())
                 }
             }
@@ -626,7 +625,7 @@ class Home(secureStorage: SecureStorage,
             withContext(Dispatchers.Main) {
                 close()
             }
-            firebaseAnalytics.logEvent(EVENT_SENSOR_CLOSE) {
+            analytics.logEvent(EVENT_SENSOR_CLOSE) {
                 param(SENSOR_NAME, this@closeValueWithException.hwUnit.name)
             }
         } catch (e: Exception) {
@@ -639,7 +638,7 @@ class Home(secureStorage: SecureStorage,
             withContext(Dispatchers.Main) {
                 connect()
             }
-            firebaseAnalytics.logEvent(EVENT_SENSOR_CONNECT) {
+            analytics.logEvent(EVENT_SENSOR_CONNECT) {
                 param(SENSOR_NAME, this@connectValueWithException.hwUnit.name)
             }
             true
@@ -662,7 +661,7 @@ class Home(secureStorage: SecureStorage,
         homeInformationRepository.addHwUnitErrorEvent(
                 HwUnitLog(hwUnit, unitValue, "$logMessage \n ${e.message}", errorTime))
 
-        firebaseAnalytics.logEvent(EVENT_SENSOR_EXCEPTION) {
+        analytics.logEvent(EVENT_SENSOR_EXCEPTION) {
             param(SENSOR_NAME, this@addHwUnitErrorEvent.hwUnit.name)
             param(SENSOR_LOG_MESSAGE, logMessage)
             param(SENSOR_ERROR, e.toString())

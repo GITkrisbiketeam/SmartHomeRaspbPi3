@@ -66,7 +66,7 @@ class HomeUnitDetailFragment : Fragment() {
 
         setHasOptionsMenu(true)
 
-        analytics.firebaseAnalytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW, bundleOf(
+        analytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW, bundleOf(
                 FirebaseAnalytics.Param.SCREEN_NAME to this::class.simpleName,
                 FirebaseAnalytics.Param.ITEM_NAME to args.roomName
         ))

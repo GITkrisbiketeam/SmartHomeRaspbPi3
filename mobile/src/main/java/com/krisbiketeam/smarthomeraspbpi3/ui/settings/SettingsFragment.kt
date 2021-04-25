@@ -31,7 +31,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
         // Load the preferences from an XML resource
         setPreferencesFromResource(R.xml.settings_fragment_preference, rootKey)
 
-        analytics.firebaseAnalytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW, bundleOf(
+        analytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW, bundleOf(
                 FirebaseAnalytics.Param.SCREEN_NAME to this::class.simpleName
         ))
     }

@@ -13,12 +13,10 @@ import com.google.android.things.userdriver.UserDriverManager
 import com.google.android.things.userdriver.input.InputDriver
 import com.google.android.things.userdriver.input.InputDriverEvent
 import com.google.firebase.analytics.FirebaseAnalytics
-import com.google.firebase.analytics.ktx.analytics
-import com.google.firebase.analytics.ktx.logEvent
 import com.google.firebase.crashlytics.FirebaseCrashlytics
-import com.google.firebase.ktx.Firebase
 import com.krisbiketeam.smarthomeraspbpi3.Home
 import com.krisbiketeam.smarthomeraspbpi3.R
+import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.Authentication
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.FirebaseCredentials
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.WifiCredentials
@@ -58,9 +56,10 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
     private lateinit var networkConnectionMonitor: NetworkConnectionMonitor
     private lateinit var wifiManager: WifiManager
 
-    private lateinit var firebaseAnalytics: FirebaseAnalytics
+    private val analytics: Analytics by inject()
 
-    private lateinit var home: Home
+    private val home: Home by inject()
+
     private val ledA: HwUnitI2CPCF8574ATActuator
     private val ledB: HwUnitI2CPCF8574ATActuator
     private val ledC: HwUnitI2CPCF8574ATActuator
@@ -161,8 +160,6 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
         setContentView(R.layout.activity_home)
         ConsoleLoggerTree.setLogConsole(this)
 
-        firebaseAnalytics = Firebase.analytics
-
         homeInformationRepository.clearResetAppFlag()
 
         ledA.connectValueWithException()
@@ -199,7 +196,6 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
         led1.setValueWithException(false)
         led2.setValueWithException(false)
 
-        home = Home(secureStorage, homeInformationRepository, firebaseAnalytics)
         //home.saveToRepository()
 
         //homeInformationRepository.setHomeReference("test home")
@@ -429,7 +425,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
         Timber.d("onStart")
         super.onStart()
 
-        firebaseAnalytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW) {
+        analytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW) {
             param(FirebaseAnalytics.Param.SCREEN_NAME, "Home")
             param(FirebaseAnalytics.Param.SCREEN_CLASS, this@ThingsActivity::class.simpleName?: "ThingsActivity")
         }

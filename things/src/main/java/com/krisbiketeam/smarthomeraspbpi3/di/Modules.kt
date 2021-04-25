@@ -1,5 +1,7 @@
 package com.krisbiketeam.smarthomeraspbpi3.di
 
+import com.krisbiketeam.smarthomeraspbpi3.Home
+import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.Authentication
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.FirebaseAuthentication
 import com.krisbiketeam.smarthomeraspbpi3.common.nearby.NearbyService
@@ -19,6 +21,8 @@ val myModule: Module = module {
     single<SecureStorage> { SecureStorageImpl(androidApplication(), get()) }
     single<Authentication> { FirebaseAuthentication() }
     single { Moshi.Builder().build() }
+    single { Analytics() }
+    single { Home(get(), get(), get()) }
 
     factory<NearbyService> { NearbyServiceProvider(androidApplication(), get()) }
 }
