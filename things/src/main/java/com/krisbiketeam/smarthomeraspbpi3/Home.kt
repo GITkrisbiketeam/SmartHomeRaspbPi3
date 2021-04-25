@@ -26,6 +26,7 @@ import kotlinx.coroutines.sync.withLock
 import timber.log.Timber
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.random.Random
 
 
 const val EVENT_SENSOR_EXCEPTION = "sensor_exception"
@@ -55,7 +56,8 @@ class Home(secureStorage: SecureStorage,
     private var hwUnitErrorEventListJob: Job? = null
     private var hwUnitRestartListJob: Job? = null
 
-    private val hwUnitErrorEventList: MutableMap<String, BaseHwUnit<Any>?> = ConcurrentHashMap()
+    private val hwUnitErrorEventList: MutableMap<String,  Triple<String, Int, BaseHwUnit<Any>?>> =
+            ConcurrentHashMap()
     private val hwUnitErrorEventListMutex = Mutex()
 
 
@@ -214,7 +216,12 @@ class Home(secureStorage: SecureStorage,
                             hwUnitStop(it)
                         }
                         if (hwUnitErrorEventList.contains(value.name)) {
-                            Timber.w("NODE_ACTION_ADDED HwUnit is on HwErrorList do not add it")
+                            Timber.w("NODE_ACTION_ADDED HwUnit is on HwErrorList do not start it")
+                            hwUnitErrorEventList.compute(value.name) { _, triple ->
+                                triple?.run {
+                                    Triple(triple.first, triple.second, createHwUnit(value))
+                                }
+                            }
                         } else {
                             createHwUnit(value)?.let {
                                 Timber.w(
@@ -286,16 +293,31 @@ class Home(secureStorage: SecureStorage,
         if (errorEventList.isNotEmpty()) {
             var newErrorOccurred = false
             errorEventList.forEach { hwUnitErrorEvent ->
-                if (!hwUnitErrorEventList.containsKey(hwUnitErrorEvent.name)) {
-                    // disable after first error
-                    hwUnitsList.remove(hwUnitErrorEvent.name)?.let {
-                        newErrorOccurred = true
-                        hwUnitStop(it)
-                        hwUnitErrorEventList[hwUnitErrorEvent.name] = it
-                        Timber.w(
-                                "hwUnitErrorEventListDataProcessor error from hwUnit: ${hwUnitErrorEvent.name}, remove it from hwUnitsList")
+                hwUnitErrorEventList[hwUnitErrorEvent.name] = hwUnitErrorEventList[hwUnitErrorEvent.name]?.run {
+                    if (hwUnitErrorEvent.localtime != first) {
+                        val count = second.inc()
+                        val baseHwUnit =
+                                if (count >= 3) {
+                                    hwUnitsList.remove(hwUnitErrorEvent.name)?.also {
+                                        hwUnitStop(it)
+                                        Timber.w(
+                                                "hwUnitErrorEventListDataProcessor to many errors ($count) from hwUnit: ${hwUnitErrorEvent.name}, remove it from hwUnitsList: $it")
+                                    }
+                                } else {
+                                    newErrorOccurred = true
+                                    hwUnitsList.get(hwUnitErrorEvent.name)
+                                }
+                        Triple(hwUnitErrorEvent.localtime, count, baseHwUnit ?: third)
+                    } else {
+                        this
                     }
-                }
+                } ?: Triple(hwUnitErrorEvent.localtime, 0,
+                        hwUnitsList.remove(hwUnitErrorEvent.name)?.also {
+                            // disable after first error as it came after Home start form remote DB
+                            hwUnitStop(it)
+                            Timber.w(
+                                    "hwUnitErrorEventListDataProcessor error from hwUnit: ${hwUnitErrorEvent.name}, remove it from hwUnitsList: $it")
+                        })
             }
             if (newErrorOccurred) {
                 // If error occurred then restart All other as they can be corrupted by error in i2c
@@ -305,11 +327,16 @@ class Home(secureStorage: SecureStorage,
             }
         } else {
             val unitToStart = hwUnitErrorEventListMutex.withLock {
-                val list = hwUnitErrorEventList.values.toList()
+                val list = hwUnitErrorEventList.values.mapNotNull { (_, _, hwUnit) ->
+                    hwUnit
+                }
                 hwUnitErrorEventList.clear()
                 list
             }
-            unitToStart.forEach { hwUnit -> hwUnit?.let { hwUnitStart(it) } }
+            unitToStart.forEach { hwUnit ->
+                delay(Random.nextLong(100))
+                hwUnitStart(hwUnit)
+            }
         }
     }
 
@@ -625,14 +652,15 @@ class Home(secureStorage: SecureStorage,
     private suspend fun <T : Any> BaseHwUnit<in T>.addHwUnitErrorEvent(e: Throwable,
                                                                        logMessage: String) {
 
+        val errorTime = Date().toString()
         if (!hwUnitErrorEventList.containsKey(hwUnit.name)) {
             hwUnitsList.remove(hwUnit.name)?.let {
                 hwUnitStop(it)
-                hwUnitErrorEventList[hwUnit.name] = it
+                hwUnitErrorEventList[hwUnit.name] = Triple(errorTime, 0, it)
             }
         }
         homeInformationRepository.addHwUnitErrorEvent(
-                HwUnitLog(hwUnit, unitValue, "$logMessage \n ${e.message}", Date().toString()))
+                HwUnitLog(hwUnit, unitValue, "$logMessage \n ${e.message}", errorTime))
 
         firebaseAnalytics.logEvent(EVENT_SENSOR_EXCEPTION) {
             param(SENSOR_NAME, this@addHwUnitErrorEvent.hwUnit.name)
