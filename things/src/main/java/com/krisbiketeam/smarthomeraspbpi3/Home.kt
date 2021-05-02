@@ -78,17 +78,7 @@ class Home(secureStorage: SecureStorage,
         Timber.d("sensorApplyFunction newVal: $newVal this: $this")
         if (newVal is Float) {
             unitsTasks.values.forEach { task ->
-                task.homeUnitsList.forEach {
-                    homeUnitsList[it.type to it.name]?.let { taskHomeUnit ->
-                        Timber.d("sensorApplyFunction task: $task for homeUnit: $this")
-                        hwUnitsList[taskHomeUnit.hwUnitName]?.let { taskHwUnit ->
-                            Timber.d("sensorApplyFunction taskHwUnit: ${taskHwUnit.hwUnit}")
-                            if (taskHwUnit is Actuator && taskHwUnit.unitValue is Boolean?) {
-                                sensorTaskApply(newVal, task, taskHomeUnit, taskHwUnit)
-                            }
-                        }
-                    }
-                }
+                sensorTaskApply(newVal, task)
             }
         } else {
             Timber.e("sensorApplyFunction new value is not Float or is null")
@@ -97,7 +87,7 @@ class Home(secureStorage: SecureStorage,
 
     private val homeUnitsDataObserver = Observer<Pair<ChildEventType, HomeUnit<Any>>> { pair ->
         Timber.d("homeUnitsDataObserver changed: $pair")
-        GlobalScope.launch(Dispatchers.Default) {
+        CoroutineScope(Dispatchers.IO).launch {
             pair?.let { (action, homeUnit) ->
                 when (action) {
                     ChildEventType.NODE_ACTION_CHANGED -> {
@@ -188,7 +178,7 @@ class Home(secureStorage: SecureStorage,
 
     private val hwUnitsDataObserver = Observer<Pair<ChildEventType, HwUnit>> { pair ->
         Timber.d("hwUnitsDataObserver changed: $pair")
-        GlobalScope.launch(Dispatchers.Default) {
+        GlobalScope.launch(Dispatchers.IO) {
             pair?.let { (action, value) ->
                 when (action) {
                     ChildEventType.NODE_ACTION_CHANGED -> {
@@ -260,12 +250,12 @@ class Home(secureStorage: SecureStorage,
         hwUnitsLiveData = homeInformationRepository.hwUnitsLiveData().apply {
             observeForever(hwUnitsDataObserver)
         }
-        hwUnitErrorEventListJob = GlobalScope.launch(Dispatchers.Default) {
+        hwUnitErrorEventListJob = GlobalScope.launch(Dispatchers.IO) {
             homeInformationRepository.hwUnitErrorEventListFlow().distinctUntilChanged().collect {
                 hwUnitErrorEventListDataProcessor(it)
             }
         }
-        hwUnitRestartListJob = GlobalScope.launch(Dispatchers.Default) {
+        hwUnitRestartListJob = GlobalScope.launch(Dispatchers.IO) {
             homeInformationRepository.hwUnitRestartListFlow().distinctUntilChanged().collect {
                 hwUnitRestartListProcessor(it)
             }
@@ -281,7 +271,7 @@ class Home(secureStorage: SecureStorage,
         hwUnitsLiveData?.removeObserver(hwUnitsDataObserver)
         hwUnitErrorEventListJob?.cancel()
         hwUnitRestartListJob?.cancel()
-        GlobalScope.launch(Dispatchers.Default) {
+        GlobalScope.launch(Dispatchers.IO) {
             hwUnitsList.values.forEach { hwUnitStop(it) }
         }
     }
@@ -293,22 +283,23 @@ class Home(secureStorage: SecureStorage,
             var newErrorOccurred = false
             errorEventList.forEach { hwUnitErrorEvent ->
                 hwUnitErrorEventList[hwUnitErrorEvent.name] = hwUnitErrorEventList[hwUnitErrorEvent.name]?.run {
-                    if (hwUnitErrorEvent.localtime != first) {
-                        val count = second.inc()
-                        val baseHwUnit =
-                                if (count >= 3) {
-                                    hwUnitsList.remove(hwUnitErrorEvent.name)?.also {
-                                        hwUnitStop(it)
-                                        Timber.w(
-                                                "hwUnitErrorEventListDataProcessor to many errors ($count) from hwUnit: ${hwUnitErrorEvent.name}, remove it from hwUnitsList: $it")
-                                    }
-                                } else {
-                                    newErrorOccurred = true
-                                    hwUnitsList[hwUnitErrorEvent.name]
-                                }
-                        Triple(hwUnitErrorEvent.localtime, count, baseHwUnit ?: third)
-                    } else {
+                    if (hwUnitErrorEvent.localtime == first) {
+                        if (second >= 3) {
+                            hwUnitsList.remove(hwUnitErrorEvent.name)?.also {
+                                hwUnitStop(it)
+                                Timber.w(
+                                        "hwUnitErrorEventListDataProcessor to many errors ($second) from hwUnit: ${hwUnitErrorEvent.name}, remove it from hwUnitsList: $it")
+                            }
+                        } else {
+                            newErrorOccurred = true
+                        }
                         this
+                    } else {
+                        Triple(hwUnitErrorEvent.localtime, Int.MAX_VALUE, hwUnitsList.remove(hwUnitErrorEvent.name)?.also {
+                            hwUnitStop(it)
+                            Timber.w(
+                                    "hwUnitErrorEventListDataProcessor differt time errors from hwUnit: ${hwUnitErrorEvent.name}, remove it from hwUnitsList: $it")
+                        } ?: third)
                     }
                 } ?: Triple(hwUnitErrorEvent.localtime, 0,
                         hwUnitsList.remove(hwUnitErrorEvent.name)?.also {
@@ -375,7 +366,7 @@ class Home(secureStorage: SecureStorage,
         //TODO :disable logging as its can overload firebase DB
         homeInformationRepository.logUnitEvent(HwUnitLog(hwUnit, unitValue, "onHwUnitChanged", Date(updateTime).toString()))
 
-        GlobalScope.launch(Dispatchers.Default) {
+        CoroutineScope(Dispatchers.IO).launch {
             homeUnitsList.values.filter {
                 if (it.type != HOME_LIGHT_SWITCHES) {
                     it.hwUnitName == hwUnit.name
@@ -401,7 +392,7 @@ class Home(secureStorage: SecureStorage,
         Timber.d("onHwUnitError unit: $hwUnit; error: $error; updateTime: ${
             Date(updateTime)
         }")
-        GlobalScope.launch(Dispatchers.Default) {
+        GlobalScope.launch(Dispatchers.IO) {
             hwUnitsList[hwUnit.name]?.addHwUnitErrorEvent(Throwable(), "Error on $hwUnit : error")
         }
     }
@@ -488,34 +479,34 @@ class Home(secureStorage: SecureStorage,
     // region applyFunction helper methods
 
     private suspend fun booleanTaskApply(newVal: Boolean, task: UnitTask) {
-        Timber.e("booleanTaskApply before cancel task.taskJob:${task.taskJob} isActive:${task.taskJob?.isActive} isCancelled:${task.taskJob?.isCancelled} isCompleted:${task.taskJob?.isCompleted}")
+        Timber.v("booleanTaskApply before cancel task.taskJob:${task.taskJob} isActive:${task.taskJob?.isActive} isCancelled:${task.taskJob?.isCancelled} isCompleted:${task.taskJob?.isCompleted}")
         task.taskJob?.cancel()
-        Timber.e("booleanTaskApply after cancel task.taskJob:${task.taskJob} isActive:${task.taskJob?.isActive} isCancelled:${task.taskJob?.isCancelled} isCompleted:${task.taskJob?.isCompleted}")
+        Timber.v("booleanTaskApply after cancel task.taskJob:${task.taskJob} isActive:${task.taskJob?.isActive} isCancelled:${task.taskJob?.isCancelled} isCompleted:${task.taskJob?.isCompleted}")
 
         if ((task.trigger == null || task.trigger == BOTH)
                 || (task.trigger == RISING_EDGE && newVal)
                 || (task.trigger == FALLING_EDGE && !newVal)) {
-            task.taskJob = GlobalScope.launch(Dispatchers.Default) {
+            task.taskJob = GlobalScope.launch(Dispatchers.IO) {
                 do {
                     booleanTaskTimed(newVal, task)
                 } while (this.isActive && task.periodically == true && task.delay.isValidTime() && task.duration.isValidTime())
             }
-            Timber.e("booleanTaskApply after booleanTaskTimed task.taskJob:${task.taskJob} isActive:${task.taskJob?.isActive} isCancelled:${task.taskJob?.isCancelled} isCompleted:${task.taskJob?.isCompleted}")
+            Timber.v("booleanTaskApply after booleanTaskTimed task.taskJob:${task.taskJob} isActive:${task.taskJob?.isActive} isCancelled:${task.taskJob?.isCancelled} isCompleted:${task.taskJob?.isCompleted}")
         } else if (task.resetOnInverseTrigger == true) {
             booleanApplyAction(newVal, task.inverse, task.periodicallyOnlyHw, task.homeUnitsList)
         }
     }
 
-    private suspend fun sensorTaskApply(newVal: Float, task: UnitTask, taskHomeUnit: HomeUnit<Any>, taskHwUnit: Actuator<in Boolean>) {
+    private suspend fun sensorTaskApply(newVal: Float, task: UnitTask) {
         task.threshold?.let { threshold ->
             if (newVal >= threshold + (task.hysteresis ?: 0f)) {
                 task.taskJob?.cancel()
-                task.taskJob = GlobalScope.launch(Dispatchers.Default) {
+                task.taskJob = GlobalScope.launch(Dispatchers.IO) {
                     booleanTaskTimed(true, task)
                 }
             } else if (newVal <= threshold - (task.hysteresis ?: 0f)) {
                 task.taskJob?.cancel()
-                task.taskJob = GlobalScope.launch(Dispatchers.Default) {
+                task.taskJob = GlobalScope.launch(Dispatchers.IO) {
                     booleanTaskTimed(false, task)
                 }
             }
@@ -571,9 +562,7 @@ class Home(secureStorage: SecureStorage,
 
     private suspend fun <T : Any> Actuator<in T>.setValueWithException(value: T, logEvent: Boolean = true) {
         try {
-            withContext(Dispatchers.Main) {
-                setValue(value)
-            }
+            setValue(value)
             if (logEvent) {
                 analytics.logEvent(EVENT_SENSOR_SET_VALUE) {
                     param(SENSOR_NAME, this@setValueWithException.hwUnit.name)
@@ -581,6 +570,7 @@ class Home(secureStorage: SecureStorage,
                 }
             }
         } catch (e: Exception) {
+            Timber.e("setValueWithException; Error updating hwUnit value on $hwUnit", e)
             addHwUnitErrorEvent(e, "Error updating hwUnit value on $hwUnit")
         }
     }
@@ -596,6 +586,7 @@ class Home(secureStorage: SecureStorage,
                 }
             }
         } catch (e: Exception) {
+            Timber.e("readValueWithException; Error reading hwUnit value on $hwUnit", e)
             addHwUnitErrorEvent(e, "Error reading hwUnit value on $hwUnit")
             null
         }
@@ -616,6 +607,7 @@ class Home(secureStorage: SecureStorage,
                 }
             }
         } catch (e: Exception) {
+            Timber.e("registerListenerWithException; Error registerListener hwUnit on $hwUnit", e)
             addHwUnitErrorEvent(e, "Error registerListener hwUnit on $hwUnit")
         }
     }
@@ -629,6 +621,7 @@ class Home(secureStorage: SecureStorage,
                 param(SENSOR_NAME, this@closeValueWithException.hwUnit.name)
             }
         } catch (e: Exception) {
+            Timber.e("closeValueWithException; Error closing hwUnit on $hwUnit", e)
             addHwUnitErrorEvent(e, "Error closing hwUnit on $hwUnit")
         }
     }
@@ -643,6 +636,7 @@ class Home(secureStorage: SecureStorage,
             }
             true
         } catch (e: Exception) {
+            Timber.e("connectValueWithException; Error connecting hwUnit on $hwUnit", e)
             addHwUnitErrorEvent(e, "Error connecting hwUnit on $hwUnit")
             false
         }
@@ -652,11 +646,11 @@ class Home(secureStorage: SecureStorage,
                                                                        logMessage: String) {
 
         val errorTime = Date().toString()
-        if (!hwUnitErrorEventList.containsKey(hwUnit.name)) {
-            hwUnitsList.remove(hwUnit.name)?.let {
-                hwUnitStop(it)
-                hwUnitErrorEventList[hwUnit.name] = Triple(errorTime, 0, it)
-            }
+        val baseHwUnit = hwUnitsList[hwUnit.name]?.also {
+            hwUnitStop(it)
+        }
+        hwUnitErrorEventList.compute(hwUnit.name) { _, existing ->
+            Triple(errorTime, existing?.second?.inc()?: 0, baseHwUnit)
         }
         homeInformationRepository.addHwUnitErrorEvent(
                 HwUnitLog(hwUnit, unitValue, "$logMessage \n ${e.message}", errorTime))
@@ -679,14 +673,14 @@ class Home(secureStorage: SecureStorage,
 private fun updateHomeUnitValuesAndTimes(homeUnit: HomeUnit<Any>, unitValue: Any?, updateTime: Long) {
     // We need to handel differently values of non Basic Types
     if (unitValue is TemperatureAndPressure) {
-        Timber.d("Received TemperatureAndPressure ${homeUnit.value}")
+        Timber.d("Received TemperatureAndPressure $unitValue")
         if (homeUnit.type == HOME_TEMPERATURES) {
             updateValueMinMax(homeUnit, unitValue.temperature, updateTime)
         } else if (homeUnit.type == HOME_PRESSURES) {
             updateValueMinMax(homeUnit, unitValue.pressure, updateTime)
         }
     } else if (unitValue is TemperatureAndHumidity) {
-        Timber.d("Received TemperatureAndHumidity ${homeUnit.value}")
+        Timber.d("Received TemperatureAndHumidity $unitValue")
         if (homeUnit.type == HOME_TEMPERATURES) {
             updateValueMinMax(homeUnit, unitValue.temperature, updateTime)
         } else if (homeUnit.type == HOME_HUMIDITY) {
