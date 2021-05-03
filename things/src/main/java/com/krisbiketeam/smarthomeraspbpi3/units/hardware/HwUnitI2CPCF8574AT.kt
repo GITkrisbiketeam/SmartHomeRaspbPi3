@@ -4,14 +4,15 @@ import android.annotation.SuppressLint
 import androidx.annotation.VisibleForTesting
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver.PCF8574AT
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 
 object HwUnitI2CPCF8574AT {
 
     @SuppressLint("UseSparseArrays")
-    private var pcfMap = HashMap<Int, PCF8574AT>()
+    private var pcfMap = ConcurrentHashMap<Int, PCF8574AT>()
     @SuppressLint("UseSparseArrays")
     @VisibleForTesting
-    internal var mcpUseCountMap = HashMap<Int, Int>()
+    internal var mcpUseCountMap = ConcurrentHashMap<Int, Int>()
 
     @Throws(Exception::class)
     fun getPcf8574AtInstance(bus: String, i2cAddr: Int): PCF8574AT {

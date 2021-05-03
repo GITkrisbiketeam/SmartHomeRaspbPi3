@@ -36,6 +36,7 @@ class HwUnitI2CMCP23017Actuator(name: String, location: String, private val pinN
         // decreaseUseCount will close HwUnitI2C when count reaches 0
         val refCount = HwUnitI2CMCP23017.decreaseUseCount(pinName, address)
         Timber.d("close refCount:$refCount i2c:$address pinInterrupt: $pinInterrupt")
+        // this will nullify HwUnitI2C#device instance
         if (refCount == 0) {
             super.close()
         }

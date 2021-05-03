@@ -50,6 +50,10 @@ open class HwUnitI2CPCF8574ATSensor(name: String, location: String, private val 
         // decreaseUseCount will close HwUnitI2C when count reaches 0
         val refCount = HwUnitI2CPCF8574AT.decreaseUseCount(pinName, address)
         Timber.d("close refCount:$refCount")
+        // this will nullify HwUnitI2C#device instance
+        if (refCount == 0) {
+            super.close()
+        }
     }
 
     override fun registerListener(listener: Sensor.HwUnitListener<Boolean>,

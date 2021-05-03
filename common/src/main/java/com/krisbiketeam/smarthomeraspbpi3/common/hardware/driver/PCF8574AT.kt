@@ -1,7 +1,6 @@
 package com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver
 
 import android.annotation.SuppressLint
-import androidx.annotation.VisibleForTesting
 import android.view.ViewConfiguration
 import com.google.android.things.pio.Gpio
 import com.google.android.things.pio.GpioCallback
@@ -15,11 +14,11 @@ import java.util.*
 /**
  * Driver for the MCP23017 16 bit I/O Expander.
  */
-class PCF8574AT(bus: String? = null,
-               address: Int = DEFAULT_I2C_000_ADDRESS,
-               var intGpio: String? = null,
-               private var pollingTime: Int = NO_POLLING_TIME,
-               private val debounceDelay: Int = NO_DEBOUNCE_DELAY) : AutoCloseable {
+class PCF8574AT(private val bus: String? = null,
+                private val address: Int = DEFAULT_I2C_000_ADDRESS,
+                var intGpio: String? = null,
+                private var pollingTime: Int = NO_POLLING_TIME,
+                private val debounceDelay: Int = NO_DEBOUNCE_DELAY) : AutoCloseable {
 
 
     companion object {
@@ -46,7 +45,6 @@ class PCF8574AT(bus: String? = null,
     private var currentStates = 0
     private var currentDirections = 0
 
-    private var mDevice: I2cDevice? = null
     private var mGpioInt: Gpio? = null
 
     private val mListeners = HashMap<Pin, MutableList<PCF8574ATPinStateChangeListener>>()
@@ -79,7 +77,13 @@ class PCF8574AT(bus: String? = null,
     init {
         if (bus != null) {
             try {
-                connectI2c(PeripheralManager.getInstance()?.openI2cDevice(bus, address))
+                lockedI2cOperation {
+                    // read initial GPIO pin states
+                    currentStates = readRegister(it)
+
+                    Timber.d("connectI2c currentStates: $currentStates")
+                    resetToDefaults(it)
+                }
             } catch (e: Exception) {
                 Timber.e(e,"init error connecting I2C")
                 close()
@@ -88,20 +92,12 @@ class PCF8574AT(bus: String? = null,
         }
     }
 
-    @VisibleForTesting
-    internal constructor(device: I2cDevice) : this() {
-        mDevice = device
-    }
-
-    @Throws(Exception::class)
-    private fun connectI2c(device: I2cDevice?) {
-        mDevice = device
-
-        // read initial GPIO pin states
-        currentStates = readRegister() ?: -1
-
-        Timber.d("connectI2c currentStates: $currentStates")
-        resetToDefaults()
+    private fun lockedI2cOperation(block: (I2cDevice?) -> Unit) {
+        synchronized(this) {
+            PeripheralManager.getInstance()?.openI2cDevice(bus, address).use {
+                block(it)
+            }
+        }
     }
 
     @Throws(Exception::class)
@@ -167,16 +163,6 @@ class PCF8574AT(bus: String? = null,
         // if a monitor is running, then shut it down now
         stopMonitor()
 
-        try {
-            mDevice?.close()
-        } catch (e: Exception){
-            Timber.e("close i2c exception: $e")
-            throw (Exception("Error closing PCF8574AT", e))
-        } finally {
-            mDevice = null
-            Timber.d("close finished")
-        }
-
         mGpioInt?.unregisterGpioCallback(mIntCallback)
         try {
             mGpioInt?.close()
@@ -190,22 +176,22 @@ class PCF8574AT(bus: String? = null,
 
 
     @Throws(Exception::class)
-    private fun readRegister(): Int {
+    private fun readRegister(i2cDevice: I2cDevice?): Int {
         val byteArray = ByteArray(1)
-        mDevice?.read(byteArray, 1)
+        i2cDevice?.read(byteArray, 1)
         return byteArray[0].toInt().and(0xff)
     }
 
     @Throws(Exception::class)
-    private fun writeRegister(regVal: Int) {
+    private fun writeRegister(i2cDevice: I2cDevice?, regVal: Int) {
         val buffer = ByteArray(1)
         buffer[0] = regVal.toByte()
-        mDevice?.write(buffer, 1)
+        i2cDevice?.write(buffer, 1)
     }
 
     @Throws(Exception::class)
-    private fun resetToDefaults() {
-        writeRegister( 0xFF)
+    private fun resetToDefaults(i2cDevice: I2cDevice?) {
+        writeRegister(i2cDevice, 0xFF)
     }
 
     // Set Input or output mode functions
@@ -223,7 +209,9 @@ class PCF8574AT(bus: String? = null,
         Timber.d("setMode currentDirections: $currentDirections")
 
         // next update direction value
-        writeRegister(currentDirections or currentStates)
+        lockedI2cOperation{
+            writeRegister(it, currentDirections or currentStates)
+        }
 
         // if any pins are configured as input pins, then we need to start the interrupt monitoring
         // thread
@@ -257,7 +245,9 @@ class PCF8574AT(bus: String? = null,
             }
 
             // update state value
-            writeRegister(currentDirections or currentStates)
+            lockedI2cOperation {
+                writeRegister(it, currentDirections or currentStates)
+            }
         } else {
             Timber.e("Cannot set state on INPUT Pin")
         }
@@ -266,7 +256,9 @@ class PCF8574AT(bus: String? = null,
     // Get Input state functions
     @Throws(Exception::class)
     fun getState(pin: Pin): PinState {
-        currentStates = readRegister() ?: currentStates
+        lockedI2cOperation {
+            currentStates = readRegister(it)
+        }
 
         // determine pin address
         val pinAddress = pin.address
@@ -302,7 +294,8 @@ class PCF8574AT(bus: String? = null,
         // input pin
         if (currentDirections > 0) {
             // process interrupts for port A
-            readRegister()?.let{pinInterruptStates ->
+            lockedI2cOperation {
+                val pinInterruptStates = readRegister(it)
                 Timber.v("checkInterrupt pinInterruptStates:$pinInterruptStates")
 
                 // validate that there is at least one interrupt active on port A
@@ -313,6 +306,7 @@ class PCF8574AT(bus: String? = null,
                     }
                     currentStates = pinInterruptStates
                 }
+
             }
         }
     }

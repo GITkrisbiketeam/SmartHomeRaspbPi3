@@ -60,6 +60,7 @@ open class HwUnitI2CMCP23017Sensor(name: String, location: String, private val p
         // We do not want to close this device if it is used by another instance of this class
         val refCount = HwUnitI2CMCP23017.decreaseUseCount(pinName, address)
         Timber.d("close refCount:$refCount i2c:$address pinInterrupt: $pinInterrupt")
+        // this will nullify HwUnitI2C#device instance
         if (refCount == 0) {
             super.close()
         }
