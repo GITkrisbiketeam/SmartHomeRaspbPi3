@@ -48,7 +48,8 @@ open class HwUnitI2CPCF8574ATSensor(name: String, location: String, private val 
         unregisterListener()
         // We do not want to close this device if it is used by another instance of this class
         // decreaseUseCount will close HwUnitI2C when count reaches 0
-        HwUnitI2CPCF8574AT.decreaseUseCount(pinName, address)
+        val refCount = HwUnitI2CPCF8574AT.decreaseUseCount(pinName, address)
+        Timber.d("close refCount:$refCount")
     }
 
     override fun registerListener(listener: Sensor.HwUnitListener<Boolean>,

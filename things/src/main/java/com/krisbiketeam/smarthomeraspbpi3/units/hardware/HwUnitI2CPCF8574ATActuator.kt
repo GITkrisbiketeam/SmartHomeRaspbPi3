@@ -7,6 +7,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.ConnectionType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
 import com.krisbiketeam.smarthomeraspbpi3.units.Actuator
 import com.krisbiketeam.smarthomeraspbpi3.units.HwUnitI2C
+import timber.log.Timber
 
 class HwUnitI2CPCF8574ATActuator(name: String, location: String, private val pinName: String,
                                  private val address: Int, private val pinInterrupt: String,
@@ -33,7 +34,8 @@ class HwUnitI2CPCF8574ATActuator(name: String, location: String, private val pin
     override fun close() {
         // We do not want to close this device if it is used by another instance of this class
         // decreaseUseCount will close HwUnitI2C when count reaches 0
-        HwUnitI2CPCF8574AT.decreaseUseCount(pinName, address)
+        val refCount = HwUnitI2CPCF8574AT.decreaseUseCount(pinName, address)
+        Timber.d("close refCount:$refCount")
     }
 
     @Throws(Exception::class)

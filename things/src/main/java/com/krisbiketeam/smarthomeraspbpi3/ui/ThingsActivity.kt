@@ -1,7 +1,6 @@
 package com.krisbiketeam.smarthomeraspbpi3.ui
 
 import android.content.Context
-import android.content.Intent
 import android.net.wifi.WifiConfiguration
 import android.net.wifi.WifiManager
 import android.os.Bundle
@@ -14,6 +13,7 @@ import com.google.android.things.userdriver.input.InputDriver
 import com.google.android.things.userdriver.input.InputDriverEvent
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.jakewharton.processphoenix.ProcessPhoenix
 import com.krisbiketeam.smarthomeraspbpi3.Home
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
@@ -446,7 +446,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
             }
         }
 
-        launch(Dispatchers.Default) {
+        launch(Dispatchers.Main) {
             connectAndSetupJob?.join()
             homeInformationRepository.restartAppFlow().collectLatest {
                 Timber.e("Remote restart app $it")
@@ -469,7 +469,9 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
 
 
         connectAndSetupJob?.cancel()
-        home.stop()
+        CoroutineScope(Dispatchers.Main).launch {
+            home.stop()
+        }
         super.onStop()
     }
 
@@ -542,7 +544,9 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
                         event.startTracking()
 
                         if (ledB.unitValue == true) {
-                            restartApp()
+                            CoroutineScope(Dispatchers.Main).launch {
+                                restartApp()
+                            }
                         }
                         return true
                     }
@@ -572,7 +576,9 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
                         event.startTracking()
 
                         if (ledA.unitValue == true) {
-                            restartApp()
+                            CoroutineScope(Dispatchers.Main).launch {
+                                restartApp()
+                            }
                         }
                         return true
                     }
@@ -656,12 +662,10 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
         authentication.login(secureStorage.firebaseCredentials)
     }
 
-    private fun restartApp() {
-        // TODO: restart app logic
-        val intent = Intent(this, ThingsActivity::class.java)
-        intent.addFlags(
-                Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-        startActivity(intent)
+    private suspend fun restartApp() {
+        home.stop()
+        Timber.e("restartApp after Home stop")
+        ProcessPhoenix.triggerRebirth(application)
     }
 
     private fun addWiFi(wifiManager: WifiManager, wifiCredentials: WifiCredentials) {

@@ -80,6 +80,8 @@ dependencies {
     compileOnly "com.google.android.things:androidthings:$thingsVersion"
     implementation "com.google.android.things.contrib:driver-rainbowhat:$rainbowhatVersion"
 
+    implementation 'com.jakewharton:process-phoenix:2.0.0'
+
     testImplementation "junit:junit:$junitVersion"
 
     testImplementation 'com.google.android.things:androidthings:1.0'

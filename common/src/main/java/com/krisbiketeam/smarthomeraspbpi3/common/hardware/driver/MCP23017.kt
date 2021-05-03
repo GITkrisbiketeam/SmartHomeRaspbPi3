@@ -269,6 +269,7 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
     @Throws(Exception::class)
     @MainThread
     override fun close() {
+        Timber.d("close started i2c:$address inGpio:$intGpio mGpioInt:$mGpioInt")
         // if a monitor is running, then shut it down now
         stopMonitor()
 
@@ -280,6 +281,7 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
             throw (Exception("Error closing MCP23017 mGpioInt", e))
         } finally {
             mGpioInt = null
+            Timber.d("close finished")
         }
     }
 

@@ -265,15 +265,13 @@ class Home(secureStorage: SecureStorage,
         }
     }
 
-    fun stop() {
+    suspend fun stop() {
         Timber.e("stop; hwUnitsList.size: ${hwUnitsList.size}")
         homeUnitsLiveData?.removeObserver(homeUnitsDataObserver)
         hwUnitsLiveData?.removeObserver(hwUnitsDataObserver)
         hwUnitErrorEventListJob?.cancel()
         hwUnitRestartListJob?.cancel()
-        GlobalScope.launch(Dispatchers.IO) {
-            hwUnitsList.values.forEach { hwUnitStop(it) }
-        }
+        hwUnitsList.values.forEach { hwUnitStop(it) }
     }
 
     private suspend fun hwUnitErrorEventListDataProcessor(errorEventList: List<HwUnitLog<Any>>) {
@@ -563,14 +561,14 @@ class Home(secureStorage: SecureStorage,
     private suspend fun <T : Any> Actuator<in T>.setValueWithException(value: T, logEvent: Boolean = true) {
         try {
             setValue(value)
-            if (logEvent) {
+            /*if (logEvent) {
                 analytics.logEvent(EVENT_SENSOR_SET_VALUE) {
                     param(SENSOR_NAME, this@setValueWithException.hwUnit.name)
                     param(SENSOR_VALUE, value.toString())
                 }
-            }
+            }*/
         } catch (e: Exception) {
-            Timber.e("setValueWithException; Error updating hwUnit value on $hwUnit", e)
+            Timber.e("setValueWithException; Error updating hwUnit value on $hwUnit $e")
             addHwUnitErrorEvent(e, "Error updating hwUnit value on $hwUnit")
         }
     }
@@ -579,14 +577,14 @@ class Home(secureStorage: SecureStorage,
         return try {
             withContext(Dispatchers.Main) {
                 readValue()
-            }.also {
+            }/*.also {
                 analytics.logEvent(EVENT_SENSOR_READ_VALUE) {
                     param(SENSOR_NAME, this@readValueWithException.hwUnit.name)
                     param(SENSOR_VALUE, it.toString())
                 }
-            }
+            }*/
         } catch (e: Exception) {
-            Timber.e("readValueWithException; Error reading hwUnit value on $hwUnit", e)
+            Timber.e("readValueWithException; Error reading hwUnit value on $hwUnit $e")
             addHwUnitErrorEvent(e, "Error reading hwUnit value on $hwUnit")
             null
         }
@@ -602,12 +600,12 @@ class Home(secureStorage: SecureStorage,
                                 "Error registerListener CoroutineExceptionHandler hwUnit on $hwUnit")
                     }
                 })
-                analytics.logEvent(EVENT_REGISTER_LISTENER) {
+                /*analytics.logEvent(EVENT_REGISTER_LISTENER) {
                     param(SENSOR_NAME, this@registerListenerWithException.toString())
-                }
+                }*/
             }
         } catch (e: Exception) {
-            Timber.e("registerListenerWithException; Error registerListener hwUnit on $hwUnit", e)
+            Timber.e("registerListenerWithException; Error registerListener hwUnit on $hwUnit $e")
             addHwUnitErrorEvent(e, "Error registerListener hwUnit on $hwUnit")
         }
     }
@@ -617,11 +615,11 @@ class Home(secureStorage: SecureStorage,
             withContext(Dispatchers.Main) {
                 close()
             }
-            analytics.logEvent(EVENT_SENSOR_CLOSE) {
+            /*analytics.logEvent(EVENT_SENSOR_CLOSE) {
                 param(SENSOR_NAME, this@closeValueWithException.hwUnit.name)
-            }
+            }*/
         } catch (e: Exception) {
-            Timber.e("closeValueWithException; Error closing hwUnit on $hwUnit", e)
+            Timber.e("closeValueWithException; Error closing hwUnit on $hwUnit $e")
             addHwUnitErrorEvent(e, "Error closing hwUnit on $hwUnit")
         }
     }
@@ -631,12 +629,12 @@ class Home(secureStorage: SecureStorage,
             withContext(Dispatchers.Main) {
                 connect()
             }
-            analytics.logEvent(EVENT_SENSOR_CONNECT) {
+            /*analytics.logEvent(EVENT_SENSOR_CONNECT) {
                 param(SENSOR_NAME, this@connectValueWithException.hwUnit.name)
-            }
+            }*/
             true
         } catch (e: Exception) {
-            Timber.e("connectValueWithException; Error connecting hwUnit on $hwUnit", e)
+            Timber.e("connectValueWithException; Error connecting hwUnit on $hwUnit $e")
             addHwUnitErrorEvent(e, "Error connecting hwUnit on $hwUnit")
             false
         }

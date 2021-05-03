@@ -4,14 +4,15 @@ import android.annotation.SuppressLint
 import androidx.annotation.VisibleForTesting
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver.MCP23017
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 
 object HwUnitI2CMCP23017 {
 
     @SuppressLint("UseSparseArrays")
-    private var mcpMap = HashMap<Int, MCP23017>()
+    private var mcpMap = ConcurrentHashMap<Int, MCP23017>()
     @SuppressLint("UseSparseArrays")
     @VisibleForTesting
-    internal var mcpUseCountMap = HashMap<Int, Int>()
+    internal var mcpUseCountMap = ConcurrentHashMap<Int, Int>()
 
     @Throws(Exception::class)
     fun getMcp23017Instance(bus: String, i2cAddr: Int): MCP23017 {

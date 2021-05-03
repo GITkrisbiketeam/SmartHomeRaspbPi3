@@ -310,8 +310,8 @@ class MCP9808(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS) : Aut
         } catch (e: Exception) {
             throw Exception("Error closing MCP9808", e)
         } finally {
-            Timber.d("close finished")
             mDevice = null
+            Timber.d("close finished")
         }
     }
 

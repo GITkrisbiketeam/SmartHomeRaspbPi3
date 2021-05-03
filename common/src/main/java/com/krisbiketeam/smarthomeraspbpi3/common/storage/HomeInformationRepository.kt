@@ -14,10 +14,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.flows.genericMapReferen
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.flows.genericReferenceFlow
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.livedata.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.*
 import timber.log.Timber
 
 class FirebaseHomeInformationRepository {
@@ -666,7 +663,7 @@ class FirebaseHomeInformationRepository {
     fun restartAppFlow(): Flow<Boolean> {
         return homePathReference?.let { home ->
             Firebase.database.getReference("$home/$RESTART_APP").let { reference ->
-                genericReferenceFlow(reference)
+                genericReferenceFlow<Boolean>(reference).distinctUntilChanged()
             }
         } ?: emptyFlow()
     }

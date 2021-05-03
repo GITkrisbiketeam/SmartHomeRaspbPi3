@@ -163,6 +163,7 @@ class PCF8574AT(bus: String? = null,
      */
     @Throws(Exception::class)
     override fun close() {
+        Timber.d("close started")
         // if a monitor is running, then shut it down now
         stopMonitor()
 
@@ -173,6 +174,7 @@ class PCF8574AT(bus: String? = null,
             throw (Exception("Error closing PCF8574AT", e))
         } finally {
             mDevice = null
+            Timber.d("close finished")
         }
 
         mGpioInt?.unregisterGpioCallback(mIntCallback)

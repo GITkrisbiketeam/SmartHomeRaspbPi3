@@ -306,13 +306,14 @@ class Si7021(bus: String? = null) : AutoCloseable {
      */
     @Throws(Exception::class)
     override fun close() {
-        Timber.d("close")
+        Timber.d("close started")
         try {
             mDevice?.close()
         } catch (e: Exception) {
             throw Exception("Error closing Si7021", e)
         } finally {
             mDevice = null
+            Timber.d("close finished")
         }
     }
 
@@ -338,7 +339,7 @@ class Si7021(bus: String? = null) : AutoCloseable {
     @Throws(Exception::class)
     fun readOneShotTemperature(onResult: (Float?) -> Unit) {
         synchronized(mBuffer) {
-            GlobalScope.launch(Dispatchers.IO) {
+            GlobalScope.launch(Dispatchers.Main) {
                 Timber.d("readOneShotTemperature start")
                 val temp = readTemperature()
                 Timber.d("readOneShotTemperature conversion finished temp? $temp")
@@ -355,7 +356,7 @@ class Si7021(bus: String? = null) : AutoCloseable {
     @Throws(Exception::class)
     fun readOneShotRh(onResult: (Float?) -> Unit) {
         synchronized(mBuffer) {
-            GlobalScope.launch(Dispatchers.IO) {
+            GlobalScope.launch(Dispatchers.Main) {
                 Timber.d("readOneShotRh start")
                 val rh = readRH()
                 Timber.d("readOneShotRh conversion finished rh? $rh")
