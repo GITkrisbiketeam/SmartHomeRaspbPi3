@@ -29,14 +29,14 @@ class HwUnitI2CTempPressBMP280Sensor(name: String, location: String, pinName: St
     private var job: Job? = null
     private var hwUnitListener: Sensor.HwUnitListener<TemperatureAndPressure>? = null
 
-    override fun connect() {
+    override suspend fun connect() {
         // Do noting we o not want to block I2C device so it will be opened while setting the value
         // and then immediately closed to release resources
     }
 
     @Throws(Exception::class)
-    override fun registerListener(listener: Sensor.HwUnitListener<TemperatureAndPressure>,
-                                  exceptionHandler: CoroutineExceptionHandler) {
+    override suspend fun registerListener(listener: Sensor.HwUnitListener<TemperatureAndPressure>,
+                                          exceptionHandler: CoroutineExceptionHandler) {
         Timber.d("registerListener")
         hwUnitListener = listener
         job?.cancel()
@@ -54,20 +54,20 @@ class HwUnitI2CTempPressBMP280Sensor(name: String, location: String, pinName: St
         }
     }
 
-    override fun unregisterListener() {
+    override suspend fun unregisterListener() {
         Timber.d("unregisterListener")
         job?.cancel()
         hwUnitListener = null
     }
 
     @Throws(Exception::class)
-    override fun close() {
+    override suspend fun close() {
         job?.cancel()
         super.close()
     }
 
     @Throws(Exception::class)
-    override fun readValue(): TemperatureAndPressure? {
+    override suspend fun readValue(): TemperatureAndPressure? {
         // We do not want to block I2C buss so open device to only display some data and then immediately close it.
         // use block automatically closes resources referenced to tmp102
         // We do not want to block I2C buss so open device to only get some data and then immediately close it.

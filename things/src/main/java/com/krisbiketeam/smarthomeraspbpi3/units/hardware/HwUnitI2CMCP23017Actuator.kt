@@ -22,7 +22,7 @@ class HwUnitI2CMCP23017Actuator(name: String, location: String, private val pinN
     override var valueUpdateTime: Long = System.currentTimeMillis()
 
     @Throws(Exception::class)
-    override fun connect() {
+    override suspend fun connect() {
         device = HwUnitI2CMCP23017.getMcp23017Instance(pinName, address).apply {
             intGpio = pinInterrupt
             setMode(ioPin, PinMode.DIGITAL_OUTPUT)
@@ -31,7 +31,7 @@ class HwUnitI2CMCP23017Actuator(name: String, location: String, private val pinN
     }
 
     @Throws(Exception::class)
-    override fun close() {
+    override suspend fun close() {
         // We do not want to close this device if it is used by another instance of this class
         // decreaseUseCount will close HwUnitI2C when count reaches 0
         val refCount = HwUnitI2CMCP23017.decreaseUseCount(pinName, address)
@@ -43,7 +43,7 @@ class HwUnitI2CMCP23017Actuator(name: String, location: String, private val pinN
     }
 
     @Throws(Exception::class)
-    override fun setValue(value: Boolean) {
+    override suspend fun setValue(value: Boolean) {
         unitValue = value
         (device as MCP23017?)?.setState(ioPin, if (value) PinState.HIGH else PinState.LOW)
         valueUpdateTime = System.currentTimeMillis()

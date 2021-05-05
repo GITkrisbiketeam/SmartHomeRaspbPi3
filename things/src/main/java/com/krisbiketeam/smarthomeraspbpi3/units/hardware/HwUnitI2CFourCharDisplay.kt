@@ -13,7 +13,7 @@ class HwUnitI2CFourCharDisplay(name: String, location: String, pinName: String,
                                override var device: AutoCloseable? = null) : HwUnitI2C<String>,
         Actuator<String> {
 
-    override fun connect() {
+    override suspend fun connect() {
         // Do noting we o not want to block I2C device so it will be opened while setting the value
         // and then immediately closed to release resources
     }
@@ -24,7 +24,7 @@ class HwUnitI2CFourCharDisplay(name: String, location: String, pinName: String,
     override var unitValue: String? = null
     override var valueUpdateTime: Long = System.currentTimeMillis()
 
-    override fun setValue(value: String) {
+    override suspend fun setValue(value: String) {
         // We do not want to block I2C buss so open device to only display some data and then immediately close it.
         val display: AlphanumericDisplay = RainbowHat.openDisplay().apply {
             setEnabled(false)

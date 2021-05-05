@@ -1,18 +1,17 @@
 package com.krisbiketeam.smarthomeraspbpi3.units.hardware
 
-import android.os.Handler
 import android.view.ViewConfiguration
 import androidx.annotation.VisibleForTesting
 import com.google.android.things.pio.Gpio
 import com.google.android.things.pio.GpioCallback
+import kotlinx.coroutines.*
 import timber.log.Timber
 
 class HwUnitGpioNoiseSensor(name: String, location: String, pinName: String, activeType: Int,
                             gpio: Gpio? = null) :
         HwUnitGpioSensor(name, location, pinName, activeType, gpio) {
 
-    private var mDebounceHandler: Handler = Handler()
-    private var mPendingCheckDebounce: CheckDebounce? = null
+    private var mPendingCheckDebounce: Job? = null
 
     /**
      * Set the time delay after an edge trigger that the button
@@ -43,8 +42,15 @@ class HwUnitGpioNoiseSensor(name: String, location: String, pinName: String, act
                 // Clear any pending checks
                 removeDebounceCallback()
                 // Set a new pending check
-                mPendingCheckDebounce = CheckDebounce(value).apply {
-                    mDebounceHandler.postDelayed(this, debounceDelay)
+                mPendingCheckDebounce = CoroutineScope(Dispatchers.IO).launch {
+                    delay(debounceDelay)
+                    try {
+                        if (readValue() == value) {
+                            performSensorEvent(value)
+                        }
+                    } catch (e: Exception) {
+                        Timber.e(e, "Error readValue on $hwUnit")
+                    }
                 }
             }
             // Continue listening for more interrupts
@@ -57,7 +63,7 @@ class HwUnitGpioNoiseSensor(name: String, location: String, pinName: String, act
     }
 
     @Throws(Exception::class)
-    override fun close() {
+    override suspend fun close() {
         removeDebounceCallback()
         super.close()
     }
@@ -79,26 +85,8 @@ class HwUnitGpioNoiseSensor(name: String, location: String, pinName: String, act
      * Clear pending debounce check
      */
     private fun removeDebounceCallback() {
-        mPendingCheckDebounce?.run(mDebounceHandler::removeCallbacks)
+        mPendingCheckDebounce?.cancel()
         mPendingCheckDebounce = null
     }
 
-    /**
-     * Pending check to delay input events from the initial
-     * trigger edge.
-     */
-    private inner class CheckDebounce(private val mTriggerState: Any?) : Runnable {
-
-        override fun run() {
-            // Final check that state hasn't changed
-            try {
-                if (readValue() == mTriggerState) {
-                    performSensorEvent(mTriggerState)
-                }
-                removeDebounceCallback()
-            } catch (e: Exception) {
-                Timber.e(e, "Error readValue on $hwUnit")
-            }
-        }
-    }
 }

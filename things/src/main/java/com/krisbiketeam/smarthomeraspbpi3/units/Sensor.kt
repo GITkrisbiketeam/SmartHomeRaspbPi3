@@ -5,11 +5,11 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 
 interface Sensor<T> : BaseHwUnit<T> {
 
-    fun registerListener(listener: HwUnitListener<T>, exceptionHandler: CoroutineExceptionHandler = CoroutineExceptionHandler{_,_ -> })
+    suspend fun registerListener(listener: HwUnitListener<T>, exceptionHandler: CoroutineExceptionHandler = CoroutineExceptionHandler{ _, _ -> })
 
-    fun unregisterListener()
+    suspend fun unregisterListener()
 
-    fun readValue(): T?
+    suspend fun readValue(): T?
 
     /**
      * Interface definition for a callback to be invoked when a Sensor event occurs.

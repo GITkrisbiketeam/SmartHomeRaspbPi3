@@ -17,14 +17,14 @@ class HwUnitGpioActuator(name: String, location: String, pinName: String,
     override var valueUpdateTime: Long = System.currentTimeMillis()
 
     @Throws(Exception::class)
-    override fun setValue(value: Boolean) {
+    override suspend fun setValue(value: Boolean) {
         unitValue = value
         gpio?.value = value
         valueUpdateTime = System.currentTimeMillis()
     }
 
     @Throws(Exception::class)
-    override fun connect() {
+    override suspend fun connect() {
         super.connect()
 
         gpio?.run {

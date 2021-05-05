@@ -35,7 +35,7 @@ open class HwUnitI2CPCF8574ATSensor(name: String, location: String, private val 
     }
 
     @Throws(Exception::class)
-    override fun connect() {
+    override suspend fun connect() {
         device = HwUnitI2CPCF8574AT.getPcf8574AtInstance(pinName, address).apply {
             intGpio = pinInterrupt
             setMode(ioPin, PinMode.DIGITAL_INPUT)
@@ -44,7 +44,7 @@ open class HwUnitI2CPCF8574ATSensor(name: String, location: String, private val 
     }
 
     @Throws(Exception::class)
-    override fun close() {
+    override suspend fun close() {
         unregisterListener()
         // We do not want to close this device if it is used by another instance of this class
         // decreaseUseCount will close HwUnitI2C when count reaches 0
@@ -56,8 +56,8 @@ open class HwUnitI2CPCF8574ATSensor(name: String, location: String, private val 
         }
     }
 
-    override fun registerListener(listener: Sensor.HwUnitListener<Boolean>,
-                                  exceptionHandler: CoroutineExceptionHandler) {
+    override suspend fun registerListener(listener: Sensor.HwUnitListener<Boolean>,
+                                          exceptionHandler: CoroutineExceptionHandler) {
         Timber.d("registerListener")
         hwUnitListener = listener
         (device as PCF8574AT?)?.run {
@@ -66,7 +66,7 @@ open class HwUnitI2CPCF8574ATSensor(name: String, location: String, private val 
         }
     }
 
-    override fun unregisterListener() {
+    override suspend fun unregisterListener() {
         Timber.d("unregisterListener")
         (device as PCF8574AT?)?.run {
             val result = unRegisterPinListener(ioPin, mPCF8574ATCallback)
@@ -76,7 +76,7 @@ open class HwUnitI2CPCF8574ATSensor(name: String, location: String, private val 
     }
 
     @Throws(Exception::class)
-    override fun readValue(): Boolean? {
+    override suspend fun readValue(): Boolean? {
         unitValue = (device as PCF8574AT).run {
             getState(ioPin) == PinState.HIGH
         }

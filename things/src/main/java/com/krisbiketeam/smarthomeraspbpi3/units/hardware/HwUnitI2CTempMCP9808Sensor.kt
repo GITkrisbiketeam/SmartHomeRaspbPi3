@@ -26,18 +26,18 @@ class HwUnitI2CTempMCP9808Sensor(name: String, location: String, private val pin
     private var job: Job? = null
     private var hwUnitListener: Sensor.HwUnitListener<Float>? = null
 
-    override fun connect() {
+    override suspend fun connect() {
         // Do noting we do not want to block I2C device so it will be opened while setting the value
         // and then immediately closed to release resources
     }
 
     @Throws(Exception::class)
-    override fun registerListener(listener: Sensor.HwUnitListener<Float>,
-                                  exceptionHandler: CoroutineExceptionHandler) {
+    override suspend fun registerListener(listener: Sensor.HwUnitListener<Float>,
+                                          exceptionHandler: CoroutineExceptionHandler) {
         Timber.d("registerListener")
         hwUnitListener = listener
         job?.cancel()
-        job = GlobalScope.plus(exceptionHandler).launch(Dispatchers.Main) {
+        job = GlobalScope.plus(exceptionHandler).launch(Dispatchers.IO) {
             // We could also check for true as suspending delay() method is cancellable
             while (isActive) {
                 delay(refreshRate ?: REFRESH_RATE)
@@ -47,21 +47,21 @@ class HwUnitI2CTempMCP9808Sensor(name: String, location: String, private val pin
         }
     }
 
-    override fun unregisterListener() {
+    override suspend fun unregisterListener() {
         Timber.d("unregisterListener")
         job?.cancel()
         hwUnitListener = null
     }
 
     @Throws(Exception::class)
-    override fun close() {
+    override suspend fun close() {
         Timber.d("close")
         job?.cancel()
         super.close()
     }
 
     @Throws(Exception::class)
-    private fun oneShotReadValue() {
+    private suspend fun oneShotReadValue() {
         // We do not want to block I2C buss so open device to only display some data and then immediately close it.
         // use block automatically closes resources referenced to mcp9808
         MCP9808(pinName, softAddress).let {
@@ -76,7 +76,7 @@ class HwUnitI2CTempMCP9808Sensor(name: String, location: String, private val pin
     }
 
     @Throws(Exception::class)
-    override fun readValue(): Float? {
+    override suspend fun readValue(): Float? {
         // We do not want to block I2C buss so open device to only display some data and then immediately close it.
         // use block automatically closes resources referenced to tmp102
         MCP9808(pinName, softAddress).use {

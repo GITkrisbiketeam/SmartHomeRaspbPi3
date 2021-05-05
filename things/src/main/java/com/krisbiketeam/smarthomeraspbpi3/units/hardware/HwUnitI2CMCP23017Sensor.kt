@@ -43,7 +43,7 @@ open class HwUnitI2CMCP23017Sensor(name: String, location: String, private val p
 
     @Throws(Exception::class)
     @MainThread
-    override fun connect() {
+    override suspend fun connect() {
         device = HwUnitI2CMCP23017.getMcp23017Instance(pinName, address).apply {
             intGpio = pinInterrupt
             setPullResistance(ioPin,
@@ -55,7 +55,7 @@ open class HwUnitI2CMCP23017Sensor(name: String, location: String, private val p
 
     @Throws(Exception::class)
     @MainThread
-    override fun close() {
+    override suspend fun close() {
         unregisterListener()
         // We do not want to close this device if it is used by another instance of this class
         val refCount = HwUnitI2CMCP23017.decreaseUseCount(pinName, address)
@@ -66,7 +66,7 @@ open class HwUnitI2CMCP23017Sensor(name: String, location: String, private val p
         }
     }
 
-    override fun registerListener(listener: Sensor.HwUnitListener<Boolean>,
+    override suspend fun registerListener(listener: Sensor.HwUnitListener<Boolean>,
                                   exceptionHandler: CoroutineExceptionHandler) {
         Timber.d("registerListener")
         hwUnitListener = listener
@@ -76,7 +76,7 @@ open class HwUnitI2CMCP23017Sensor(name: String, location: String, private val p
         }
     }
 
-    override fun unregisterListener() {
+    override suspend fun unregisterListener() {
         Timber.d("unregisterListener")
         (device as MCP23017?)?.run {
             val result = unRegisterPinListener(ioPin, mMCP23017Callback)
@@ -86,7 +86,7 @@ open class HwUnitI2CMCP23017Sensor(name: String, location: String, private val p
     }
 
     @Throws(Exception::class)
-    override fun readValue(): Boolean? {
+    override suspend fun readValue(): Boolean? {
         unitValue = (device as MCP23017?)?.run {
             if(inverse) getState(ioPin) != PinState.HIGH else getState(ioPin) == PinState.HIGH
         }

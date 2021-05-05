@@ -6,7 +6,7 @@ interface HwUnitI2C <T> : BaseHwUnit<T> {
     var device: AutoCloseable?
 
     @Throws(Exception::class)
-    override fun close() {
+    override suspend fun close() {
         try {
             device?.close()
         } catch (e: Exception) {

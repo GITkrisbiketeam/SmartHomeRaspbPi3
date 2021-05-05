@@ -38,7 +38,7 @@ open class HwUnitGpioSensor(name: String, location: String, pinName: String,
     }
 
     @Throws(Exception::class)
-    override fun connect() {
+    override suspend fun connect() {
         super.connect()
 
         gpio?.run {
@@ -49,20 +49,20 @@ open class HwUnitGpioSensor(name: String, location: String, pinName: String,
     }
 
     @Throws(Exception::class)
-    override fun close() {
+    override suspend fun close() {
         unregisterListener()
         super.close()
     }
 
     @Throws(Exception::class)
-    override fun registerListener(listener: Sensor.HwUnitListener<Boolean>,
-                                  exceptionHandler: CoroutineExceptionHandler) {
+    override suspend fun registerListener(listener: Sensor.HwUnitListener<Boolean>,
+                                          exceptionHandler: CoroutineExceptionHandler) {
         Timber.d("registerListener")
         hwUnitListener = listener
         gpio?.registerGpioCallback(mGpioCallback)
     }
 
-    override fun unregisterListener() {
+    override suspend fun unregisterListener() {
         Timber.d("unregisterListener")
         gpio?.unregisterGpioCallback(mGpioCallback)
         hwUnitListener = null
@@ -70,7 +70,7 @@ open class HwUnitGpioSensor(name: String, location: String, pinName: String,
 
 
     @Throws(Exception::class)
-    override fun readValue(): Boolean? {
+    override suspend fun readValue(): Boolean? {
         return readValue(gpio)
     }
 

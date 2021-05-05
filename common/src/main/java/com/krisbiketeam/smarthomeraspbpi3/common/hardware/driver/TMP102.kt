@@ -3,13 +3,8 @@ package com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver
 import androidx.annotation.VisibleForTesting
 import com.google.android.things.pio.I2cDevice
 import com.google.android.things.pio.PeripheralManager
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-
+import kotlinx.coroutines.*
 import timber.log.Timber
-import java.lang.Exception
 
 private const val TMP102_EXTENDED_MODE_BIT_SHIFT = 4
 
@@ -87,29 +82,29 @@ class TMP102(bus: String? = null, address: Int = DEFAULT_I2C_GND_ADDRESS) : Auto
         EXTENDED_MODE(1);
     }
 
-    var extendedMode: Boolean
-        /**
-         * Check if TMP102 is in Extended Mode where 13-bits of Temperature register are read
-         *
-         * @return true if sensor is in EM (Extended Mode) mode
-         */
-        get() {
-            return 1 shl TMP102_EXTENDED_MODE_BIT_SHIFT and mConfig > 0
+    /**
+     * Check if TMP102 is in Extended Mode where 13-bits of Temperature register are read
+     *
+     * @return true if sensor is in EM (Extended Mode) mode
+     */
+    suspend fun getExtendedMode(): Boolean {
+        return 1 shl TMP102_EXTENDED_MODE_BIT_SHIFT and mConfig > 0
+    }
+
+    /**
+     * Set TMP102  in Extended Mode where 13-bits of Temperature register are read.
+     *
+     * @param extended true if we want to read 13 bit temperature register (Extended Mode)
+     * @throws Exception
+     */
+    suspend fun setExtendedMode(extended: Boolean) {
+        mConfig = if (extended) {
+            mConfig or (1 shl TMP102_EXTENDED_MODE_BIT_SHIFT)
+        } else {
+            mConfig and (1 shl TMP102_EXTENDED_MODE_BIT_SHIFT).inv()
         }
-        /**
-         * Set TMP102  in Extended Mode where 13-bits of Temperature register are read.
-         *
-         * @param extended true if we want to read 13 bit temperature register (Extended Mode)
-         * @throws Exception
-         */
-        set(extended) {
-            mConfig = if (extended) {
-                mConfig or (1 shl TMP102_EXTENDED_MODE_BIT_SHIFT)
-            } else {
-                mConfig and (1 shl TMP102_EXTENDED_MODE_BIT_SHIFT).inv()
-            }
-            writeSample16(TMP102_REG_CONF, mConfig)
-        }
+        writeSample16(TMP102_REG_CONF, mConfig)
+    }
 
     /**
      * Conversion mode CR1 and CR0.
@@ -122,32 +117,32 @@ class TMP102(bus: String? = null, address: Int = DEFAULT_I2C_GND_ADDRESS) : Auto
         CONVERSION_RATE8(3);
     }
 
-    var conversionRateMode: ConversionRate
-        /**
-         * Get the power mode of the sensor.
-         *
-         * @return power mode.
-         */
-        get() {
-            var tmp = mConfig and TMP102_CONVERSION_RATE_MASK
-            tmp = (tmp shr TMP102_CONVERSION_RATE_BIT_SHIFT)
-            return when (tmp) {
-                3 -> ConversionRate.CONVERSION_RATE8
-                2 -> ConversionRate.CONVERSION_RATE4
-                1 -> ConversionRate.CONVERSION_RATE1
-                else -> ConversionRate.CONVERSION_RATE025
-            }
+    /**
+     * Get the power mode of the sensor.
+     *
+     * @return power mode.
+     */
+    suspend fun getConversionRateMode(): ConversionRate {
+        var tmp = mConfig and TMP102_CONVERSION_RATE_MASK
+        tmp = (tmp shr TMP102_CONVERSION_RATE_BIT_SHIFT)
+        return when (tmp) {
+            3 -> ConversionRate.CONVERSION_RATE8
+            2 -> ConversionRate.CONVERSION_RATE4
+            1 -> ConversionRate.CONVERSION_RATE1
+            else -> ConversionRate.CONVERSION_RATE025
         }
-        /**
-         * Set the power mode of the sensor.
-         *
-         * @param mode power mode.
-         */
-        set(mode) {
-            mConfig = mConfig and TMP102_CONVERSION_RATE_MASK.inv()
-            mConfig = mConfig or (mode.value shl TMP102_CONVERSION_RATE_BIT_SHIFT)
-            writeSample16(TMP102_REG_CONF, mConfig)
-        }
+    }
+
+    /**
+     * Set the power mode of the sensor.
+     *
+     * @param mode power mode.
+     */
+    suspend fun setConversionRateMode(mode: ConversionRate) {
+        mConfig = mConfig and TMP102_CONVERSION_RATE_MASK.inv()
+        mConfig = mConfig or (mode.value shl TMP102_CONVERSION_RATE_BIT_SHIFT)
+        writeSample16(TMP102_REG_CONF, mConfig)
+    }
 
     /**
      * Shutdown mode SD.
@@ -162,29 +157,29 @@ class TMP102(bus: String? = null, address: Int = DEFAULT_I2C_GND_ADDRESS) : Auto
         SHUTDOWN_MODE(1)
     }
 
-    var shutdownMode: Boolean
-        /**
-         * Check if TMP102 is in shutdown mode where device gets into sleep mode after temp read
-         *
-         * @return true if sensor is in SD (ShutDown Mode) mode
-         */
-        get() {
-            return 1 shl TMP102_SHUTDOWN_MODE_BIT_SHIFT and mConfig > 0
+    /**
+     * Check if TMP102 is in shutdown mode where device gets into sleep mode after temp read
+     *
+     * @return true if sensor is in SD (ShutDown Mode) mode
+     */
+    suspend fun getShutdownMode(): Boolean {
+        return 1 shl TMP102_SHUTDOWN_MODE_BIT_SHIFT and mConfig > 0
+    }
+
+    /**
+     * Set TMP102 in ShutDown Mode where device gets into sleep mode after temp read
+     *
+     * @param shutdown true if we want to switch to SD (ShutDown) mode
+     * @throws Exception
+     */
+    suspend fun setShutdownMode(shutdown: Boolean) {
+        mConfig = if (shutdown) {
+            mConfig or (1 shl TMP102_SHUTDOWN_MODE_BIT_SHIFT)
+        } else {
+            mConfig and (1 shl TMP102_SHUTDOWN_MODE_BIT_SHIFT).inv()
         }
-        /**
-         * Set TMP102 in ShutDown Mode where device gets into sleep mode after temp read
-         *
-         * @param shutdown true if we want to switch to SD (ShutDown) mode
-         * @throws Exception
-         */
-        set(shutdown) {
-            mConfig = if (shutdown) {
-                mConfig or (1 shl TMP102_SHUTDOWN_MODE_BIT_SHIFT)
-            } else {
-                mConfig and (1 shl TMP102_SHUTDOWN_MODE_BIT_SHIFT).inv()
-            }
-            writeSample16(TMP102_REG_CONF, mConfig)
-        }
+        writeSample16(TMP102_REG_CONF, mConfig)
+    }
 
 
     init {
@@ -240,15 +235,15 @@ class TMP102(bus: String? = null, address: Int = DEFAULT_I2C_GND_ADDRESS) : Auto
      * @throws Exception
      */
     @Throws(Exception::class)
-    fun readTemperature(): Float? = calculateTemperature(readSample16(TMP102_REG_TEMP))
+    suspend fun readTemperature(): Float? = calculateTemperature(readSample16(TMP102_REG_TEMP))
 
     /**
      * Read the current temperature in SD (ShutDown) mode. Callback will be triggered after temp read is completed
      * @throws Exception
      */
     @Throws(Exception::class)
-    fun readOneShotTemperature(onResult: (Float?)-> Unit) {
-        if (shutdownMode) {
+    suspend fun readOneShotTemperature(onResult: (Float?)-> Unit) {
+        if (getShutdownMode()) {
             synchronized(mBuffer) {
                 GlobalScope.launch(Dispatchers.Main) {
                     // Write OneShot bit to config to wakeup device for one shot read temp

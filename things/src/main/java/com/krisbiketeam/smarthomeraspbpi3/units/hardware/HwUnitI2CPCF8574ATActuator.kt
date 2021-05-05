@@ -22,7 +22,7 @@ class HwUnitI2CPCF8574ATActuator(name: String, location: String, private val pin
     override var valueUpdateTime: Long = System.currentTimeMillis()
 
     @Throws(Exception::class)
-    override fun connect() {
+    override suspend fun connect() {
         device = HwUnitI2CPCF8574AT.getPcf8574AtInstance(pinName, address).apply {
             intGpio = pinInterrupt
             setMode(ioPin, PinMode.DIGITAL_OUTPUT)
@@ -31,7 +31,7 @@ class HwUnitI2CPCF8574ATActuator(name: String, location: String, private val pin
     }
 
     @Throws(Exception::class)
-    override fun close() {
+    override suspend fun close() {
         // We do not want to close this device if it is used by another instance of this class
         // decreaseUseCount will close HwUnitI2C when count reaches 0
         val refCount = HwUnitI2CPCF8574AT.decreaseUseCount(pinName, address)
@@ -43,7 +43,7 @@ class HwUnitI2CPCF8574ATActuator(name: String, location: String, private val pin
     }
 
     @Throws(Exception::class)
-    override fun setValue(value: Boolean) {
+    override suspend fun setValue(value: Boolean) {
         unitValue = value
         (device as PCF8574AT).setState(ioPin, if (value) PinState.LOW else PinState.HIGH)
         valueUpdateTime = System.currentTimeMillis()

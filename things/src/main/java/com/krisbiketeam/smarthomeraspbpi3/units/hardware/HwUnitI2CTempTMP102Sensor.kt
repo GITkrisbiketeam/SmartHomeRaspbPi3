@@ -26,14 +26,14 @@ class HwUnitI2CTempTMP102Sensor(name: String, location: String, private val pinN
     private var job: Job? = null
     private var hwUnitListener: Sensor.HwUnitListener<Float>? = null
 
-    override fun connect() {
+    override suspend fun connect() {
         // Do noting we o not want to block I2C device so it will be opened while setting the value
         // and then immediately closed to release resources
     }
 
     @Throws(Exception::class)
-    override fun registerListener(listener: Sensor.HwUnitListener<Float>,
-                                  exceptionHandler: CoroutineExceptionHandler) {
+    override suspend fun registerListener(listener: Sensor.HwUnitListener<Float>,
+                                          exceptionHandler: CoroutineExceptionHandler) {
         Timber.d("registerListener")
         hwUnitListener = listener
         job?.cancel()
@@ -47,25 +47,25 @@ class HwUnitI2CTempTMP102Sensor(name: String, location: String, private val pinN
         }
     }
 
-    override fun unregisterListener() {
+    override suspend fun unregisterListener() {
         Timber.d("unregisterListener")
         job?.cancel()
         hwUnitListener = null
     }
 
     @Throws(Exception::class)
-    override fun close() {
+    override suspend fun close() {
         Timber.d("close")
         job?.cancel()
         super.close()
     }
 
     @Throws(Exception::class)
-    private fun oneShotReadValue() {
+    private suspend fun oneShotReadValue() {
         // We do not want to block I2C buss so open device to only display some data and then immediately close it.
         // use block automatically closes resources referenced to tmp102
         val tmp102 = TMP102(pinName, softAddress)
-        tmp102.shutdownMode = true
+        tmp102.setShutdownMode(true)
         tmp102.readOneShotTemperature { value ->
             unitValue = value
             valueUpdateTime = System.currentTimeMillis()
@@ -76,7 +76,7 @@ class HwUnitI2CTempTMP102Sensor(name: String, location: String, private val pinN
     }
 
     @Throws(Exception::class)
-    override fun readValue(): Float? {
+    override suspend fun readValue(): Float? {
         // We do not want to block I2C buss so open device to only display some data and then immediately close it.
         // use block automatically closes resources referenced to tmp102
         val tmp102 = TMP102(pinName, softAddress)

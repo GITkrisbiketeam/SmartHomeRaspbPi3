@@ -164,30 +164,30 @@ class Si7021(bus: String? = null) : AutoCloseable {
         RH_11_TEMP11_BIT(CONTROL_REG_RES_11_11_BIT);
     }
 
-    var measurementResolution: MeasurementResolution
-        /**
-         * Get the resolution.
-         *
-         * @return resolution val.
-         */
-        get() {
-            return when (mConfig and CONTROL_REG_RES_MASK) {
-                CONTROL_REG_RES_11_11_BIT -> MeasurementResolution.RH_11_TEMP11_BIT
-                CONTROL_REG_RES_10_13_BIT -> MeasurementResolution.RH_10_TEMP_13_BIT
-                CONTROL_REG_RES_8_11_BIT -> MeasurementResolution.RH_8_TEMP_11_BIT
-                else -> MeasurementResolution.RH_12_TEMP_14_BIT
-            }
+    /**
+     * Get the resolution.
+     *
+     * @return resolution val.
+     */
+    suspend fun getMeasurementResolution(): MeasurementResolution {
+        return when (mConfig and CONTROL_REG_RES_MASK) {
+            CONTROL_REG_RES_11_11_BIT -> MeasurementResolution.RH_11_TEMP11_BIT
+            CONTROL_REG_RES_10_13_BIT -> MeasurementResolution.RH_10_TEMP_13_BIT
+            CONTROL_REG_RES_8_11_BIT -> MeasurementResolution.RH_8_TEMP_11_BIT
+            else -> MeasurementResolution.RH_12_TEMP_14_BIT
         }
-        /**
-         * Set measurement resolution
-         *
-         * @param resolution val.
-         */
-        set(resolution) {
-            mConfig = mConfig and CONTROL_REG_RES_MASK.inv()
-            mConfig = mConfig or resolution.value
-            writeRegister(WRITE_RH_T_USER_REG, mConfig)
-        }
+    }
+
+    /**
+     * Set measurement resolution
+     *
+     * @param resolution val.
+     */
+    suspend fun setMeasurementResolution(resolution: MeasurementResolution) {
+        mConfig = mConfig and CONTROL_REG_RES_MASK.inv()
+        mConfig = mConfig or resolution.value
+        writeRegister(WRITE_RH_T_USER_REG, mConfig)
+    }
 
     /**
      * VDD Status
@@ -197,19 +197,13 @@ class Si7021(bus: String? = null) : AutoCloseable {
         LOW(CONTROL_REG_VDD_STATUS_LOW)
     }
 
-    val vddStatus: VddStatus
-        /**
-         * Check VddStatus , this perfoms reading control register from i2c sensor
-         *
-         * @return VddStatus
-         */
-        get() {
-            mConfig = readRegister(READ_RH_T_USER_REG) ?: 0
-            return when (mConfig and CONTROL_REG_VDD_STATUS_MASK) {
-                CONTROL_REG_VDD_STATUS_LOW -> VddStatus.LOW
-                else -> VddStatus.LOW
-            }
+    suspend fun getvVddStatus(): VddStatus {
+        mConfig = readRegister(READ_RH_T_USER_REG) ?: 0
+        return when (mConfig and CONTROL_REG_VDD_STATUS_MASK) {
+            CONTROL_REG_VDD_STATUS_LOW -> VddStatus.LOW
+            else -> VddStatus.LOW
         }
+    }
 
 
     /**
@@ -231,48 +225,45 @@ class Si7021(bus: String? = null) : AutoCloseable {
     }
 
     /**
-     * Heater Mode and value
+     * Get the heater status value, if null then heater is off.
+     *
+     * @return heater val.
      */
-    var heater: HeaterAmount
-        /**
-         * Get the heater status value, if null then heater is off.
-         *
-         * @return heater val.
-         */
-        get() {
-            return if ((mConfig and CONTROL_REG_HEATER_MASK) == CONTROL_REG_HEATER_ON) {
-                when (readRegister(READ_HEATER_REG)?.and(HEATER_REG_MASK)) {
-                    HEATER_REG_RES_3_MA  -> HeaterAmount.HEATER_3_MA        //Default
-                    HEATER_REG_RES_9_MA  -> HeaterAmount.HEATER_9_MA
-                    HEATER_REG_RES_15_MA -> HeaterAmount.HEATER_15_MA
-                    HEATER_REG_RES_27_MA -> HeaterAmount.HEATER_27_MA
-                    HEATER_REG_RES_52_MA -> HeaterAmount.HEATER_52_MA
-                    HEATER_REG_RES_94_MA -> HeaterAmount.HEATER_94_MA
-                    else                 -> HeaterAmount.HEATER_OFF
-                }
+    suspend fun getHeater(): HeaterAmount {
+        return if ((mConfig and CONTROL_REG_HEATER_MASK) == CONTROL_REG_HEATER_ON) {
+            when (readRegister(READ_HEATER_REG)?.and(HEATER_REG_MASK)) {
+                HEATER_REG_RES_3_MA -> HeaterAmount.HEATER_3_MA        //Default
+                HEATER_REG_RES_9_MA -> HeaterAmount.HEATER_9_MA
+                HEATER_REG_RES_15_MA -> HeaterAmount.HEATER_15_MA
+                HEATER_REG_RES_27_MA -> HeaterAmount.HEATER_27_MA
+                HEATER_REG_RES_52_MA -> HeaterAmount.HEATER_52_MA
+                HEATER_REG_RES_94_MA -> HeaterAmount.HEATER_94_MA
+                else -> HeaterAmount.HEATER_OFF
+            }
+        } else {
+            HeaterAmount.HEATER_OFF
+        }
+    }
+
+    /**
+     * Set heater value if null heater will be off
+     *
+     * @param value  heater val.
+     */
+    suspend fun setHeater(value: HeaterAmount) {
+        value.value.let {
+            if (it == null) {
+                mConfig = mConfig and CONTROL_REG_HEATER_MASK.inv()
+                mConfig = mConfig or CONTROL_REG_HEATER_OFF
+                writeRegister(WRITE_RH_T_USER_REG, mConfig)
             } else {
-                HeaterAmount.HEATER_OFF
+                writeRegister(WRITE_HEATER_REG, it)
+                mConfig = mConfig and CONTROL_REG_HEATER_MASK.inv()
+                mConfig = mConfig or CONTROL_REG_HEATER_ON
+                writeRegister(WRITE_RH_T_USER_REG, mConfig)
             }
         }
-        /**
-         * Set heater value if null heater will be off
-         *
-         * @param value  heater val.
-         */
-        set(value) {
-            value.value.let{
-                if (it == null) {
-                    mConfig = mConfig and CONTROL_REG_HEATER_MASK.inv()
-                    mConfig = mConfig or CONTROL_REG_HEATER_OFF
-                    writeRegister(WRITE_RH_T_USER_REG, mConfig)
-                } else {
-                    writeRegister(WRITE_HEATER_REG, it)
-                    mConfig = mConfig and CONTROL_REG_HEATER_MASK.inv()
-                    mConfig = mConfig or CONTROL_REG_HEATER_ON
-                    writeRegister(WRITE_RH_T_USER_REG, mConfig)
-                }
-            }
-        }
+    }
 
 
     init {
@@ -329,7 +320,7 @@ class Si7021(bus: String? = null) : AutoCloseable {
      * @throws Exception
      */
     @Throws(Exception::class)
-    fun readPrevTemperature(): Float? = calculateTemperature(readSample16(READ_TEMP_FROM_PREV_RH))
+    suspend fun readPrevTemperature(): Float? = calculateTemperature(readSample16(READ_TEMP_FROM_PREV_RH))
 
     /**
      * Read the current temperature . Callback will be triggered after temp
@@ -365,6 +356,24 @@ class Si7021(bus: String? = null) : AutoCloseable {
         }
     }
 
+    /**
+     * Read the current RH and Temperature associated with this RH measurement. Callback will be triggered after RH measurement is finished
+     * read is completed temperature measurement is also done here in the sensor
+     * @throws Exception
+     */
+    @Throws(Exception::class)
+    fun readOneShotTempAndRh(onResult: (Pair<Float?, Float?>) -> Unit) {
+        synchronized(mBuffer) {
+            GlobalScope.launch(Dispatchers.Main) {
+                Timber.d("readOneShotTempAndRh start")
+                val rh = readRH()
+                val temperature = readPrevTemperature()
+                Timber.d("readOneShotTempAndRh conversion finished rh? $rh temperature? $temperature")
+                onResult(Pair(temperature, rh))
+            }
+        }
+    }
+
 
     /**
      * Read the temperature.
@@ -373,7 +382,7 @@ class Si7021(bus: String? = null) : AutoCloseable {
      * @throws Exception
      */
     @Throws(Exception::class)
-    private fun readTemperature(): Float? = calculateTemperature(readSample16(MEASURE_TEMP_HOLD_MASTER_MODE))
+    private suspend fun readTemperature(): Float? = calculateTemperature(readSample16(MEASURE_TEMP_HOLD_MASTER_MODE))
 
     /**
      * Read the RH.
@@ -382,7 +391,7 @@ class Si7021(bus: String? = null) : AutoCloseable {
      * @throws Exception
      */
     @Throws(Exception::class)
-    private fun readRH(): Float? = calculateRh(readSample16(MEASURE_RH_HOLD_MASTER_MODE))
+    private suspend fun readRH(): Float? = calculateRh(readSample16(MEASURE_RH_HOLD_MASTER_MODE))
 
     @Throws(Exception::class)
     private fun readRegister(reg: Int): Int? = mDevice?.readRegByte(reg)?.toInt()?.and(0xff)

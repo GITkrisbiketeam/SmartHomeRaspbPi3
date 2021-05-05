@@ -30,14 +30,14 @@ class HwUnitI2CTempRhSi7021Sensor(name: String, location: String, private val pi
     private var heatOnCounter = 0
     private var heatOnTrigger = 86400000 / (refreshRate?:REFRESH_RATE) // Heat on once per day
 
-    override fun connect() {
+    override suspend fun connect() {
         // Do noting we do not want to block I2C device so it will be opened while setting the value
         // and then immediately closed to release resources
     }
 
     @Throws(Exception::class)
-    override fun registerListener(listener: Sensor.HwUnitListener<TemperatureAndHumidity>,
-                                  exceptionHandler: CoroutineExceptionHandler) {
+    override suspend fun registerListener(listener: Sensor.HwUnitListener<TemperatureAndHumidity>,
+                                          exceptionHandler: CoroutineExceptionHandler) {
         Timber.d("registerListener")
         hwUnitListener = listener
         job?.cancel()
@@ -61,26 +61,26 @@ class HwUnitI2CTempRhSi7021Sensor(name: String, location: String, private val pi
         }
     }
 
-    override fun unregisterListener() {
+    override suspend fun unregisterListener() {
         Timber.d("unregisterListener")
         job?.cancel()
         hwUnitListener = null
     }
 
     @Throws(Exception::class)
-    override fun close() {
+    override suspend fun close() {
         Timber.d("close")
         job?.cancel()
         super.close()
     }
 
     @Throws(Exception::class)
-    private fun oneShotReadValue() {
+    private suspend fun oneShotReadValue() {
         // We do not want to block I2C buss so open device to only display some data and then immediately close it.
         // use block automatically closes resources referenced to mcp9808
         Si7021(pinName).let {
-            it.readOneShotRh { rh ->
-                unitValue = TemperatureAndHumidity(it.readPrevTemperature(), rh)
+            it.readOneShotTempAndRh { (temperature, rh) ->
+                unitValue = TemperatureAndHumidity(temperature, rh)
                 valueUpdateTime = System.currentTimeMillis()
                 Timber.d("temperatureAndHumidity:$unitValue")
                 hwUnitListener?.onHwUnitChanged(hwUnit, unitValue, valueUpdateTime)
@@ -90,21 +90,21 @@ class HwUnitI2CTempRhSi7021Sensor(name: String, location: String, private val pi
     }
 
     @Throws(Exception::class)
-    private fun heatOnOff(on:Boolean) {
+    private suspend fun heatOnOff(on:Boolean) {
         // We do not want to block I2C buss so open device to only display some data and then immediately close it.
         // use block automatically closes resources referenced to mcp9808
         Timber.d("heatOn:$on")
         Si7021(pinName).use {
             if (on) {
-                it.heater = Si7021.HeaterAmount.HEATER_15_MA
+                it.setHeater(Si7021.HeaterAmount.HEATER_15_MA)
             } else {
-                it.heater = Si7021.HeaterAmount.HEATER_OFF
+                it.setHeater(Si7021.HeaterAmount.HEATER_OFF)
             }
         }
     }
 
     @Throws(Exception::class)
-    override fun readValue(): TemperatureAndHumidity? {
+    override suspend fun readValue(): TemperatureAndHumidity? {
         // We do not want to block I2C buss so open device to only display some data and then immediately close it.
         // use block automatically closes resources referenced to tmp102
         Si7021(pinName).use {

@@ -10,6 +10,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver.PCF8574ATPin.*
 import kotlinx.coroutines.*
 import timber.log.Timber
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Driver for the MCP23017 16 bit I/O Expander.
@@ -47,7 +48,7 @@ class PCF8574AT(private val bus: String? = null,
 
     private var mGpioInt: Gpio? = null
 
-    private val mListeners = HashMap<Pin, MutableList<PCF8574ATPinStateChangeListener>>()
+    private val mListeners = ConcurrentHashMap<Pin, MutableList<PCF8574ATPinStateChangeListener>>()
 
     private var monitorJob: Job? = null
 
@@ -196,7 +197,7 @@ class PCF8574AT(private val bus: String? = null,
 
     // Set Input or output mode functions
     @Throws(Exception::class)
-    fun setMode(pin: Pin, mode: PinMode) {
+    suspend fun setMode(pin: Pin, mode: PinMode) {
         // determine register and pin address
         val pinAddress = pin.address
 

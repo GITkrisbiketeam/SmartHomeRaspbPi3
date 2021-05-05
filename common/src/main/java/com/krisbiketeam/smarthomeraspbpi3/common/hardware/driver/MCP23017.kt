@@ -11,40 +11,50 @@ import com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver.MCP23017Pin.*
 import kotlinx.coroutines.*
 import timber.log.Timber
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 
 /// Registers all are 8 bit long
 // Direction registers
 // I/O DIRECTION REGISTER: Input - 1 or output - 0; def 0
 private const val REGISTER_IODIR_A = 0x00
 private const val REGISTER_IODIR_B = 0x01
+
 // INPUT POLARITY PORT REGISTER; GPIO bit will be inverted LOW/HIGH; def 0
 private const val REGISTER_IPOL_A = 0x02
 private const val REGISTER_IPOL_B = 0x03
+
 // INTERRUPT-ON-CHANGE PINS; enable interrupts - 1 or disable interrupts - 0; def 0; see
 // INTCON and DEFVAL; def 0
 private const val REGISTER_GPINTEN_A = 0x04
 private const val REGISTER_GPINTEN_B = 0x05
+
 // DEFAULT VALUE REGISTER; if GPIO differs from DEFVAL interrupt is triggered; def 0
 private const val REGISTER_DEFVAL_A = 0x06
 private const val REGISTER_DEFVAL_B = 0x07
+
 // INTERRUPT-ON-CHANGE CONTROL REGISTER; if set - 1 GPIO is compared with DEFVAL or if cleared
 // - 0 interrupt is triggered when GPIO changed compared to its previous state; def 0
 private const val REGISTER_INTCON_A = 0x08
 private const val REGISTER_INTCON_B = 0x09
+
 // I/O EXPANDER CONFIGURATION REGISTER; MIRROR 1 INTA and INTB are internally connected to
 // i=one INT def not connected; INTPOL: 0 active Low (DEFAULT) 1 active high; etc; def 0
 private const val REGISTER_IOCON = 0x0A //0x0B
+
 // GPIO PULL-UP RESISTOR REGISTER only for IODIR input pins 0 disabled, 1 enabled with 100k;
 // def 0
 private const val REGISTER_GPPU_A = 0x0C
 private const val REGISTER_GPPU_B = 0x0D
+
 // Read only INTERRUPT FLAG REGISTER; if 1 interrupt was on that pin
 private const val REGISTER_INTF_A = 0x0E
 private const val REGISTER_INTF_B = 0x0F
+
 // Read only INTERRUPT CAPTURED VALUE FOR PORT REGISTER; These bits reflect the logic level
 // on the port pins at the time of interrupt due to pin change cleared on read of INTCAP or GPIO
 private const val REGISTER_INTCAP_A = 0x10
 private const val REGISTER_INTCAP_B = 0x11
+
 // GENERAL PURPOSE I/O PORT REGISTER; The GPIO register reflects the value on the port.
 //Reading from this register reads the port. Writing to this
 //register modifies the Output Latch (OLAT) register
@@ -97,7 +107,7 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
 
     private var mGpioInt: Gpio? = null
 
-    private val mListeners = HashMap<Pin, MutableList<MCP23017PinStateChangeListener>>()
+    private val mListeners = ConcurrentHashMap<Pin, MutableList<MCP23017PinStateChangeListener>>()
 
     private var monitorJob: Job? = null
 
@@ -227,7 +237,7 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
 
     @Throws(Exception::class)
     @MainThread
-    private fun disconnectGpio() {
+    private suspend fun disconnectGpio() {
         Timber.d("disconnect int Gpio ")
         mGpioInt = mGpioInt?.run {
             unregisterGpioCallback(mIntCallback)
@@ -240,7 +250,7 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
     private fun startMonitor() {
         if (pollingTime != NO_POLLING_TIME) {
             // if the monitor has not been started, then start it now
-            monitorJob = GlobalScope.launch(Dispatchers.Main) {
+            monitorJob = CoroutineScope(Dispatchers.IO).launch {
                 // We could also check for true as suspending delay() method is cancellable
                 while (isActive) {
                     try {
@@ -329,7 +339,7 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
     // Set Input or output mode functions
     @Throws(Exception::class)
     @MainThread
-    fun setMode(pin: Pin, mode: PinMode) {
+    suspend fun setMode(pin: Pin, mode: PinMode) {
         // determine A or B port based on pin address
         if (pin.address < GPIO_B_OFFSET) {
             setModeA(pin, mode)
@@ -350,7 +360,7 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
 
     @Throws(Exception::class)
     @MainThread
-    private fun setModeA(pin: Pin, mode: PinMode) {
+    private suspend fun setModeA(pin: Pin, mode: PinMode) {
         // determine register and pin address
         val pinAddress = pin.address - GPIO_A_OFFSET
 
@@ -373,7 +383,7 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
 
     @Throws(Exception::class)
     @MainThread
-    private fun setModeB(pin: Pin, mode: PinMode) {
+    private suspend fun setModeB(pin: Pin, mode: PinMode) {
         // determine register and pin address
         val pinAddress = pin.address - GPIO_B_OFFSET
 
@@ -413,7 +423,7 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
     // Set Output state functions
     @Throws(Exception::class)
     @MainThread
-    fun setState(pin: Pin, state: PinState) {
+    suspend fun setState(pin: Pin, state: PinState) {
         // determine A or B port based on pin address
         if (pin.address < GPIO_B_OFFSET) {
             setStateA(pin, state)
@@ -424,7 +434,7 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
 
     @Throws(Exception::class)
     @MainThread
-    private fun setStateA(pin: Pin, state: PinState) {
+    private suspend fun setStateA(pin: Pin, state: PinState) {
         // determine pin address
         val pinAddress = pin.address - GPIO_A_OFFSET
 
@@ -443,7 +453,7 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
 
     @Throws(Exception::class)
     @MainThread
-    private fun setStateB(pin: Pin, state: PinState) {
+    private suspend fun setStateB(pin: Pin, state: PinState) {
         // determine pin address
         val pinAddress = pin.address - GPIO_B_OFFSET
 
@@ -463,7 +473,7 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
     // Get Input state functions
     @Throws(Exception::class)
     @MainThread
-    fun getState(pin: Pin): PinState {
+    suspend fun getState(pin: Pin): PinState {
         // determine A or B port based on pin address
         return if (pin.address < GPIO_B_OFFSET) {
             getStateA(pin) // get pin state
@@ -473,7 +483,7 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
     }
 
     @Throws(Exception::class)
-    private fun getStateA(pin: Pin): PinState {
+    private suspend fun getStateA(pin: Pin): PinState {
         lockedI2cOperation {
             currentStatesA = readRegister(it, REGISTER_GPIO_A) ?: currentStatesA
         }
@@ -487,7 +497,7 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
     }
 
     @Throws(Exception::class)
-    private fun getStateB(pin: Pin): PinState {
+    private suspend fun getStateB(pin: Pin): PinState {
         lockedI2cOperation {
             currentStatesB = readRegister(it, REGISTER_GPIO_B) ?: currentStatesB
         }
@@ -501,7 +511,7 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
 
     // PullUps resistors mode functions for input Pins
     @Throws(Exception::class)
-    fun setPullResistance(pin: Pin, resistance: PinPullResistance) {
+    suspend fun setPullResistance(pin: Pin, resistance: PinPullResistance) {
         // determine A or B port based on pin address
         if (pin.address < GPIO_B_OFFSET) {
             setPullResistanceA(pin, resistance)
@@ -511,7 +521,7 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
     }
 
     @Throws(Exception::class)
-    private fun setPullResistanceA(pin: Pin, resistance: PinPullResistance) {
+    private suspend fun setPullResistanceA(pin: Pin, resistance: PinPullResistance) {
         // determine pin address
         val pinAddress = pin.address - GPIO_A_OFFSET
 
@@ -530,7 +540,7 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
     }
 
     @Throws(Exception::class)
-    private fun setPullResistanceB(pin: Pin, resistance: PinPullResistance) {
+    private suspend fun setPullResistanceB(pin: Pin, resistance: PinPullResistance) {
         // determine pin address
         val pinAddress = pin.address - GPIO_B_OFFSET
 
@@ -565,7 +575,7 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
 
     // Suppress NewApi for computeIfAbsent this is only used on Things that are Android 8.0+
     @SuppressLint("NewApi")
-    fun registerPinListener(pin: Pin, listener: MCP23017PinStateChangeListener): Boolean {
+    suspend fun registerPinListener(pin: Pin, listener: MCP23017PinStateChangeListener): Boolean {
         return if (getMode(pin) == PinMode.DIGITAL_INPUT) {
             val pinListeners = mListeners.computeIfAbsent(pin) { ArrayList(1) }
             pinListeners.add(listener)

@@ -7,7 +7,7 @@ import timber.log.Timber
 interface HwUnitGpio<T> : BaseHwUnit<T> {
     var gpio: Gpio?
 
-    override fun connect() {
+    override suspend fun connect() {
         Timber.e("connect on: $hwUnit")
         if (gpio == null) {
             try {
@@ -23,7 +23,7 @@ interface HwUnitGpio<T> : BaseHwUnit<T> {
         }
     }
 
-    override fun close() {
+    override suspend fun close() {
         Timber.e("close on: $hwUnit")
         try {
             gpio?.close()
