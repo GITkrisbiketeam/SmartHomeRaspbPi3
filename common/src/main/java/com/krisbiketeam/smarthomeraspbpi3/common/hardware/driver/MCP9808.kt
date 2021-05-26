@@ -1,9 +1,10 @@
 package com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver
 
+import androidx.annotation.MainThread
 import androidx.annotation.VisibleForTesting
 import com.google.android.things.pio.I2cDevice
 import com.google.android.things.pio.PeripheralManager
-import kotlinx.coroutines.*
+import kotlinx.coroutines.delay
 import timber.log.Timber
 
 /**
@@ -133,7 +134,11 @@ private const val TEMP_REG_FACTOR = 0.0625f
 
 /**
  * Driver for the MCP9808 temperature sensor.
+ *
+ * !!! IPORTANT !!!
+ * Must be called on MainThread with all its methods
  */
+@MainThread
 class MCP9808(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS) : AutoCloseable {
 
 
@@ -208,33 +213,34 @@ class MCP9808(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS) : Aut
         HYST_6_0C(3);
     }
 
-    /**
-     * Get the hysteresis val UPPER and LOWER limit Hysteresis values.
-     *
-     * @return hysteresis val.
-     */
-    suspend fun getTemperatureHysteresis(): TemperatureHysteresis
-    {
-        var tmp = mConfig and MCO9808_CONF_HYST_MASK
-        tmp = (tmp shr MCO9808_CONF_HYST_BIT_SHIFT)
-        return when (tmp) {
-            3 -> TemperatureHysteresis.HYST_6_0C
-            2 -> TemperatureHysteresis.HYST_3_0C
-            1 -> TemperatureHysteresis.HYST_1_5C
-            else -> TemperatureHysteresis.HYST_0_0C
+    var temperatureHysteresis: TemperatureHysteresis
+        /**
+         * Get the hysteresis val UPPER and LOWER limit Hysteresis values.
+         *
+         * @return hysteresis val.
+         */
+        @MainThread
+        get() {
+            var tmp = mConfig and MCO9808_CONF_HYST_MASK
+            tmp = (tmp shr MCO9808_CONF_HYST_BIT_SHIFT)
+            return when (tmp) {
+                3 -> TemperatureHysteresis.HYST_6_0C
+                2 -> TemperatureHysteresis.HYST_3_0C
+                1 -> TemperatureHysteresis.HYST_1_5C
+                else -> TemperatureHysteresis.HYST_0_0C
+            }
         }
-    }
-
-    /**
-     * Set the T_HYST T_UPPER and T_LOWER Limit Hysteresis bits
-     *
-     * @param hyst hysteresis val.
-     */
-    suspend fun setTemperatureHysteresis(hyst: TemperatureHysteresis) {
-        mConfig = mConfig and MCO9808_CONF_HYST_MASK.inv()
-        mConfig = mConfig or (hyst.value shl MCO9808_CONF_HYST_BIT_SHIFT)
-        writeSample16(MCO9808_REG_CONF, mConfig)
-    }
+        /**
+         * Set the T_HYST T_UPPER and T_LOWER Limit Hysteresis bits
+         *
+         * @param hyst hysteresis val.
+         */
+        @MainThread
+        set(hyst) {
+            mConfig = mConfig and MCO9808_CONF_HYST_MASK.inv()
+            mConfig = mConfig or (hyst.value shl MCO9808_CONF_HYST_BIT_SHIFT)
+            writeSample16(MCO9808_REG_CONF, mConfig)
+        }
 
     /**
      * Shutdown mode disables all power consuming activities (including temperature sampling
@@ -254,29 +260,31 @@ class MCP9808(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS) : Aut
         SHUTDOWN_MODE(1)
     }
 
-    /**
-     * Check if MCP9808 is in shutdown mode where device gets into sleep mode after temp read
-     *
-     * @return true if sensor is in SDHN (ShutDown Mode) mode
-     */
-    suspend fun getShutdownMode(): Boolean {
-        return 1 shl MCO9808_CONF_SHDN_BIT_SHIFT and mConfig > 0
-    }
-
-    /**
-     * Set TMP102 in ShutDown Mode where device gets into sleep mode after temp read
-     *
-     * @param shutdown true if we want to switch to SD (ShutDown) mode
-     * @throws Exception
-     */
-    suspend fun setShutdownMode(shutdown: Boolean) {
-        mConfig = if (shutdown) {
-            mConfig or (1 shl MCO9808_CONF_SHDN_BIT_SHIFT)
-        } else {
-            mConfig and (1 shl MCO9808_CONF_SHDN_BIT_SHIFT).inv()
+    var shutdownMode: Boolean
+        /**
+         * Check if MCP9808 is in shutdown mode where device gets into sleep mode after temp read
+         *
+         * @return true if sensor is in SDHN (ShutDown Mode) mode
+         */
+        @MainThread
+        get() {
+            return 1 shl MCO9808_CONF_SHDN_BIT_SHIFT and mConfig > 0
         }
-        writeSample16(MCO9808_REG_CONF, mConfig)
-    }
+        /**
+         * Set TMP102 in ShutDown Mode where device gets into sleep mode after temp read
+         *
+         * @param shutdown true if we want to switch to SD (ShutDown) mode
+         * @throws Exception
+         */
+        @MainThread
+        set(shutdown) {
+            mConfig = if (shutdown) {
+                mConfig or (1 shl MCO9808_CONF_SHDN_BIT_SHIFT)
+            } else {
+                mConfig and (1 shl MCO9808_CONF_SHDN_BIT_SHIFT).inv()
+            }
+            writeSample16(MCO9808_REG_CONF, mConfig)
+        }
 
 
     init {
@@ -309,6 +317,7 @@ class MCP9808(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS) : Aut
      * @throws Exception
      */
     @Throws(Exception::class)
+    @MainThread
     override fun close() {
         Timber.d("close started")
         try {
@@ -329,7 +338,8 @@ class MCP9808(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS) : Aut
      * @throws Exception
      */
     @Throws(Exception::class)
-    suspend fun readTemperature(): Float? = calculateTemperature(readSample16(MCO9808_REG_TEMP))
+    @MainThread
+    fun readTemperature(): Float? = calculateTemperature(readSample16(MCO9808_REG_TEMP))
 
     /**
      * Read the current temperature in SD (ShutDown) mode. Callback will be triggered after temp
@@ -337,26 +347,22 @@ class MCP9808(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS) : Aut
      * @throws Exception
      */
     @Throws(Exception::class)
-    suspend fun readOneShotTemperature(onResult: (Float?)-> Unit) {
-        if (getShutdownMode()) {
-            synchronized(mBuffer) {
-                GlobalScope.launch(Dispatchers.Main) {
-                    //disable shutdown
-                    setShutdownMode(false)
-                    // Wait 250 ms for conversion to complete
-                    delay(POWER_ON_CONVERSION_DELAY)
-                    // check if conversion finished by reading OS bit to '1'
-                    val temp = readTemperature()
-                    Timber.d("readOneShotTemperature conversion finished temp? $temp")
-                    //TODO: find better solution as some external action can reset this flag
-                    //restore shutdown mode
-                    setShutdownMode(true)
-                    onResult(temp)
-                }
-            }
-        } else {
+    @MainThread
+    suspend fun readOneShotTemperature(): Float? {
+        return if (shutdownMode) {
+            //disable shutdown
+            shutdownMode = false
+            // Wait 250 ms for conversion to complete
+            delay(POWER_ON_CONVERSION_DELAY)
+            // check if conversion finished by reading OS bit to '1'
             val temp = readTemperature()
-            onResult(temp)
+            Timber.d("readOneShotTemperature conversion finished temp? $temp")
+            //TODO: find better solution as some external action can reset this flag
+            //restore shutdown mode
+            shutdownMode = true
+            temp
+        } else {
+            readTemperature()
         }
     }
 
@@ -366,6 +372,7 @@ class MCP9808(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS) : Aut
      * @throws Exception
      */
     @Throws(Exception::class)
+    @MainThread
     private fun readSample16(register: Int): Int? {
         synchronized(mBuffer) {
             // Reading a byte buffer instead of a short to avoid having to deal with
@@ -379,6 +386,7 @@ class MCP9808(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS) : Aut
     }
 
     @Throws(Exception::class)
+    @MainThread
     private fun writeSample16(register: Int, data: Int) {
         synchronized(mBuffer) {
             //msb

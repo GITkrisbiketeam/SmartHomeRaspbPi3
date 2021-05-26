@@ -9,6 +9,8 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
 import com.krisbiketeam.smarthomeraspbpi3.units.HwUnitI2C
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 open class HwUnitI2CMCP23017Sensor(name: String, location: String, private val pinName: String,
@@ -25,15 +27,14 @@ open class HwUnitI2CMCP23017Sensor(name: String, location: String, private val p
     override var unitValue: Boolean? = null
     override var valueUpdateTime: Long = System.currentTimeMillis()
 
-    var hwUnitListener: Sensor.HwUnitListener<Boolean>? = null
+    private var hwUnitListener: Sensor.HwUnitListener<Boolean>? = null
 
-    open val mMCP23017Callback = object : MCP23017PinStateChangeListener {
+    private val mMCP23017Callback = object : MCP23017PinStateChangeListener {
         override fun onPinStateChanged(pin: Pin, state: PinState) {
             Timber.d("onPinStateChanged pin: ${pin.name} state: $state")
             unitValue = if(inverse) state != PinState.HIGH else state == PinState.HIGH
             valueUpdateTime = System.currentTimeMillis()
             hwUnitListener?.onHwUnitChanged(hwUnit, unitValue, valueUpdateTime)
-
         }
 
         override fun onError(error: String) {
@@ -42,27 +43,29 @@ open class HwUnitI2CMCP23017Sensor(name: String, location: String, private val p
     }
 
     @Throws(Exception::class)
-    @MainThread
     override suspend fun connect() {
-        device = HwUnitI2CMCP23017.getMcp23017Instance(pinName, address).apply {
-            intGpio = pinInterrupt
-            setPullResistance(ioPin,
-                              if (internalPullUp) PinPullResistance.PULL_UP else PinPullResistance.OFF)
-            setMode(ioPin, PinMode.DIGITAL_INPUT)
+        withContext(Dispatchers.Main) {
+            device = HwUnitI2CMCP23017.getMcp23017Instance(pinName, address).apply {
+                intGpio = pinInterrupt
+                setPullResistance(ioPin,
+                        if (internalPullUp) PinPullResistance.PULL_UP else PinPullResistance.OFF)
+                setMode(ioPin, PinMode.DIGITAL_INPUT)
+            }
+            HwUnitI2CMCP23017.increaseUseCount(pinName, address)
         }
-        HwUnitI2CMCP23017.increaseUseCount(pinName, address)
     }
 
     @Throws(Exception::class)
-    @MainThread
     override suspend fun close() {
         unregisterListener()
         // We do not want to close this device if it is used by another instance of this class
-        val refCount = HwUnitI2CMCP23017.decreaseUseCount(pinName, address)
-        Timber.d("close refCount:$refCount i2c:$address pinInterrupt: $pinInterrupt")
-        // this will nullify HwUnitI2C#device instance
-        if (refCount == 0) {
-            super.close()
+        return withContext(Dispatchers.Main) {
+            val refCount = HwUnitI2CMCP23017.decreaseUseCount(pinName, address)
+            Timber.d("close refCount:$refCount i2c:$address pinInterrupt: $pinInterrupt")
+            // this will nullify HwUnitI2C#device instance
+            if (refCount == 0) {
+                super.close()
+            }
         }
     }
 
@@ -70,9 +73,11 @@ open class HwUnitI2CMCP23017Sensor(name: String, location: String, private val p
                                   exceptionHandler: CoroutineExceptionHandler) {
         Timber.d("registerListener")
         hwUnitListener = listener
-        (device as MCP23017?)?.run {
-            val result = registerPinListener(ioPin, mMCP23017Callback)
-            Timber.d("registerListener registerPinListener?: $result")
+        withContext(Dispatchers.Main) {
+            (device as MCP23017?)?.run {
+                val result = registerPinListener(ioPin, mMCP23017Callback)
+                Timber.d("registerListener registerPinListener?: $result")
+            }
         }
     }
 
@@ -87,10 +92,15 @@ open class HwUnitI2CMCP23017Sensor(name: String, location: String, private val p
 
     @Throws(Exception::class)
     override suspend fun readValue(): Boolean? {
-        unitValue = (device as MCP23017?)?.run {
-            if(inverse) getState(ioPin) != PinState.HIGH else getState(ioPin) == PinState.HIGH
+        return withContext(Dispatchers.Main) {
+            val value = (device as MCP23017?)?.run {
+                if (inverse) getState(ioPin) != PinState.HIGH else getState(ioPin) == PinState.HIGH
+            }
+            if (value != unitValue) {
+                unitValue = value
+                valueUpdateTime = System.currentTimeMillis()
+            }
+            unitValue
         }
-
-        return unitValue
     }
 }

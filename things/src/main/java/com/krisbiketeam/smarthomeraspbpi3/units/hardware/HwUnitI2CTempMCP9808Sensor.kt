@@ -24,7 +24,6 @@ class HwUnitI2CTempMCP9808Sensor(name: String, location: String, private val pin
     override var valueUpdateTime: Long = System.currentTimeMillis()
 
     private var job: Job? = null
-    private var hwUnitListener: Sensor.HwUnitListener<Float>? = null
 
     override suspend fun connect() {
         // Do noting we do not want to block I2C device so it will be opened while setting the value
@@ -32,17 +31,18 @@ class HwUnitI2CTempMCP9808Sensor(name: String, location: String, private val pin
     }
 
     @Throws(Exception::class)
+    // TODO use Flow here
     override suspend fun registerListener(listener: Sensor.HwUnitListener<Float>,
                                           exceptionHandler: CoroutineExceptionHandler) {
         Timber.d("registerListener")
-        hwUnitListener = listener
         job?.cancel()
         job = GlobalScope.plus(exceptionHandler).launch(Dispatchers.IO) {
             // We could also check for true as suspending delay() method is cancellable
             while (isActive) {
                 delay(refreshRate ?: REFRESH_RATE)
-                // Cancel will not stop non suspending oneShotReadValue function
                 oneShotReadValue()
+                // all data should be updated by suspending oneShotReadValue() method
+                listener.onHwUnitChanged(hwUnit, unitValue, valueUpdateTime)
             }
         }
     }
@@ -50,7 +50,6 @@ class HwUnitI2CTempMCP9808Sensor(name: String, location: String, private val pin
     override suspend fun unregisterListener() {
         Timber.d("unregisterListener")
         job?.cancel()
-        hwUnitListener = null
     }
 
     @Throws(Exception::class)
@@ -64,13 +63,11 @@ class HwUnitI2CTempMCP9808Sensor(name: String, location: String, private val pin
     private suspend fun oneShotReadValue() {
         // We do not want to block I2C buss so open device to only display some data and then immediately close it.
         // use block automatically closes resources referenced to mcp9808
-        MCP9808(pinName, softAddress).let {
-            it.readOneShotTemperature { value ->
-                unitValue = value
+        withContext(Dispatchers.Main) {
+            MCP9808(pinName, softAddress).use {
+                unitValue = it.readOneShotTemperature()
                 valueUpdateTime = System.currentTimeMillis()
                 Timber.d("temperature:$unitValue")
-                hwUnitListener?.onHwUnitChanged(hwUnit, unitValue, valueUpdateTime)
-                it.close()
             }
         }
     }
@@ -79,11 +76,13 @@ class HwUnitI2CTempMCP9808Sensor(name: String, location: String, private val pin
     override suspend fun readValue(): Float? {
         // We do not want to block I2C buss so open device to only display some data and then immediately close it.
         // use block automatically closes resources referenced to tmp102
-        MCP9808(pinName, softAddress).use {
-            unitValue = it.readTemperature()
-            valueUpdateTime = System.currentTimeMillis()
-            Timber.d("temperature:$unitValue")
+        return withContext(Dispatchers.Main) {
+            MCP9808(pinName, softAddress).use {
+                unitValue = it.readTemperature()
+                valueUpdateTime = System.currentTimeMillis()
+                Timber.d("temperature:$unitValue")
+            }
+            unitValue
         }
-        return unitValue
     }
 }

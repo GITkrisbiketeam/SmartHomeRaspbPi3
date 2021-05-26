@@ -433,8 +433,7 @@ class Home(secureStorage: SecureStorage,
                     it.name == hwUnit.ioPin
                 }?.let { ioPin ->
                     HwUnitI2CMCP23017Actuator(hwUnit.name, hwUnit.location, hwUnit.pinName,
-                            hwUnit.softAddress ?: 0, hwUnit.pinInterrupt ?: "",
-                            ioPin) as BaseHwUnit<Any>
+                            hwUnit.softAddress ?: 0, ioPin) as BaseHwUnit<Any>
                 }
             }
             else -> null
@@ -575,9 +574,8 @@ class Home(secureStorage: SecureStorage,
 
     private suspend fun <T : Any> Sensor<out T>.readValueWithException(): T? {
         return try {
-            withContext(Dispatchers.Main) {
-                readValue()
-            }/*.also {
+            readValue()
+            /*.also {
                 analytics.logEvent(EVENT_SENSOR_READ_VALUE) {
                     param(SENSOR_NAME, this@readValueWithException.hwUnit.name)
                     param(SENSOR_VALUE, it.toString())
@@ -593,17 +591,17 @@ class Home(secureStorage: SecureStorage,
     private suspend fun <T : Any> Sensor<out T>.registerListenerWithException(
             listener: Sensor.HwUnitListener<T>) {
         try {
-            withContext(Dispatchers.Main) {
-                registerListener(listener, CoroutineExceptionHandler { _, error ->
-                    GlobalScope.launch(Dispatchers.Default) {
-                        addHwUnitErrorEvent(error,
-                                "Error registerListener CoroutineExceptionHandler hwUnit on $hwUnit")
-                    }
-                })
-                /*analytics.logEvent(EVENT_REGISTER_LISTENER) {
-                    param(SENSOR_NAME, this@registerListenerWithException.toString())
-                }*/
-            }
+            registerListener(listener, CoroutineExceptionHandler { _, error ->
+                // TODO: is this needed???
+                GlobalScope.launch(Dispatchers.Default) {
+                    addHwUnitErrorEvent(error,
+                            "Error registerListener CoroutineExceptionHandler hwUnit on $hwUnit")
+                }
+            })
+            /*analytics.logEvent(EVENT_REGISTER_LISTENER) {
+                param(SENSOR_NAME, this@registerListenerWithException.toString())
+            }*/
+
         } catch (e: Exception) {
             Timber.e("registerListenerWithException; Error registerListener hwUnit on $hwUnit $e")
             addHwUnitErrorEvent(e, "Error registerListener hwUnit on $hwUnit")
@@ -612,9 +610,7 @@ class Home(secureStorage: SecureStorage,
 
     private suspend fun <T : Any> BaseHwUnit<in T>.closeValueWithException() {
         try {
-            withContext(Dispatchers.Main) {
-                close()
-            }
+            close()
             /*analytics.logEvent(EVENT_SENSOR_CLOSE) {
                 param(SENSOR_NAME, this@closeValueWithException.hwUnit.name)
             }*/
@@ -626,9 +622,7 @@ class Home(secureStorage: SecureStorage,
 
     private suspend fun <T : Any> BaseHwUnit<in T>.connectValueWithException(): Boolean {
         return try {
-            withContext(Dispatchers.Main) {
-                connect()
-            }
+            connect()
             /*analytics.logEvent(EVENT_SENSOR_CONNECT) {
                 param(SENSOR_NAME, this@connectValueWithException.hwUnit.name)
             }*/

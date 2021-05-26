@@ -25,7 +25,6 @@ class HwUnitI2CTempRhSi7021Sensor(name: String, location: String, private val pi
     override var valueUpdateTime: Long = System.currentTimeMillis()
 
     private var job: Job? = null
-    private var hwUnitListener: Sensor.HwUnitListener<TemperatureAndHumidity>? = null
 
     private var heatOnCounter = 0
     private var heatOnTrigger = 86400000 / (refreshRate?:REFRESH_RATE) // Heat on once per day
@@ -36,10 +35,10 @@ class HwUnitI2CTempRhSi7021Sensor(name: String, location: String, private val pi
     }
 
     @Throws(Exception::class)
+    // TODO use Flow here
     override suspend fun registerListener(listener: Sensor.HwUnitListener<TemperatureAndHumidity>,
                                           exceptionHandler: CoroutineExceptionHandler) {
         Timber.d("registerListener")
-        hwUnitListener = listener
         job?.cancel()
         job = GlobalScope.plus(exceptionHandler).launch(Dispatchers.IO) {
             // We could also check for true as suspending delay() method is cancellable
@@ -47,6 +46,8 @@ class HwUnitI2CTempRhSi7021Sensor(name: String, location: String, private val pi
                 delay(refreshRate ?: REFRESH_RATE)
                 // Cancel will not stop non suspending oneShotReadValue function
                 oneShotReadValue()
+                // all data should be updated by suspending oneShotReadValue() method
+                listener.onHwUnitChanged(hwUnit, unitValue, valueUpdateTime)
                 if (heatOnCounter++ >= heatOnTrigger) {
                     // wait for OneShotReadValue to close Si7021
                     delay(5000)
@@ -64,7 +65,6 @@ class HwUnitI2CTempRhSi7021Sensor(name: String, location: String, private val pi
     override suspend fun unregisterListener() {
         Timber.d("unregisterListener")
         job?.cancel()
-        hwUnitListener = null
     }
 
     @Throws(Exception::class)
@@ -78,13 +78,12 @@ class HwUnitI2CTempRhSi7021Sensor(name: String, location: String, private val pi
     private suspend fun oneShotReadValue() {
         // We do not want to block I2C buss so open device to only display some data and then immediately close it.
         // use block automatically closes resources referenced to mcp9808
-        Si7021(pinName).let {
-            it.readOneShotTempAndRh { (temperature, rh) ->
+        withContext(Dispatchers.Main) {
+            Si7021(pinName).use {
+                val (temperature, rh) = it.readOneShotTempAndRh()
                 unitValue = TemperatureAndHumidity(temperature, rh)
                 valueUpdateTime = System.currentTimeMillis()
                 Timber.d("temperatureAndHumidity:$unitValue")
-                hwUnitListener?.onHwUnitChanged(hwUnit, unitValue, valueUpdateTime)
-                it.close()
             }
         }
     }
@@ -94,11 +93,13 @@ class HwUnitI2CTempRhSi7021Sensor(name: String, location: String, private val pi
         // We do not want to block I2C buss so open device to only display some data and then immediately close it.
         // use block automatically closes resources referenced to mcp9808
         Timber.d("heatOn:$on")
-        Si7021(pinName).use {
-            if (on) {
-                it.setHeater(Si7021.HeaterAmount.HEATER_15_MA)
-            } else {
-                it.setHeater(Si7021.HeaterAmount.HEATER_OFF)
+        withContext(Dispatchers.Main) {
+            Si7021(pinName).use {
+                if (on) {
+                    it.heater = Si7021.HeaterAmount.HEATER_15_MA
+                } else {
+                    it.heater = Si7021.HeaterAmount.HEATER_OFF
+                }
             }
         }
     }
@@ -107,11 +108,13 @@ class HwUnitI2CTempRhSi7021Sensor(name: String, location: String, private val pi
     override suspend fun readValue(): TemperatureAndHumidity? {
         // We do not want to block I2C buss so open device to only display some data and then immediately close it.
         // use block automatically closes resources referenced to tmp102
-        Si7021(pinName).use {
-            // TODO do not use callback method here as it will hold I2C buss
-            unitValue = TemperatureAndHumidity(it.readPrevTemperature(), null)
-            valueUpdateTime = System.currentTimeMillis()
-            Timber.d("temperatureAndHumidity:$unitValue")
+        withContext(Dispatchers.Main) {
+            Si7021(pinName).use {
+                // TODO do not use callback method here as it will hold I2C buss
+                unitValue = TemperatureAndHumidity(it.readPrevTemperature(), null)
+                valueUpdateTime = System.currentTimeMillis()
+                Timber.d("temperatureAndHumidity:$unitValue")
+            }
         }
         return unitValue
     }

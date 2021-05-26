@@ -7,7 +7,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.ConnectionType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
 import com.krisbiketeam.smarthomeraspbpi3.units.HwUnitGpio
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
-import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.*
 import timber.log.Timber
 
 open class HwUnitGpioSensor(name: String, location: String, pinName: String,
@@ -23,11 +23,15 @@ open class HwUnitGpioSensor(name: String, location: String, pinName: String,
     var hwUnitListener: Sensor.HwUnitListener<Boolean>? = null
 
     open val mGpioCallback = object : GpioCallback {
-        override fun onGpioEdge(gpio: Gpio): Boolean {
-            readValue(gpio)
-            Timber.v("onGpioEdge gpio.readValue(): $hwUnit.value on: $hwUnit")
-            hwUnitListener?.onHwUnitChanged(hwUnit, unitValue, valueUpdateTime)
+        override fun onGpioEdge(callbackGpio: Gpio): Boolean {
+            if (gpio?.name == callbackGpio.name) {
+                CoroutineScope(Dispatchers.IO).launch {
+                    readValue()
+                    Timber.v("onGpioEdge gpio.readValue(): $hwUnit.value on: $hwUnit")
+                    hwUnitListener?.onHwUnitChanged(hwUnit, unitValue, valueUpdateTime)
+                }
 
+            }
             // Continue listening for more interrupts
             return true
         }
@@ -41,10 +45,12 @@ open class HwUnitGpioSensor(name: String, location: String, pinName: String,
     override suspend fun connect() {
         super.connect()
 
-        gpio?.run {
-            setDirection(Gpio.DIRECTION_IN)
-            setEdgeTriggerType(Gpio.EDGE_BOTH)
-            setActiveType(activeType)
+        withContext(Dispatchers.Main) {
+            gpio?.run {
+                setDirection(Gpio.DIRECTION_IN)
+                setEdgeTriggerType(Gpio.EDGE_BOTH)
+                setActiveType(activeType)
+            }
         }
     }
 
@@ -59,12 +65,16 @@ open class HwUnitGpioSensor(name: String, location: String, pinName: String,
                                           exceptionHandler: CoroutineExceptionHandler) {
         Timber.d("registerListener")
         hwUnitListener = listener
-        gpio?.registerGpioCallback(mGpioCallback)
+        withContext(Dispatchers.Main) {
+            gpio?.registerGpioCallback(mGpioCallback)
+        }
     }
 
     override suspend fun unregisterListener() {
         Timber.d("unregisterListener")
-        gpio?.unregisterGpioCallback(mGpioCallback)
+        withContext(Dispatchers.Main) {
+            gpio?.unregisterGpioCallback(mGpioCallback)
+        }
         hwUnitListener = null
     }
 
@@ -75,9 +85,11 @@ open class HwUnitGpioSensor(name: String, location: String, pinName: String,
     }
 
     @Throws(Exception::class)
-    fun readValue(gpio: Gpio?): Boolean? {
-        unitValue = gpio?.value
-        valueUpdateTime = System.currentTimeMillis()
+    private suspend fun readValue(gpio: Gpio?): Boolean? {
+        withContext(Dispatchers.Main) {
+            unitValue = gpio?.value
+            valueUpdateTime = System.currentTimeMillis()
+        }
 
         return unitValue
     }

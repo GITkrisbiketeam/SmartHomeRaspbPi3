@@ -2,6 +2,7 @@ package com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver
 
 import android.annotation.SuppressLint
 import android.view.ViewConfiguration
+import androidx.annotation.MainThread
 import com.google.android.things.pio.Gpio
 import com.google.android.things.pio.GpioCallback
 import com.google.android.things.pio.I2cDevice
@@ -14,7 +15,11 @@ import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Driver for the MCP23017 16 bit I/O Expander.
+ *
+ * !!! IPORTANT !!!
+ * Must be called on MainThread with all its methods
  */
+@MainThread
 class PCF8574AT(private val bus: String? = null,
                 private val address: Int = DEFAULT_I2C_000_ADDRESS,
                 var intGpio: String? = null,
@@ -61,14 +66,20 @@ class PCF8574AT(private val bus: String? = null,
             debounceIntCallbackJob = GlobalScope.launch(Dispatchers.IO) {
                 delay(debounceDelay.toLong())
                 try {
-                    checkInterrupt()
+                    if (this.isActive) {
+                        withContext(Dispatchers.Main) {
+                            checkInterrupt()
+                        }
+                    }
                 } finally {
                     debounceIntCallbackJob?.cancel()
                 }
             }
         } else {
             debounceIntCallbackJob?.cancel()
-            checkInterrupt()
+            GlobalScope.launch(Dispatchers.Main) {
+                checkInterrupt()
+            }
         }
 
         // Return true to keep callback active.
@@ -93,6 +104,29 @@ class PCF8574AT(private val bus: String? = null,
         }
     }
 
+    /**
+     * Close the driver and the underlying device.
+     */
+    @Throws(Exception::class)
+    @MainThread
+    override fun close() {
+        Timber.d("close started")
+        // if a monitor is running, then shut it down now
+        stopMonitor()
+
+        mGpioInt?.unregisterGpioCallback(mIntCallback)
+        try {
+            mGpioInt?.close()
+        } catch (e: Exception){
+            Timber.e("close mGpioInt exception: $e")
+            throw (Exception("Error closing PCF8574AT mGpioInt", e))
+        } finally {
+            mGpioInt = null
+            Timber.d("close finished")
+        }
+    }
+
+    @MainThread
     private fun lockedI2cOperation(block: (I2cDevice?) -> Unit) {
         synchronized(this) {
             PeripheralManager.getInstance()?.openI2cDevice(bus, address).use {
@@ -102,6 +136,15 @@ class PCF8574AT(private val bus: String? = null,
     }
 
     @Throws(Exception::class)
+    @MainThread
+    private fun resetToDefaults(i2cDevice: I2cDevice?) {
+        writeRegister(i2cDevice, 0xFF)
+    }
+
+    // region Input interrupt handling
+
+    @Throws(Exception::class)
+    @MainThread
     private fun connectGpio() {
         if (intGpio != null && mGpioInt == null) {
             val manager = PeripheralManager.getInstance()
@@ -119,6 +162,7 @@ class PCF8574AT(private val bus: String? = null,
     }
 
     @Throws(Exception::class)
+    @MainThread
     private fun disconnectGpio() {
         Timber.d("disconnect int Gpio ")
         mGpioInt = mGpioInt?.run {
@@ -136,7 +180,9 @@ class PCF8574AT(private val bus: String? = null,
                 // We could also check for true as suspending delay() method is cancellable
                 while (isActive) {
                     try {
-                        checkInterrupt()
+                        withContext(Dispatchers.Main) {
+                            checkInterrupt()
+                        }
                         delay(pollingTime.toLong())
                     } catch (e: Exception) {
                         stopMonitor()
@@ -155,28 +201,12 @@ class PCF8574AT(private val bus: String? = null,
         monitorJob = null
     }
 
-    /**
-     * Close the driver and the underlying device.
-     */
-    @Throws(Exception::class)
-    override fun close() {
-        Timber.d("close started")
-        // if a monitor is running, then shut it down now
-        stopMonitor()
+    // endregion
 
-        mGpioInt?.unregisterGpioCallback(mIntCallback)
-        try {
-            mGpioInt?.close()
-        } catch (e: Exception){
-            Timber.e("close mGpioInt exception: $e")
-            throw (Exception("Error closing PCF8574AT mGpioInt", e))
-        } finally {
-            mGpioInt = null
-        }
-    }
-
+    // region Read/Write Register functions
 
     @Throws(Exception::class)
+    @MainThread
     private fun readRegister(i2cDevice: I2cDevice?): Int {
         val byteArray = ByteArray(1)
         i2cDevice?.read(byteArray, 1)
@@ -184,20 +214,20 @@ class PCF8574AT(private val bus: String? = null,
     }
 
     @Throws(Exception::class)
+    @MainThread
     private fun writeRegister(i2cDevice: I2cDevice?, regVal: Int) {
         val buffer = ByteArray(1)
         buffer[0] = regVal.toByte()
         i2cDevice?.write(buffer, 1)
     }
 
-    @Throws(Exception::class)
-    private fun resetToDefaults(i2cDevice: I2cDevice?) {
-        writeRegister(i2cDevice, 0xFF)
-    }
+    // endregion
 
-    // Set Input or output mode functions
+    // region Set Input or output mode functions
+
     @Throws(Exception::class)
-    suspend fun setMode(pin: Pin, mode: PinMode) {
+    @MainThread
+    fun setMode(pin: Pin, mode: PinMode) {
         // determine register and pin address
         val pinAddress = pin.address
 
@@ -216,7 +246,7 @@ class PCF8574AT(private val bus: String? = null,
 
         // if any pins are configured as input pins, then we need to start the interrupt monitoring
         // thread
-        if ((currentDirections > 0)) {
+        if (currentDirections > 0) {
             startMonitor()
             connectGpio()
         } else {
@@ -231,8 +261,12 @@ class PCF8574AT(private val bus: String? = null,
         } else PinMode.DIGITAL_OUTPUT
     }
 
-    // Set Output state functions
+    // endregion
+
+    // region Set Output state functions
+
     @Throws(Exception::class)
+    @MainThread
     fun setState(pin: Pin, state: PinState) {
         // determine pin address
         val pinAddress = pin.address
@@ -256,6 +290,7 @@ class PCF8574AT(private val bus: String? = null,
 
     // Get Input state functions
     @Throws(Exception::class)
+    @MainThread
     fun getState(pin: Pin): PinState {
         lockedI2cOperation {
             currentStates = readRegister(it)
@@ -269,13 +304,22 @@ class PCF8574AT(private val bus: String? = null,
         return if (currentStates and pinAddress == pinAddress) PinState.HIGH else PinState.LOW
     }
 
+    // endregion
+
     // Suppress NewApi for computeIfAbsent this is only used on Things that are Android 8.0+
     @SuppressLint("NewApi")
+    @MainThread
     fun registerPinListener(pin: Pin, listener: PCF8574ATPinStateChangeListener): Boolean {
         return if (getMode(pin) == PinMode.DIGITAL_INPUT) {
             val pinListeners = mListeners.computeIfAbsent(pin) { ArrayList(1)}
             pinListeners.add(listener)
-            true
+            try {
+                checkInterrupt()
+                true
+            } catch (e: Exception) {
+                Timber.e(e, "registerPinListener Error")
+                false
+            }
         } else {
             // Given pin not set for input
             false
@@ -288,26 +332,23 @@ class PCF8574AT(private val bus: String? = null,
     }
 
     @Throws(Exception::class)
+    @MainThread
     private fun checkInterrupt() {
         Timber.v("checkInterrupt")
 
-        // only process for interrupts if a pin on port A is configured as an
-        // input pin
+        // only process for interrupts if a pin is configured as an input pin
         if (currentDirections > 0) {
-            // process interrupts for port A
+            var pinInterruptStates : Int = currentStates
             lockedI2cOperation {
-                val pinInterruptStates = readRegister(it)
+                pinInterruptStates = readRegister(it)
                 Timber.v("checkInterrupt pinInterruptStates:$pinInterruptStates")
-
-                // validate that there is at least one interrupt active on port A
-                if (pinInterruptStates != currentStates) {
-                    // loop over the available pins
-                    for (pin in Pin.values()) {
-                        evaluatePinForChange(pin, pinInterruptStates)
-                    }
-                    currentStates = pinInterruptStates
+            }
+            if (pinInterruptStates != currentStates) {
+                // loop over the available pins
+                for (pin in Pin.values()) {
+                    evaluatePinForChange(pin, pinInterruptStates)
                 }
-
+                currentStates = pinInterruptStates
             }
         }
     }
@@ -324,15 +365,9 @@ class PCF8574AT(private val bus: String? = null,
     }
 
     private fun dispatchPinChangeEvent(pin: Pin, state: PinState) {
-        Timber.d("dispatchPinChangeEvent pin: ${pin.name} pinState: $state")
-
-        val listeners = mListeners[pin]
-        if (listeners != null) {
-            // iterate over the pin listeners list
-            for (listener in listeners) {
-                listener.onPinStateChanged(pin, state)
-            }
+        mListeners[pin]?.forEach { listener ->
+            Timber.d("dispatchPinChangeEvent pin: ${pin.name} pinState: $state")
+            listener.onPinStateChanged(pin, state)
         }
     }
-
 }

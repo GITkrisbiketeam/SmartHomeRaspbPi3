@@ -32,24 +32,26 @@ class HwUnitGpioNoiseSensor(name: String, location: String, pinName: String, act
 
     override val mGpioCallback = object : GpioCallback {
         override fun onGpioEdge(gpio: Gpio): Boolean {
-            val value = readValue(gpio)
-            Timber.v("onGpioEdge gpio.readValue(): $value on: $hwUnit")
+            CoroutineScope(Dispatchers.IO).launch {
+                val value = readValue()
+                Timber.v("onGpioEdge gpio.readValue(): $value on: $hwUnit")
 
-            if (debounceDelay == 0L) {
-                // Trigger event immediately
-                performSensorEvent(value)
-            } else {
-                // Clear any pending checks
-                removeDebounceCallback()
-                // Set a new pending check
-                mPendingCheckDebounce = CoroutineScope(Dispatchers.IO).launch {
-                    delay(debounceDelay)
-                    try {
-                        if (readValue() == value) {
-                            performSensorEvent(value)
+                if (debounceDelay == 0L) {
+                    // Trigger event immediately
+                    performSensorEvent(value)
+                } else {
+                    // Clear any pending checks
+                    removeDebounceCallback()
+                    // Set a new pending check
+                    mPendingCheckDebounce = launch {
+                        delay(debounceDelay)
+                        try {
+                            if (readValue() == value) {
+                                performSensorEvent(value)
+                            }
+                        } catch (e: Exception) {
+                            Timber.e(e, "Error readValue on $hwUnit")
                         }
-                    } catch (e: Exception) {
-                        Timber.e(e, "Error readValue on $hwUnit")
                     }
                 }
             }

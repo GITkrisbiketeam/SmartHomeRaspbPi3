@@ -85,28 +85,23 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
         ledA = HwUnitI2CPCF8574ATActuator(BoardConfig.IO_EXTENDER_PCF8574AT_LED_1, "Raspberry Pi",
                                           BoardConfig.IO_EXTENDER_PCF8574AT_PIN,
                                           BoardConfig.IO_EXTENDER_PCF8574AT_ADDR,
-                                          BoardConfig.IO_EXTENDER_PCF8574AT_INT_PIN,
                                           BoardConfig.IO_EXTENDER_PCF8574AT_LED_1_PIN)
 
         ledB = HwUnitI2CPCF8574ATActuator(BoardConfig.IO_EXTENDER_PCF8574AT_LED_2, "Raspberry Pi",
                                           BoardConfig.IO_EXTENDER_PCF8574AT_PIN,
                                           BoardConfig.IO_EXTENDER_PCF8574AT_ADDR,
-                                          BoardConfig.IO_EXTENDER_PCF8574AT_INT_PIN,
                                           BoardConfig.IO_EXTENDER_PCF8574AT_LED_2_PIN)
         ledC = HwUnitI2CPCF8574ATActuator(BoardConfig.IO_EXTENDER_PCF8574AT_LED_3, "Raspberry Pi",
                                           BoardConfig.IO_EXTENDER_PCF8574AT_PIN,
                                           BoardConfig.IO_EXTENDER_PCF8574AT_ADDR,
-                                          BoardConfig.IO_EXTENDER_PCF8574AT_INT_PIN,
                                           BoardConfig.IO_EXTENDER_PCF8574AT_LED_3_PIN)
         led1 = HwUnitI2CPCF8574ATActuator(BoardConfig.IO_EXTENDER_PCF8574AT_LED_4, "Raspberry Pi",
                                           BoardConfig.IO_EXTENDER_PCF8574AT_PIN,
                                           BoardConfig.IO_EXTENDER_PCF8574AT_ADDR,
-                                          BoardConfig.IO_EXTENDER_PCF8574AT_INT_PIN,
                                           BoardConfig.IO_EXTENDER_PCF8574AT_LED_4_PIN)
         led2 = HwUnitI2CPCF8574ATActuator(BoardConfig.IO_EXTENDER_PCF8574AT_LED_5, "Raspberry Pi",
                                           BoardConfig.IO_EXTENDER_PCF8574AT_PIN,
                                           BoardConfig.IO_EXTENDER_PCF8574AT_ADDR,
-                                          BoardConfig.IO_EXTENDER_PCF8574AT_INT_PIN,
                                           BoardConfig.IO_EXTENDER_PCF8574AT_LED_5_PIN)
 
         buttonAInputDriver =

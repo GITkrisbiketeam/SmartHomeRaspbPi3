@@ -35,6 +35,7 @@ class HwUnitI2CTempPressBMP280Sensor(name: String, location: String, pinName: St
     }
 
     @Throws(Exception::class)
+    // TODO use Flow here
     override suspend fun registerListener(listener: Sensor.HwUnitListener<TemperatureAndPressure>,
                                           exceptionHandler: CoroutineExceptionHandler) {
         Timber.d("registerListener")
@@ -68,18 +69,19 @@ class HwUnitI2CTempPressBMP280Sensor(name: String, location: String, pinName: St
 
     @Throws(Exception::class)
     override suspend fun readValue(): TemperatureAndPressure? {
-        // We do not want to block I2C buss so open device to only display some data and then immediately close it.
-        // use block automatically closes resources referenced to tmp102
-        // We do not want to block I2C buss so open device to only get some data and then immediately close it.
-        val bmx280 = RainbowHat.openSensor()
-        bmx280.use {
-            it.temperatureOversampling = Bmx280.OVERSAMPLING_1X
-            it.pressureOversampling = Bmx280.OVERSAMPLING_1X
-            it.setMode(Bmx280.MODE_NORMAL)
-            unitValue = TemperatureAndPressure(it.readTemperature(), it.readPressure())
-            valueUpdateTime = System.currentTimeMillis()
-            Timber.d("temperature:$unitValue")
+        return withContext(Dispatchers.Main) {
+            // We do not want to block I2C buss so open device to only display some data and then immediately close it.
+            // use block automatically closes resources referenced to tmp102
+            // We do not want to block I2C buss so open device to only get some data and then immediately close it.
+            RainbowHat.openSensor().use {
+                it.temperatureOversampling = Bmx280.OVERSAMPLING_1X
+                it.pressureOversampling = Bmx280.OVERSAMPLING_1X
+                it.setMode(Bmx280.MODE_NORMAL)
+                unitValue = TemperatureAndPressure(it.readTemperature(), it.readPressure())
+                valueUpdateTime = System.currentTimeMillis()
+                Timber.d("temperature:$unitValue")
+            }
+            unitValue
         }
-        return unitValue
     }
 }

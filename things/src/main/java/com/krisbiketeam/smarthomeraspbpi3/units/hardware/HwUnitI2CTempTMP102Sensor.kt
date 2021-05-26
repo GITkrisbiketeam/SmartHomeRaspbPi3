@@ -24,7 +24,6 @@ class HwUnitI2CTempTMP102Sensor(name: String, location: String, private val pinN
     override var valueUpdateTime: Long = System.currentTimeMillis()
 
     private var job: Job? = null
-    private var hwUnitListener: Sensor.HwUnitListener<Float>? = null
 
     override suspend fun connect() {
         // Do noting we o not want to block I2C device so it will be opened while setting the value
@@ -32,10 +31,10 @@ class HwUnitI2CTempTMP102Sensor(name: String, location: String, private val pinN
     }
 
     @Throws(Exception::class)
+    // TODO use Flow here
     override suspend fun registerListener(listener: Sensor.HwUnitListener<Float>,
                                           exceptionHandler: CoroutineExceptionHandler) {
         Timber.d("registerListener")
-        hwUnitListener = listener
         job?.cancel()
         job = GlobalScope.plus(exceptionHandler).launch(Dispatchers.IO) {
             // We could also check for true as suspending delay() method is cancellable
@@ -43,6 +42,8 @@ class HwUnitI2CTempTMP102Sensor(name: String, location: String, private val pinN
                 delay(refreshRate ?: REFRESH_RATE)
                 // Cancel will not stop non suspending oneShotReadValue function
                 oneShotReadValue()
+                // all data should be updated by suspending oneShotReadValue() method
+                listener.onHwUnitChanged(hwUnit, unitValue, valueUpdateTime)
             }
         }
     }
@@ -50,7 +51,6 @@ class HwUnitI2CTempTMP102Sensor(name: String, location: String, private val pinN
     override suspend fun unregisterListener() {
         Timber.d("unregisterListener")
         job?.cancel()
-        hwUnitListener = null
     }
 
     @Throws(Exception::class)
@@ -64,14 +64,13 @@ class HwUnitI2CTempTMP102Sensor(name: String, location: String, private val pinN
     private suspend fun oneShotReadValue() {
         // We do not want to block I2C buss so open device to only display some data and then immediately close it.
         // use block automatically closes resources referenced to tmp102
-        val tmp102 = TMP102(pinName, softAddress)
-        tmp102.setShutdownMode(true)
-        tmp102.readOneShotTemperature { value ->
-            unitValue = value
-            valueUpdateTime = System.currentTimeMillis()
-            Timber.d("temperature:$unitValue")
-            hwUnitListener?.onHwUnitChanged(hwUnit, unitValue, valueUpdateTime)
-            tmp102.close()
+        withContext(Dispatchers.Main) {
+            TMP102(pinName, softAddress).use {
+                it.shutdownMode = true
+                unitValue = it.readOneShotTemperature()
+                valueUpdateTime = System.currentTimeMillis()
+                Timber.d("temperature:$unitValue")
+            }
         }
     }
 
@@ -79,11 +78,12 @@ class HwUnitI2CTempTMP102Sensor(name: String, location: String, private val pinN
     override suspend fun readValue(): Float? {
         // We do not want to block I2C buss so open device to only display some data and then immediately close it.
         // use block automatically closes resources referenced to tmp102
-        val tmp102 = TMP102(pinName, softAddress)
-        tmp102.use {
-            unitValue = it.readTemperature()
-            valueUpdateTime = System.currentTimeMillis()
-            Timber.d("temperature:$unitValue")
+        withContext(Dispatchers.Main) {
+            TMP102(pinName, softAddress).use {
+                unitValue = it.readTemperature()
+                valueUpdateTime = System.currentTimeMillis()
+                Timber.d("temperature:$unitValue")
+            }
         }
         return unitValue
     }
