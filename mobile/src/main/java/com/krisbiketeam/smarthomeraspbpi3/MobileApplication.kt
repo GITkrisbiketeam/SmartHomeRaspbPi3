@@ -6,6 +6,7 @@ import com.krisbiketeam.smarthomeraspbpi3.di.myModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
+import org.koin.core.logger.Level
 import timber.log.Timber
 
 class MobileApplication : Application() {
@@ -20,7 +21,7 @@ class MobileApplication : Application() {
         })
         startKoin {
             androidContext(this@MobileApplication)
-            androidLogger()
+            androidLogger(Level.ERROR)
             modules(myModule)
         }
     }

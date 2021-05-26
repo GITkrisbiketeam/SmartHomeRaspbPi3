@@ -17,10 +17,6 @@ android {
         }
     }
 
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
     kotlinOptions {
         jvmTarget = "1.8"
     }
@@ -31,8 +27,8 @@ dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinxCoroutinesAndroid"
 
     implementation "com.jakewharton.timber:timber:$timberVersion"
-    implementation "androidx.lifecycle:lifecycle-extensions:$androidxLifecycleExtensionsVersion"
-    implementation "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycleLivedataKtxVersion"
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycleKtxVersion"
+    implementation "androidx.lifecycle:lifecycle-process:$lifecycleKtxVersion"
 
     implementation "androidx.legacy:legacy-support-v4:$androidxLegacySupportV4"
     implementation "androidx.appcompat:appcompat:$androidxAppcompatVersion"
