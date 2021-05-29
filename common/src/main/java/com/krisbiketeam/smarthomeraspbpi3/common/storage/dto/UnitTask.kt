@@ -13,7 +13,7 @@ const val BOTH = "both"
 const val RISING_EDGE = "rising_edge"
 const val FALLING_EDGE = "falling_edge"
 
-val TRIGGER_TYPE_LIST: List<String> = listOf(BOTH, RISING_EDGE,FALLING_EDGE)
+val TRIGGER_TYPE_LIST: List<String> = listOf(BOTH, RISING_EDGE, FALLING_EDGE)
 
 data class UnitTask(var name: String = "",
                     //var homeUnitName: String = "",

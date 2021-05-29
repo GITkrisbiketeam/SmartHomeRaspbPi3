@@ -8,7 +8,7 @@ import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.adapters.UnitTaskListAdapter
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.*
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_LIGHT_SWITCHES
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.*
 import com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitDetailFragment
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomDetailFragment
 import com.krisbiketeam.smarthomeraspbpi3.utils.getLastUpdateTime
@@ -139,6 +139,19 @@ class HomeUnitDetailViewModel(application: Application,
     val firebaseNotify: MutableLiveData<Boolean> =
             if (homeUnit == null) MutableLiveData(false) else Transformations.map(homeUnit) { unit -> unit.firebaseNotify } as MutableLiveData<Boolean>
 
+    val firebaseNotifyTriggerTypeList = TRIGGER_TYPE_LIST
+    val firebaseNotifyTrigger: MutableLiveData<String?> = if (homeUnit == null) MutableLiveData(RISING_EDGE) else Transformations.map(homeUnit) { unit -> unit?.firebaseNotifyTrigger } as MutableLiveData<String?>
+    val showFirebaseNotifyTrigger: MutableLiveData<Boolean> =
+            Transformations.switchMap(firebaseNotify) { notify ->
+                Transformations.map(type) { type ->
+                    notify && (HOME_ACTUATORS == type ||
+                            HOME_BLINDS == type ||
+                            HOME_REED_SWITCHES == type ||
+                            HOME_MOTIONS == type ||
+                            HOME_LIGHT_SWITCHES == type)
+                }
+            } as MutableLiveData<Boolean>
+
     val showInTaskList: MutableLiveData<Boolean> =
             if (homeUnit == null) MutableLiveData(false) else Transformations.map(homeUnit) { unit -> unit.showInTaskList } as MutableLiveData<Boolean>
 
@@ -222,6 +235,7 @@ class HomeUnitDetailViewModel(application: Application,
                     && unit.hwUnitName == hwUnitName.value
                     && unit.secondHwUnitName == secondHwUnitName.value
                     && unit.firebaseNotify == firebaseNotify.value
+                    && unit.firebaseNotifyTrigger == firebaseNotifyTrigger.value
                     && unit.showInTaskList == showInTaskList.value/* &&
             unit.unitsTasks == unitTaskList.value*/
         } ?: true
@@ -250,6 +264,7 @@ class HomeUnitDetailViewModel(application: Application,
                 hwUnitName.value = unit.hwUnitName
                 secondHwUnitName.value = unit.secondHwUnitName
                 firebaseNotify.value = unit.firebaseNotify
+                firebaseNotifyTrigger.value = unit.firebaseNotifyTrigger
                 showInTaskList.value = unit.showInTaskList
             }
             false
@@ -341,34 +356,37 @@ class HomeUnitDetailViewModel(application: Application,
                 roomName.value?.let { room ->
                     //hwUnitName.value?.let { hwUnitName ->
                     firebaseNotify.value?.let { firebaseNotify ->
-                        showInTaskList.value?.let { showInTaskList ->
-                            //unitTaskList.value?.let { unitTaskList ->
-                                showProgress.value = true
-                                homeRepository.saveHomeUnit(
-                                        HomeUnit(name = name, type = type, room = room,
-                                                hwUnitName = hwUnitName.value,
-                                                secondHwUnitName = secondHwUnitName.value,
-                                                firebaseNotify = firebaseNotify,
-                                                showInTaskList = showInTaskList,
-                                                value = homeUnit?.value?.value,
-                                                lastUpdateTime = homeUnit?.value?.lastUpdateTime,
-                                                unitsTasks = unitTaskList.value?.toMutableMap()?.also {
-                                                    it.remove("")
-                                                } ?: HashMap()))?.continueWithTask {
-                                    if (type == HOME_LIGHT_SWITCHES) {
-                                        homeRepository.saveUnitTask(type, name,
-                                                UnitTask(
-                                                        name = name,
-                                                        //homeUnitName = name,
-                                                        //homeUnitType = type,
-                                                        homeUnitsList = listOf(UnitTaskHomeUnit(type, name))
-                                                ))
-                                    } else {
-                                        Tasks.forResult(null)
+                        firebaseNotifyTrigger.value?.let { firebaseNotifyTrigger ->
+                            showInTaskList.value?.let { showInTaskList ->
+                                //unitTaskList.value?.let { unitTaskList ->
+                                    showProgress.value = true
+                                    homeRepository.saveHomeUnit(
+                                            HomeUnit(name = name, type = type, room = room,
+                                                    hwUnitName = hwUnitName.value,
+                                                    secondHwUnitName = secondHwUnitName.value,
+                                                    firebaseNotify = firebaseNotify,
+                                                    firebaseNotifyTrigger = firebaseNotifyTrigger,
+                                                    showInTaskList = showInTaskList,
+                                                    value = homeUnit?.value?.value,
+                                                    lastUpdateTime = homeUnit?.value?.lastUpdateTime,
+                                                    unitsTasks = unitTaskList.value?.toMutableMap()?.also {
+                                                        it.remove("")
+                                                    } ?: HashMap()))?.continueWithTask {
+                                        if (type == HOME_LIGHT_SWITCHES) {
+                                            homeRepository.saveUnitTask(type, name,
+                                                    UnitTask(
+                                                            name = name,
+                                                            //homeUnitName = name,
+                                                            //homeUnitType = type,
+                                                            homeUnitsList = listOf(UnitTaskHomeUnit(type, name))
+                                                    ))
+                                        } else {
+                                            Tasks.forResult(null)
+                                        }
                                     }
+                                //}
                                 }
                             }
-                            //}
                         }
                     //}
                 }

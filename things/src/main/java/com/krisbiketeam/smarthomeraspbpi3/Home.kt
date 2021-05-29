@@ -118,7 +118,7 @@ class Home(secureStorage: SecureStorage,
                                     }
                                     homeUnit.applyFunction(newValue)
 
-                                    if (homeUnit.firebaseNotify && alarmEnabled) {
+                                    if (homeUnit.shouldFirebaseNotify(newValue)) {
                                         Timber.d(
                                                 "homeUnitsDataObserver NODE_ACTION_CHANGED notify with FCM Message")
                                         homeInformationRepository.notifyHomeUnitEvent(homeUnit)
@@ -157,7 +157,7 @@ class Home(secureStorage: SecureStorage,
 
                                     }
                                 } else if (hwUnit is Sensor) {
-                                    updateHomeUnitValuesAndTimes(homeUnit, hwUnit.unitValue, hwUnit.valueUpdateTime)
+                                    homeUnit.updateHomeUnitValuesAndTimes(hwUnit.unitValue, hwUnit.valueUpdateTime)
                                     homeInformationRepository.saveHomeUnit(homeUnit)
                                 }
                             }
@@ -372,13 +372,13 @@ class Home(secureStorage: SecureStorage,
                     it.secondHwUnitName == hwUnit.name
                 }
             }.forEach { homeUnit ->
-                updateHomeUnitValuesAndTimes(homeUnit, unitValue, updateTime)
+                homeUnit.updateHomeUnitValuesAndTimes(unitValue, updateTime)
                 val newValue = if (homeUnit.type != HOME_LIGHT_SWITCHES) homeUnit.value else homeUnit.secondValue
                 if (newValue != null) {
                     homeUnit.applyFunction(homeUnit, newValue)
                 }
                 homeInformationRepository.saveHomeUnit(homeUnit)
-                if (homeUnit.firebaseNotify && alarmEnabled) {
+                if (homeUnit.shouldFirebaseNotify(newValue)) {
                     Timber.d("onHwUnitChanged notify with FCM Message")
                     homeInformationRepository.notifyHomeUnitEvent(homeUnit)
                 }
@@ -541,10 +541,7 @@ class Home(secureStorage: SecureStorage,
                                 taskHomeUnit.lastUpdateTime = taskHwUnit.valueUpdateTime
                                 taskHomeUnit.applyFunction(taskHomeUnit, newActionVal)
                                 homeInformationRepository.saveHomeUnit(taskHomeUnit)
-                                if (taskHomeUnit.firebaseNotify && alarmEnabled) {
-                                    Timber.d("booleanApplyAction notify with FCM Message")
-                                    homeInformationRepository.notifyHomeUnitEvent(taskHomeUnit)
-                                }
+                                // Firebase will be notified by HomeUnitsDataObserver
                             }
                         }
                     }
@@ -658,54 +655,62 @@ class Home(secureStorage: SecureStorage,
 
     // endregion
 
-}
 
-// region  HomeUnit values update helper methods
+    // region  HomeUnit values update helper methods
 
-private fun updateHomeUnitValuesAndTimes(homeUnit: HomeUnit<Any>, unitValue: Any?, updateTime: Long) {
-    // We need to handel differently values of non Basic Types
-    if (unitValue is TemperatureAndPressure) {
-        Timber.d("Received TemperatureAndPressure $unitValue")
-        if (homeUnit.type == HOME_TEMPERATURES) {
-            updateValueMinMax(homeUnit, unitValue.temperature, updateTime)
-        } else if (homeUnit.type == HOME_PRESSURES) {
-            updateValueMinMax(homeUnit, unitValue.pressure, updateTime)
-        }
-    } else if (unitValue is TemperatureAndHumidity) {
-        Timber.d("Received TemperatureAndHumidity $unitValue")
-        if (homeUnit.type == HOME_TEMPERATURES) {
-            updateValueMinMax(homeUnit, unitValue.temperature, updateTime)
-        } else if (homeUnit.type == HOME_HUMIDITY) {
-            updateValueMinMax(homeUnit, unitValue.humidity, updateTime)
-        }
-    } else {
-        updateValueMinMax(homeUnit, unitValue, updateTime)
-    }
-}
-
-private fun updateValueMinMax(homeUnit: HomeUnit<Any>, unitValue: Any?, updateTime: Long) {
-    if (homeUnit.type != HOME_LIGHT_SWITCHES) {
-        homeUnit.value = unitValue
-        homeUnit.lastUpdateTime = updateTime
-    } else {
-        homeUnit.secondValue = unitValue
-        homeUnit.secondLastUpdateTime = updateTime
-    }
-    when (unitValue) {
-        is Float -> {
-            if (unitValue <= (homeUnit.min.takeIf { it is Number? } as Number?)?.toFloat() ?: Float.MAX_VALUE) {
-                homeUnit.min = unitValue
-                homeUnit.minLastUpdateTime = updateTime
+    private fun HomeUnit<Any>.updateHomeUnitValuesAndTimes(unitValue: Any?, updateTime: Long) {
+        // We need to handel differently values of non Basic Types
+        if (unitValue is TemperatureAndPressure) {
+            Timber.d("Received TemperatureAndPressure $unitValue")
+            if (type == HOME_TEMPERATURES) {
+                updateValueMinMax(unitValue.temperature, updateTime)
+            } else if (type == HOME_PRESSURES) {
+                updateValueMinMax(unitValue.pressure, updateTime)
             }
-            if (unitValue >= (homeUnit.max.takeIf { it is Number? } as Number?)?.toFloat() ?: Float.MIN_VALUE) {
-                homeUnit.max = unitValue
-                homeUnit.maxLastUpdateTime = updateTime
+        } else if (unitValue is TemperatureAndHumidity) {
+            Timber.d("Received TemperatureAndHumidity $unitValue")
+            if (type == HOME_TEMPERATURES) {
+                updateValueMinMax(unitValue.temperature, updateTime)
+            } else if (type == HOME_HUMIDITY) {
+                updateValueMinMax(unitValue.humidity, updateTime)
+            }
+        } else {
+            updateValueMinMax(unitValue, updateTime)
+        }
+    }
+
+    private fun HomeUnit<Any>.updateValueMinMax(unitValue: Any?, updateTime: Long) {
+        if (type != HOME_LIGHT_SWITCHES) {
+            value = unitValue
+            lastUpdateTime = updateTime
+        } else {
+            secondValue = unitValue
+            secondLastUpdateTime = updateTime
+        }
+        when (unitValue) {
+            is Float -> {
+                if (unitValue <= (min.takeIf { it is Number? } as Number?)?.toFloat() ?: Float.MAX_VALUE) {
+                    min = unitValue
+                    minLastUpdateTime = updateTime
+                }
+                if (unitValue >= (max.takeIf { it is Number? } as Number?)?.toFloat() ?: Float.MIN_VALUE) {
+                    max = unitValue
+                    maxLastUpdateTime = updateTime
+                }
             }
         }
     }
-}
 
-// endregion
+    private fun HomeUnit<Any>.shouldFirebaseNotify(newVal: Any?): Boolean {
+        return alarmEnabled && firebaseNotify &&
+                (newVal !is Boolean || ((firebaseNotifyTrigger == null ||
+                        firebaseNotifyTrigger == BOTH) ||
+                        (firebaseNotifyTrigger == RISING_EDGE && newVal) ||
+                        (firebaseNotifyTrigger == FALLING_EDGE && !newVal)))
+    }
+
+    // endregion
+}
 
 private fun Long?.isValidTime(): Boolean {
     return this != null && this > 0

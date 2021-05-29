@@ -1,21 +1,19 @@
 package com.krisbiketeam.smarthomeraspbpi3.adapters
 
-import android.text.TextUtils
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ListView
 import android.widget.MultiAutoCompleteTextView
 import android.widget.ProgressBar
 import androidx.appcompat.widget.SwitchCompat
-import androidx.constraintlayout.widget.Group
 import androidx.databinding.BindingAdapter
 import androidx.databinding.InverseBindingAdapter
 import androidx.databinding.InverseBindingListener
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.android.material.textfield.TextInputLayout
 import com.google.android.material.textfield.MaterialAutoCompleteTextView
+import com.google.android.material.textfield.TextInputLayout
 import com.krisbiketeam.smarthomeraspbpi3.common.MyLiveDataState
 import timber.log.Timber
 
@@ -35,9 +33,9 @@ fun showIf(view: FloatingActionButton, isShow: Boolean?) {
     if (isShow == null || isShow) view.show() else view.hide()
 }
 
-@BindingAdapter("hideIfEmpty")
-fun hideIfEmpty(view: Group, type: String?) {
-    view.visibility = if (TextUtils.isEmpty(type)) View.GONE else View.VISIBLE
+@BindingAdapter("visibility")
+fun visibility(view: View, visible: Boolean?) {
+    view.visibility = if (visible == true) View.VISIBLE else View.GONE
 }
 
 @BindingAdapter("stateBasedVisibility")

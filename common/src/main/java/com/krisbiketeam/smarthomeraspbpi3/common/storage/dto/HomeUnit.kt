@@ -51,6 +51,7 @@ data class HomeUnit<T:Any>(var name: String = "", // Name should be unique for a
                        var max: T? = null,
                        var maxLastUpdateTime: Long? = null,
                        var firebaseNotify: Boolean = false,
+                       @TriggerType var firebaseNotifyTrigger: String? = null,
                        var showInTaskList: Boolean = false,
                        var unitsTasks: Map<String,UnitTask> = HashMap()) {
     constructor(homeUnit: HomeUnit<T>) : this(
@@ -68,6 +69,7 @@ data class HomeUnit<T:Any>(var name: String = "", // Name should be unique for a
             homeUnit.max,
             homeUnit.maxLastUpdateTime,
             homeUnit.firebaseNotify,
+            homeUnit.firebaseNotifyTrigger,
             homeUnit.showInTaskList,
             homeUnit.unitsTasks)
 
@@ -92,6 +94,7 @@ data class HomeUnit<T:Any>(var name: String = "", // Name should be unique for a
                 max,
                 maxLastUpdateTime,
                 firebaseNotify,
+                firebaseNotifyTrigger,
                 showInTaskList,
                 unitsTasks)
     }
