@@ -1,9 +1,6 @@
 package com.krisbiketeam.smarthomeraspbpi3.viewmodels
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.asLiveData
+import androidx.lifecycle.*
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.Tasks
 import com.krisbiketeam.smarthomeraspbpi3.R
@@ -12,10 +9,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitDetailFragment
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomDetailFragment
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.*
 import timber.log.Timber
 
 
@@ -27,7 +21,7 @@ class RoomDetailViewModel(
         roomName: String
 ) : ViewModel() {
 
-    private val roomList = homeRepository.roomListLiveData()
+    private val roomList = homeRepository.roomListFlow().stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
     private val roomFlow = homeRepository.roomUnitFlow(roomName)
 
     private val homeUnitsOrderStateFlow = MutableStateFlow<List<String>>(emptyList())
@@ -70,7 +64,7 @@ class RoomDetailViewModel(
         return when {
             roomName.value?.trim().isNullOrEmpty() -> Pair(R.string.new_room_empty_name, null)
             noChangesMade() -> Pair(R.string.add_edit_home_unit_no_changes, null)
-            roomList.value?.find { room -> room.name == roomName.value?.trim() } != null -> Pair(R.string.new_room_name_already_used, null)
+            roomList.value.find { room -> room.name == roomName.value?.trim() } != null -> Pair(R.string.new_room_name_already_used, null)
             else -> Pair(R.string.add_edit_home_unit_overwrite_changes, R.string.overwrite)
         }
     }

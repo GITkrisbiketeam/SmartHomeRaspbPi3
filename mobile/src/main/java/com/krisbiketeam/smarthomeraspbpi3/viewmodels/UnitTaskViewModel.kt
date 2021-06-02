@@ -30,7 +30,7 @@ class UnitTaskViewModel(
     val isBooleanApplySensor = MutableLiveData(!(unitType == HOME_TEMPERATURES || unitType == HOME_PRESSURES  || unitType == HOME_HUMIDITY))
 
     // Helper LiveData for UnitTaskList
-    private val unitTaskList: LiveData<Map<String, UnitTask>> = homeRepository.unitTaskListLiveData(unitType, unitName)
+    private val unitTaskList: LiveData<Map<String, UnitTask>> = homeRepository.unitTaskListFlow(unitType, unitName).asLiveData(Dispatchers.IO)
 
     private val unitTask = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTaskList) { taskList -> taskList[taskName] }
 

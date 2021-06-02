@@ -462,8 +462,8 @@
                     android:layout_marginHorizontal="@dimen/activity_horizontal_margin"
                     android:checked="@={viewModel.showInTaskList}"
                     android:clickable="@{safeUnbox(viewModel.isEditMode) ? true : false}"
-                    android:visibility="@{FirebaseTablesKt.HOME_LIGHT_SWITCHES.equals(viewModel.type) || FirebaseTablesKt.HOME_ACTUATORS.equals(viewModel.type) || FirebaseTablesKt.HOME_BLINDS.equals(viewModel.type) ? View.VISIBLE : View.GONE}"
-                    android:text="@string/add_edit_home_unit_notify_firebase_switch_text"
+                    app:visibility="@{viewModel.showInTaskListVisibility}"
+                    android:text="@string/add_edit_home_unit_show_in_task_list_switch_text"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/home_unit_notify_firebase_trigger_layout" />

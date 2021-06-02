@@ -12,6 +12,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.ConnectionType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
 import com.krisbiketeam.smarthomeraspbpi3.ui.AddEditHwUnitFragment
+import kotlinx.coroutines.Dispatchers
 import timber.log.Timber
 
 /**
@@ -21,7 +22,7 @@ class AddEditHwUnitViewModel(private val homeRepository: FirebaseHomeInformation
                              hwUnitName: String) : ViewModel() {
 
     private val hwUnitLiveData =
-            if (hwUnitName.isNotEmpty()) homeRepository.hwUnitLiveData(hwUnitName) else null
+            if (hwUnitName.isNotEmpty()) homeRepository.hwUnitFlow(hwUnitName).asLiveData(Dispatchers.IO) else null
 
     val isEditMode: MutableLiveData<Boolean> = MutableLiveData(hwUnitLiveData == null)
 

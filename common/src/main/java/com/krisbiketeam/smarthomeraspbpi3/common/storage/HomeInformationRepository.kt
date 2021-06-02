@@ -1,7 +1,8 @@
 package com.krisbiketeam.smarthomeraspbpi3.common.storage
 
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ProcessLifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.tasks.Task
 import com.google.firebase.database.*
 import com.google.firebase.database.ktx.database
@@ -159,14 +160,6 @@ class FirebaseHomeInformationRepository {
             }
         })
     }
-
-    fun isUserOnline(): LiveData<Boolean?> = userPathReference?.let {
-        FirebaseDBLiveData("$it/$USER_ONLINE").getObjectLiveData()
-    } ?: MutableLiveData()
-
-    @ExperimentalCoroutinesApi
-    fun isUserOnlineFlow(): Flow<Boolean?> =
-            genericReferenceFlow(userPathReference?.let { Firebase.database.getReference("$it/$USER_ONLINE") })
 
     // endregion
 
@@ -396,7 +389,7 @@ class FirebaseHomeInformationRepository {
     }
     // endregion
 
-    // region Online and last online time
+    // region Home Online and last online time
     /**
      * start monitoring for Firebase Connection active
      */
@@ -436,19 +429,6 @@ class FirebaseHomeInformationRepository {
         }
     }
 
-    /**
-     * Checks if Home Module is online
-     */
-    fun isHomeOnline(): LiveData<Boolean?> = homePathReference?.let {
-        FirebaseDBLiveData("$it/$HOME_ONLINE").getObjectLiveData()
-    } ?: MutableLiveData()
-
-    /**
-     * Checks when Home Module was last online
-     */
-    fun lastHomeOnlineTime(): LiveData<Long?> = homePathReference?.let {
-        FirebaseDBLiveData("$it/$HOME_LAST_ONLINE_TIME").getObjectLiveData()
-    } ?: MutableLiveData()
     // endregion
 
     // region Logs
@@ -477,9 +457,6 @@ class FirebaseHomeInformationRepository {
         }
     }
 
-    fun logsFlow(): Flow<Map<String, HwUnit>> {
-        return genericMapReferenceFlow(referenceLog)
-    }
     // endregion
 
     // region restarts
@@ -500,6 +477,23 @@ class FirebaseHomeInformationRepository {
 
     // region LiveData/Flow
 
+    // region User Online
+
+    @ExperimentalCoroutinesApi
+    fun isUserOnlineFlow(): Flow<Boolean?> = isUserOnline
+
+    private val isUserOnline: Flow<Boolean?> by lazy {
+        genericReferenceFlow<Boolean?>(userPathReference?.let { Firebase.database.getReference("$it/$USER_ONLINE") }).shareIn(
+                ProcessLifecycleOwner.get().lifecycleScope,
+                SharingStarted.WhileSubscribed(),
+                1
+        )
+    }
+
+    // endregion
+
+    // region Home
+
     // region HW Units
     /**
      * get [Flow] of [HwUnit] List for listening to changes in Room entries in DB
@@ -517,13 +511,8 @@ class FirebaseHomeInformationRepository {
     }
 
     /**
-     * get instance of @see[HwUnitsLiveData] for listening to changes in entries in DB
+     * get Flow of @see[HwUnit] for listening to changes in entries in DB
      */
-    @Deprecated("please use hwUnitFlow")
-    fun hwUnitLiveData(hwUnitName: String): LiveData<HwUnit> {
-        return FirebaseDBLiveData(hwUnitName, referenceHWUnits).getObjectLiveData()
-    }
-
     @ExperimentalCoroutinesApi
     fun hwUnitFlow(hwUnitName: String, closeOnEmpty: Boolean = false): Flow<HwUnit> {
         return genericReferenceFlow(referenceHWUnits?.child(hwUnitName), closeOnEmpty)
@@ -533,8 +522,15 @@ class FirebaseHomeInformationRepository {
     /**
      * get [Flow] of [HwUnitLog] List for listening to changes HwUnit Error Event List in DB
      */
-    fun hwUnitErrorEventListFlow(): Flow<List<HwUnitLog<Any>>> {
-        return genericListReferenceFlow(referenceHwError)
+    @ExperimentalCoroutinesApi
+    fun hwUnitErrorEventListFlow(): Flow<List<HwUnitLog<Any>>> = hwUnitErrorEventList
+
+    @ExperimentalCoroutinesApi
+    private val hwUnitErrorEventList: Flow<List<HwUnitLog<Any>>> by lazy {
+        genericListReferenceFlow<HwUnitLog<Any>>(referenceHwError).shareIn(
+                ProcessLifecycleOwner.get().lifecycleScope,
+                SharingStarted.WhileSubscribed(),
+                1)
     }
 
     /**
@@ -549,27 +545,19 @@ class FirebaseHomeInformationRepository {
 
     // region Room
     /**
-     * get instance of @see[RoomListLiveData] for listening to changes in Room entries in DB
-     */
-    @Deprecated("please use roomListFlow")
-    fun roomListLiveData(): RoomListLiveData {
-        return RoomListLiveData(referenceRooms)
-    }
-
-    /**
-     * get instance of @see[RoomListLiveData] for listening to changes in Room entries in DB
+     * get Flow of List of Rooms for listening to changes in Room entries in DB
      */
     @ExperimentalCoroutinesApi
-    fun roomListFlow(): Flow<List<Room>> {
-        return genericListReferenceFlow(referenceRooms)
+    fun roomListFlow(): Flow<List<Room>> = roomList
+
+    @ExperimentalCoroutinesApi
+    private val roomList: Flow<List<Room>> by lazy {
+        genericListReferenceFlow<Room>(referenceRooms).shareIn(
+                ProcessLifecycleOwner.get().lifecycleScope,
+                SharingStarted.WhileSubscribed(),
+                1)
     }
 
-    /**
-     * get instance of @see[LiveData<Room>] for listening to changes in specific Room entry in DB
-     */
-    fun roomLiveData(roomName: String): LiveData<Room> {
-        return FirebaseDBLiveData(roomName, referenceRooms).getObjectLiveData()
-    }
 
     @ExperimentalCoroutinesApi
     fun roomUnitFlow(roomName: String, closeOnEmpty: Boolean = false): Flow<Room> {
@@ -577,16 +565,28 @@ class FirebaseHomeInformationRepository {
     }
 
     @ExperimentalCoroutinesApi
-    fun roomListOrderFlow() : Flow<List<String>> {
-        return genericListReferenceFlow(getHomePreference(HOME_ROOMS_ORDER))
+    fun roomListOrderFlow() : Flow<List<String>> = roomListOrder
+
+    @ExperimentalCoroutinesApi
+    private val roomListOrder: Flow<List<String>> by lazy {
+        genericListReferenceFlow<String>(getHomePreference(HOME_ROOMS_ORDER)).shareIn(
+                ProcessLifecycleOwner.get().lifecycleScope,
+                SharingStarted.WhileSubscribed(),
+                1)
     }
     // endregion
 
     // region Task
 
     @ExperimentalCoroutinesApi
-    fun taskListOrderFlow() : Flow<List<String>> {
-        return genericListReferenceFlow(getHomePreference(HOME_TASKS_ORDER))
+    fun taskListOrderFlow() : Flow<List<String>> = taskListOrder
+
+    @ExperimentalCoroutinesApi
+    private val taskListOrder: Flow<List<String>> by lazy {
+        genericListReferenceFlow<String>(getHomePreference(HOME_TASKS_ORDER)).shareIn(
+                ProcessLifecycleOwner.get().lifecycleScope,
+                SharingStarted.WhileSubscribed(),
+                1)
     }
 
     // endregion
@@ -636,15 +636,7 @@ class FirebaseHomeInformationRepository {
 
     // region UnitTask
     /**
-     * get instance of @see[UnitTaskListLiveData] for listening to changes in specific HomeUnit UnitTask List entry in DB
-     */
-    @Deprecated("please use unitTaskListFlow")
-    fun unitTaskListLiveData(unitType: String, unitName: String): UnitTaskListLiveData {
-        return UnitTaskListLiveData(homePathReference, unitType, unitName)
-    }
-
-    /**
-     * get instance of @see[UnitTaskListLiveData] for listening to changes in specific HomeUnit UnitTask List entry in DB
+     * get Flow of Map<String, UnitTask> for listening to changes in specific HomeUnit UnitTask List entry in DB
      */
     fun unitTaskListFlow(unitType: String, unitName: String): Flow<Map<String, UnitTask>> {
         return homePathReference?.let { home ->
@@ -657,6 +649,42 @@ class FirebaseHomeInformationRepository {
     }
     // endregion
 
+    // region Home Online and last online time
+
+    /**
+     * Checks if Home Module is online
+     */
+    fun isHomeOnlineFlow(): Flow<Boolean?> = isHomeOnline
+
+    private val isHomeOnline: Flow<Boolean?> by lazy {
+        genericReferenceFlow<Boolean?>(homePathReference?.let { Firebase.database.getReference("$it/$HOME_ONLINE") }).shareIn(
+                ProcessLifecycleOwner.get().lifecycleScope,
+                SharingStarted.WhileSubscribed(),
+                1)
+    }
+
+    /**
+     * Checks when Home Module was last online
+     */
+    fun lastHomeOnlineTimeFlow(): Flow<Long?> = lastHomeOnline
+
+    private val lastHomeOnline: Flow<Long?> by lazy {
+        genericReferenceFlow<Long?>(homePathReference?.let { Firebase.database.getReference("$it/$HOME_LAST_ONLINE_TIME") }).shareIn(
+                ProcessLifecycleOwner.get().lifecycleScope,
+                SharingStarted.WhileSubscribed(),
+                1)
+    }
+
+    // endregion
+
+    // region Logs
+
+    fun logsFlow(): Flow<Map<String, HwUnit>> {
+        return genericMapReferenceFlow(referenceLog)
+    }
+
+    // endregion
+
     // region restarts
 
     @ExperimentalCoroutinesApi
@@ -667,6 +695,8 @@ class FirebaseHomeInformationRepository {
             }
         } ?: emptyFlow()
     }
+
+    // endregion
 
     // endregion
 

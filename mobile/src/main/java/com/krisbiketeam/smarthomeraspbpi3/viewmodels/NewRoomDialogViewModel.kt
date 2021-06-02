@@ -1,22 +1,20 @@
 package com.krisbiketeam.smarthomeraspbpi3.viewmodels
 
 import android.app.Application
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Transformations
+import androidx.lifecycle.*
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.Room
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomListFragment
+import kotlinx.coroutines.Dispatchers
 
 /**
  * The ViewModel for [RoomListFragment].
  */
 class NewRoomDialogViewModel(application: Application, private val homeRepository: FirebaseHomeInformationRepository) : AndroidViewModel(application) {
 
-    private val roomList = homeRepository.roomListLiveData()
-    val roomName = MutableLiveData<String?>("")
+    private val roomList = homeRepository.roomListFlow().asLiveData(Dispatchers.IO)
+    val roomName = MutableLiveData("")
 
     var saveMessage: LiveData<String?> = Transformations.switchMap(Transformations.distinctUntilChanged(roomList)) { roomList ->
         Transformations.map(roomName) { newRoomName ->

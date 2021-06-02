@@ -15,6 +15,7 @@ import com.krisbiketeam.smarthomeraspbpi3.utils.getLastUpdateTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import timber.log.Timber
 
 
@@ -62,10 +63,9 @@ class HomeUnitDetailViewModel(application: Application,
     val roomNameList: LiveData<List<String>> =
             Transformations.switchMap(Transformations.distinctUntilChanged(isEditMode)) { isEdit ->
                 if (isEdit) {
-                    Transformations.map(
-                            Transformations.distinctUntilChanged(homeRepository.roomListLiveData())) { list ->
+                    homeRepository.roomListFlow().map { list ->
                         list.map(Room::name)
-                    }
+                    }.asLiveData(Dispatchers.IO)
                 } else {
                     MutableLiveData(emptyList())
                 }
@@ -153,13 +153,23 @@ class HomeUnitDetailViewModel(application: Application,
             } as MutableLiveData<Boolean>
 
     val showInTaskList: MutableLiveData<Boolean> =
-            if (homeUnit == null) MutableLiveData(false) else Transformations.map(homeUnit) { unit -> unit.showInTaskList } as MutableLiveData<Boolean>
+            if (homeUnit == null) MutableLiveData(false) else Transformations.map(homeUnit) {
+                unit -> unit.showInTaskList
+            } as MutableLiveData<Boolean>
+    val showInTaskListVisibility: MutableLiveData<Boolean> =
+            Transformations.switchMap(hwUnitName) { hwUnitName ->
+                Transformations.map(type) { type ->
+                    !hwUnitName.isNullOrEmpty() && (HOME_LIGHT_SWITCHES == type ||
+                            HOME_ACTUATORS == type ||
+                            HOME_BLINDS == type)
+                }
+            } as MutableLiveData<Boolean>
 
     // Decide how to handle this list
     val unitTaskList: LiveData<Map<String, UnitTask>> = if (homeUnit != null) {
         Transformations.switchMap(isEditMode) { edit ->
             Timber.d("init unitTaskList isEditMode edit: $edit")
-            Transformations.map(homeRepository.unitTaskListLiveData(unitType, unitName)) {
+            homeRepository.unitTaskListFlow(unitType, unitName).map {
                 if (edit) {
                     Timber.d("init unitTaskList edit it: $it")
                     // Add empty UnitTask which will be used for adding new UnitTask
@@ -172,7 +182,7 @@ class HomeUnitDetailViewModel(application: Application,
                     Timber.d("init unitTaskList it: $it")
                     it
                 }
-            }
+            }.asLiveData(Dispatchers.IO)
         }
     } else {
         Transformations.switchMap(isEditMode) { edit ->
