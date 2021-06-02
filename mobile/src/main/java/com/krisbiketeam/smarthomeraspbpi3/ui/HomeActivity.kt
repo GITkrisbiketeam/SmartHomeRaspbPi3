@@ -27,6 +27,8 @@ import com.krisbiketeam.smarthomeraspbpi3.devicecontrols.CONTROL_ID
 import com.krisbiketeam.smarthomeraspbpi3.devicecontrols.getHomeUnitTypeAndName
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.NavigationViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.android.viewmodel.ext.android.viewModel
 import timber.log.Timber
@@ -91,9 +93,13 @@ class HomeActivity : AppCompatActivity() {
             Timber.e("AuthStateListener  firebaseAuth:$firebaseAuth currentUser: ${firebaseAuth.currentUser?.email}")
         }
 
-        homeInformationRepository.isUserOnline().observe(this) { userOnline ->
-            Timber.d("isUserOnline  userOnline:$userOnline")
-            binding.homeActivityConnectionProgress.visibility = if (userOnline == true) View.GONE else View.VISIBLE
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                homeInformationRepository.isUserOnlineFlow().collect { userOnline ->
+                    Timber.d("isUserOnline  userOnline:$userOnline")
+                    binding.homeActivityConnectionProgress.visibility = if (userOnline == true) View.GONE else View.VISIBLE
+                }
+            }
         }
 
         DataBindingUtil.inflate<NavHeaderBinding>(layoutInflater, R.layout.nav_header,

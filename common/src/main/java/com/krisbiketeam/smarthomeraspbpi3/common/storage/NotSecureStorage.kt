@@ -105,9 +105,7 @@ class NotSecureStorage(context: Context, homeInformationRepository: FirebaseHome
         return firebaseCredentials.email.isNotEmpty() && firebaseCredentials.password.isNotEmpty() && !firebaseCredentials.uid.isNullOrEmpty()
     }
 
-    override fun homeNameFlow(): Flow<String> {
-        TODO("Not yet implemented")
-    }
+    override val homeNameFlow: Flow<String> get() = TODO("Not yet implemented")
 
     private fun SharedPreferences.firebaseCredentials():
             ReadWriteProperty<Any, FirebaseCredentials> {

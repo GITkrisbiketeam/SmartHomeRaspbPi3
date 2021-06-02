@@ -9,6 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.flatMapLatest
 import timber.log.Timber
 
 /**
@@ -21,7 +22,7 @@ class TaskListViewModel(private val homeRepository: FirebaseHomeInformationRepos
     private var localItemsOrder: List<String> = listOf()
 
     @ExperimentalCoroutinesApi
-    val taskListFromFlow: LiveData<List<TaskListAdapterModel>> = secureStorage.homeNameLiveData.switchMap {
+    val taskListFromFlow: LiveData<List<TaskListAdapterModel>> = secureStorage.homeNameFlow.flatMapLatest {
         Timber.e("secureStorage.homeNameLiveData")
         combine(homeRepository.homeUnitListFlow().debounce(100), homeRepository.hwUnitErrorEventListFlow(), homeRepository.taskListOrderFlow()) { homeUnitsList, hwUnitErrorEventList, itemsOrder ->
             Timber.e("taskListAdapterModelMap")
@@ -54,8 +55,8 @@ class TaskListViewModel(private val homeRepository: FirebaseHomeInformationRepos
                     }
                 }
             }
-        }.asLiveData(Dispatchers.Default)
-    }
+        }
+    }.asLiveData(Dispatchers.Default)
 
     fun moveItem(from: Int, to: Int) {
         val itemsOrderCopy = localItemsOrder.toMutableList()

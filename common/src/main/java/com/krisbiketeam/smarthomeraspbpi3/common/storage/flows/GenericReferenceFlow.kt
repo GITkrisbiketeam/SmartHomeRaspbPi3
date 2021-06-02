@@ -4,7 +4,7 @@ import com.google.firebase.database.*
 import com.google.firebase.database.ktx.getValue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.channels.sendBlocking
+import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.conflate
 import timber.log.Timber
@@ -12,6 +12,7 @@ import java.util.concurrent.CancellationException
 
 @ExperimentalCoroutinesApi
 inline fun <reified T> genericListReferenceFlow(databaseReference: DatabaseReference?, closeOnEmpty: Boolean = false) = callbackFlow<List<T>> {
+    Timber.e("genericListReferenceFlow init on ${databaseReference?.toString()}")
     val eventListener = databaseReference?.addValueEventListener(object : ValueEventListener {
         override fun onCancelled(databaseError: DatabaseError) {
             Timber.e("genericListReferenceFlow  onCancelled $databaseError")
@@ -24,19 +25,14 @@ inline fun <reified T> genericListReferenceFlow(databaseReference: DatabaseRefer
                 return
             }
             // A new value has been added, add it to the displayed list
-            val list: ArrayList<T> = ArrayList()
-            for (child: DataSnapshot in dataSnapshot.children) {
-                val value = child.getValue<T>()
-                value?.run {
-                    list.add(value)
-                }
+            val list = dataSnapshot.children.mapNotNull { it.getValue<T>()
             }
             Timber.e("genericListReferenceFlow onDataChange (key=${dataSnapshot.key})(homeUnits=$list)")
-            this@callbackFlow.sendBlocking(list)
+            this@callbackFlow.trySendBlocking(list)
         }
     })
     awaitClose {
-        Timber.e("genericReferenceFlow  awaitClose")
+        Timber.e("genericListReferenceFlow  awaitClose on ${databaseReference?.toString()}")
         eventListener?.let { eventListener ->
             databaseReference.removeEventListener(eventListener)
         }
@@ -45,6 +41,7 @@ inline fun <reified T> genericListReferenceFlow(databaseReference: DatabaseRefer
 
 @ExperimentalCoroutinesApi
 inline fun <reified T> genericMapReferenceFlow(databaseReference: DatabaseReference?, closeOnEmpty: Boolean = false) = callbackFlow<Map<String, T>> {
+    Timber.e("genericMapReferenceFlow init on ${databaseReference?.toString()}")
     val eventListener = databaseReference?.addValueEventListener(object : ValueEventListener {
         override fun onCancelled(databaseError: DatabaseError) {
             Timber.e("genericMapReferenceFlow onCancelled $databaseError")
@@ -66,11 +63,11 @@ inline fun <reified T> genericMapReferenceFlow(databaseReference: DatabaseRefere
                 }
             }
             Timber.e("genericMapReferenceFlow onDataChange (key=${dataSnapshot.key})(homeUnits=$list)")
-            this@callbackFlow.sendBlocking(list)
+            this@callbackFlow.trySendBlocking(list)
         }
     })
     awaitClose {
-        Timber.e("genericReferenceFlow  awaitClose")
+        Timber.e("genericMapReferenceFlow  awaitClose on ${databaseReference?.toString()}")
         eventListener?.let { eventListener ->
             databaseReference.removeEventListener(eventListener)
         }
@@ -79,6 +76,7 @@ inline fun <reified T> genericMapReferenceFlow(databaseReference: DatabaseRefere
 
 @ExperimentalCoroutinesApi
 inline fun <reified T> genericReferenceFlow(databaseReference: DatabaseReference?, closeOnEmpty: Boolean = false) = callbackFlow<T> {
+    Timber.e("genericReferenceFlow init on ${databaseReference?.toString()}")
     val eventListener = databaseReference?.addValueEventListener(object : ValueEventListener {
         override fun onCancelled(databaseError: DatabaseError) {
             Timber.e("genericReferenceFlow  onCancelled $databaseError")
@@ -94,12 +92,12 @@ inline fun <reified T> genericReferenceFlow(databaseReference: DatabaseReference
             val value: T? = dataSnapshot.getValue<T>()
             Timber.e("genericReferenceFlow onDataChange (key=${dataSnapshot.key})(value=$value)")
             if (value != null) {
-                this@callbackFlow.sendBlocking(value)
+                this@callbackFlow.trySendBlocking(value)
             }
         }
     })
     awaitClose {
-        Timber.e("genericReferenceFlow  awaitClose")
+        Timber.e("genericReferenceFlow  awaitClose on ${databaseReference?.toString()}")
         eventListener?.let { eventListener ->
             databaseReference.removeEventListener(eventListener)
         }

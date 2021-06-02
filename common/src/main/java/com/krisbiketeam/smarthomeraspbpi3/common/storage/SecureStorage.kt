@@ -21,5 +21,5 @@ interface SecureStorage {
 
     fun isAuthenticated(): Boolean
 
-    fun homeNameFlow(): Flow<String>
+    val homeNameFlow: Flow<String>
 }

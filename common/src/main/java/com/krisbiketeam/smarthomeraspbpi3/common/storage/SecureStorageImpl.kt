@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.ProcessLifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.google.firebase.database.DataSnapshot
@@ -11,9 +13,11 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.FirebaseCredentials
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.channels.sendBlocking
+import kotlinx.coroutines.channels.trySendBlocking
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.shareIn
 import timber.log.Timber
 import java.io.IOException
 import java.security.GeneralSecurityException
@@ -79,15 +83,15 @@ class SecureStorageImpl(private val context: Context, homeInformationRepository:
                 }
             }
 
-    override fun homeNameFlow() = callbackFlow {
+    override val homeNameFlow = callbackFlow {
         val preferenceChangeListener =
                 SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
                     Timber.e("homeNameFlow  changed $key")
                     if (key == HOME_NAME_KEY) {
-                        this@callbackFlow.sendBlocking(homeName)
+                        this@callbackFlow.trySendBlocking(homeName)
                     }
                 }
-        this@callbackFlow.sendBlocking(homeName)
+        this@callbackFlow.trySendBlocking(homeName)
         Timber.e("homeNameFlow  register")
         encryptedSharedPreferences.registerOnSharedPreferenceChangeListener(preferenceChangeListener)
         awaitClose {
@@ -95,6 +99,11 @@ class SecureStorageImpl(private val context: Context, homeInformationRepository:
             encryptedSharedPreferences.unregisterOnSharedPreferenceChangeListener(preferenceChangeListener)
         }
     }.conflate()
+            .shareIn(
+                    ProcessLifecycleOwner.get().lifecycleScope,
+                    SharingStarted.WhileSubscribed(),
+                    1
+            )
 
 
     //TODO refactor this is preference needed here?
