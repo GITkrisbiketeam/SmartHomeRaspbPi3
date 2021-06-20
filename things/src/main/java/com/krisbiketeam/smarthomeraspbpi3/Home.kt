@@ -278,40 +278,14 @@ class Home(secureStorage: SecureStorage,
         Timber.e(
                 "hwUnitErrorEventListDataProcessor errorEventList: $errorEventList; errorEventList.size: ${errorEventList.size}")
         if (errorEventList.isNotEmpty()) {
-            var newErrorOccurred = false
             errorEventList.forEach { hwUnitErrorEvent ->
-                hwUnitErrorEventList[hwUnitErrorEvent.name] = hwUnitErrorEventList[hwUnitErrorEvent.name]?.run {
-                    if (hwUnitErrorEvent.localtime == first) {
-                        if (second >= 3) {
-                            hwUnitsList.remove(hwUnitErrorEvent.name)?.also {
-                                hwUnitStop(it)
-                                Timber.w(
-                                        "hwUnitErrorEventListDataProcessor to many errors ($second) from hwUnit: ${hwUnitErrorEvent.name}, remove it from hwUnitsList: $it")
-                            }
-                        } else {
-                            newErrorOccurred = true
-                        }
-                        this
-                    } else {
-                        Triple(hwUnitErrorEvent.localtime, Int.MAX_VALUE, hwUnitsList.remove(hwUnitErrorEvent.name)?.also {
-                            hwUnitStop(it)
-                            Timber.w(
-                                    "hwUnitErrorEventListDataProcessor differt time errors from hwUnit: ${hwUnitErrorEvent.name}, remove it from hwUnitsList: $it")
-                        } ?: third)
-                    }
-                } ?: Triple(hwUnitErrorEvent.localtime, 0,
-                        hwUnitsList.remove(hwUnitErrorEvent.name)?.also {
-                            // disable after first error as it came after Home start form remote DB
-                            hwUnitStop(it)
-                            Timber.w(
-                                    "hwUnitErrorEventListDataProcessor error from hwUnit: ${hwUnitErrorEvent.name}, remove it from hwUnitsList: $it")
-                        })
-            }
-            if (newErrorOccurred) {
-                // If error occurred then restart All other as they can be corrupted by error in i2c
-                Timber.w(
-                        "hwUnitErrorEventListDataProcessor new error occurred restart others")
-                restartHwUnits()
+                val baseHwUnit = hwUnitsList.remove(hwUnitErrorEvent.name)?.also {
+                    hwUnitStop(it)
+                }
+                hwUnitErrorEventList.compute(hwUnitErrorEvent.name) { _, existing ->
+                    Triple(existing?.first ?: hwUnitErrorEvent.localtime, Int.MAX_VALUE, baseHwUnit
+                            ?: existing?.third)
+                }
             }
         } else {
             val unitToStart = hwUnitErrorEventListMutex.withLock {
@@ -322,7 +296,7 @@ class Home(secureStorage: SecureStorage,
                 list
             }
             unitToStart.forEach { hwUnit ->
-                delay(Random.nextLong(100))
+                delay(Random.nextLong(10, 100))
                 hwUnitStart(hwUnit)
             }
         }
@@ -340,6 +314,7 @@ class Home(secureStorage: SecureStorage,
                     "hwUnitRestartListProcessor restartEventList.size: ${restartEventList.size} ; restarted count (no error Units) ${removedHwUnitList.size}; restartEventList: $restartEventList")
             homeInformationRepository.clearHwRestarts()
             removedHwUnitList.forEach { hwUnit ->
+                delay(Random.nextLong(10, 100))
                 hwUnitStart(hwUnit)
             }
         }
@@ -354,7 +329,9 @@ class Home(secureStorage: SecureStorage,
         restartHwUnitList.forEach { this.hwUnitStop(it) }
         Timber.d(
                 "restartHwUnits restarted count (no error Units) ${restartHwUnitList.size}; removedHwUnitList: $restartHwUnitList")
-        restartHwUnitList.forEach { this.hwUnitStart(it) }
+        restartHwUnitList.forEach { hwUnit ->
+            delay(Random.nextLong(10,100))
+            hwUnitStart(hwUnit) }
     }
 
     override fun onHwUnitChanged(hwUnit: HwUnit, unitValue: Any?, updateTime: Long) {
@@ -362,7 +339,7 @@ class Home(secureStorage: SecureStorage,
             Date(updateTime)
         }")
         //TODO :disable logging as its can overload firebase DB
-        homeInformationRepository.logUnitEvent(HwUnitLog(hwUnit, unitValue, "onHwUnitChanged", Date(updateTime).toString()))
+        homeInformationRepository.logHwUnitEvent(HwUnitLog(hwUnit, unitValue, "onHwUnitChanged", Date(updateTime).toString()))
 
         CoroutineScope(Dispatchers.IO).launch {
             homeUnitsList.values.filter {
@@ -383,6 +360,8 @@ class Home(secureStorage: SecureStorage,
                     homeInformationRepository.notifyHomeUnitEvent(homeUnit)
                 }
             }
+            // remove possible error from hwUnitErrorEventList for successful read of hwUnit
+            hwUnitErrorEventList.remove(hwUnit.name)
         }
     }
 
@@ -633,16 +612,34 @@ class Home(secureStorage: SecureStorage,
 
     private suspend fun <T : Any> BaseHwUnit<in T>.addHwUnitErrorEvent(e: Throwable,
                                                                        logMessage: String) {
+        val baseHwUnit = hwUnitsList[hwUnit.name]?.also { hwUnitStop(it) }
 
         val errorTime = Date().toString()
-        val baseHwUnit = hwUnitsList[hwUnit.name]?.also {
-            hwUnitStop(it)
-        }
-        hwUnitErrorEventList.compute(hwUnit.name) { _, existing ->
-            Triple(errorTime, existing?.second?.inc()?: 0, baseHwUnit)
-        }
-        homeInformationRepository.addHwUnitErrorEvent(
-                HwUnitLog(hwUnit, unitValue, "$logMessage \n ${e.message}", errorTime))
+
+        val hwUnitLog = HwUnitLog(hwUnit, unitValue, "$logMessage \n ${e.message}", errorTime)
+
+        homeInformationRepository.logHwUnitError(hwUnitLog)
+
+        hwUnitErrorEventList[hwUnit.name] = hwUnitErrorEventList[hwUnit.name]?.run {
+            Triple(errorTime, second.inc(), baseHwUnit).apply {
+                if (second >= 3) {
+                    hwUnitsList.remove(hwUnit.name)?.also {
+                        Timber.w(
+                                "addHwUnitErrorEvent to many errors ($second) from hwUnit: ${hwUnit.name}, remove it from hwUnitsList: $it")
+                    }
+                    homeInformationRepository.addHwUnitErrorEvent(hwUnitLog)
+                } else {
+                    Timber.w(
+                            "addHwUnitErrorEvent another error occurred restart all HwUnits")
+                    restartHwUnits()
+                }
+            }
+        } ?: Triple(errorTime, 0, baseHwUnit?.also {
+            Timber.w(
+                    "addHwUnitErrorEvent new error occurred restart this hwUnit")
+            delay(100)
+            hwUnitStart(it)
+        })
 
         analytics.logEvent(EVENT_SENSOR_EXCEPTION) {
             param(SENSOR_NAME, this@addHwUnitErrorEvent.hwUnit.name)
