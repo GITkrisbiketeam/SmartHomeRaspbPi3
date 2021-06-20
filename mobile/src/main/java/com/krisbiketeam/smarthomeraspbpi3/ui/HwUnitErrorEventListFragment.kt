@@ -11,7 +11,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentHwUnitErrorEventListBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.HwUnitErrorEventListViewModel
 import org.koin.android.ext.android.inject
-import org.koin.android.viewmodel.ext.android.viewModel
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 
 class HwUnitErrorEventListFragment : Fragment() {

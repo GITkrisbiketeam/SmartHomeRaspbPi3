@@ -8,7 +8,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.nearby.NearbyService
 import com.krisbiketeam.smarthomeraspbpi3.common.nearby.NearbyServiceLiveData
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.settings.LoginSettingsViewModel
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.settings.WifiSettingsViewModel
-import org.koin.android.viewmodel.ext.koin.viewModel
+import org.koin.androidx.viewmodel.ext.koin.viewModel
 import org.koin.dsl.module.module
 import org.mockito.Mockito.mock
 

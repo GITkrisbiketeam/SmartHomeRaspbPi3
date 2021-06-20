@@ -18,7 +18,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentRoomDetailBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.RoomDetailViewModel
 import org.koin.android.ext.android.inject
-import org.koin.android.viewmodel.ext.android.viewModel
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
 import timber.log.Timber
 

@@ -5,13 +5,13 @@ ext {
     minSdkVersionThings = 27
 
     // Languages
-    kotlinVersion = '1.5.0'
+    kotlinVersion = '1.5.10'
 
     kotlinxCoroutinesAndroid = '1.5.0'
     kotlinxCoroutinesReactive = '1.5.0'
 
     // ClassPath
-    gradlePluginVersion = '4.2.0'
+    gradlePluginVersion = '4.2.1'
     googleServicesClassVersion = '4.3.5'
 
     // Google
@@ -29,7 +29,7 @@ ext {
     androidxAnnotationVersion = '1.2.0'
     lifecycleKtxVersion = '2.4.0-alpha01'
 
-    androidMaterialVesrion = '1.4.0-alpha02'
+    androidMaterialVesrion = '1.4.0-rc01'
     supportLibraryVersion = '28.0.0'
     contraintLayoutVersion = '1.1.3'
     androidArchComponentsVersion = '1.1.1'
@@ -46,7 +46,7 @@ ext {
     moshiVersion = '1.5.0'
 
     // Koin DI
-    koin_version = '2.2.2'
+    koin_version = '2.2.3'
 
     // Testing
     junitVersion = '4.12'

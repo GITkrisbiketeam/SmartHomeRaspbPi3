@@ -5,6 +5,7 @@ buildscript {
     repositories {
         google()
         jcenter()
+        mavenCentral()
     }
     dependencies {
         classpath "com.android.tools.build:gradle:$gradlePluginVersion"
@@ -21,9 +22,11 @@ buildscript {
 
         // Add the Crashlytics Gradle plugin (be sure to add version
         // 2.0.0 or later if you built your app with Android Studio 4.1).
-        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.6.0'
+        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.7.0'
         // Add the dependency for the Performance Monitoring plugin
         classpath 'com.google.firebase:perf-plugin:1.4.0'  // Performance Monitoring plugin
+
+        classpath "io.insert-koin:koin-gradle-plugin:$koin_version"
     }
 }
 
@@ -31,6 +34,8 @@ allprojects {
     repositories {
         google()
         jcenter()
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
     }
 }
 

@@ -18,7 +18,7 @@ import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentTaskListBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.TaskListViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.koin.android.ext.android.inject
-import org.koin.android.viewmodel.ext.android.viewModel
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import timber.log.Timber
 
 

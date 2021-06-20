@@ -12,7 +12,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentHwUnitListBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.HwUnitListViewModel
 import org.koin.android.ext.android.inject
-import org.koin.android.viewmodel.ext.android.viewModel
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 
 class HwUnitListFragment : Fragment() {

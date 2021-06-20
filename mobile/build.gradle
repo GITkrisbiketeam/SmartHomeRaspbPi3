@@ -6,6 +6,7 @@ apply plugin: 'androidx.navigation.safeargs.kotlin'
 apply plugin: 'com.google.firebase.crashlytics'
 // Apply the Performance Monitoring plugin
 apply plugin: 'com.google.firebase.firebase-perf'
+apply plugin: 'koin'
 
 android {
     signingConfigs {
@@ -90,8 +91,10 @@ dependencies {
     implementation "androidx.navigation:navigation-fragment-ktx:$navigationVersion"
     implementation "androidx.navigation:navigation-ui-ktx:$navigationVersion"
 
-    implementation "org.koin:koin-android-scope:$koin_version"
-    implementation "org.koin:koin-android-viewmodel:$koin_version"
+    // Koin AndroidX Scope features
+    implementation "io.insert-koin:koin-androidx-scope:$koin_version"
+    // Koin AndroidX ViewModel features
+    implementation "io.insert-koin:koin-androidx-viewmodel:$koin_version"
 
     implementation "com.jakewharton.timber:timber:$timberVersion"
 

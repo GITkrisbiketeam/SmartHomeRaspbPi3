@@ -18,7 +18,7 @@ import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentAddEditHwUnitBindi
 import com.krisbiketeam.smarthomeraspbpi3.utils.showTimePicker
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.AddEditHwUnitViewModel
 import org.koin.android.ext.android.inject
-import org.koin.android.viewmodel.ext.android.viewModel
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
 import timber.log.Timber
 
