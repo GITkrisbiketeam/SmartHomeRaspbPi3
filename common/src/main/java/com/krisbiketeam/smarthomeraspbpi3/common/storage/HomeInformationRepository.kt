@@ -1,6 +1,5 @@
 package com.krisbiketeam.smarthomeraspbpi3.common.storage
 
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.tasks.Task
@@ -13,7 +12,8 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.*
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.flows.genericListReferenceFlow
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.flows.genericMapReferenceFlow
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.flows.genericReferenceFlow
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.livedata.*
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.livedata.HomeUnitsLiveData
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.livedata.HwUnitsLiveData
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import timber.log.Timber
@@ -435,8 +435,15 @@ class FirebaseHomeInformationRepository {
     /**
      *  Adds given @see[HwUnitLog] to the log @see[LOG_INFORMATION_BASE] list in DB
      */
-    fun logUnitEvent(hwUnitLog: HwUnitLog<out Any>) {
+    fun logHwUnitEvent(hwUnitLog: HwUnitLog<out Any>) {
         referenceLog?.child(hwUnitLog.name)?.push()?.setValue(hwUnitLog)
+    }
+
+    /**
+     *  Adds given @see[HwUnitLog] to the log @see[LOG_INFORMATION_BASE] list in DB
+     */
+    fun logHwUnitError(hwUnitLog: HwUnitLog<out Any>) {
+        referenceLog?.child("error")?.child(hwUnitLog.name)?.push()?.setValue(hwUnitLog)
     }
 
     /**
@@ -700,10 +707,12 @@ class FirebaseHomeInformationRepository {
 
     // endregion
 
-    fun getHomes(): LiveData<List<String>> = HomesListLiveData(
-            // TODO: this will overLoad FirebaseDB
-            // need to add separate node with only homes list
-            Firebase.database.reference.child(HOME_INFORMATION_BASE))
+    // TODO: this will overLoad FirebaseDB
+    // need to add separate node with only homes list
+    fun getHomesFLow(): Flow<List<String>> =
+            genericMapReferenceFlow<Map<String, Any>>(Firebase.database.reference.child(HOME_INFORMATION_BASE)).map {
+        it.keys.toList()
+    }
 
     // endregion
 }

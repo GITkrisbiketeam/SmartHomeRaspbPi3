@@ -547,7 +547,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
                     0  -> {
                         Timber.d("onKeyDown keyCode: $keyCode ; keEvent: $event")
                         launch {
-                            homeInformationRepository.logUnitEvent(
+                            homeInformationRepository.logHwUnitEvent(
                                     HwUnitLog(BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_1,
                                             "Raspberry Pi", BoardConfig.IO_EXTENDER_PCF8474AT_INPUT,
                                             BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_1_PIN.name,
@@ -581,7 +581,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
                     0  -> {
                         Timber.d("onKeyDown keyCode: $keyCode ; keEvent: $event")
                         launch {
-                            homeInformationRepository.logUnitEvent(
+                            homeInformationRepository.logHwUnitEvent(
                                     HwUnitLog(BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_2,
                                             "Raspberry Pi", BoardConfig.IO_EXTENDER_PCF8474AT_INPUT,
                                             BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_2_PIN.name,
@@ -615,7 +615,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
                     0  -> {
                         Timber.d("onKeyDown keyCode: $keyCode ; keEvent: $event")
                         launch {
-                            homeInformationRepository.logUnitEvent(
+                            homeInformationRepository.logHwUnitEvent(
                                     HwUnitLog(BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_3,
                                             "Raspberry Pi", BoardConfig.IO_EXTENDER_PCF8474AT_INPUT,
                                             BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_3_PIN.name,
@@ -649,7 +649,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
         when (keyCode) {
             KEYCODE_A -> {
                 launch {
-                    homeInformationRepository.logUnitEvent(
+                    homeInformationRepository.logHwUnitEvent(
                             HwUnitLog(BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_1, "Raspberry Pi",
                                     BoardConfig.IO_EXTENDER_PCF8474AT_INPUT,
                                     BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_1_PIN.name,
@@ -659,7 +659,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
             }
             KEYCODE_B -> {
                 launch {
-                    homeInformationRepository.logUnitEvent(
+                    homeInformationRepository.logHwUnitEvent(
                             HwUnitLog(BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_2, "Raspberry Pi",
                                     BoardConfig.IO_EXTENDER_PCF8474AT_INPUT,
                                     BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_2_PIN.name,
@@ -669,7 +669,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
             }
             KEYCODE_C -> {
                 launch {
-                    homeInformationRepository.logUnitEvent(
+                    homeInformationRepository.logHwUnitEvent(
                             HwUnitLog(BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_3, "Raspberry Pi",
                                     BoardConfig.IO_EXTENDER_PCF8474AT_INPUT,
                                     BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_3_PIN.name,

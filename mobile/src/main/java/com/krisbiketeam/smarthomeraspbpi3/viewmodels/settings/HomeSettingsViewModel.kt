@@ -3,11 +3,13 @@ package com.krisbiketeam.smarthomeraspbpi3.viewmodels.settings
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asLiveData
 import com.krisbiketeam.smarthomeraspbpi3.common.MyLiveDataState
 import com.krisbiketeam.smarthomeraspbpi3.common.nearby.NearbyServiceLiveData
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.ui.settings.WifiSettingsFragment
+import kotlinx.coroutines.Dispatchers
 import timber.log.Timber
 
 
@@ -18,7 +20,7 @@ class HomeSettingsViewModel(val nearByState: NearbyServiceLiveData, private val 
     var homeName: MutableLiveData<String> = MutableLiveData()
     var remoteHomeSetup: MutableLiveData<Boolean> = MutableLiveData()
 
-    var homeNameList: LiveData<List<String>> = homeInformationRepository.getHomes()
+    var homeNameList: LiveData<List<String>> = homeInformationRepository.getHomesFLow().asLiveData(Dispatchers.IO)
 
     init {
         Timber.d("init")
