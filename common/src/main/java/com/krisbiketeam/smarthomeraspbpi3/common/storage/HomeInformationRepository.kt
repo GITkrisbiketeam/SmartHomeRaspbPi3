@@ -686,7 +686,7 @@ class FirebaseHomeInformationRepository {
 
     // region Logs
 
-    fun logsFlow(): Flow<Map<String, HwUnit>> {
+    fun logsFlow(): Flow<Map<String, Map<String,HwUnitLog<Any?>>>> {
         return genericMapReferenceFlow(referenceLog)
     }
 

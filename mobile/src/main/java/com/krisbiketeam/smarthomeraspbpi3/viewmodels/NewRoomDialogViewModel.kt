@@ -11,7 +11,7 @@ import kotlinx.coroutines.Dispatchers
 /**
  * The ViewModel for [RoomListFragment].
  */
-class NewRoomDialogViewModel(application: Application, private val homeRepository: FirebaseHomeInformationRepository) : AndroidViewModel(application) {
+class NewRoomDialogViewModel(application: Application, private val homeRepository: FirebaseHomeInformationRepository) : ViewModel() {
 
     private val roomList = homeRepository.roomListFlow().asLiveData(Dispatchers.IO)
     val roomName = MutableLiveData("")

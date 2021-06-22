@@ -520,7 +520,10 @@ class Home(secureStorage: SecureStorage,
                                 taskHomeUnit.lastUpdateTime = taskHwUnit.valueUpdateTime
                                 taskHomeUnit.applyFunction(taskHomeUnit, newActionVal)
                                 homeInformationRepository.saveHomeUnit(taskHomeUnit)
-                                // Firebase will be notified by HomeUnitsDataObserver
+                                // Firebase will be notified by homeUnitsDataProcessor
+
+                                //TODO :disable logging as its can overload firebase DB
+                                homeInformationRepository.logHwUnitEvent(HwUnitLog(taskHwUnit.hwUnit, newActionVal, "booleanApplyAction", Date(taskHwUnit.valueUpdateTime).toString()))
                             }
                         }
                     }

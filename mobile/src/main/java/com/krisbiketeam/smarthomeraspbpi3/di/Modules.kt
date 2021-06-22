@@ -20,7 +20,7 @@ import com.krisbiketeam.smarthomeraspbpi3.viewmodels.settings.LoginSettingsViewM
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.settings.WifiSettingsViewModel
 import com.squareup.moshi.Moshi
 import org.koin.android.ext.koin.androidApplication
-import org.koin.android.viewmodel.dsl.viewModel
+import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
@@ -29,9 +29,7 @@ val myModule: Module = module {
     viewModel { RoomListViewModel(get(), get()) }
     viewModel { TaskListViewModel(get(), get()) }
     viewModel { NewRoomDialogViewModel(androidApplication(), get()) }
-    viewModel { (roomName: String) ->
-        RoomDetailViewModel(get(), roomName)
-    }
+    viewModel { (roomName: String) -> RoomDetailViewModel(get(), roomName) }
     viewModel { (roomName: String, homeUnitName: String, homeUnitType: String) ->
         HomeUnitDetailViewModel(androidApplication(), get(), roomName, homeUnitName, homeUnitType)
     }
@@ -44,11 +42,10 @@ val myModule: Module = module {
     viewModel { LoginSettingsViewModel(get(), get(), get()) }
     viewModel { HomeSettingsViewModel(get(), get(), get()) }
     viewModel { NavigationViewModel(get(), get()) }
-    viewModel { (hwUnitName: String) ->
-        AddEditHwUnitViewModel(get(), hwUnitName)
-    }
+    viewModel { (hwUnitName: String) -> AddEditHwUnitViewModel(get(), hwUnitName) }
     viewModel { HwUnitListViewModel(get()) }
     viewModel { HwUnitErrorEventListViewModel(get()) }
+    viewModel { LogsViewModel(androidApplication(), get()) }
 
     single { FirebaseHomeInformationRepository() }
     single<SecureStorage> { SecureStorageImpl(androidApplication(), get()) }

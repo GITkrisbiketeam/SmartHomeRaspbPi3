@@ -3,12 +3,11 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".LogsFragment">
+    tools:context=".ui.LogsFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <com.github.mikephil.charting.charts.CombinedChart
+        android:id="@+id/fragment_logs_line_chart"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="@string/logs_hello_blank_fragment" />
+        android:layout_height="match_parent" />
 
 </FrameLayout>

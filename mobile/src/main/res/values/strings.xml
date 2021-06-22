@@ -191,5 +191,7 @@
         <item quantity="other">Updated at: %s, %d days ago</item>
     </plurals>
 
+    <string name="logs_fragment_no_data">Loading…</string>
+
 
 </resources>

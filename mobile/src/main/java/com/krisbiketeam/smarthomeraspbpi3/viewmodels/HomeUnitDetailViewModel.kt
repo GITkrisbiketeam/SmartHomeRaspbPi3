@@ -25,7 +25,7 @@ import timber.log.Timber
 class HomeUnitDetailViewModel(application: Application,
                               private val homeRepository: FirebaseHomeInformationRepository,
                               roomName: String, unitName: String, unitType: String) :
-        AndroidViewModel(application) {
+        ViewModel() {
 
     val unitTaskListAdapter = UnitTaskListAdapter(unitName, unitType)
 

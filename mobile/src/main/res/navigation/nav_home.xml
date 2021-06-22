@@ -168,7 +168,7 @@
 
     <fragment
         android:id="@+id/logs_fragment"
-        android:name="com.krisbiketeam.smarthomeraspbpi3.LogsFragment"
+        android:name="com.krisbiketeam.smarthomeraspbpi3.ui.LogsFragment"
         android:label="@string/logs_title"
         tools:layout="@layout/fragment_logs" />
 
