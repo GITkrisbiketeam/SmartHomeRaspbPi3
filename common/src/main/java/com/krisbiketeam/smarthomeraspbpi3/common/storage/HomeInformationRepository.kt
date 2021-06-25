@@ -9,11 +9,7 @@ import com.google.firebase.ktx.Firebase
 import com.krisbiketeam.smarthomeraspbpi3.common.resetableLazy
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.*
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.*
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.flows.genericListReferenceFlow
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.flows.genericMapReferenceFlow
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.flows.genericReferenceFlow
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.livedata.HomeUnitsLiveData
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.livedata.HwUnitsLiveData
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.flows.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import timber.log.Timber
@@ -482,7 +478,7 @@ class FirebaseHomeInformationRepository {
 
     // endregion
 
-    // region LiveData/Flow
+    // region Flow
 
     // region User Online
 
@@ -511,10 +507,11 @@ class FirebaseHomeInformationRepository {
     }
 
     /**
-     * get instance of @see[HwUnitsLiveData] for listening to changes in Room entries in DB
+     * get Flow of Pairs of @see[HwUnit] List changes for listening to changes in Room entries in DB
      */
-    fun hwUnitsLiveData(): HwUnitsLiveData {
-        return HwUnitsLiveData(referenceHWUnits)
+    @ExperimentalCoroutinesApi
+    fun hwUnitsFlow(): Flow<Pair<ChildEventType, HwUnit>> {
+        return getHwUnitsFlow(referenceHWUnits)
     }
 
     /**
@@ -622,10 +619,11 @@ class FirebaseHomeInformationRepository {
     }
 
     /**
-     * get instance of @see[HomeUnitsLiveData] for listening to changes in entries in DB
+     * get instance of a Flow with @see[HomeUnit] List changes for listening to changes in entries in DB
      */
-    fun homeUnitsLiveData(): HomeUnitsLiveData {
-        return HomeUnitsLiveData(homePathReference)
+    @ExperimentalCoroutinesApi
+    fun homeUnitsFlow(): Flow<Pair<ChildEventType, HomeUnit<Any>>> {
+        return getHomeUnitsFlow(homePathReference)
     }
 
     /**

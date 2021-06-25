@@ -1,7 +1,6 @@
 package com.krisbiketeam.smarthomeraspbpi3
 
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.Observer
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig
@@ -11,8 +10,6 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformation
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.*
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.*
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.livedata.HomeUnitsLiveData
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.livedata.HwUnitsLiveData
 import com.krisbiketeam.smarthomeraspbpi3.units.Actuator
 import com.krisbiketeam.smarthomeraspbpi3.units.BaseHwUnit
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
@@ -44,10 +41,10 @@ class Home(secureStorage: SecureStorage,
            private val homeInformationRepository: FirebaseHomeInformationRepository,
            private val analytics: Analytics) :
         Sensor.HwUnitListener<Any> {
-    private var homeUnitsLiveData: HomeUnitsLiveData? = null
+    private var homeUnitsJob: Job? = null
     private val homeUnitsList: MutableMap<Pair<String, String>, HomeUnit<Any>> = ConcurrentHashMap()
 
-    private var hwUnitsLiveData: HwUnitsLiveData? = null
+    private var hwUnitsJob: Job? = null
     private val hwUnitsList: MutableMap<String, BaseHwUnit<Any>> = ConcurrentHashMap()
     private val hwUnitsListMutex = Mutex()
 
@@ -85,170 +82,20 @@ class Home(secureStorage: SecureStorage,
         }
     }
 
-    private val homeUnitsDataObserver = Observer<Pair<ChildEventType, HomeUnit<Any>>> { pair ->
-        Timber.d("homeUnitsDataObserver changed: $pair")
-        CoroutineScope(Dispatchers.IO).launch {
-            pair?.let { (action, homeUnit) ->
-                when (action) {
-                    ChildEventType.NODE_ACTION_CHANGED -> {
-                        Timber.d("homeUnitsDataObserver NODE_ACTION_CHANGED NEW:  $homeUnit")
-                        homeUnitsList[homeUnit.type to homeUnit.name]?.run {
-                            Timber.d("homeUnitsDataObserver NODE_ACTION_CHANGED EXISTING: $this}")
-                            // set previous apply function to new homeUnit
-                            homeUnit.applyFunction = applyFunction
-                            unitsTasks.forEach { (key, value) ->
-                                if (homeUnit.unitsTasks.contains(key)) {
-                                    homeUnit.unitsTasks[key]?.taskJob = value.taskJob
-                                } else {
-                                    value.taskJob?.cancel()
-                                }
-                            }
-                            homeUnit.value?.let { newValue ->
-                                if (newValue != value) {
-                                    hwUnitsList[homeUnit.hwUnitName]?.let { hwUnit ->
-                                        Timber.d(
-                                                "homeUnitsDataObserver NODE_ACTION_CHANGED hwUnit: ${hwUnit.hwUnit}")
-                                        // Actuators can be changed from remote mobile App so apply HomeUnitState to hwUnitState if it changed
-                                        if (hwUnit is Actuator) {
-                                            Timber.d(
-                                                    "homeUnitsDataObserver NODE_ACTION_CHANGED baseUnit setValue newValue: $newValue")
-                                            hwUnit.setValueWithException(newValue)
-                                            homeUnit.lastUpdateTime = hwUnit.valueUpdateTime
-                                        }
-                                    }
-                                    homeUnit.applyFunction(newValue)
-
-                                    if (homeUnit.shouldFirebaseNotify(newValue)) {
-                                        Timber.d(
-                                                "homeUnitsDataObserver NODE_ACTION_CHANGED notify with FCM Message")
-                                        homeInformationRepository.notifyHomeUnitEvent(homeUnit)
-                                    }
-                                }
-                            }
-                            homeUnitsList[homeUnit.type to homeUnit.name] = homeUnit
-                        }
-                    }
-                    ChildEventType.NODE_ACTION_ADDED -> {
-                        val existingUnit = homeUnitsList[homeUnit.type to homeUnit.name]
-                        Timber.d(
-                                "homeUnitsDataObserver NODE_ACTION_ADDED EXISTING $existingUnit ; NEW  $homeUnit")
-                        when (homeUnit.type) {
-                            HOME_ACTUATORS, HOME_LIGHT_SWITCHES, HOME_REED_SWITCHES, HOME_MOTIONS -> {
-                                Timber.d(
-                                        "homeUnitsDataObserver NODE_ACTION_ADDED set boolean apply function")
-                                homeUnit.applyFunction = booleanApplyFunction
-                            }
-                            HOME_TEMPERATURES, HOME_PRESSURES, HOME_HUMIDITY -> {
-                                Timber.d(
-                                        "homeUnitsDataObserver NODE_ACTION_ADDED set sensor apply function")
-                                homeUnit.applyFunction = sensorApplyFunction
-                            }
-                        }
-                        // Set/Update HhUnit States according to HomeUnit state and vice versa
-                        hwUnitsList[homeUnit.hwUnitName]?.let { hwUnit ->
-                            Timber.d("homeUnitsDataObserver NODE_ACTION_ADDED hwUnit: $hwUnit")
-                            if (homeUnit.value != hwUnit.unitValue) {
-                                if (hwUnit is Actuator) {
-                                    Timber.d(
-                                            "homeUnitsDataObserver NODE_ACTION_ADDED baseUnit setValue value: ${homeUnit.value}")
-                                    homeUnit.value?.let { value ->
-                                        hwUnit.setValueWithException(value)
-                                        homeUnit.lastUpdateTime = hwUnit.valueUpdateTime
-
-                                    }
-                                } else if (hwUnit is Sensor) {
-                                    homeUnit.updateHomeUnitValuesAndTimes(hwUnit.unitValue, hwUnit.valueUpdateTime)
-                                    homeInformationRepository.saveHomeUnit(homeUnit)
-                                }
-                            }
-                        }
-                        homeUnitsList[homeUnit.type to homeUnit.name] = homeUnit
-                    }
-                    ChildEventType.NODE_ACTION_DELETED -> {
-                        val result = homeUnitsList.remove(homeUnit.type to homeUnit.name)
-                        Timber.d("homeUnitsDataObserver NODE_ACTION_DELETED: $result")
-                    }
-                    else -> {
-                        Timber.e("homeUnitsDataObserver unsupported action: $action")
-                    }
-                }
-            }
-        }
-    }
-
-    private val hwUnitsDataObserver = Observer<Pair<ChildEventType, HwUnit>> { pair ->
-        Timber.d("hwUnitsDataObserver changed: $pair")
-        GlobalScope.launch(Dispatchers.IO) {
-            pair?.let { (action, value) ->
-                when (action) {
-                    ChildEventType.NODE_ACTION_CHANGED -> {
-                        hwUnitsList[value.name]?.let {
-                            Timber.w("NODE_ACTION_CHANGED HwUnit already exist stop existing one")
-                            hwUnitStop(it)
-                        }
-                        if (hwUnitErrorEventList.contains(value.name)) {
-                            Timber.w(
-                                    "hwUnitsDataObserver NODE_ACTION_CHANGED remove from ErrorEventList value: ${value.name}")
-                            hwUnitErrorEventList.remove(value.name)
-                            homeInformationRepository.clearHwErrorEvent(value.name)
-                            homeInformationRepository.clearHwRestartEvent(value.name)
-                        }
-                        createHwUnit(value)?.let {
-                            Timber.w("HwUnit recreated connect and eventually listen to it")
-                            hwUnitStart(it)
-                        }
-                    }
-                    ChildEventType.NODE_ACTION_ADDED -> {
-                        // consider this unit is already present in hwUnitsList
-                        hwUnitsList[value.name]?.let {
-                            Timber.w("NODE_ACTION_ADDED HwUnit already exist stop old one:")
-                            hwUnitStop(it)
-                        }
-                        if (hwUnitErrorEventList.contains(value.name)) {
-                            Timber.w("NODE_ACTION_ADDED HwUnit is on HwErrorList do not start it")
-                            hwUnitErrorEventList.compute(value.name) { _, triple ->
-                                triple?.run {
-                                    Triple(triple.first, triple.second, createHwUnit(value))
-                                }
-                            }
-                        } else {
-                            createHwUnit(value)?.let {
-                                Timber.w(
-                                        "NODE_ACTION_ADDED HwUnit connect and eventually listen to it")
-                                hwUnitStart(it)
-                            }
-                        }
-                    }
-                    ChildEventType.NODE_ACTION_DELETED -> {
-                        hwUnitsList[value.name]?.let {
-                            hwUnitStop(it)
-                        }
-                        val result = hwUnitsList.remove(value.name)
-                        if (hwUnitErrorEventList.contains(value.name)) {
-                            Timber.w(
-                                    "hwUnitsDataObserver NODE_ACTION_DELETED remove from ErrorEventList value: ${value.name}")
-                            hwUnitErrorEventList.remove(value.name)
-                            homeInformationRepository.clearHwErrorEvent(value.name)
-                            homeInformationRepository.clearHwRestartEvent(value.name)
-                        }
-                        Timber.d("hwUnitsDataObserver HwUnit NODE_ACTION_DELETED: $result")
-
-                    }
-                    else -> {
-                        Timber.e("hwUnitsDataObserver unsupported action: $action")
-                    }
-                }
-            }
-        }
-    }
-
+    @ExperimentalCoroutinesApi
     fun start() {
         Timber.e("start; hwUnitsList.size: ${hwUnitsList.size}")
-        homeUnitsLiveData = homeInformationRepository.homeUnitsLiveData().apply {
-            observeForever(homeUnitsDataObserver)
+        homeUnitsJob = GlobalScope.launch(Dispatchers.IO) {
+            homeInformationRepository.homeUnitsFlow().distinctUntilChanged().collect {
+                // why I need to launch new corutine? why hwUnitStart blocks completly
+                launch { homeUnitsDataProcessor(it) }
+            }
         }
-        hwUnitsLiveData = homeInformationRepository.hwUnitsLiveData().apply {
-            observeForever(hwUnitsDataObserver)
+        hwUnitsJob = GlobalScope.launch(Dispatchers.IO) {
+            homeInformationRepository.hwUnitsFlow().distinctUntilChanged().collect {
+                // why I need to launch new corutine? comment above
+                launch { hwUnitsDataProcessor(it) }
+            }
         }
         hwUnitErrorEventListJob = GlobalScope.launch(Dispatchers.IO) {
             homeInformationRepository.hwUnitErrorEventListFlow().distinctUntilChanged().collect {
@@ -267,11 +114,167 @@ class Home(secureStorage: SecureStorage,
 
     suspend fun stop() {
         Timber.e("stop; hwUnitsList.size: ${hwUnitsList.size}")
-        homeUnitsLiveData?.removeObserver(homeUnitsDataObserver)
-        hwUnitsLiveData?.removeObserver(hwUnitsDataObserver)
+        homeUnitsJob?.cancel()
+        hwUnitsJob?.cancel()
         hwUnitErrorEventListJob?.cancel()
         hwUnitRestartListJob?.cancel()
         hwUnitsList.values.forEach { hwUnitStop(it) }
+    }
+
+    private suspend fun homeUnitsDataProcessor(pair: Pair<ChildEventType, HomeUnit<Any>>) {
+        pair.let { (action, homeUnit) ->
+            Timber.d("homeUnitsDataProcessor changed: $pair")
+            when (action) {
+                ChildEventType.NODE_ACTION_CHANGED -> {
+                    Timber.d("homeUnitsDataProcessor NODE_ACTION_CHANGED NEW:  $homeUnit")
+                    homeUnitsList[homeUnit.type to homeUnit.name]?.run {
+                        Timber.d("homeUnitsDataProcessor NODE_ACTION_CHANGED EXISTING: $this}")
+                        // set previous apply function to new homeUnit
+                        homeUnit.applyFunction = applyFunction
+                        unitsTasks.forEach { (key, value) ->
+                            if (homeUnit.unitsTasks.contains(key)) {
+                                homeUnit.unitsTasks[key]?.taskJob = value.taskJob
+                            } else {
+                                value.taskJob?.cancel()
+                            }
+                        }
+                        homeUnit.value?.let { newValue ->
+                            if (newValue != value) {
+                                hwUnitsList[homeUnit.hwUnitName]?.let { hwUnit ->
+                                    Timber.d(
+                                            "homeUnitsDataProcessor NODE_ACTION_CHANGED hwUnit: ${hwUnit.hwUnit}")
+                                    // Actuators can be changed from remote mobile App so apply HomeUnitState to hwUnitState if it changed
+                                    if (hwUnit is Actuator) {
+                                        Timber.d(
+                                                "homeUnitsDataProcessor NODE_ACTION_CHANGED baseUnit setValue newValue: $newValue")
+
+                                        hwUnit.setValueWithException(newValue)
+                                        homeUnit.lastUpdateTime = hwUnit.valueUpdateTime
+
+                                        //TODO :disable logging as its can overload firebase DB
+                                        homeInformationRepository.logHwUnitEvent(HwUnitLog(hwUnit.hwUnit, newValue, "homeUnitsDataProcessor", Date(hwUnit.valueUpdateTime).toString()))
+                                    }
+                                }
+                                homeUnit.applyFunction(newValue)
+
+                                if (homeUnit.shouldFirebaseNotify(newValue)) {
+                                    Timber.d(
+                                            "homeUnitsDataProcessor NODE_ACTION_CHANGED notify with FCM Message")
+                                    homeInformationRepository.notifyHomeUnitEvent(homeUnit)
+                                }
+                            }
+                        }
+                        homeUnitsList[homeUnit.type to homeUnit.name] = homeUnit
+                    }
+                }
+                ChildEventType.NODE_ACTION_ADDED -> {
+                    val existingUnit = homeUnitsList[homeUnit.type to homeUnit.name]
+                    Timber.d(
+                            "homeUnitsDataProcessor NODE_ACTION_ADDED EXISTING $existingUnit ; NEW  $homeUnit")
+                    when (homeUnit.type) {
+                        HOME_ACTUATORS, HOME_LIGHT_SWITCHES, HOME_REED_SWITCHES, HOME_MOTIONS -> {
+                            Timber.d(
+                                    "homeUnitsDataProcessor NODE_ACTION_ADDED set boolean apply function")
+                            homeUnit.applyFunction = booleanApplyFunction
+                        }
+                        HOME_TEMPERATURES, HOME_PRESSURES, HOME_HUMIDITY -> {
+                            Timber.d(
+                                    "homeUnitsDataProcessor NODE_ACTION_ADDED set sensor apply function")
+                            homeUnit.applyFunction = sensorApplyFunction
+                        }
+                    }
+                    // Set/Update HhUnit States according to HomeUnit state and vice versa
+                    hwUnitsList[homeUnit.hwUnitName]?.let { hwUnit ->
+                        Timber.d("homeUnitsDataProcessor NODE_ACTION_ADDED hwUnit: $hwUnit")
+                        if (homeUnit.value != hwUnit.unitValue) {
+                            if (hwUnit is Actuator) {
+                                Timber.d(
+                                        "homeUnitsDataProcessor NODE_ACTION_ADDED baseUnit setValue value: ${homeUnit.value}")
+                                homeUnit.value?.let { value ->
+                                    hwUnit.setValueWithException(value)
+                                    homeUnit.lastUpdateTime = hwUnit.valueUpdateTime
+                                }
+                            } else if (hwUnit is Sensor) {
+                                homeUnit.updateHomeUnitValuesAndTimes(hwUnit.unitValue, hwUnit.valueUpdateTime)
+                                homeInformationRepository.saveHomeUnit(homeUnit)
+                            }
+                        }
+                    }
+                    homeUnitsList[homeUnit.type to homeUnit.name] = homeUnit
+                }
+                ChildEventType.NODE_ACTION_DELETED -> {
+                    val result = homeUnitsList.remove(homeUnit.type to homeUnit.name)
+                    Timber.d("homeUnitsDataProcessor NODE_ACTION_DELETED: $result")
+                }
+                else -> {
+                    Timber.e("homeUnitsDataProcessor unsupported action: $action")
+                }
+            }
+        }
+    }
+
+    private suspend fun hwUnitsDataProcessor(pair: Pair<ChildEventType, HwUnit>) {
+        pair.let { (action, hwUnit) ->
+            Timber.d("hwUnitsDataObserver changed: $pair")
+            when (action) {
+                ChildEventType.NODE_ACTION_CHANGED -> {
+                    hwUnitsList[hwUnit.name]?.let {
+                        Timber.w("hwUnitsDataObserver NODE_ACTION_CHANGED HwUnit already exist stop existing one")
+                        hwUnitStop(it)
+                    }
+                    if (hwUnitErrorEventList.contains(hwUnit.name)) {
+                        Timber.w(
+                                "hwUnitsDataObserver NODE_ACTION_CHANGED remove from ErrorEventList value: ${hwUnit.name}")
+                        hwUnitErrorEventList.remove(hwUnit.name)
+                        homeInformationRepository.clearHwErrorEvent(hwUnit.name)
+                        homeInformationRepository.clearHwRestartEvent(hwUnit.name)
+                    }
+                    createHwUnit(hwUnit)?.let {
+                        Timber.w("hwUnitsDataObserver HwUnit recreated connect and eventually listen to it")
+                        hwUnitStart(it)
+                    }
+                }
+                ChildEventType.NODE_ACTION_ADDED -> {
+                    // consider this unit is already present in hwUnitsList
+                    hwUnitsList[hwUnit.name]?.let {
+                        Timber.w("hwUnitsDataObserver NODE_ACTION_ADDED HwUnit already exist stop old one:")
+                        hwUnitStop(it)
+                    }
+                    if (hwUnitErrorEventList.contains(hwUnit.name)) {
+                        Timber.w("hwUnitsDataObserver NODE_ACTION_ADDED HwUnit is on HwErrorList do not start it")
+                        hwUnitErrorEventList.compute(hwUnit.name) { _, triple ->
+                            triple?.run {
+                                Triple(triple.first, triple.second, createHwUnit(hwUnit))
+                            }
+                        }
+                    } else {
+                        createHwUnit(hwUnit)?.let {
+                            Timber.w(
+                                    "hwUnitsDataObserver NODE_ACTION_ADDED HwUnit connect and eventually listen to it")
+                            hwUnitStart(it)
+                        }
+                    }
+                }
+                ChildEventType.NODE_ACTION_DELETED -> {
+                    hwUnitsList[hwUnit.name]?.let {
+                        hwUnitStop(it)
+                    }
+                    val result = hwUnitsList.remove(hwUnit.name)
+                    if (hwUnitErrorEventList.contains(hwUnit.name)) {
+                        Timber.w(
+                                "hwUnitsDataObserver NODE_ACTION_DELETED remove from ErrorEventList value: ${hwUnit.name}")
+                        hwUnitErrorEventList.remove(hwUnit.name)
+                        homeInformationRepository.clearHwErrorEvent(hwUnit.name)
+                        homeInformationRepository.clearHwRestartEvent(hwUnit.name)
+                    }
+                    Timber.d("hwUnitsDataObserver HwUnit NODE_ACTION_DELETED: $result")
+
+                }
+                else -> {
+                    Timber.e("hwUnitsDataObserver unsupported action: $action")
+                }
+            }
+        }
     }
 
     private suspend fun hwUnitErrorEventListDataProcessor(errorEventList: List<HwUnitLog<Any>>) {
@@ -369,7 +372,8 @@ class Home(secureStorage: SecureStorage,
         Timber.d("onHwUnitError unit: $hwUnit; error: $error; updateTime: ${
             Date(updateTime)
         }")
-        GlobalScope.launch(Dispatchers.IO) {
+// TODO: IS THIS NEEDED TO RUN NEW SCOPE
+        //CoroutineScope(Dispatchers.IO).launch {
             hwUnitsList[hwUnit.name]?.addHwUnitErrorEvent(Throwable(), "Error on $hwUnit : error")
         }
     }
