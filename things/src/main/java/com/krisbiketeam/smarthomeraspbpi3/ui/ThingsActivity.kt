@@ -497,7 +497,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
         super.onDestroy()
     }
 
-    override fun onHwUnitChanged(hwUnit: HwUnit, unitValue: Boolean?, updateTime: Long) {
+    override suspend fun onHwUnitChanged(hwUnit: HwUnit, unitValue: Boolean?, updateTime: Long) {
         Timber.d(
                 "onHwUnitChanged hwUnit: $hwUnit ; unitValue: $unitValue ; updateTime: ${Date(updateTime)}")
         unitValue?.let {

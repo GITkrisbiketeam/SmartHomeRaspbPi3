@@ -74,7 +74,7 @@ class HwUnitGpioNoiseSensor(name: String, location: String, pinName: String, act
      * Invoke button event callback
      */
     @VisibleForTesting
-    internal fun performSensorEvent(event: Boolean?) {
+    internal suspend fun performSensorEvent(event: Boolean?) {
         unitValue = event
         valueUpdateTime = System.currentTimeMillis()
         Timber.d("performSensorEvent event: $event on: $hwUnit")

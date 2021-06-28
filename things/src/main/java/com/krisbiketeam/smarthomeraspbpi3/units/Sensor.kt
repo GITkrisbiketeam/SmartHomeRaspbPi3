@@ -20,8 +20,8 @@ interface Sensor<T> : BaseHwUnit<T> {
          *
          * @param hwUnit the HwUnitLog for which the event occurred
          */
-        fun onHwUnitChanged(hwUnit: HwUnit, unitValue: T?, updateTime: Long)
+        suspend fun onHwUnitChanged(hwUnit: HwUnit, unitValue: T?, updateTime: Long)
 
-        fun onHwUnitError(hwUnit: HwUnit, errorMsg: String, updateTime: Long) {}
+        suspend fun onHwUnitError(hwUnit: HwUnit, errorMsg: String, updateTime: Long) {}
     }
 }

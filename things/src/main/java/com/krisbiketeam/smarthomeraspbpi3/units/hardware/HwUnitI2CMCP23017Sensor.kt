@@ -1,6 +1,5 @@
 package com.krisbiketeam.smarthomeraspbpi3.units.hardware
 
-import androidx.annotation.MainThread
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver.MCP23017
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver.MCP23017Pin.*
@@ -30,14 +29,14 @@ open class HwUnitI2CMCP23017Sensor(name: String, location: String, private val p
     private var hwUnitListener: Sensor.HwUnitListener<Boolean>? = null
 
     private val mMCP23017Callback = object : MCP23017PinStateChangeListener {
-        override fun onPinStateChanged(pin: Pin, state: PinState) {
+        override suspend fun onPinStateChanged(pin: Pin, state: PinState) {
             Timber.d("onPinStateChanged pin: ${pin.name} state: $state")
             unitValue = if(inverse) state != PinState.HIGH else state == PinState.HIGH
             valueUpdateTime = System.currentTimeMillis()
             hwUnitListener?.onHwUnitChanged(hwUnit, unitValue, valueUpdateTime)
         }
 
-        override fun onError(error: String) {
+        override suspend fun onError(error: String) {
             hwUnitListener?.onHwUnitError(hwUnit, error, System.currentTimeMillis())
         }
     }
@@ -70,14 +69,12 @@ open class HwUnitI2CMCP23017Sensor(name: String, location: String, private val p
     }
 
     override suspend fun registerListener(listener: Sensor.HwUnitListener<Boolean>,
-                                  exceptionHandler: CoroutineExceptionHandler) {
+                                          exceptionHandler: CoroutineExceptionHandler) {
         Timber.d("registerListener")
         hwUnitListener = listener
-        withContext(Dispatchers.Main) {
-            (device as MCP23017?)?.run {
-                val result = registerPinListener(ioPin, mMCP23017Callback)
-                Timber.d("registerListener registerPinListener?: $result")
-            }
+        (device as MCP23017?)?.run {
+            val result = registerPinListener(ioPin, mMCP23017Callback)
+            Timber.d("registerListener registerPinListener?: $result")
         }
     }
 

@@ -128,9 +128,7 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
                     delay(debounceDelay.toLong())
                     try {
                         if (this.isActive) {
-                            withContext(Dispatchers.Main) {
-                                checkInterrupt()
-                            }
+                            checkInterrupt()
                         }
                     } catch (e: Exception) {
                         dispatchCheckInterruptError(e)
@@ -140,7 +138,7 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
                 }
             } else {
                 debounceIntCallbackJob?.cancel()
-                GlobalScope.launch(Dispatchers.Main) {
+                GlobalScope.launch(Dispatchers.IO) {
                     try {
                         checkInterrupt()
                     } catch (e: Exception) {
@@ -155,9 +153,7 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
                 try {
                     Timber.e("mIntCallback recheckIntCallbackJob mGpioInt: ${mGpioInt?.value}")
                     if (this.isActive) {
-                        withContext(Dispatchers.Main) {
-                            checkInterrupt()
-                        }
+                        checkInterrupt()
                     }
                 } catch (e: Exception) {
                     dispatchCheckInterruptError(e)
@@ -170,9 +166,11 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
         }
 
         override fun onGpioError(gpio: Gpio?, error: Int) {
-            mListeners.flatMap { it.value }.forEach {
-                Timber.e("mIntCallback ${gpio.toString()} : Error event $error on: $this")
-                it.onError("\"mIntCallback ${gpio.toString()} : Error event $error on: $this\"")
+            GlobalScope.launch(Dispatchers.IO) {
+                mListeners.flatMap { it.value }.forEach {
+                    Timber.e("mIntCallback ${gpio.toString()} : Error event $error on: $this")
+                    it.onError("\"mIntCallback ${gpio.toString()} : Error event $error on: $this\"")
+                }
             }
         }
     }
@@ -305,9 +303,7 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
                 // We could also check for true as suspending delay() method is cancellable
                 while (isActive) {
                     try {
-                        withContext(Dispatchers.Main) {
-                            checkInterrupt()
-                        }
+                        checkInterrupt()
                         delay(pollingTime.toLong())
                     } catch (e: Exception) {
                         dispatchCheckInterruptError(e)
@@ -598,8 +594,7 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
 
     // Suppress NewApi for computeIfAbsent this is only used on Things that are Android 8.0+
     @SuppressLint("NewApi")
-    @MainThread
-    fun registerPinListener(pin: Pin, listener: MCP23017PinStateChangeListener): Boolean {
+    suspend fun registerPinListener(pin: Pin, listener: MCP23017PinStateChangeListener): Boolean {
         return if (getMode(pin) == PinMode.DIGITAL_INPUT) {
             val pinListeners = mListeners.computeIfAbsent(pin) { ArrayList(1) }
             pinListeners.add(listener)
@@ -622,31 +617,32 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
     }
 
     @Throws(Exception::class)
-    @MainThread
-    private fun checkInterrupt() {
+    private suspend fun checkInterrupt() {
         Timber.v("checkInterrupt")
 
         var pinInterruptRegStateA: Int? = null
         var pinInterruptRegStateB: Int? = null
-        lockedI2cOperation {
-            // only process for interrupts if a pin on port A is configured as an
-            // input pin
-            if (currentDirectionA > 0) {
-                pinInterruptRegStateA = readRegister(it, REGISTER_GPIO_A)
-                Timber.v("checkInterrupt pinInterruptRegStateA:$pinInterruptRegStateA")
-            }
-            // only process for interrupts if a pin on port B is configured as an
-            // input pin
-            if (currentDirectionB > 0) {
-                pinInterruptRegStateB = readRegister(it, REGISTER_GPIO_B)
-                Timber.v("checkInterrupt pinInterruptRegStateB:$pinInterruptRegStateB")
+        withContext(Dispatchers.Main) {
+            lockedI2cOperation {
+                // only process for interrupts if a pin on port A is configured as an
+                // input pin
+                if (currentDirectionA > 0) {
+                    pinInterruptRegStateA = readRegister(it, REGISTER_GPIO_A)
+                    Timber.v("checkInterrupt pinInterruptRegStateA:$pinInterruptRegStateA")
+                }
+                // only process for interrupts if a pin on port B is configured as an
+                // input pin
+                if (currentDirectionB > 0) {
+                    pinInterruptRegStateB = readRegister(it, REGISTER_GPIO_B)
+                    Timber.v("checkInterrupt pinInterruptRegStateB:$pinInterruptRegStateB")
+                }
             }
         }
         pinInterruptRegStateA?.let { evaluatePinForChangeA(it) }
         pinInterruptRegStateB?.let { evaluatePinForChangeB(it) }
     }
 
-    private fun evaluatePinForChangeA(state: Int) {
+    private suspend fun evaluatePinForChangeA(state: Int) {
         var xor = state.xor(currentStatesA)
         for (element in MCP23017Pin.ALL_A_PINS) {
             if (xor.and(1) > 0) {
@@ -659,7 +655,7 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
         currentStatesA = state
     }
 
-    private fun evaluatePinForChangeB(state: Int) {
+    private suspend fun evaluatePinForChangeB(state: Int) {
         var xor = state.xor(currentStatesB)
         for (element in MCP23017Pin.ALL_B_PINS) {
             if (xor.and(1) > 0) {
@@ -672,14 +668,14 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
         currentStatesB = state
     }
 
-    private fun dispatchPinChangeEvent(pin: Pin, state: PinState) {
+    private suspend fun dispatchPinChangeEvent(pin: Pin, state: PinState) {
         mListeners[pin]?.forEach {
             Timber.d("dispatchPinChangeEvent pin: ${pin.name} pinState: $state")
             it.onPinStateChanged(pin, state)
         }
     }
 
-    private fun dispatchCheckInterruptError(e: Exception){
+    private suspend fun dispatchCheckInterruptError(e: Exception){
         Timber.e(e, "dispatchCheckInterruptError")
         mListeners.flatMap { it.value }.forEach {
             Timber.d("dispatchCheckInterruptError dispatch onError to: $it")

@@ -3,7 +3,7 @@ package com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver
 class PCF8574ATPin {
 
     interface PCF8574ATPinStateChangeListener {
-        fun onPinStateChanged(pin: Pin, state: PinState)
+        suspend fun onPinStateChanged(pin: Pin, state: PinState)
     }
 
     enum class PinMode {

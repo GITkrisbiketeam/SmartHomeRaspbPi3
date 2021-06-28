@@ -27,7 +27,7 @@ open class HwUnitI2CPCF8574ATSensor(name: String, location: String, private val 
     private var hwUnitListener: Sensor.HwUnitListener<Boolean>? = null
 
     private val mPCF8574ATCallback = object : PCF8574ATPinStateChangeListener {
-        override fun onPinStateChanged(pin: Pin, state: PinState) {
+        override suspend fun onPinStateChanged(pin: Pin, state: PinState) {
             Timber.d("onPinStateChanged pin: ${pin.name} state: $state")
             unitValue = state == PinState.HIGH
             valueUpdateTime = System.currentTimeMillis()
@@ -65,11 +65,9 @@ open class HwUnitI2CPCF8574ATSensor(name: String, location: String, private val 
                                           exceptionHandler: CoroutineExceptionHandler) {
         Timber.d("registerListener")
         hwUnitListener = listener
-        withContext(Dispatchers.Main) {
-            (device as PCF8574AT?)?.run {
-                val result = registerPinListener(ioPin, mPCF8574ATCallback)
-                Timber.d("registerListener registerPinListener?: $result")
-            }
+        (device as PCF8574AT?)?.run {
+            val result = registerPinListener(ioPin, mPCF8574ATCallback)
+            Timber.d("registerListener registerPinListener?: $result")
         }
     }
 

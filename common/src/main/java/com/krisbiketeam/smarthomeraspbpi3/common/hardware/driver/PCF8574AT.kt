@@ -67,9 +67,7 @@ class PCF8574AT(private val bus: String? = null,
                 delay(debounceDelay.toLong())
                 try {
                     if (this.isActive) {
-                        withContext(Dispatchers.Main) {
-                            checkInterrupt()
-                        }
+                        checkInterrupt()
                     }
                 } finally {
                     debounceIntCallbackJob?.cancel()
@@ -77,7 +75,7 @@ class PCF8574AT(private val bus: String? = null,
             }
         } else {
             debounceIntCallbackJob?.cancel()
-            GlobalScope.launch(Dispatchers.Main) {
+            GlobalScope.launch(Dispatchers.IO) {
                 checkInterrupt()
             }
         }
@@ -180,9 +178,7 @@ class PCF8574AT(private val bus: String? = null,
                 // We could also check for true as suspending delay() method is cancellable
                 while (isActive) {
                     try {
-                        withContext(Dispatchers.Main) {
-                            checkInterrupt()
-                        }
+                        checkInterrupt()
                         delay(pollingTime.toLong())
                     } catch (e: Exception) {
                         stopMonitor()
@@ -308,8 +304,7 @@ class PCF8574AT(private val bus: String? = null,
 
     // Suppress NewApi for computeIfAbsent this is only used on Things that are Android 8.0+
     @SuppressLint("NewApi")
-    @MainThread
-    fun registerPinListener(pin: Pin, listener: PCF8574ATPinStateChangeListener): Boolean {
+    suspend fun registerPinListener(pin: Pin, listener: PCF8574ATPinStateChangeListener): Boolean {
         return if (getMode(pin) == PinMode.DIGITAL_INPUT) {
             val pinListeners = mListeners.computeIfAbsent(pin) { ArrayList(1)}
             pinListeners.add(listener)
@@ -332,16 +327,17 @@ class PCF8574AT(private val bus: String? = null,
     }
 
     @Throws(Exception::class)
-    @MainThread
-    private fun checkInterrupt() {
+    private suspend fun checkInterrupt() {
         Timber.v("checkInterrupt")
 
         // only process for interrupts if a pin is configured as an input pin
         if (currentDirections > 0) {
-            var pinInterruptStates : Int = currentStates
-            lockedI2cOperation {
-                pinInterruptStates = readRegister(it)
-                Timber.v("checkInterrupt pinInterruptStates:$pinInterruptStates")
+            var pinInterruptStates: Int = currentStates
+            withContext(Dispatchers.Main) {
+                lockedI2cOperation {
+                    pinInterruptStates = readRegister(it)
+                    Timber.v("checkInterrupt pinInterruptStates:$pinInterruptStates")
+                }
             }
             if (pinInterruptStates != currentStates) {
                 // loop over the available pins
@@ -353,7 +349,7 @@ class PCF8574AT(private val bus: String? = null,
         }
     }
 
-    private fun evaluatePinForChange(pin: Pin, state: Int) {
+    private suspend fun evaluatePinForChange(pin: Pin, state: Int) {
         // determine pin address
         val pinAddress = pin.address
 
@@ -364,7 +360,7 @@ class PCF8574AT(private val bus: String? = null,
         }
     }
 
-    private fun dispatchPinChangeEvent(pin: Pin, state: PinState) {
+    private suspend fun dispatchPinChangeEvent(pin: Pin, state: PinState) {
         mListeners[pin]?.forEach { listener ->
             Timber.d("dispatchPinChangeEvent pin: ${pin.name} pinState: $state")
             listener.onPinStateChanged(pin, state)

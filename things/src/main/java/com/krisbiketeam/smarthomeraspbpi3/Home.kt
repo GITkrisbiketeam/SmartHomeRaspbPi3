@@ -337,14 +337,15 @@ class Home(secureStorage: SecureStorage,
             hwUnitStart(hwUnit) }
     }
 
-    override fun onHwUnitChanged(hwUnit: HwUnit, unitValue: Any?, updateTime: Long) {
+    override suspend fun onHwUnitChanged(hwUnit: HwUnit, unitValue: Any?, updateTime: Long) {
         Timber.d("onHwUnitChanged unit: $hwUnit; unitValue: $unitValue; updateTime: ${
             Date(updateTime)
         }")
         //TODO :disable logging as its can overload firebase DB
         homeInformationRepository.logHwUnitEvent(HwUnitLog(hwUnit, unitValue, "onHwUnitChanged", Date(updateTime).toString()))
 
-        CoroutineScope(Dispatchers.IO).launch {
+// TODO: IS THIS NEEDED TO RUN NEW SCOPE
+//        CoroutineScope(Dispatchers.IO).launch {
             homeUnitsList.values.filter {
                 if (it.type != HOME_LIGHT_SWITCHES) {
                     it.hwUnitName == hwUnit.name
@@ -364,18 +365,21 @@ class Home(secureStorage: SecureStorage,
                 }
             }
             // remove possible error from hwUnitErrorEventList for successful read of hwUnit
-            hwUnitErrorEventList.remove(hwUnit.name)
-        }
+// TODO: SHOULD THIS BE HERE?
+            if (unitValue != null) {
+                hwUnitErrorEventList.remove(hwUnit.name)
+            }
+//        }
     }
 
-    override fun onHwUnitError(hwUnit: HwUnit, error: String, updateTime: Long) {
+    override suspend fun onHwUnitError(hwUnit: HwUnit, error: String, updateTime: Long) {
         Timber.d("onHwUnitError unit: $hwUnit; error: $error; updateTime: ${
             Date(updateTime)
         }")
 // TODO: IS THIS NEEDED TO RUN NEW SCOPE
         //CoroutineScope(Dispatchers.IO).launch {
             hwUnitsList[hwUnit.name]?.addHwUnitErrorEvent(Throwable(), "Error on $hwUnit : error")
-        }
+        //}
     }
 
     private fun createHwUnit(hwUnit: HwUnit): BaseHwUnit<Any>? {
@@ -428,14 +432,15 @@ class Home(secureStorage: SecureStorage,
         if (unit.connectValueWithException()) {
             when (unit) {
                 is Sensor -> {
-                    hwUnitsList[unit.hwUnit.name] = unit
                     val readVal = unit.readValueWithException()
                     Timber.w("hwUnitStart readVal:$readVal unit.unitValue:${unit.unitValue}")
+                    hwUnitsList[unit.hwUnit.name] = unit
                     unit.registerListenerWithException(this@Home)
-                    onHwUnitChanged(unit.hwUnit, readVal, unit.valueUpdateTime)
+                    if (readVal != null) {
+                        onHwUnitChanged(unit.hwUnit, readVal, unit.valueUpdateTime)
+                    }
                 }
                 is Actuator -> {
-                    hwUnitsList[unit.hwUnit.name] = unit
                     homeUnitsList.values.filter {
                         it.hwUnitName == unit.hwUnit.name
                     }.forEach { homeUnit ->
@@ -445,6 +450,7 @@ class Home(secureStorage: SecureStorage,
                             unit.setValueWithException(it)
                         }
                     }
+                    hwUnitsList[unit.hwUnit.name] = unit
                 }
             }
         }

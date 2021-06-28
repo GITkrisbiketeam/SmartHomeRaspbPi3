@@ -3,8 +3,8 @@ package com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver
 class MCP23017Pin {
 
     interface MCP23017PinStateChangeListener {
-        fun onPinStateChanged(pin: Pin, state: PinState)
-        fun onError(error: String)
+        suspend fun onPinStateChanged(pin: Pin, state: PinState)
+        suspend fun onError(error: String)
     }
 
     enum class PinMode {
