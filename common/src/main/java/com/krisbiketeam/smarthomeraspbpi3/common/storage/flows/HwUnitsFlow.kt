@@ -5,10 +5,11 @@ import com.google.firebase.database.ktx.getValue
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.ChildEventType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.trySendBlocking
+import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.conflate
 import timber.log.Timber
 
 @ExperimentalCoroutinesApi
@@ -67,4 +68,4 @@ fun getHwUnitsFlow(databaseReference: DatabaseReference?) = callbackFlow<Pair<Ch
         Timber.e("getHwUnitsFlow  awaitClose on ${databaseReference?.toString()}")
         eventListener?.run(databaseReference::removeEventListener)
     }
-}.conflate()
+}.buffer(UNLIMITED)

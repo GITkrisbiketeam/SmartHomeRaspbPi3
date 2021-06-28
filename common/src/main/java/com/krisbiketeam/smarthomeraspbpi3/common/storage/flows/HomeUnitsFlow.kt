@@ -7,11 +7,12 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.ChildEventType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.*
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.trySendBlocking
+import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.conflate
 import timber.log.Timber
 
 
@@ -50,7 +51,7 @@ fun getHomeUnitsFlow(homeNamePath: String?) = callbackFlow<Pair<ChildEventType, 
             it.reference.removeEventListener(it)
         }
     }
-}.conflate()
+}.buffer(UNLIMITED)
 
 class MyChildEventListener(homePath: String, private val storageUnit: String, private val sendChannel: SendChannel<Pair<ChildEventType, HomeUnit<Any>>>) : ChildEventListener {
 

@@ -16,7 +16,6 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.shareIn
 import timber.log.Timber
 import java.io.IOException
@@ -98,12 +97,11 @@ class SecureStorageImpl(private val context: Context, homeInformationRepository:
             Timber.e("homeNameFlow  awaitClose")
             encryptedSharedPreferences.unregisterOnSharedPreferenceChangeListener(preferenceChangeListener)
         }
-    }.conflate()
-            .shareIn(
-                    ProcessLifecycleOwner.get().lifecycleScope,
-                    SharingStarted.WhileSubscribed(),
-                    1
-            )
+    }.shareIn(
+            ProcessLifecycleOwner.get().lifecycleScope,
+            SharingStarted.WhileSubscribed(),
+            1
+    )
 
 
     //TODO refactor this is preference needed here?
