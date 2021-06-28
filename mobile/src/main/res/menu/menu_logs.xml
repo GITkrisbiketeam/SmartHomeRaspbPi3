@@ -2,9 +2,19 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <item
+    <group>
+        <item
             android:id="@+id/action_clear_all"
             android:title="@string/menu_clear_all"
-            app:showAsAction="always" />
+            app:showAsAction="never" />
+        <item
+            android:id="@+id/action_filter"
+            app:showAsAction="never"
+            android:title="Filter">
+            <menu>
+                <group android:checkableBehavior="all"/>
+            </menu>
+        </item>
+    </group>
 
 </menu>

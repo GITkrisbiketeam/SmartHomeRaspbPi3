@@ -60,14 +60,6 @@ class FirebaseHomeInformationRepository {
     // Reference for all sharedPreferences stored remotely
     private val referenceHomePreferences: DatabaseReference? by referenceHomePreferencesDelegate
 
-    private val referenceLogDelegate = resetableLazy {
-        homePathReference?.let {
-            Firebase.database.getReference("$it/$LOG_INFORMATION_BASE")
-        }
-    }
-
-    // Reference for all log related events
-    private val referenceLog: DatabaseReference? by referenceLogDelegate
     // endregion
 
     // region Users
@@ -105,8 +97,6 @@ class FirebaseHomeInformationRepository {
         referenceHwRestartDelegate.reset()
 
         referenceHomePreferencesDelegate.reset()
-
-        referenceLogDelegate.reset()
 
         // Keep tracking changes even if there are not active listeners
         //Firebase.database.getReference(this).keepSynced(true)
@@ -432,14 +422,18 @@ class FirebaseHomeInformationRepository {
      *  Adds given @see[HwUnitLog] to the log @see[LOG_INFORMATION_BASE] list in DB
      */
     fun logHwUnitEvent(hwUnitLog: HwUnitLog<out Any>) {
-        referenceLog?.child(hwUnitLog.name)?.push()?.setValue(hwUnitLog)
+        homePathReference?.let {
+            Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/${hwUnitLog.name}/${hwUnitLog.getOnlyDateLocalTime()}/${hwUnitLog.localtime}").setValue(hwUnitLog)
+        }
     }
 
     /**
      *  Adds given @see[HwUnitLog] to the log @see[LOG_INFORMATION_BASE] list in DB
      */
     fun logHwUnitError(hwUnitLog: HwUnitLog<out Any>) {
-        referenceLog?.child("error")?.child(hwUnitLog.name)?.push()?.setValue(hwUnitLog)
+        homePathReference?.let {
+            Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/error/${hwUnitLog.name}").push().setValue(hwUnitLog)
+        }
     }
 
     /**
@@ -447,16 +441,16 @@ class FirebaseHomeInformationRepository {
      */
     fun clearLog() {
         homePathReference?.let {
-            referenceLog?.removeValue()
+            Firebase.database.getReference("$it/$LOG_INFORMATION_BASE")
         }
     }
 
     /**
      * Clear all Logs entries from DB
      */
-    fun clearLog(child: String) {
+    fun clearLog(hwUnitLogName: String) {
         homePathReference?.let {
-            referenceLog?.child(child)?.removeValue()
+            Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/error/$hwUnitLogName").removeValue()
         }
     }
 
@@ -684,8 +678,10 @@ class FirebaseHomeInformationRepository {
 
     // region Logs
 
-    fun logsFlow(): Flow<Map<String, Map<String,HwUnitLog<Any?>>>> {
-        return genericMapReferenceFlow(referenceLog)
+    fun logsFlow(hwUnitName:String): Flow<Map<String,Map<String,HwUnitLog<Any?>>>> {
+        return homePathReference?.let {
+            genericReferenceFlow(Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$hwUnitName"))
+        }?: emptyFlow()
     }
 
     // endregion

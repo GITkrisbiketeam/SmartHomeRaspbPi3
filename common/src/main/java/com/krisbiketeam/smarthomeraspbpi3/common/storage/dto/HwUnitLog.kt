@@ -31,10 +31,11 @@ data class HwUnitLog<T>(
         // Current value this unit holds
         var value: T? = null,
         var logMessage: String? = null,
-        var localtime: String = Date().toString(),
+        var localtime: Long = System.currentTimeMillis(),
+        var localtimeString: String = Date(localtime).toString(),
         var servertime: Any = ServerValue.TIMESTAMP) {
 
-    constructor(hwHwUnit: HwUnit, value: T? = null, logMessage: String? = null, localtime: String = Date().toString()) : this(
+    constructor(hwHwUnit: HwUnit, value: T? = null, logMessage: String? = null, localtime: Long = System.currentTimeMillis()) : this(
             hwHwUnit.name,
             hwHwUnit.location,
             hwHwUnit.type,
@@ -47,7 +48,8 @@ data class HwUnitLog<T>(
             hwHwUnit.refreshRate,
             value,
             logMessage,
-            localtime)
+            localtime,
+            Date(localtime).toString())
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -85,8 +87,17 @@ data class HwUnitLog<T>(
         result = 31 * result + (refreshRate?.hashCode() ?: 0)
         result = 31 * result + (value?.hashCode() ?: 0)
         result = 31 * result + (logMessage?.hashCode() ?: 0)
+        result = 31 * result + (localtime?.hashCode() ?: 0)
         return result
     }
 
+}
 
+fun <T> HwUnitLog<T>.getOnlyDateLocalTime(): Long {
+    val fullLocalTIme = Date(localtime)
+    val strippedLocalTime = Date(0)
+    strippedLocalTime.year = fullLocalTIme.year
+    strippedLocalTime.month = fullLocalTIme.month
+    strippedLocalTime.date = fullLocalTIme.day
+    return strippedLocalTime.time
 }

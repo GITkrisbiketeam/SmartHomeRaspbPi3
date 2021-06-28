@@ -778,7 +778,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
 
     private fun <T : Any> BaseHwUnit<T>.addHwUnitErrorEvent(e: Throwable, logMessage: String) {
         homeInformationRepository.addHwUnitErrorEvent(
-                HwUnitLog(hwUnit, unitValue, e.message, Date().toString()))
+                HwUnitLog(hwUnit, unitValue, e.message))
         FirebaseCrashlytics.getInstance().recordException(e)
         Timber.e(e, logMessage)
     }

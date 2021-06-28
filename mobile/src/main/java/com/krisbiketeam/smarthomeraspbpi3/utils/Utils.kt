@@ -6,6 +6,7 @@ import com.krisbiketeam.smarthomeraspbpi3.R
 import java.text.SimpleDateFormat
 import java.util.*
 
+const val LOGS_CHART_TIME_PREFIX:Long = 1620000000000
 
 fun getLastUpdateTime(context: Context, lastUpdateTime: Long?): String {
     if (lastUpdateTime == null) {
@@ -37,4 +38,19 @@ fun showTimePicker(context: Context?, liveData: MutableLiveData<Long?>) {
             liveData.value = (seconds * 1000 + minutes * 1000 * 60 + hours * 60 * 60 * 1000).toLong()
         }, currentHours, currentMinutes, currentSeconds).show()
     }
+}
+
+fun Number.toLogsFloat():Float {
+    val tmp: Float = if (this is Long) {
+        val tmp2 = (this - LOGS_CHART_TIME_PREFIX) / 1000
+        tmp2.toFloat()
+    } else {
+        this.toFloat()
+    }
+    return tmp
+}
+
+fun Float.toLogsLong(): Long {
+    val tmp: Long = this.toLong() * 1000 + LOGS_CHART_TIME_PREFIX
+    return tmp
 }

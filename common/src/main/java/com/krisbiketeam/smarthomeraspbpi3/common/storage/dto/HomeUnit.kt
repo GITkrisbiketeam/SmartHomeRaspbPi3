@@ -112,7 +112,54 @@ data class HomeUnit<T:Any>(var name: String = "", // Name should be unique for a
                 min,
                 minLastUpdateTime,
                 max,
-                maxLastUpdateTime,
-                showInTaskList)
+                maxLastUpdateTime)
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as HomeUnit<*>
+
+        if (name != other.name) return false
+        if (type != other.type) return false
+        if (room != other.room) return false
+        if (hwUnitName != other.hwUnitName) return false
+        if (value != other.value) return false
+        if (lastUpdateTime != other.lastUpdateTime) return false
+        if (secondHwUnitName != other.secondHwUnitName) return false
+        if (secondValue != other.secondValue) return false
+        if (secondLastUpdateTime != other.secondLastUpdateTime) return false
+        if (min != other.min) return false
+        if (minLastUpdateTime != other.minLastUpdateTime) return false
+        if (max != other.max) return false
+        if (maxLastUpdateTime != other.maxLastUpdateTime) return false
+        if (firebaseNotify != other.firebaseNotify) return false
+        if (firebaseNotifyTrigger != other.firebaseNotifyTrigger) return false
+        if (showInTaskList != other.showInTaskList) return false
+        if (unitsTasks != other.unitsTasks) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = name.hashCode()
+        result = 31 * result + type.hashCode()
+        result = 31 * result + room.hashCode()
+        result = 31 * result + (hwUnitName?.hashCode() ?: 0)
+        result = 31 * result + (value?.hashCode() ?: 0)
+        result = 31 * result + (lastUpdateTime?.hashCode() ?: 0)
+        result = 31 * result + (secondHwUnitName?.hashCode() ?: 0)
+        result = 31 * result + (secondValue?.hashCode() ?: 0)
+        result = 31 * result + (secondLastUpdateTime?.hashCode() ?: 0)
+        result = 31 * result + (min?.hashCode() ?: 0)
+        result = 31 * result + (minLastUpdateTime?.hashCode() ?: 0)
+        result = 31 * result + (max?.hashCode() ?: 0)
+        result = 31 * result + (maxLastUpdateTime?.hashCode() ?: 0)
+        result = 31 * result + firebaseNotify.hashCode()
+        result = 31 * result + (firebaseNotifyTrigger?.hashCode() ?: 0)
+        result = 31 * result + showInTaskList.hashCode()
+        result = 31 * result + unitsTasks.hashCode()
+        return result
     }
 }

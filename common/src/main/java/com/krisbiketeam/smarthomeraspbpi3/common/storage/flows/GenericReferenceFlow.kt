@@ -27,7 +27,7 @@ inline fun <reified T> genericListReferenceFlow(databaseReference: DatabaseRefer
             // A new value has been added, add it to the displayed list
             val list = dataSnapshot.children.mapNotNull { it.getValue<T>()
             }
-            Timber.e("genericListReferenceFlow onDataChange (key=${dataSnapshot.key})(homeUnits=$list)")
+            //Timber.e("genericListReferenceFlow onDataChange (key=${dataSnapshot.key})(homeUnits=$list)")
             this@callbackFlow.trySendBlocking(list)
         }
     })
@@ -62,7 +62,7 @@ inline fun <reified T> genericMapReferenceFlow(databaseReference: DatabaseRefere
                     list[key] = value
                 }
             }
-            Timber.e("genericMapReferenceFlow onDataChange (key=${dataSnapshot.key})(homeUnits=$list)")
+            //Timber.e("genericMapReferenceFlow onDataChange (key=${dataSnapshot.key})(homeUnits=$list)")
             this@callbackFlow.trySendBlocking(list)
         }
     })
@@ -90,7 +90,7 @@ inline fun <reified T> genericReferenceFlow(databaseReference: DatabaseReference
             }
             // A new value has been added, add it to the displayed list
             val value: T? = dataSnapshot.getValue<T>()
-            Timber.e("genericReferenceFlow onDataChange (key=${dataSnapshot.key})(value=$value)")
+            //Timber.e("genericReferenceFlow onDataChange (key=${dataSnapshot.key})(value=$value)")
             if (value != null) {
                 this@callbackFlow.trySendBlocking(value)
             }
