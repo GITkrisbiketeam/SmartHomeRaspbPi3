@@ -52,7 +52,7 @@ class Home(secureStorage: SecureStorage,
     private var hwUnitErrorEventListJob: Job? = null
     private var hwUnitRestartListJob: Job? = null
 
-    private val hwUnitErrorEventList: MutableMap<String,  Triple<String, Int, BaseHwUnit<Any>?>> =
+    private val hwUnitErrorEventList: MutableMap<String,  Triple<Long, Int, BaseHwUnit<Any>?>> =
             ConcurrentHashMap()
     private val hwUnitErrorEventListMutex = Mutex()
 
@@ -152,7 +152,7 @@ class Home(secureStorage: SecureStorage,
                                         homeUnit.lastUpdateTime = hwUnit.valueUpdateTime
 
                                         //TODO :disable logging as its can overload firebase DB
-                                        homeInformationRepository.logHwUnitEvent(HwUnitLog(hwUnit.hwUnit, newValue, "homeUnitsDataProcessor", Date(hwUnit.valueUpdateTime).toString()))
+                                        homeInformationRepository.logHwUnitEvent(HwUnitLog(hwUnit.hwUnit, newValue, "homeUnitsDataProcessor", hwUnit.valueUpdateTime))
                                     }
                                 }
                                 homeUnit.applyFunction(newValue)
@@ -243,8 +243,11 @@ class Home(secureStorage: SecureStorage,
                     if (hwUnitErrorEventList.contains(hwUnit.name)) {
                         Timber.w("hwUnitsDataObserver NODE_ACTION_ADDED HwUnit is on HwErrorList do not start it")
                         hwUnitErrorEventList.compute(hwUnit.name) { _, triple ->
-                            triple?.run {
-                                Triple(triple.first, triple.second, createHwUnit(hwUnit))
+                            val newHwUnit = createHwUnit(hwUnit)
+                            newHwUnit?.let {
+                                triple?.run {
+                                    Triple(first, second, it)
+                                }
                             }
                         }
                     } else {
@@ -342,7 +345,7 @@ class Home(secureStorage: SecureStorage,
             Date(updateTime)
         }")
         //TODO :disable logging as its can overload firebase DB
-        homeInformationRepository.logHwUnitEvent(HwUnitLog(hwUnit, unitValue, "onHwUnitChanged", Date(updateTime).toString()))
+        homeInformationRepository.logHwUnitEvent(HwUnitLog(hwUnit, unitValue, "onHwUnitChanged", updateTime))
 
 // TODO: IS THIS NEEDED TO RUN NEW SCOPE
 //        CoroutineScope(Dispatchers.IO).launch {
@@ -533,7 +536,7 @@ class Home(secureStorage: SecureStorage,
                                 // Firebase will be notified by homeUnitsDataProcessor
 
                                 //TODO :disable logging as its can overload firebase DB
-                                homeInformationRepository.logHwUnitEvent(HwUnitLog(taskHwUnit.hwUnit, newActionVal, "booleanApplyAction", Date(taskHwUnit.valueUpdateTime).toString()))
+                                homeInformationRepository.logHwUnitEvent(HwUnitLog(taskHwUnit.hwUnit, newActionVal, "booleanApplyAction", taskHwUnit.valueUpdateTime))
                             }
                         }
                     }
@@ -546,7 +549,7 @@ class Home(secureStorage: SecureStorage,
 
     // region HwUnit helperFunctions handling HwUnit Exceptions
 
-    private suspend fun <T : Any> Actuator<in T>.setValueWithException(value: T, logEvent: Boolean = true) {
+    private suspend fun Actuator<Any>.setValueWithException(value: Any, logEvent: Boolean = true) {
         try {
             setValue(value)
             /*if (logEvent) {
@@ -561,7 +564,7 @@ class Home(secureStorage: SecureStorage,
         }
     }
 
-    private suspend fun <T : Any> Sensor<out T>.readValueWithException(): T? {
+    private suspend fun Sensor<Any>.readValueWithException(): Any? {
         return try {
             readValue()
             /*.also {
@@ -577,8 +580,8 @@ class Home(secureStorage: SecureStorage,
         }
     }
 
-    private suspend fun <T : Any> Sensor<out T>.registerListenerWithException(
-            listener: Sensor.HwUnitListener<T>) {
+    private suspend fun Sensor<Any>.registerListenerWithException(
+            listener: Sensor.HwUnitListener<Any>) {
         try {
             registerListener(listener, CoroutineExceptionHandler { _, error ->
                 // TODO: is this needed???
@@ -597,7 +600,7 @@ class Home(secureStorage: SecureStorage,
         }
     }
 
-    private suspend fun <T : Any> BaseHwUnit<in T>.closeValueWithException() {
+    private suspend fun BaseHwUnit<Any>.closeValueWithException() {
         try {
             close()
             /*analytics.logEvent(EVENT_SENSOR_CLOSE) {
@@ -609,7 +612,7 @@ class Home(secureStorage: SecureStorage,
         }
     }
 
-    private suspend fun <T : Any> BaseHwUnit<in T>.connectValueWithException(): Boolean {
+    private suspend fun BaseHwUnit<Any>.connectValueWithException(): Boolean {
         return try {
             connect()
             /*analytics.logEvent(EVENT_SENSOR_CONNECT) {
@@ -623,35 +626,42 @@ class Home(secureStorage: SecureStorage,
         }
     }
 
-    private suspend fun <T : Any> BaseHwUnit<in T>.addHwUnitErrorEvent(e: Throwable,
-                                                                       logMessage: String) {
-        val baseHwUnit = hwUnitsList[hwUnit.name]?.also { hwUnitStop(it) }
+    private suspend fun BaseHwUnit<Any>.addHwUnitErrorEvent(e: Throwable, logMessage: String) {
+        hwUnitStop(this)
 
-        val errorTime = Date().toString()
-
-        val hwUnitLog = HwUnitLog(hwUnit, unitValue, "$logMessage \n ${e.message}", errorTime)
+        val hwUnitLog = HwUnitLog(hwUnit, unitValue, "$logMessage \n ${e.message}")
 
         homeInformationRepository.logHwUnitError(hwUnitLog)
 
-        hwUnitErrorEventList[hwUnit.name] = hwUnitErrorEventList[hwUnit.name]?.run {
-            Triple(errorTime, second.inc(), baseHwUnit).apply {
-                if (second >= 3) {
+        hwUnitErrorEventList[hwUnit.name] = hwUnitErrorEventList[hwUnit.name]?.let { triple ->
+            Triple(hwUnitLog.localtime, triple.second.inc(), this).apply {
+                if (triple.second >= 3) {
                     hwUnitsList.remove(hwUnit.name)?.also {
                         Timber.w(
                                 "addHwUnitErrorEvent to many errors ($second) from hwUnit: ${hwUnit.name}, remove it from hwUnitsList: $it")
                     }
                     homeInformationRepository.addHwUnitErrorEvent(hwUnitLog)
+                    CoroutineScope(Dispatchers.IO).launch {
+                        restartHwUnits()
+                    }
                 } else {
                     Timber.w(
-                            "addHwUnitErrorEvent another error occurred restart all HwUnits")
-                    restartHwUnits()
+                            "addHwUnitErrorEvent another error occurred restart this hwUnit")
+                    CoroutineScope(Dispatchers.IO).launch {
+                        delay(100)
+                        triple.third?.let{
+                            hwUnitStart(it)
+                        }
+                    }
                 }
             }
-        } ?: Triple(errorTime, 0, baseHwUnit?.also {
+        } ?: Triple(hwUnitLog.localtime, 0, this.also {
             Timber.w(
                     "addHwUnitErrorEvent new error occurred restart this hwUnit")
-            delay(100)
-            hwUnitStart(it)
+            CoroutineScope(Dispatchers.IO).launch {
+                delay(100)
+                hwUnitStart(it)
+            }
         })
 
         analytics.logEvent(EVENT_SENSOR_EXCEPTION) {
