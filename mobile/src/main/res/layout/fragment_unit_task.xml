@@ -6,6 +6,7 @@
     <data>
 
         <import type="android.view.View" />
+        <import type="com.krisbiketeam.smarthomeraspbpi3.utils.UtilsKt" />
 
         <variable
             name="viewModel"
@@ -172,6 +173,81 @@
                     android:text="@string/unit_task_text_reset_on_inverse_trigger_switch_title"
                     app:layout_constraintTop_toBottomOf="@id/unit_task_trigger_layout" />
 
+                <androidx.constraintlayout.widget.Group
+                    android:id="@+id/unit_task_start_time_group"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:clickable="@{safeUnbox(viewModel.isEditMode) ? true : false}"
+                    app:layout_constraintBottom_toBottomOf="@+id/unit_task_start_time_title"
+                    app:layout_constraintTop_toTopOf="@+id/unit_task_start_time_title"
+                    app:constraint_referenced_ids="unit_task_start_time_title,unit_task_start_time"
+                    android:visibility="@{viewModel.startTimeVisible  ? View.VISIBLE : View.GONE}"
+                    />
+
+                <TextView
+                    android:id="@+id/unit_task_start_time_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_normal"
+                    android:text="@string/unit_task_text_start_time_title"
+                    android:textColor="@color/colorSecondary"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/unit_task_reset_on_inverse_trigger_switch" />
+
+                <TextView
+                    android:id="@+id/unit_task_start_time"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/margin_small"
+                    android:hint="@string/unit_task_text_start_time"
+                    android:text="@{UtilsKt.getDayTime(viewModel.startTime)}"
+                    android:textColor="@color/design_default_color_on_secondary"
+                    app:layout_constraintBottom_toBottomOf="@+id/unit_task_start_time_title"
+                    app:layout_constraintStart_toEndOf="@+id/unit_task_start_time_title"
+                    app:layout_constraintTop_toTopOf="@+id/unit_task_start_time_title" />
+
+                <androidx.constraintlayout.widget.Group
+                    android:id="@+id/unit_task_end_time_group"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:clickable="@{safeUnbox(viewModel.isEditMode) ? true : false}"
+                    app:constraint_referenced_ids="unit_task_end_time_title,unit_task_end_time"
+                    android:visibility="@{viewModel.endTimeVisible  ? View.VISIBLE : View.GONE}"
+                    app:layout_constraintBottom_toBottomOf="@+id/unit_task_end_time_title"
+                    app:layout_constraintTop_toTopOf="@+id/unit_task_end_time_title"/>
+
+                <TextView
+                    android:id="@+id/unit_task_end_time_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_normal"
+                    android:text="@string/unit_task_text_end_time_title"
+                    android:textColor="@color/colorSecondary"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/unit_task_start_time_title" />
+
+                <TextView
+                    android:id="@+id/unit_task_end_time"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/margin_small"
+                    android:hint="@string/unit_task_text_end_time"
+                    android:text="@{UtilsKt.getDayTime(viewModel.endTime)}"
+                    android:textColor="@color/design_default_color_on_secondary"
+                    app:layout_constraintBottom_toBottomOf="@+id/unit_task_end_time_title"
+                    app:layout_constraintStart_toEndOf="@+id/unit_task_end_time_title"
+                    app:layout_constraintTop_toTopOf="@+id/unit_task_end_time_title" />
+
+                <androidx.constraintlayout.widget.Group
+                    android:id="@+id/unit_task_delay_group"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:clickable="@{safeUnbox(viewModel.isEditMode) ? true : false}"
+                    app:constraint_referenced_ids="unit_task_delay_title,unit_task_delay"
+                    android:visibility="@{viewModel.delayVisible  ? View.VISIBLE : View.GONE}"
+                    app:layout_constraintBottom_toBottomOf="@+id/unit_task_delay_title"
+                    app:layout_constraintTop_toTopOf="@+id/unit_task_delay_title" />
+
                 <TextView
                     android:id="@+id/unit_task_delay_title"
                     android:layout_width="wrap_content"
@@ -180,29 +256,30 @@
                     android:text="@string/unit_task_text_delay_title"
                     android:textColor="@color/colorSecondary"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/unit_task_reset_on_inverse_trigger_switch" />
+                    app:layout_constraintTop_toBottomOf="@id/unit_task_end_time_title" />
 
                 <TextView
                     android:id="@+id/unit_task_delay"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/margin_small"
-                    android:clickable="@{viewModel.isEditMode}"
-                    android:focusable="true"
                     android:hint="@string/unit_task_text_delay"
-                    android:text="@{Long.toString(viewModel.delay)}"
+                    android:text="@{UtilsKt.getDayTime(viewModel.delay)}"
                     android:textColor="@color/design_default_color_on_secondary"
                     app:layout_constraintBottom_toBottomOf="@+id/unit_task_delay_title"
                     app:layout_constraintStart_toEndOf="@+id/unit_task_delay_title"
                     app:layout_constraintTop_toTopOf="@+id/unit_task_delay_title" />
 
-                <View
-                    android:id="@+id/unit_task_delay_group"
+                <androidx.constraintlayout.widget.Group
+                    android:id="@+id/unit_task_duration_group"
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
                     android:clickable="@{safeUnbox(viewModel.isEditMode) ? true : false}"
-                    app:layout_constraintBottom_toBottomOf="@+id/unit_task_delay_title"
-                    app:layout_constraintTop_toTopOf="@+id/unit_task_delay_title" />
+                    app:constraint_referenced_ids="unit_task_duration_title,unit_task_duration"
+                    android:visibility="@{viewModel.durationVisible  ? View.VISIBLE : View.GONE}"
+                    app:layout_constraintBottom_toBottomOf="@+id/unit_task_duration_title"
+                    app:layout_constraintTop_toTopOf="@+id/unit_task_duration_title"
+                    />
 
                 <TextView
                     android:id="@+id/unit_task_duration_title"
@@ -219,21 +296,11 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/margin_small"
-                    android:clickable="@{viewModel.isEditMode}"
-                    android:focusable="true"
                     android:hint="@string/unit_task_text_duration"
-                    android:text="@{Long.toString(viewModel.duration)}"
+                    android:text="@{UtilsKt.getDayTime(viewModel.duration)}"
                     android:textColor="@color/design_default_color_on_secondary"
                     app:layout_constraintBottom_toBottomOf="@+id/unit_task_duration_title"
                     app:layout_constraintStart_toEndOf="@+id/unit_task_duration_title"
-                    app:layout_constraintTop_toTopOf="@+id/unit_task_duration_title" />
-
-                <View
-                    android:id="@+id/unit_task_duration_group"
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:clickable="@{safeUnbox(viewModel.isEditMode) ? true : false}"
-                    app:layout_constraintBottom_toBottomOf="@+id/unit_task_duration_title"
                     app:layout_constraintTop_toTopOf="@+id/unit_task_duration_title" />
 
                 <androidx.appcompat.widget.SwitchCompat

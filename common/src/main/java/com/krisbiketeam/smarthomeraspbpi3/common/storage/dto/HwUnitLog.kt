@@ -2,6 +2,7 @@ package com.krisbiketeam.smarthomeraspbpi3.common.storage.dto
 
 import com.google.firebase.database.IgnoreExtraProperties
 import com.google.firebase.database.ServerValue
+import com.krisbiketeam.smarthomeraspbpi3.common.getOnlyDateLocalTime
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.ConnectionType
 import java.util.*
 
@@ -94,10 +95,5 @@ data class HwUnitLog<T>(
 }
 
 fun <T> HwUnitLog<T>.getOnlyDateLocalTime(): Long {
-    val fullLocalTIme = Date(localtime)
-    val strippedLocalTime = Date(0)
-    strippedLocalTime.year = fullLocalTIme.year
-    strippedLocalTime.month = fullLocalTIme.month
-    strippedLocalTime.date = fullLocalTIme.day
-    return strippedLocalTime.time
+    return localtime.getOnlyDateLocalTime()
 }

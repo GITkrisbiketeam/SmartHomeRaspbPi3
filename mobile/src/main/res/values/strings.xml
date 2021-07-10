@@ -133,6 +133,10 @@
     <string name="unit_task_text_delay">Set Trigger delay</string>
     <string name="unit_task_text_duration_title">Trigger duration:</string>
     <string name="unit_task_text_duration">Set Trigger duration</string>
+    <string name="unit_task_text_start_time_title">Start Time:</string>
+    <string name="unit_task_text_start_time">Set Start Time</string>
+    <string name="unit_task_text_end_time_title">End Time:</string>
+    <string name="unit_task_text_end_time">Set End Time</string>
     <string name="unit_task_text_threshold_title">Threshold:</string>
     <string name="unit_task_text_threshold_prompt">Enter Threshold Value</string>
     <string name="unit_task_text_hysteresis_title">Hysteresis:</string>

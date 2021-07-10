@@ -3,6 +3,7 @@ package com.krisbiketeam.smarthomeraspbpi3
 import androidx.lifecycle.LiveData
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
+import com.krisbiketeam.smarthomeraspbpi3.common.getOnlyTodayLocalTime
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver.MCP23017Pin
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.ChildEventType
@@ -119,6 +120,9 @@ class Home(secureStorage: SecureStorage,
         hwUnitErrorEventListJob?.cancel()
         hwUnitRestartListJob?.cancel()
         hwUnitsList.values.forEach { hwUnitStop(it) }
+        homeUnitsList.values.forEach { homeUnit ->
+            homeUnit.unitsTasks.values.forEach { it.taskJob?.cancel() }
+        }
     }
 
     private suspend fun homeUnitsDataProcessor(pair: Pair<ChildEventType, HomeUnit<Any>>) {
@@ -503,14 +507,36 @@ class Home(secureStorage: SecureStorage,
     }
 
     private suspend fun booleanTaskTimed(newVal: Boolean, task: UnitTask) {
-        task.delay.takeIf { it != null && it > 0 }?.let { delay ->
+        task.startTime.takeIf { it.isValidTime() }?.let { startTime ->
+            val startCurrTime = System.currentTimeMillis().getOnlyTodayLocalTime()
+            if (startCurrTime < startTime) {
+                delay(startTime - startCurrTime)
+            }
+            booleanApplyAction(newVal, task.inverse, task.periodicallyOnlyHw, task.homeUnitsList)
+            task.endTime.takeIf { it.isValidTime() }?.let { endTime ->
+                val endCurrTime = System.currentTimeMillis().getOnlyTodayLocalTime()
+                if (endCurrTime < endTime) {
+                    delay(endTime - endCurrTime)
+                }
+                booleanApplyAction(!newVal, task.inverse, task.periodicallyOnlyHw, task.homeUnitsList)
+            } ?: task.duration?.let { duration ->
+                delay(duration)
+                booleanApplyAction(!newVal, task.inverse, task.periodicallyOnlyHw, task.homeUnitsList)
+            }
+        } ?: task.endTime.takeIf { it.isValidTime() }?.let { endTime ->
+            val endCurrTime = System.currentTimeMillis().getOnlyTodayLocalTime()
+            if (endCurrTime < endTime) {
+                delay(endTime - endCurrTime)
+            }
+            booleanApplyAction(!newVal, task.inverse, task.periodicallyOnlyHw, task.homeUnitsList)
+        } ?: task.delay.takeIf { it.isValidTime() }?.let { delay ->
             delay(delay)
             booleanApplyAction(newVal, task.inverse, task.periodicallyOnlyHw, task.homeUnitsList)
             task.duration?.let { duration ->
                 delay(duration)
                 booleanApplyAction(!newVal, task.inverse, task.periodicallyOnlyHw, task.homeUnitsList)
             }
-        } ?: task.duration.takeIf { it != null && it > 0 }?.let { duration ->
+        } ?: task.duration.takeIf { it.isValidTime() }?.let { duration ->
             booleanApplyAction(newVal, task.inverse, task.periodicallyOnlyHw, task.homeUnitsList)
             delay(duration)
             booleanApplyAction(!newVal, task.inverse, task.periodicallyOnlyHw, task.homeUnitsList)

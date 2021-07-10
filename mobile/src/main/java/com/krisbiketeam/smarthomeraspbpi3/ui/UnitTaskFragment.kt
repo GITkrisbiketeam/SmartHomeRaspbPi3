@@ -44,6 +44,12 @@ class UnitTaskFragment : Fragment() {
                 inflater, R.layout.fragment_unit_task, container, false).apply {
             viewModel = unitTaskViewModel
             lifecycleOwner = this@UnitTaskFragment
+            unitTaskStartTimeGroup.setOnClickListener {
+                onClickShowTimePicker(unitTaskViewModel.startTime)
+            }
+            unitTaskEndTimeGroup.setOnClickListener {
+                onClickShowTimePicker(unitTaskViewModel.endTime)
+            }
             unitTaskDelayGroup.setOnClickListener {
                 onClickShowTimePicker(unitTaskViewModel.delay)
             }

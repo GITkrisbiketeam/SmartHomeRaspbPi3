@@ -18,13 +18,24 @@ fun getLastUpdateTime(context: Context, lastUpdateTime: Long?): String {
     val days = ((System.currentTimeMillis() - date.time) / 86400000L).toInt()
 
     val timeFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
-    timeFormat.format(date)
+
     return if (days > 0) {
         context.resources.getQuantityString(R.plurals.last_update_time, days,
                 timeFormat.format(date), days)
     } else {
         context.resources.getString(R.string.last_update_time, timeFormat.format(date))
     }
+}
+
+fun getDayTime(lastUpdateTime: Long?): String {
+    if (lastUpdateTime == null) {
+        return "N/A"
+    }
+    val seconds = (lastUpdateTime / 1000) % 60
+    val minutes = (lastUpdateTime / (1000 * 60) % 60)
+    val hours = (lastUpdateTime / (1000 * 60 * 60) % 25)
+
+    return String.format("%d:%02d:%02d",hours, minutes, seconds)
 }
 
 fun showTimePicker(context: Context?, liveData: MutableLiveData<Long?>) {

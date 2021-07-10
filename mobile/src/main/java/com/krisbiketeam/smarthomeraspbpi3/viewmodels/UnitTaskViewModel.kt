@@ -83,6 +83,9 @@ class UnitTaskViewModel(
 
     val inverse: MutableLiveData<Boolean?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.inverse } as MutableLiveData<Boolean?>
 
+    val startTime: MutableLiveData<Long?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.startTime } as MutableLiveData<Long?>
+    val endTime: MutableLiveData<Long?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.endTime } as MutableLiveData<Long?>
+
     val delay: MutableLiveData<Long?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.delay } as MutableLiveData<Long?>
     val duration: MutableLiveData<Long?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.duration } as MutableLiveData<Long?>
 
@@ -92,8 +95,42 @@ class UnitTaskViewModel(
     val periodically: MutableLiveData<Boolean?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.periodically } as MutableLiveData<Boolean?>
     val periodicallyOnlyHw: MutableLiveData<Boolean?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.periodicallyOnlyHw } as MutableLiveData<Boolean?>
 
-    val startTime: MutableLiveData<Long?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.startTime } as MutableLiveData<Long?>
-    val endTime: MutableLiveData<Long?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.endTime } as MutableLiveData<Long?>
+    val startTimeVisible: LiveData<Boolean> = Transformations.switchMap(isEditMode) { edit ->
+        if (edit) {
+            Transformations.map(delay) {
+                it == null || it <= 0
+            }
+        } else Transformations.map(startTime) {
+            it != null && it > 0
+        }
+    }
+    val endTimeVisible: LiveData<Boolean> = Transformations.switchMap(isEditMode) { edit ->
+        if (edit) {
+            Transformations.map(duration) {
+                it == null || it <= 0
+            }
+        } else Transformations.map(endTime) {
+            it != null && it > 0
+        }
+    }
+    val delayVisible: LiveData<Boolean> = Transformations.switchMap(isEditMode) { edit ->
+        if (edit) {
+            Transformations.map(startTime) {
+                it == null || it <= 0
+            }
+        } else Transformations.map(delay) {
+            it != null && it > 0
+        }
+    }
+    val durationVisible: LiveData<Boolean> = Transformations.switchMap(isEditMode) { edit ->
+        if (edit) {
+            Transformations.map(endTime) {
+                it == null || it <= 0
+            }
+        } else Transformations.map(duration) {
+            it != null && it > 0
+        }
+    }
 
 
     init {
