@@ -13,12 +13,14 @@ import org.mockito.Mockito
 import org.mockito.junit.MockitoJUnit
 import org.mockito.junit.MockitoRule
 import org.powermock.api.mockito.PowerMockito
+import org.powermock.core.classloader.annotations.PowerMockIgnore
 import org.powermock.core.classloader.annotations.PrepareForTest
 import org.powermock.modules.junit4.PowerMockRunner
 
-const val DEF_TMP102_CONFIG = 0x60A0
+private const val DEF_TMP102_CONFIG = 0x60A0
 
 @RunWith(PowerMockRunner::class)
+@PowerMockIgnore("jdk.internal.reflect.*")
 @PrepareForTest(Log::class)
 class TMP102Test {
 

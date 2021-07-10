@@ -146,7 +146,7 @@ class Si7021(bus: String? = null) : AutoCloseable {
     }
 
     private var mDevice: I2cDevice? = null
-    private val mBuffer = ByteArray(2) // for reading sensor values
+    private val mBuffer = ByteArray(3) // for reading sensor values
 
     @VisibleForTesting
     internal var mConfig: Int = 0
@@ -393,7 +393,7 @@ class Si7021(bus: String? = null) : AutoCloseable {
      */
     @Throws(Exception::class)
     @MainThread
-    private fun readTemperature(): Float? = calculateTemperature(readSample16(MEASURE_TEMP_HOLD_MASTER_MODE))
+    private fun readTemperature(): Float? = calculateTemperature(readSample16CRC(MEASURE_TEMP_HOLD_MASTER_MODE))
 
     /**
      * Read the RH.
@@ -403,7 +403,7 @@ class Si7021(bus: String? = null) : AutoCloseable {
      */
     @Throws(Exception::class)
     @MainThread
-    private fun readRH(): Float? = calculateRh(readSample16(MEASURE_RH_HOLD_MASTER_MODE))
+    private fun readRH(): Float? = calculateRh(readSample16CRC(MEASURE_RH_HOLD_MASTER_MODE))
 
     @Throws(Exception::class)
     @MainThread
@@ -431,6 +431,28 @@ class Si7021(bus: String? = null) : AutoCloseable {
         }
     }
 
+    @Throws(Exception::class)
+    @MainThread
+    private fun readSample16CRC(register: Int): Int? {
+        synchronized(mBuffer) {
+            // Reading a byte buffer instead of a short to avoid having to deal with
+            // platform-specific endianness.
+            mDevice?.readRegBuffer(register, mBuffer, 3) ?: return null
+
+            val msb = mBuffer[0].toInt().and(0xff)
+            val lsb = mBuffer[1].toInt().and(0xff)
+            val crc = mBuffer[2].toInt().and(0xff)
+
+            val si7021CalcCrc = si7021Crc8(ubyteArrayOf(msb.toUByte(), lsb.toUByte()))
+
+            return if (si7021CalcCrc == crc.toUByte()) {
+                msb shl 8 or lsb
+            } else {
+                null
+            }
+        }
+    }
+
     /**
      * Calculate real temperature in Celsius degree from Raw temp value
      *
@@ -439,7 +461,7 @@ class Si7021(bus: String? = null) : AutoCloseable {
      */
     @VisibleForTesting
     internal fun calculateTemperature(rawTemp: Int?): Float? {
-        if (rawTemp == null) return null
+        if (rawTemp == null || rawTemp == 0) return null
         Timber.d("calculateTemperature rawTemp:$rawTemp")
         var tempRaw: Float = rawTemp * 175.72f
         tempRaw /= 65536
@@ -457,14 +479,42 @@ class Si7021(bus: String? = null) : AutoCloseable {
      */
     @VisibleForTesting
     internal fun calculateRh(rawRh: Int?): Float? {
-        if (rawRh == null) return null
+        if (rawRh == null || rawRh == 0) return null
         Timber.d("calculateRh rawRh:$rawRh")
         var rhRaw: Float = rawRh * 125f
         rhRaw /= 65536
         rhRaw -= 6
 
         Timber.d("calculateRh rhRaw:$rhRaw")
-        return if (rhRaw > 100) 100f else rhRaw
+        /*return when {
+            rhRaw > 100 -> 100f
+            rhRaw < 0 -> 0f
+            else -> rhRaw
+
+        }*/
+        return rhRaw
     }
 }
+
+@ExperimentalUnsignedTypes
+private fun si7021Crc8(data: UByteArray/*, check:UByte*/): UByte {
+    var crc:UShort = 0u;
+    for (i in 0 until 2)
+    {
+        crc = crc xor data[i].toUShort();
+        for (j in 8 downTo 1)
+        {
+            if ((crc and 0x80u) > 0u){
+                crc = (crc shl 1) xor 0x131u;
+            } else {
+                crc = (crc shl 1);
+            }
+        }
+    }
+
+    return crc.toUByte() //!= check.toUShort()
+}
+
+private infix fun UShort.shl(bitCount: Int): UShort =
+        (this.toUInt() shl bitCount).toUShort()
 

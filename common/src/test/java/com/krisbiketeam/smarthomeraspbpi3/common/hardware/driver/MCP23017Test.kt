@@ -21,8 +21,10 @@ import org.junit.Before
 import org.mockito.Matchers.anyInt
 import org.mockito.Matchers.anyString
 import org.mockito.junit.MockitoRule
+import org.powermock.core.classloader.annotations.PowerMockIgnore
 
 @RunWith(PowerMockRunner::class)
+@PowerMockIgnore("jdk.internal.reflect.*")
 @PrepareForTest(Log::class, ViewConfiguration::class, PeripheralManager::class)
 class MCP23017Test {
 
