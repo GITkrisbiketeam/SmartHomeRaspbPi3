@@ -379,7 +379,7 @@ class Si7021(bus: String? = null) : AutoCloseable {
     fun readOneShotTempAndRh(): Pair<Float?, Float?> {
         Timber.d("readOneShotTempAndRh start")
         val rh = readRH()
-        val temperature = readPrevTemperature()
+        val temperature = readTemperature()
         Timber.d("readOneShotTempAndRh conversion finished rh? $rh temperature? $temperature")
         return Pair(temperature, rh)
     }
