@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.mikephil.charting.charts.ScatterChart
 import com.github.mikephil.charting.data.*
+import com.krisbiketeam.smarthomeraspbpi3.common.getOnlyDateLocalTime
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
@@ -33,6 +34,12 @@ class LogsViewModel(application: Application, private val homeRepository: Fireba
     private val filteredHwUnitListFlow: MutableStateFlow<List<HwUnit>> = MutableStateFlow(emptyList())
 
     @ExperimentalCoroutinesApi
+    val startRangeFlow: MutableStateFlow<Long> = MutableStateFlow(System.currentTimeMillis().getOnlyDateLocalTime())
+    @ExperimentalCoroutinesApi
+    val endRangeFlow: MutableStateFlow<Long> = MutableStateFlow(System.currentTimeMillis().getOnlyDateLocalTime())
+
+
+    @ExperimentalCoroutinesApi
     val menuItemHwUnitListFlow: StateFlow<List<Triple<HwUnit, Int, Boolean>>> =
             combine(filteredHwUnitListFlow, homeRepository.hwUnitListFlow()) { filteredHwUnitList, hwUnitList ->
                 hwUnitList.map {
@@ -45,7 +52,7 @@ class LogsViewModel(application: Application, private val homeRepository: Fireba
             )
 
     @ExperimentalCoroutinesApi
-    val logsData: Flow<ChartData<*>> =
+    val logsData1: Flow<ChartData<*>> =
             filteredHwUnitListFlow.flatMapLatest { filteredHwUnitList ->
                 if (filteredHwUnitList.isNullOrEmpty()) {
                     flowOf(CombinedData())
@@ -56,6 +63,71 @@ class LogsViewModel(application: Application, private val homeRepository: Fireba
                         val scatterDataSetList = mutableListOf<ScatterDataSet>()
                         allFilteredHwUnitLogsData.forEach { hwUnitLogsData ->
                             hwUnitLogsData.values.flatMap(Map<String, HwUnitLog<Any?>>::values).let { hwUnitLogList ->
+                                val hwUnit = hwUnitLogList.firstOrNull()
+                                when (hwUnit?.type) {
+                                    BoardConfig.TEMP_SENSOR_MCP9808 -> {
+                                        lineDataSetList.add(getNumberSensorData(hwUnit.name, hwUnitLogList))
+                                    }
+                                    BoardConfig.TEMP_RH_SENSOR_SI7021 -> {
+                                        lineDataSetList.addAll(getMapNumberSensorData(hwUnit.name, listOf("temperature", "humidity"), hwUnitLogList))
+                                    }
+                                    BoardConfig.IO_EXTENDER_MCP23017_OUTPUT,
+                                    BoardConfig.IO_EXTENDER_MCP23017_INPUT -> {
+                                        scatterDataSetList.add(getBooleanSensorData(hwUnit.name, hwUnitLogList))
+                                    }
+                                }
+                            }
+                        }
+                        CombinedData().apply {
+                            val lineDataSetColorFraction = 360f / lineDataSetList.size
+                            lineDataSetList.forEachIndexed { index, lineDataSet ->
+                                lineDataSet.applyStyle(lineDataSetColorFraction * index)
+                            }
+                            val scatterDataSetColorFraction = 360f / scatterDataSetList.size
+                            scatterDataSetList.forEachIndexed { index, lineDataSet ->
+                                lineDataSet.applyStyle(scatterDataSetColorFraction * index)
+                            }
+                            setData(LineData(lineDataSetList.toList()))
+                            setData(ScatterData(scatterDataSetList.toList()))
+                        }
+                    }
+                }
+            }
+    @ExperimentalCoroutinesApi
+    val logsData: Flow<ChartData<*>> =
+            combine(startRangeFlow, endRangeFlow, filteredHwUnitListFlow) { startRange, endRange, filteredHwUnitList ->
+                Triple(startRange, endRange, filteredHwUnitList)
+            }.flatMapLatest { (startRange, endRange, filteredHwUnitList) ->
+                if (filteredHwUnitList.isNullOrEmpty()) {
+                    flowOf(CombinedData())
+                } else {
+                    val listOfFlows: List<Flow<Map<String,HwUnitLog<Any?>>>> = filteredHwUnitList.map { hwUnit ->
+                        val flowList = mutableListOf<Flow<Map<String,HwUnitLog<Any?>>>>().also { list ->
+                            // calculate days from unit time to now 1000 milliseconds * 60 seconds * 60 minutes * 24 hours = 86400000L
+                            for (date in startRange..endRange step 86400000) {
+                                list.add(homeRepository.logsFlow(hwUnit.name, date).onCompletion {
+                                    Timber.e("onCompletion")
+                                    emit(mapOf())
+                                }.onStart {
+                                    Timber.e("onStart")
+                                    emit(mapOf())
+                                })
+                            }
+                        }
+                        combine(flowList) { dailyMapArray ->
+                            val combinedMap = mutableMapOf<String,HwUnitLog<Any?>>()
+                            dailyMapArray.forEach {
+                                combinedMap.putAll(it)
+                            }
+                            combinedMap
+                        }
+                    }
+                    combine(listOfFlows) { allFilteredHwUnitLogsData ->
+                        Timber.e("logsFlow")
+                        val lineDataSetList = mutableListOf<LineDataSet>()
+                        val scatterDataSetList = mutableListOf<ScatterDataSet>()
+                        allFilteredHwUnitLogsData.forEach { hwUnitLogsData ->
+                            hwUnitLogsData.values.let { hwUnitLogList ->
                                 val hwUnit = hwUnitLogList.firstOrNull()
                                 when (hwUnit?.type) {
                                     BoardConfig.TEMP_SENSOR_MCP9808 -> {

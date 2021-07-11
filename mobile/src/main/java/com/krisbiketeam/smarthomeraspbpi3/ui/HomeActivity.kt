@@ -9,8 +9,8 @@ import androidx.core.view.iterator
 import androidx.databinding.DataBindingUtil
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.*
@@ -94,12 +94,11 @@ class HomeActivity : AppCompatActivity() {
         }
 
         lifecycleScope.launch {
-            lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                homeInformationRepository.isUserOnlineFlow().collect { userOnline ->
-                    Timber.d("isUserOnline  userOnline:$userOnline")
-                    binding.homeActivityConnectionProgress.visibility = if (userOnline == true) View.GONE else View.VISIBLE
-                }
-            }
+            homeInformationRepository.isUserOnlineFlow()
+                    .flowWithLifecycle(lifecycle, Lifecycle.State.RESUMED).collect { userOnline ->
+                        Timber.d("isUserOnline  userOnline:$userOnline")
+                        binding.homeActivityConnectionProgress.visibility = if (userOnline == true) View.GONE else View.VISIBLE
+                    }
         }
 
         DataBindingUtil.inflate<NavHeaderBinding>(layoutInflater, R.layout.nav_header,

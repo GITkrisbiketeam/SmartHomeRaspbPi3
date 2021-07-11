@@ -3,12 +3,15 @@ package com.krisbiketeam.smarthomeraspbpi3.ui
 import android.os.Bundle
 import android.view.*
 import androidx.core.os.bundleOf
+import androidx.core.util.Pair
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.github.mikephil.charting.charts.Chart
 import com.github.mikephil.charting.components.AxisBase
 import com.github.mikephil.charting.formatter.ValueFormatter
+import com.google.android.material.datepicker.CalendarConstraints
+import com.google.android.material.datepicker.MaterialDatePicker
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
@@ -32,7 +35,7 @@ class LogsFragment : androidx.fragment.app.Fragment() {
     private val logsViewModel: LogsViewModel by viewModel()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? {
+                              savedInstanceState: Bundle?): View {
         val binding: FragmentLogsBinding = FragmentLogsBinding.inflate(
                 inflater, container, false)
 
@@ -58,10 +61,17 @@ class LogsFragment : androidx.fragment.app.Fragment() {
             invalidate()
         }
 
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                launch {
+                    subscribeLogsData(binding.fragmentLogsLineChart)
+                }
 
-        subscribeLogsData(binding.fragmentLogsLineChart)
-
-        subscribeFilterMenuItems()
+                launch {
+                    subscribeFilterMenuItems()
+                }
+            }
+        }
 
         setHasOptionsMenu(true)
 
@@ -92,32 +102,43 @@ class LogsFragment : androidx.fragment.app.Fragment() {
                 logsViewModel.clearLogs()
                 true
             }
+            R.id.action_date_picker -> {
+                openDateRangePicker()
+                true
+            }
             else -> if (logsViewModel.addFilter(item.itemId)) true else super.onOptionsItemSelected(item)
         }
     }
 
     @ExperimentalCoroutinesApi
-    private fun subscribeFilterMenuItems() {
-        lifecycleScope.launch {
-            lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                logsViewModel.menuItemHwUnitListFlow.collect {
-                    Timber.d("subscribeFilterMenuItems  size:${it.size}")
-                    activity?.invalidateOptionsMenu()
-                }
-            }
+    private suspend fun subscribeFilterMenuItems() {
+        logsViewModel.menuItemHwUnitListFlow.collect {
+            Timber.d("subscribeFilterMenuItems  size:${it.size}")
+            activity?.invalidateOptionsMenu()
         }
     }
 
     @ExperimentalCoroutinesApi
-    private fun subscribeLogsData(combinedChart: Chart<*>) {
-        lifecycleScope.launch {
-            lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                logsViewModel.logsData.collect { lineData ->
-                    Timber.d("subscribeLogsData lineData: $lineData")
-                    combinedChart.data = lineData;
-                    combinedChart.invalidate(); // refresh
-                }
-            }
+    private suspend fun subscribeLogsData(combinedChart: Chart<*>) {
+        logsViewModel.logsData.collect { lineData ->
+            Timber.d("subscribeLogsData lineData: $lineData")
+            combinedChart.data = lineData
+            combinedChart.invalidate() // refresh
         }
+    }
+
+    private fun openDateRangePicker() {
+        val dateRangePicker =
+                MaterialDatePicker.Builder.dateRangePicker()
+                        .setTitleText("Select dates")
+                        .setSelection(Pair(logsViewModel.startRangeFlow.value,
+                                logsViewModel.endRangeFlow.value))
+                        .setCalendarConstraints(CalendarConstraints.Builder().setEnd(System.currentTimeMillis()).build())
+                        .build()
+        dateRangePicker.addOnPositiveButtonClickListener { selectionRangePair ->
+            logsViewModel.startRangeFlow.value = selectionRangePair.first
+            logsViewModel.endRangeFlow.value = selectionRangePair.second
+        }
+        dateRangePicker.show(childFragmentManager, null)
     }
 }

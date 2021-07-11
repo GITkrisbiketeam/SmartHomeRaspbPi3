@@ -8,9 +8,13 @@
             android:title="@string/menu_clear_all"
             app:showAsAction="never" />
         <item
+            android:id="@+id/action_date_picker"
+            android:title="@string/menu_date_picker"
+            app:showAsAction="never" />
+        <item
             android:id="@+id/action_filter"
             app:showAsAction="never"
-            android:title="Filter">
+            android:title="@string/menu_filter">
             <menu>
                 <group android:checkableBehavior="all"/>
             </menu>

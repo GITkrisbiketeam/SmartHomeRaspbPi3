@@ -52,6 +52,8 @@
     <string name="menu_clear_all">Clear All</string>
     <string name="menu_restart_all">Restart All</string>
     <string name="menu_finish">Finish</string>
+    <string name="menu_filter">Filter</string>
+    <string name="menu_date_picker">Pick Date</string>
 
     <string name="menu_navigation_room_list">Room List</string>
     <string name="menu_navigation_task_list">Task List</string>

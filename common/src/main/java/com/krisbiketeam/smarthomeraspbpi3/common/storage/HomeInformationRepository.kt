@@ -684,6 +684,12 @@ class FirebaseHomeInformationRepository {
         }?: emptyFlow()
     }
 
+    fun logsFlow(hwUnitName:String, date: Long): Flow<Map<String,HwUnitLog<Any?>>> {
+        return homePathReference?.let {
+            genericReferenceFlow(Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$hwUnitName/$date"))
+        }?: emptyFlow()
+    }
+
     // endregion
 
     // region restarts

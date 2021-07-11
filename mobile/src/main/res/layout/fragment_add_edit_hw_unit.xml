@@ -13,6 +13,8 @@
 
         <import type="com.krisbiketeam.smarthomeraspbpi3.common.storage.ConnectionType" />
 
+        <import type="com.krisbiketeam.smarthomeraspbpi3.utils.UtilsKt" />
+
         <variable
             name="viewModel"
             type="com.krisbiketeam.smarthomeraspbpi3.viewmodels.AddEditHwUnitViewModel" />
@@ -290,7 +292,7 @@
                     android:clickable="@{viewModel.isEditMode}"
                     android:focusable="true"
                     android:hint="@string/add_edit_hw_unit_refresh_rate"
-                    android:text="@{Long.toString(viewModel.refreshRate)}"
+                    android:text="@{UtilsKt.getDayTime(viewModel.refreshRate)}"
                     android:textColor="@color/design_default_color_on_secondary"
                     app:layout_constraintTop_toBottomOf="@id/hw_unit_sensor_refresh_rate_title" />
 

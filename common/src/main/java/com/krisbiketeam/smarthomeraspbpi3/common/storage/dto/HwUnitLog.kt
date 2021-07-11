@@ -88,7 +88,7 @@ data class HwUnitLog<T>(
         result = 31 * result + (refreshRate?.hashCode() ?: 0)
         result = 31 * result + (value?.hashCode() ?: 0)
         result = 31 * result + (logMessage?.hashCode() ?: 0)
-        result = 31 * result + (localtime?.hashCode() ?: 0)
+        result = 31 * result + (localtime.hashCode())
         return result
     }
 
