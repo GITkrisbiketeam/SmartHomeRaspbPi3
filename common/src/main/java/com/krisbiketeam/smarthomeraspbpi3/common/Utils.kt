@@ -1,7 +1,10 @@
 package com.krisbiketeam.smarthomeraspbpi3.common
 
+import java.util.*
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.reflect.KProperty
+
+const val FULL_DAY_IN_MILLIS = 86400000L
 
 fun <T> resetableLazy(initializer: () -> T) = ResetableDelegate(initializer)
 
@@ -31,9 +34,9 @@ fun Long.getOnlyDateLocalTime(): Long {
 fun Long.getOnlyTodayLocalTime(): Long {
     val today: Calendar = Calendar.getInstance()//TimeZone.getTimeZone("UTC"))
     today.timeInMillis = this
-    today[Calendar.YEAR] = 0
+    today[Calendar.YEAR] = 1970
     today[Calendar.MONTH] = 0
-    today[Calendar.DATE] = 0
+    today[Calendar.DATE] = 1
     today.timeZone = TimeZone.getTimeZone("UTC")
     return today.timeInMillis
 }

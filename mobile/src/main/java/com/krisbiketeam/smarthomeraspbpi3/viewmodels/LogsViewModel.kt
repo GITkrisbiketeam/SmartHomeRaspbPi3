@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.mikephil.charting.charts.ScatterChart
 import com.github.mikephil.charting.data.*
+import com.krisbiketeam.smarthomeraspbpi3.common.FULL_DAY_IN_MILLIS
 import com.krisbiketeam.smarthomeraspbpi3.common.getOnlyDateLocalTime
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
@@ -104,7 +105,7 @@ class LogsViewModel(application: Application, private val homeRepository: Fireba
                     val listOfFlows: List<Flow<Map<String,HwUnitLog<Any?>>>> = filteredHwUnitList.map { hwUnit ->
                         val flowList = mutableListOf<Flow<Map<String,HwUnitLog<Any?>>>>().also { list ->
                             // calculate days from unit time to now 1000 milliseconds * 60 seconds * 60 minutes * 24 hours = 86400000L
-                            for (date in startRange..endRange step 86400000) {
+                            for (date in startRange..endRange step FULL_DAY_IN_MILLIS) {
                                 list.add(homeRepository.logsFlow(hwUnit.name, date).onCompletion {
                                     Timber.e("onCompletion")
                                     emit(mapOf())

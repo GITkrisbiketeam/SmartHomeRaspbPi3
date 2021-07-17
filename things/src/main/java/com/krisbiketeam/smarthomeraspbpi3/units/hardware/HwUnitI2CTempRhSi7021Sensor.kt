@@ -1,5 +1,6 @@
 package com.krisbiketeam.smarthomeraspbpi3.units.hardware
 
+import com.krisbiketeam.smarthomeraspbpi3.common.FULL_DAY_IN_MILLIS
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver.Si7021
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.ConnectionType
@@ -27,7 +28,7 @@ class HwUnitI2CTempRhSi7021Sensor(name: String, location: String, private val pi
     private var job: Job? = null
 
     private var heatOnCounter = 0
-    private var heatOnTrigger = 86400000 / (refreshRate?:REFRESH_RATE) // Heat on once per day
+    private var heatOnTrigger = FULL_DAY_IN_MILLIS / (refreshRate?:REFRESH_RATE) // Heat on once per day
 
     override suspend fun connect() {
         // Do noting we do not want to block I2C device so it will be opened while setting the value

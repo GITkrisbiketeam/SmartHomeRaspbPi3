@@ -3,6 +3,7 @@ package com.krisbiketeam.smarthomeraspbpi3
 import androidx.lifecycle.LiveData
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
+import com.krisbiketeam.smarthomeraspbpi3.common.FULL_DAY_IN_MILLIS
 import com.krisbiketeam.smarthomeraspbpi3.common.getOnlyTodayLocalTime
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver.MCP23017Pin
@@ -18,6 +19,7 @@ import com.krisbiketeam.smarthomeraspbpi3.units.hardware.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import timber.log.Timber
@@ -42,16 +44,12 @@ class Home(secureStorage: SecureStorage,
            private val homeInformationRepository: FirebaseHomeInformationRepository,
            private val analytics: Analytics) :
         Sensor.HwUnitListener<Any> {
-    private var homeUnitsJob: Job? = null
+    private var lifecycleStartStopJob: Job? = null
+
     private val homeUnitsList: MutableMap<Pair<String, String>, HomeUnit<Any>> = ConcurrentHashMap()
 
-    private var hwUnitsJob: Job? = null
     private val hwUnitsList: MutableMap<String, BaseHwUnit<Any>> = ConcurrentHashMap()
     private val hwUnitsListMutex = Mutex()
-
-
-    private var hwUnitErrorEventListJob: Job? = null
-    private var hwUnitRestartListJob: Job? = null
 
     private val hwUnitErrorEventList: MutableMap<String,  Triple<Long, Int, BaseHwUnit<Any>?>> =
             ConcurrentHashMap()
@@ -62,7 +60,6 @@ class Home(secureStorage: SecureStorage,
     private var alarmEnabled: Boolean = secureStorage.alarmEnabled
 
     private var booleanApplyFunction: suspend HomeUnit<in Boolean>.(Any) -> Unit = { newVal: Any ->
-        Timber.d("booleanApplyFunction newVal: $newVal called from: $this")
         if (newVal is Boolean) {
             unitsTasks.values.forEach { task ->
                 booleanTaskApply(newVal, task)
@@ -73,7 +70,6 @@ class Home(secureStorage: SecureStorage,
     }
 
     private var sensorApplyFunction: suspend HomeUnit<in Float>.(Any) -> Unit = { newVal: Any ->
-        Timber.d("sensorApplyFunction newVal: $newVal this: $this")
         if (newVal is Float) {
             unitsTasks.values.forEach { task ->
                 sensorTaskApply(newVal, task)
@@ -86,26 +82,40 @@ class Home(secureStorage: SecureStorage,
     @ExperimentalCoroutinesApi
     fun start() {
         Timber.e("start; hwUnitsList.size: ${hwUnitsList.size}")
-        homeUnitsJob = GlobalScope.launch(Dispatchers.IO) {
-            homeInformationRepository.homeUnitsFlow().distinctUntilChanged().collect {
-                // why I need to launch new corutine? why hwUnitStart blocks completly
-                launch { homeUnitsDataProcessor(it) }
+        lifecycleStartStopJob = GlobalScope.launch(Dispatchers.IO) {
+            // get the full lists first synchronously
+            // first HwUnitErrorList
+            hwUnitErrorEventListDataProcessor(homeInformationRepository.hwUnitErrorEventListFlow().first())
+            // second HwUnitList which bases on HwUnitErrorList
+            homeInformationRepository.hwUnitListFlow().first().forEach { hwUnit ->
+                hwUnitsDataProcessor(ChildEventType.NODE_ACTION_ADDED to hwUnit)
             }
-        }
-        hwUnitsJob = GlobalScope.launch(Dispatchers.IO) {
-            homeInformationRepository.hwUnitsFlow().distinctUntilChanged().collect {
-                // why I need to launch new corutine? comment above
-                launch { hwUnitsDataProcessor(it) }
+            // and finally HomeUnitList which bases on HwUnitList
+            homeInformationRepository.homeUnitListFlow().first().forEach { homeUnit ->
+                homeUnitsList[homeUnit.type to homeUnit.name] = homeUnit
             }
-        }
-        hwUnitErrorEventListJob = GlobalScope.launch(Dispatchers.IO) {
-            homeInformationRepository.hwUnitErrorEventListFlow().distinctUntilChanged().collect {
-                hwUnitErrorEventListDataProcessor(it)
+
+            launch(Dispatchers.IO) {
+                homeInformationRepository.homeUnitsFlow().distinctUntilChanged().collect {
+                    // why I need to launch new corutine? why hwUnitStart blocks completly
+                    launch { homeUnitsDataProcessor(it) }
+                }
             }
-        }
-        hwUnitRestartListJob = GlobalScope.launch(Dispatchers.IO) {
-            homeInformationRepository.hwUnitRestartListFlow().distinctUntilChanged().collect {
-                hwUnitRestartListProcessor(it)
+            launch(Dispatchers.IO) {
+                homeInformationRepository.hwUnitsFlow().distinctUntilChanged().collect {
+                    // why I need to launch new corutine? comment above
+                    launch { hwUnitsDataProcessor(it) }
+                }
+            }
+            launch(Dispatchers.IO) {
+                homeInformationRepository.hwUnitErrorEventListFlow().distinctUntilChanged().collect {
+                    hwUnitErrorEventListDataProcessor(it)
+                }
+            }
+            launch(Dispatchers.IO) {
+                homeInformationRepository.hwUnitRestartListFlow().distinctUntilChanged().collect {
+                    hwUnitRestartListProcessor(it)
+                }
             }
         }
         alarmEnabledLiveData.observeForever {
@@ -115,10 +125,7 @@ class Home(secureStorage: SecureStorage,
 
     suspend fun stop() {
         Timber.e("stop; hwUnitsList.size: ${hwUnitsList.size}")
-        homeUnitsJob?.cancel()
-        hwUnitsJob?.cancel()
-        hwUnitErrorEventListJob?.cancel()
-        hwUnitRestartListJob?.cancel()
+        lifecycleStartStopJob?.cancel()
         hwUnitsList.values.forEach { hwUnitStop(it) }
         homeUnitsList.values.forEach { homeUnit ->
             homeUnit.unitsTasks.values.forEach { it.taskJob?.cancel() }
@@ -204,6 +211,9 @@ class Home(secureStorage: SecureStorage,
                             }
                         }
                     }
+                    homeUnit.value?.let { value ->
+                        homeUnit.applyFunction(homeUnit, value)
+                    }
                     homeUnitsList[homeUnit.type to homeUnit.name] = homeUnit
                 }
                 ChildEventType.NODE_ACTION_DELETED -> {
@@ -242,7 +252,8 @@ class Home(secureStorage: SecureStorage,
                     // consider this unit is already present in hwUnitsList
                     hwUnitsList[hwUnit.name]?.let {
                         Timber.w("hwUnitsDataObserver NODE_ACTION_ADDED HwUnit already exist stop old one:")
-                        hwUnitStop(it)
+                        //hwUnitStop(it)
+                        return@hwUnitsDataProcessor
                     }
                     if (hwUnitErrorEventList.contains(hwUnit.name)) {
                         Timber.w("hwUnitsDataObserver NODE_ACTION_ADDED HwUnit is on HwErrorList do not start it")
@@ -509,14 +520,19 @@ class Home(secureStorage: SecureStorage,
     private suspend fun booleanTaskTimed(newVal: Boolean, task: UnitTask) {
         task.startTime.takeIf { it.isValidTime() }?.let { startTime ->
             val startCurrTime = System.currentTimeMillis().getOnlyTodayLocalTime()
+            Timber.e("booleanTaskTimed startTime:$startTime startCurrTime: $startCurrTime")
             if (startCurrTime < startTime) {
                 delay(startTime - startCurrTime)
             }
             booleanApplyAction(newVal, task.inverse, task.periodicallyOnlyHw, task.homeUnitsList)
             task.endTime.takeIf { it.isValidTime() }?.let { endTime ->
                 val endCurrTime = System.currentTimeMillis().getOnlyTodayLocalTime()
-                if (endCurrTime < endTime) {
-                    delay(endTime - endCurrTime)
+                if (startTime < endTime) {
+                    if (endCurrTime < endTime) {
+                        delay(endTime - endCurrTime)
+                    }
+                } else if (endTime < startTime) {
+                    delay(FULL_DAY_IN_MILLIS + endTime - endCurrTime)
                 }
                 booleanApplyAction(!newVal, task.inverse, task.periodicallyOnlyHw, task.homeUnitsList)
             } ?: task.duration?.let { duration ->
@@ -566,8 +582,9 @@ class Home(secureStorage: SecureStorage,
                             }
                         }
                     }
-                }
-            }
+                } ?:Timber.w("booleanApplyAction taskHwUnit:${taskHomeUnit.hwUnitName}: not exist yet or anymore")
+            } ?:Timber.w("booleanApplyAction taskHomeUnit:${it.type}/${it.name}: not exist yet or anymore")
+
         }
     }
 
@@ -611,7 +628,7 @@ class Home(secureStorage: SecureStorage,
         try {
             registerListener(listener, CoroutineExceptionHandler { _, error ->
                 // TODO: is this needed???
-                GlobalScope.launch(Dispatchers.Default) {
+                CoroutineScope(Dispatchers.IO).launch {
                     addHwUnitErrorEvent(error,
                             "Error registerListener CoroutineExceptionHandler hwUnit on $hwUnit")
                 }

@@ -3,6 +3,7 @@ package com.krisbiketeam.smarthomeraspbpi3.utils
 import android.content.Context
 import androidx.lifecycle.MutableLiveData
 import com.krisbiketeam.smarthomeraspbpi3.R
+import com.krisbiketeam.smarthomeraspbpi3.common.FULL_DAY_IN_MILLIS
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -15,7 +16,7 @@ fun getLastUpdateTime(context: Context, lastUpdateTime: Long?): String {
     val date = Date(lastUpdateTime)
 
     // calculate days from unit time to now 1000 milliseconds * 60 seconds * 60 minutes * 24 hours = 86400000L
-    val days = ((System.currentTimeMillis() - date.time) / 86400000L).toInt()
+    val days = ((System.currentTimeMillis() - date.time) / FULL_DAY_IN_MILLIS).toInt()
 
     val timeFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
 
