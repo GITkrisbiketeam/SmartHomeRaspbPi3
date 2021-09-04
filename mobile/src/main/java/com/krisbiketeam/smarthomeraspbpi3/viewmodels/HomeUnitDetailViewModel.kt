@@ -27,7 +27,7 @@ class HomeUnitDetailViewModel(application: Application,
                               roomName: String, unitName: String, unitType: String) :
         ViewModel() {
 
-    val unitTaskListAdapter = UnitTaskListAdapter(unitName, unitType)
+    val unitTaskListAdapter = UnitTaskListAdapter(homeRepository, unitName, unitType)
 
     val homeUnit =
             if (unitName.isEmpty() && unitType.isEmpty()) null else homeRepository.homeUnitFlow(
@@ -227,14 +227,15 @@ class HomeUnitDetailViewModel(application: Application,
 
     fun setValueFromSwitch(isChecked: Boolean): Task<Void>? {
         Timber.d("OnCheckedChangeListener isChecked: $isChecked")
-        if (homeUnit?.value?.value != isChecked) {
-            homeUnit?.value?.copy()?.also { unit ->
+        return if (homeUnit?.value?.value != isChecked) {
+            homeUnit?.value?.copy()?.let { unit ->
                 unit.value = isChecked
                 unit.lastUpdateTime = System.currentTimeMillis()
                 homeRepository.updateHomeUnitValue(unit)
             }
+        } else {
+            null
         }
-        return homeUnit?.value?.let (homeRepository::clearMaxHomeUnitValue)
     }
 
     fun noChangesMade(): Boolean {

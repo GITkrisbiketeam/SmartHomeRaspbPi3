@@ -95,6 +95,8 @@ class UnitTaskViewModel(
     val periodically: MutableLiveData<Boolean?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.periodically } as MutableLiveData<Boolean?>
     val periodicallyOnlyHw: MutableLiveData<Boolean?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.periodicallyOnlyHw } as MutableLiveData<Boolean?>
 
+    val disabled: MutableLiveData<Boolean?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.disabled } as MutableLiveData<Boolean?>
+
     val startTimeVisible: LiveData<Boolean> = Transformations.switchMap(isEditMode) { edit ->
         if (edit) {
             Transformations.map(delay) {
@@ -166,7 +168,8 @@ class UnitTaskViewModel(
                     unit.startTime == startTime.value &&
                     unit.endTime == endTime.value &&
                     unit.threshold == threshold.value?.toFloatOrNull() &&
-                    unit.hysteresis == hysteresis.value?.toFloatOrNull()
+                    unit.hysteresis == hysteresis.value?.toFloatOrNull() &&
+                    unit.disabled == disabled.value
         } ?: name.value.isNullOrEmpty() || homeUnitsTypeName.value.isNullOrEmpty() /*|| homeUnitType.value.isNullOrEmpty() || homeUnitName.value.isNullOrEmpty() || hwUnitName.value.isNullOrEmpty())*/
     }
 
@@ -199,6 +202,7 @@ class UnitTaskViewModel(
                 endTime.value = unit.endTime
                 threshold.value = unit.threshold.toString()
                 hysteresis.value = unit.hysteresis.toString()
+                disabled.value = unit.disabled
             }
             false
         }
@@ -294,7 +298,8 @@ class UnitTaskViewModel(
                                         startTime = startTime.value,
                                         endTime = endTime.value,
                                         threshold = threshold.value?.toFloatOrNull(),
-                                        hysteresis = hysteresis.value?.toFloatOrNull()
+                                        hysteresis = hysteresis.value?.toFloatOrNull(),
+                                        disabled = disabled.value
                                 ))
                     //}
                 //}

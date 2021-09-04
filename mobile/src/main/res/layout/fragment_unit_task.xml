@@ -126,13 +126,21 @@
                 </com.google.android.material.textfield.TextInputLayout>-->
 
                 <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/unit_task_disabled_switch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:checked="@={viewModel.disabled}"
+                    android:text="@string/unit_task_text_disabled_switch_title"
+                    app:layout_constraintTop_toBottomOf="@id/unit_task_home_unit_type_name_list_layout" />
+
+                <androidx.appcompat.widget.SwitchCompat
                     android:id="@+id/unit_task_inverse_switch"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:checked="@={viewModel.inverse}"
                     android:clickable="@{safeUnbox(viewModel.isEditMode) ? true : false}"
                     android:text="@string/unit_task_text_inverse_switch_title"
-                    app:layout_constraintTop_toBottomOf="@id/unit_task_home_unit_type_name_list_layout" />
+                    app:layout_constraintTop_toBottomOf="@id/unit_task_disabled_switch" />
 
                 <androidx.constraintlayout.widget.Group
                     android:layout_width="0dp"

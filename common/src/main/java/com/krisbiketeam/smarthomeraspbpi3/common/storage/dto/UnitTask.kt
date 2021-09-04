@@ -30,7 +30,8 @@ data class UnitTask(var name: String = "",
                     var startTime: Long? = null,
                     var endTime: Long? = null,
                     var threshold: Float? = null,
-                    var hysteresis: Float? = null){
+                    var hysteresis: Float? = null,
+                    var disabled: Boolean? = null){
 
     @Exclude
     @set:Exclude
