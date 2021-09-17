@@ -1,9 +1,9 @@
 package com.krisbiketeam.smarthomeraspbpi3.viewmodels
 
 import android.app.Application
-import androidx.lifecycle.*
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.google.android.gms.tasks.Task
-import com.google.android.gms.tasks.Tasks
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.adapters.UnitTaskListAdapter
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
@@ -14,14 +14,15 @@ import com.krisbiketeam.smarthomeraspbpi3.ui.RoomDetailFragment
 import com.krisbiketeam.smarthomeraspbpi3.utils.getLastUpdateTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.*
 import timber.log.Timber
+import kotlin.collections.set
 
 
 /**
  * The ViewModel used in [RoomDetailFragment].
  */
+@ExperimentalCoroutinesApi
 class HomeUnitDetailViewModel(application: Application,
                               private val homeRepository: FirebaseHomeInformationRepository,
                               roomName: String, unitName: String, unitType: String) :
@@ -29,174 +30,125 @@ class HomeUnitDetailViewModel(application: Application,
 
     val unitTaskListAdapter = UnitTaskListAdapter(homeRepository, unitName, unitType)
 
-    val homeUnit =
+    val homeUnit: StateFlow<HomeUnit<Any>?>? =
             if (unitName.isEmpty() && unitType.isEmpty()) null else homeRepository.homeUnitFlow(
-                    unitType, unitName).asLiveData(Dispatchers.Default)
+                    unitType, unitName).onEach { homeUnit ->
+                Timber.e("homeUnit changed:$homeUnit")
+                showProgress.value = false
+                name.value = homeUnit.name
+                type.value = homeUnit.type
+                room.value = homeUnit.room
+                hwUnitName.value = homeUnit.hwUnitName
+                secondHwUnitName.value = homeUnit.secondHwUnitName
+                value.value = homeUnit.value.toString()
+                lastUpdateTime.value = getLastUpdateTime(application, homeUnit.lastUpdateTime)
+                secondValue.value = homeUnit.secondValue.toString()
+                secondLastUpdateTime.value = getLastUpdateTime(application, homeUnit.secondLastUpdateTime)
+                minValue.value = homeUnit.min.toString()
+                minLastUpdateTime.value = getLastUpdateTime(application, homeUnit.minLastUpdateTime)
+                maxValue.value = homeUnit.max.toString()
+                maxLastUpdateTime.value = getLastUpdateTime(application, homeUnit.maxLastUpdateTime)
+                firebaseNotify.value = homeUnit.firebaseNotify
+                firebaseNotifyTrigger.value = homeUnit.firebaseNotifyTrigger ?: RISING_EDGE
+                showInTaskList.value = homeUnit.showInTaskList
+            }.flowOn(Dispatchers.IO).stateIn(viewModelScope, SharingStarted.WhileSubscribed(), null)
 
-    val showProgress: MutableLiveData<Boolean> =
-            if (homeUnit == null) {
-                MutableLiveData(false)
-            } else {
-                Transformations.map(homeUnit) {
-                    false
-                } as MutableLiveData<Boolean>
-            }
+    val showProgress: MutableStateFlow<Boolean> = MutableStateFlow(homeUnit != null)
 
-    val isEditMode: MutableLiveData<Boolean> = MutableLiveData(homeUnit == null)
+    val isEditMode: MutableStateFlow<Boolean> = MutableStateFlow(homeUnit == null)
 
-    val name: MutableLiveData<String> =
-            if (homeUnit == null) {
-                MutableLiveData()
-            } else {
-                Transformations.map(homeUnit) { unit -> unit.name } as MutableLiveData<String>
-            }
+    val name: MutableStateFlow<String> = MutableStateFlow(unitName)
 
     val typeList = HOME_STORAGE_UNITS
-    val type = if (homeUnit == null) {
-        MutableLiveData()
-    } else {
-        Transformations.map(Transformations.distinctUntilChanged(homeUnit)) { unit ->
-            unit.type
-        } as MutableLiveData<String?>
-    }
+    val type: MutableStateFlow<String> = MutableStateFlow(unitType)
 
-    val roomNameList: LiveData<List<String>> =
-            Transformations.switchMap(Transformations.distinctUntilChanged(isEditMode)) { isEdit ->
+    val roomList: StateFlow<List<String>> =
+            isEditMode.flatMapLatest { isEdit ->
                 if (isEdit) {
                     homeRepository.roomListFlow().map { list ->
                         list.map(Room::name)
-                    }.asLiveData(Dispatchers.IO)
-                } else {
-                    MutableLiveData(emptyList())
-                }
-            }
-    val roomName = if (homeUnit == null) {
-        MutableLiveData(roomName)
-    } else {
-        Transformations.map(homeUnit) { unit -> unit.room }
-    } as MutableLiveData<String?>
-
-    @ExperimentalCoroutinesApi
-    val hwUnitNameList: LiveData<List<Pair<String, Boolean>>> =
-            Transformations.switchMap(Transformations.distinctUntilChanged(isEditMode)) { isEdit ->
-                Timber.d("init hwUnitNameList isEditMode: $isEdit")
-                if (isEdit) {
-                    Transformations.switchMap(type) { type ->
-                        combine(homeRepository.homeUnitListFlow(), homeRepository.hwUnitListFlow()) { homeUnitList, hwUnitList ->
-                            homeUnitOfSelectedTypeList = homeUnitList.filter {
-                                it.type == type
-                            }
-                            hwUnitList.map {
-                                Pair(it.name,
-                                        homeUnitList.find { unit -> unit.hwUnitName == it.name || unit.secondHwUnitName == it.name } != null)
-                            }
-                        }.asLiveData(Dispatchers.Default)
                     }
                 } else {
-                    MutableLiveData(emptyList())
+                    flowOf(emptyList())
                 }
-            }
-    val hwUnitName = if (homeUnit == null) {
-        MutableLiveData()
-    } else {
-        Transformations.map(homeUnit) { unit -> unit.hwUnitName }
-    } as MutableLiveData<String?>
+            }.flowOn(Dispatchers.IO).stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
+    val room: MutableStateFlow<String> = MutableStateFlow(roomName)
 
-    val secondHwUnitName = if (homeUnit == null) {
-        MutableLiveData()
-    } else {
-        Transformations.map(homeUnit) { unit -> unit.secondHwUnitName }
-    } as MutableLiveData<String?>
+    val hwUnitNameList: StateFlow<List<Pair<String, Boolean>>> =
+            isEditMode.flatMapLatest { isEdit ->
+                Timber.d("init hwUnitNameList isEditMode: $isEdit")
+                if (isEdit) {
+                    combine(homeRepository.homeUnitListFlow(), homeRepository.hwUnitListFlow(), type) { homeUnitList, hwUnitList, type ->
+                        homeUnitOfSelectedTypeList = homeUnitList.filter {
+                            it.type == type
+                        }
+                        hwUnitList.map {
+                            Pair(it.name,
+                                    homeUnitList.find { unit -> unit.hwUnitName == it.name || unit.secondHwUnitName == it.name } != null)
+                        }
+                    }
+                } else {
+                    flowOf(emptyList())
+                }
+            }.flowOn(Dispatchers.IO).stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
+    val hwUnitName: MutableStateFlow<String?> = MutableStateFlow(null)
 
-    val value: MutableLiveData<String> =
-            if (homeUnit == null) MutableLiveData() else Transformations.map(homeUnit) { unit -> unit.value.toString() } as MutableLiveData<String>
-    val lastUpdateTime: MutableLiveData<String> =
-            if (homeUnit == null) MutableLiveData() else Transformations.map(homeUnit) { unit ->
-                getLastUpdateTime(application, unit.lastUpdateTime)
-            } as MutableLiveData<String>
+    val secondHwUnitName: MutableStateFlow<String?> = MutableStateFlow(null)
 
-    val secondValue: MutableLiveData<String> =
-            if (homeUnit == null) MutableLiveData() else Transformations.map(homeUnit) { unit -> unit.secondValue.toString() } as MutableLiveData<String>
-    val secondLastUpdateTime: MutableLiveData<String> =
-            if (homeUnit == null) MutableLiveData() else Transformations.map(homeUnit) { unit ->
-                getLastUpdateTime(application, unit.secondLastUpdateTime)
-            } as MutableLiveData<String>
+    val value: MutableStateFlow<String> = MutableStateFlow("")
+    val lastUpdateTime: MutableStateFlow<String> = MutableStateFlow("")
 
-    val minValue: MutableLiveData<String> =
-            if (homeUnit == null) MutableLiveData() else Transformations.map(homeUnit) { unit -> unit.min.toString() } as MutableLiveData<String>
-    val minLastUpdateTime: MutableLiveData<String> =
-            if (homeUnit == null) MutableLiveData() else Transformations.map(homeUnit) { unit ->
-                getLastUpdateTime(application, unit.minLastUpdateTime)
-            } as MutableLiveData<String>
+    val secondValue: MutableStateFlow<String> = MutableStateFlow("")
+    val secondLastUpdateTime: MutableStateFlow<String> = MutableStateFlow("")
 
-    val maxValue: MutableLiveData<String> =
-            if (homeUnit == null) MutableLiveData() else Transformations.map(homeUnit) { unit -> unit.max.toString() } as MutableLiveData<String>
-    val maxLastUpdateTime: MutableLiveData<String> =
-            if (homeUnit == null) MutableLiveData() else Transformations.map(homeUnit) { unit ->
-                getLastUpdateTime(application, unit.maxLastUpdateTime)
-            } as MutableLiveData<String>
+    val minValue: MutableStateFlow<String> = MutableStateFlow("")
+    val minLastUpdateTime: MutableStateFlow<String> = MutableStateFlow("")
 
-    val firebaseNotify: MutableLiveData<Boolean> =
-            if (homeUnit == null) MutableLiveData(false) else Transformations.map(homeUnit) { unit -> unit.firebaseNotify } as MutableLiveData<Boolean>
+    val maxValue: MutableStateFlow<String> = MutableStateFlow("")
+    val maxLastUpdateTime: MutableStateFlow<String> = MutableStateFlow("")
+
+    val firebaseNotify: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     val firebaseNotifyTriggerTypeList = TRIGGER_TYPE_LIST
-    val firebaseNotifyTrigger: MutableLiveData<String?> = if (homeUnit == null) MutableLiveData(RISING_EDGE) else Transformations.map(homeUnit) { unit -> unit?.firebaseNotifyTrigger } as MutableLiveData<String?>
-    val showFirebaseNotifyTrigger: MutableLiveData<Boolean> =
-            Transformations.switchMap(firebaseNotify) { notify ->
-                Transformations.map(type) { type ->
-                    notify && (HOME_ACTUATORS == type ||
-                            HOME_BLINDS == type ||
-                            HOME_REED_SWITCHES == type ||
-                            HOME_MOTIONS == type ||
-                            HOME_LIGHT_SWITCHES == type)
-                }
-            } as MutableLiveData<Boolean>
+    val firebaseNotifyTrigger: MutableStateFlow<String?> = MutableStateFlow(RISING_EDGE)
+    val showFirebaseNotifyTrigger: StateFlow<Boolean> =
+            combine(firebaseNotify, type) { notify, type ->
+                notify && (HOME_ACTUATORS == type ||
+                        HOME_BLINDS == type ||
+                        HOME_REED_SWITCHES == type ||
+                        HOME_MOTIONS == type ||
+                        HOME_LIGHT_SWITCHES == type)
+            }.flowOn(Dispatchers.IO).stateIn(viewModelScope, SharingStarted.WhileSubscribed(), false)
 
-    val showInTaskList: MutableLiveData<Boolean> =
-            if (homeUnit == null) MutableLiveData(false) else Transformations.map(homeUnit) {
-                unit -> unit.showInTaskList
-            } as MutableLiveData<Boolean>
-    val showInTaskListVisibility: MutableLiveData<Boolean> =
-            Transformations.switchMap(hwUnitName) { hwUnitName ->
-                Transformations.map(type) { type ->
-                    !hwUnitName.isNullOrEmpty() && (HOME_LIGHT_SWITCHES == type ||
-                            HOME_ACTUATORS == type ||
-                            HOME_BLINDS == type)
-                }
-            } as MutableLiveData<Boolean>
+    val showInTaskList: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val showInTaskListVisibility: StateFlow<Boolean> =
+            combine(hwUnitName, type) { hwUnitName, type ->
+                !hwUnitName.isNullOrEmpty() && (HOME_LIGHT_SWITCHES == type ||
+                        HOME_ACTUATORS == type ||
+                        HOME_BLINDS == type)
+            }.flowOn(Dispatchers.IO).stateIn(viewModelScope, SharingStarted.WhileSubscribed(), false)
 
     // Decide how to handle this list
-    val unitTaskList: LiveData<Map<String, UnitTask>> = if (homeUnit != null) {
-        Transformations.switchMap(isEditMode) { edit ->
-            Timber.d("init unitTaskList isEditMode edit: $edit")
-            homeRepository.unitTaskListFlow(unitType, unitName).map {
-                if (edit) {
-                    Timber.d("init unitTaskList edit it: $it")
-                    // Add empty UnitTask which will be used for adding new UnitTask
-                    val newList = it.toMutableMap()
-                    newList[""] = UnitTask()
-                    Timber.d("init unitTaskList edit newList: $newList")
+    val unitTaskList: StateFlow<Map<String, UnitTask>> =
+            if (homeUnit != null) {
+                combine(isEditMode, homeRepository.unitTaskListFlow(unitType, unitName)) { edit, taskList ->
+                    Timber.d("init unitTaskList isEditMode edit: $edit")
+                    if (edit) {
+                        Timber.d("init unitTaskList edit: $taskList")
+                        // Add empty UnitTask which will be used for adding new UnitTask
+                        val newList = taskList.toMutableMap()
+                        newList[""] = UnitTask()
+                        Timber.d("init unitTaskList edit newList: $newList")
 
-                    newList
-                } else {
-                    Timber.d("init unitTaskList it: $it")
-                    it
-                }
-            }.asLiveData(Dispatchers.IO)
-        }
-    } else {
-        Transformations.switchMap(isEditMode) { edit ->
-            Timber.d("init adding add new item to unitTaskList isEditMode edit: $edit")
-            // We cannot add option to Add new Task before Home Unit is saved as there will not be where to save ne UnitTask
-            /*if (edit) {
-                MutableLiveData<Map<String, UnitTask>>().apply {
-                    value = mutableMapOf(Pair("", UnitTask()))
-                }//newList
-            } else {*/
-            MutableLiveData()
-            //}
-        }
-    }
+                        newList
+                    } else {
+                        Timber.d("init unitTaskList: $taskList")
+                        taskList
+                    }
+                }.flowOn(Dispatchers.IO).stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyMap())
+            } else {
+                MutableStateFlow(emptyMap())
+            }
 
     private var homeRepositoryTask: Task<Void>? = null
 
@@ -217,12 +169,12 @@ class HomeUnitDetailViewModel(application: Application,
 
     fun clearMinValue(): Task<Void>? {
         Timber.d("clearMinValue homeUnit: ${homeUnit?.value}")
-        return homeUnit?.value?.let (homeRepository::clearMinHomeUnitValue)
+        return homeUnit?.value?.let(homeRepository::clearMinHomeUnitValue)
     }
 
     fun clearMaxValue(): Task<Void>? {
         Timber.d("clearMaxValue homeUnit: ${homeUnit?.value}")
-        return homeUnit?.value?.let (homeRepository::clearMaxHomeUnitValue)
+        return homeUnit?.value?.let(homeRepository::clearMaxHomeUnitValue)
     }
 
     fun setValueFromSwitch(isChecked: Boolean): Task<Void>? {
@@ -242,7 +194,7 @@ class HomeUnitDetailViewModel(application: Application,
         return homeUnit?.value?.let { unit ->
             unit.name == name.value
                     && unit.type == type.value
-                    && unit.room == roomName.value
+                    && unit.room == room.value
                     && unit.hwUnitName == hwUnitName.value
                     && unit.secondHwUnitName == secondHwUnitName.value
                     && unit.firebaseNotify == firebaseNotify.value
@@ -271,7 +223,7 @@ class HomeUnitDetailViewModel(application: Application,
             homeUnit.value?.let { unit ->
                 name.value = unit.name
                 type.value = unit.type
-                roomName.value = unit.room
+                room.value = unit.room
                 hwUnitName.value = unit.hwUnitName
                 secondHwUnitName.value = unit.secondHwUnitName
                 firebaseNotify.value = unit.firebaseNotify
@@ -290,18 +242,17 @@ class HomeUnitDetailViewModel(application: Application,
         if (homeUnit == null) {
             // Adding new HomeUnit
             when {
-                name.value?.trim().isNullOrEmpty() -> return Pair(
+                name.value.trim().isEmpty() -> return Pair(
                         R.string.add_edit_home_unit_empty_name, null)
-                type.value?.trim()
-                        .isNullOrEmpty() -> return Pair(
+                type.value.trim().isEmpty() -> return Pair(
                         R.string.add_edit_home_unit_empty_unit_type, null)
                 /*hwUnitName.value?.trim()
                         .isNullOrEmpty() -> return Pair(
                         R.string.add_edit_home_unit_empty_unit_hw_unit, null)*/
-                type.value?.trim() == HOME_LIGHT_SWITCHES && secondHwUnitName.value?.trim()
+                type.value.trim() == HOME_LIGHT_SWITCHES && secondHwUnitName.value?.trim()
                         .isNullOrEmpty() -> return Pair(
                         R.string.add_edit_home_unit_empty_unit_second_hw_unit, null)
-                homeUnitOfSelectedTypeList.find { unit -> unit.name == name.value?.trim() } != null -> {
+                homeUnitOfSelectedTypeList.find { unit -> unit.name == name.value.trim() } != null -> {
                     //This name is already used
                     Timber.d("This name is already used")
                     return Pair(R.string.add_edit_home_unit_name_already_used, null)
@@ -310,11 +261,11 @@ class HomeUnitDetailViewModel(application: Application,
         } else {
             // Editing existing HomeUnit
             homeUnit.value?.let { unit ->
-                return if (name.value?.trim().isNullOrEmpty()) {
+                return if (name.value.trim().isEmpty()) {
                     Pair(R.string.add_edit_home_unit_empty_name, null)
-                } else if (name.value?.trim() != unit.name && homeUnitOfSelectedTypeList.find { it.name == name.value?.trim() } != null) {
+                } else if (name.value.trim() != unit.name && homeUnitOfSelectedTypeList.find { it.name == name.value.trim() } != null) {
                     return Pair(R.string.add_edit_home_unit_name_already_used, null)
-                } else if (name.value?.trim() != unit.name || type.value?.trim() != unit.type) {
+                } else if (name.value.trim() != unit.name || type.value.trim() != unit.type) {
                     Pair(R.string.add_edit_home_unit_save_with_delete, R.string.overwrite)
                 } else if (noChangesMade()) {
                     Pair(R.string.add_edit_home_unit_no_changes, null)
@@ -343,7 +294,7 @@ class HomeUnitDetailViewModel(application: Application,
     fun saveChanges(): Task<Void>? {
         Timber.d(
                 "saveChanges homeUnit: ${homeUnit?.value} homeRepositoryTask.isComplete: ${homeRepositoryTask?.isComplete}")
-        homeRepositoryTask = homeUnit?.value?.let { unit ->
+        homeRepositoryTask = (homeUnit?.value?.let { unit ->
             showProgress.value = true
             Timber.e("Save all changes")
             doSaveChanges().apply {
@@ -351,10 +302,10 @@ class HomeUnitDetailViewModel(application: Application,
                     Timber.d(
                             "Name or type changed will need to delete old value name=${name.value}, type = ${type.value}")
                     // delete old HomeUnit
-                    this?.continueWithTask { homeRepository.deleteHomeUnit(unit) }
+                    this?.continueWithTask { homeRepository.deleteHomeUnit(unit) ?: it }
                 }
             }
-        } ?: doSaveChanges()?.addOnCompleteListener {
+        } ?: doSaveChanges())?.addOnCompleteListener {
             Timber.d("Task completed")
             showProgress.value = false
         }
@@ -362,45 +313,29 @@ class HomeUnitDetailViewModel(application: Application,
     }
 
     private fun doSaveChanges(): Task<Void>? {
-        return name.value?.let { name ->
-            type.value?.let { type ->
-                roomName.value?.let { room ->
-                    //hwUnitName.value?.let { hwUnitName ->
-                    firebaseNotify.value?.let { firebaseNotify ->
-                        firebaseNotifyTrigger.value?.let { firebaseNotifyTrigger ->
-                            showInTaskList.value?.let { showInTaskList ->
-                                //unitTaskList.value?.let { unitTaskList ->
-                                    showProgress.value = true
-                                    homeRepository.saveHomeUnit(
-                                            HomeUnit(name = name, type = type, room = room,
-                                                    hwUnitName = hwUnitName.value,
-                                                    secondHwUnitName = secondHwUnitName.value,
-                                                    firebaseNotify = firebaseNotify,
-                                                    firebaseNotifyTrigger = firebaseNotifyTrigger,
-                                                    showInTaskList = showInTaskList,
-                                                    value = homeUnit?.value?.value,
-                                                    lastUpdateTime = homeUnit?.value?.lastUpdateTime,
-                                                    unitsTasks = unitTaskList.value?.toMutableMap()?.also {
-                                                        it.remove("")
-                                                    } ?: HashMap()))?.continueWithTask {
-                                        if (type == HOME_LIGHT_SWITCHES) {
-                                            homeRepository.saveUnitTask(type, name,
-                                                    UnitTask(
-                                                            name = name,
-                                                            //homeUnitName = name,
-                                                            //homeUnitType = type,
-                                                            homeUnitsList = listOf(UnitTaskHomeUnit(type, name))
-                                                    ))
-                                        } else {
-                                            Tasks.forResult(null)
-                                        }
-                                    }
-                                //}
-                                }
-                            }
-                        }
-                    //}
+        showProgress.value = true
+        return homeRepository.saveHomeUnit(
+                HomeUnit(name = name.value, type = type.value, room = room.value,
+                        hwUnitName = hwUnitName.value,
+                        secondHwUnitName = secondHwUnitName.value,
+                        firebaseNotify = firebaseNotify.value,
+                        firebaseNotifyTrigger = firebaseNotifyTrigger.value,
+                        showInTaskList = showInTaskList.value,
+                        value = homeUnit?.value?.value,
+                        lastUpdateTime = homeUnit?.value?.lastUpdateTime,
+                        unitsTasks = unitTaskList.value.toMutableMap().also {
+                            it.remove("")
+                        }))?.let { task ->
+            if (type.value == HOME_LIGHT_SWITCHES) {
+                task.continueWithTask {
+                    homeRepository.saveUnitTask(type.value, name.value,
+                            UnitTask(
+                                    name = name.value,
+                                    homeUnitsList = listOf(UnitTaskHomeUnit(type.value, name.value))
+                            )) ?: it
                 }
+            } else {
+                task
             }
         }
     }

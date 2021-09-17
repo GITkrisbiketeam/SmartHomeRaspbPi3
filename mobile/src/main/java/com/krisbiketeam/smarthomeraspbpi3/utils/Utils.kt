@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.MutableLiveData
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.FULL_DAY_IN_MILLIS
+import kotlinx.coroutines.flow.MutableStateFlow
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -52,6 +53,19 @@ fun showTimePicker(context: Context?, liveData: MutableLiveData<Long?>) {
     }
 }
 
+fun showTimePicker(context: Context?, stateFlow: MutableStateFlow<Long?>) {
+    context?.let {
+        val (currentHours, currentMinutes, currentSeconds) = stateFlow.value?.run {
+            Triple((this / (1000 * 60 * 60) % 24).toInt(),
+                    ((this / (1000 * 60) % 60)).toInt(),
+                    ((this / 1000) % 60).toInt())
+        } ?: Triple(0, 0, 0)
+        TimeDurationPicker(context, { hours: Int, minutes: Int, seconds: Int ->
+            stateFlow.value = (seconds * 1000 + minutes * 1000 * 60 + hours * 60 * 60 * 1000).toLong()
+        }, currentHours, currentMinutes, currentSeconds).show()
+    }
+}
+
 fun Number.toLogsFloat():Float {
     val tmp: Float = if (this is Long) {
         val tmp2 = (this - LOGS_CHART_TIME_PREFIX) / 1000
@@ -63,6 +77,5 @@ fun Number.toLogsFloat():Float {
 }
 
 fun Float.toLogsLong(): Long {
-    val tmp: Long = this.toLong() * 1000 + LOGS_CHART_TIME_PREFIX
-    return tmp
+    return toLong() * 1000 + LOGS_CHART_TIME_PREFIX
 }

@@ -6,7 +6,9 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.os.bundleOf
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.flowWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.transition.Fade
@@ -18,11 +20,18 @@ import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentUnitTaskBinding
 import com.krisbiketeam.smarthomeraspbpi3.utils.showTimePicker
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.UnitTaskViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
 import timber.log.Timber
 
+@ExperimentalCoroutinesApi
 class UnitTaskFragment : Fragment() {
 
     private val args: UnitTaskFragmentArgs by navArgs()
@@ -58,11 +67,13 @@ class UnitTaskFragment : Fragment() {
             }
         }
 
-        unitTaskViewModel.isEditMode.observe(viewLifecycleOwner, { isEditMode ->
-            activity?.invalidateOptionsMenu()
-            // Animate Layout edit mode change
-            TransitionManager.beginDelayedTransition(rootBinding.root as ViewGroup, Fade())
-        })
+        lifecycleScope.launch {
+            unitTaskViewModel.isEditMode.flowWithLifecycle(lifecycle, Lifecycle.State.RESUMED).flowOn(Dispatchers.IO).collect { isEditMode ->
+                activity?.invalidateOptionsMenu()
+                // Animate Layout edit mode change
+                TransitionManager.beginDelayedTransition(rootBinding.root as ViewGroup, Fade())
+            }
+        }
 
         setHasOptionsMenu(true)
 
@@ -102,7 +113,7 @@ class UnitTaskFragment : Fragment() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         // If showing progress do not allow app bar actions
-        if (unitTaskViewModel.showProgress.value == true) {
+        if (unitTaskViewModel.showProgress.value) {
             return false
         }
         return when (item.itemId) {
@@ -170,7 +181,7 @@ class UnitTaskFragment : Fragment() {
         }
     }
 
-    private fun onClickShowTimePicker(liveData: MutableLiveData<Long?>) {
-        showTimePicker(context, liveData)
+    private fun onClickShowTimePicker(stateFlow: MutableStateFlow<Long?>) {
+        showTimePicker(context, stateFlow)
     }
 }

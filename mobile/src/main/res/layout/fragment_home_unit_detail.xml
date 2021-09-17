@@ -333,9 +333,9 @@
                     <com.google.android.material.textfield.MaterialAutoCompleteTextView
                         android:id="@+id/room_name_spinner"
                         style="@style/EnabledColorMaterialAutoCompleteTextViewStyle"
-                        app:entriesAutoComplete="@{viewModel.roomNameList}"
+                        app:entriesAutoComplete="@{viewModel.roomList}"
                         app:entriesWithEmpty="@{true}"
-                        app:value="@={viewModel.roomName}" />
+                        app:value="@={viewModel.room}" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
