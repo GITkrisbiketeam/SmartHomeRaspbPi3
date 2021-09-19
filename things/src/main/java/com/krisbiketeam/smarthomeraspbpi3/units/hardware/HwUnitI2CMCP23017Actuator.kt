@@ -13,12 +13,13 @@ import timber.log.Timber
 
 class HwUnitI2CMCP23017Actuator(name: String, location: String, private val pinName: String,
                                 private val address: Int, private val ioPin: Pin,
+                                private val inverse: Boolean = false,
                                 override var device: AutoCloseable? = null) : HwUnitI2C<Boolean>,
         Actuator<Boolean> {
 
     override val hwUnit: HwUnit =
             HwUnit(name, location, BoardConfig.IO_EXTENDER_MCP23017_OUTPUT, pinName,
-                   ConnectionType.I2C, address, null, ioPin.name)
+                    ConnectionType.I2C, address, null, ioPin.name, inverse = inverse)
     override var unitValue: Boolean? = null
     override var valueUpdateTime: Long = System.currentTimeMillis()
 
@@ -50,7 +51,7 @@ class HwUnitI2CMCP23017Actuator(name: String, location: String, private val pinN
     override suspend fun setValue(value: Boolean) {
         withContext(Dispatchers.Main) {
             unitValue = value
-            (device as MCP23017?)?.setState(ioPin, if (value) PinState.HIGH else PinState.LOW)
+            (device as MCP23017?)?.setState(ioPin, if (inverse xor value) PinState.HIGH else PinState.LOW)
             valueUpdateTime = System.currentTimeMillis()
         }
     }

@@ -51,7 +51,7 @@ class Home(secureStorage: SecureStorage,
     private val hwUnitsList: MutableMap<String, BaseHwUnit<Any>> = ConcurrentHashMap()
     private val hwUnitsListMutex = Mutex()
 
-    private val hwUnitErrorEventList: MutableMap<String,  Triple<Long, Int, BaseHwUnit<Any>?>> =
+    private val hwUnitErrorEventList: MutableMap<String, Triple<Long, Int, BaseHwUnit<Any>?>> =
             ConcurrentHashMap()
     private val hwUnitErrorEventListMutex = Mutex()
 
@@ -81,7 +81,7 @@ class Home(secureStorage: SecureStorage,
 
     @ExperimentalCoroutinesApi
     fun start() {
-        Timber.e("start; hwUnitsList.size: ${hwUnitsList.size}")
+        Timber.d("start; hwUnitsList.size: ${hwUnitsList.size}")
         lifecycleStartStopJob = GlobalScope.launch(Dispatchers.IO) {
             // get the full lists first synchronously
             // first HwUnitErrorList
@@ -351,8 +351,9 @@ class Home(secureStorage: SecureStorage,
         Timber.d(
                 "restartHwUnits restarted count (no error Units) ${restartHwUnitList.size}; removedHwUnitList: $restartHwUnitList")
         restartHwUnitList.forEach { hwUnit ->
-            delay(Random.nextLong(10,100))
-            hwUnitStart(hwUnit) }
+            delay(Random.nextLong(10, 100))
+            hwUnitStart(hwUnit)
+        }
     }
 
     override suspend fun onHwUnitChanged(hwUnit: HwUnit, unitValue: Any?, updateTime: Long) {
@@ -364,29 +365,29 @@ class Home(secureStorage: SecureStorage,
 
 // TODO: IS THIS NEEDED TO RUN NEW SCOPE
 //        CoroutineScope(Dispatchers.IO).launch {
-            homeUnitsList.values.filter {
-                if (it.type != HOME_LIGHT_SWITCHES) {
-                    it.hwUnitName == hwUnit.name
-                } else {
-                    it.secondHwUnitName == hwUnit.name
-                }
-            }.forEach { homeUnit ->
-                homeUnit.updateHomeUnitValuesAndTimes(unitValue, updateTime)
-                val newValue = if (homeUnit.type != HOME_LIGHT_SWITCHES) homeUnit.value else homeUnit.secondValue
-                if (newValue != null) {
-                    homeUnit.applyFunction(homeUnit, newValue)
-                }
-                homeInformationRepository.saveHomeUnit(homeUnit)
-                if (homeUnit.shouldFirebaseNotify(newValue)) {
-                    Timber.d("onHwUnitChanged notify with FCM Message")
-                    homeInformationRepository.notifyHomeUnitEvent(homeUnit)
-                }
+        homeUnitsList.values.filter {
+            if (it.type != HOME_LIGHT_SWITCHES) {
+                it.hwUnitName == hwUnit.name
+            } else {
+                it.secondHwUnitName == hwUnit.name
             }
-            // remove possible error from hwUnitErrorEventList for successful read of hwUnit
+        }.forEach { homeUnit ->
+            homeUnit.updateHomeUnitValuesAndTimes(unitValue, updateTime)
+            val newValue = if (homeUnit.type != HOME_LIGHT_SWITCHES) homeUnit.value else homeUnit.secondValue
+            if (newValue != null) {
+                homeUnit.applyFunction(homeUnit, newValue)
+            }
+            homeInformationRepository.saveHomeUnit(homeUnit)
+            if (homeUnit.shouldFirebaseNotify(newValue)) {
+                Timber.d("onHwUnitChanged notify with FCM Message")
+                homeInformationRepository.notifyHomeUnitEvent(homeUnit)
+            }
+        }
+        // remove possible error from hwUnitErrorEventList for successful read of hwUnit
 // TODO: SHOULD THIS BE HERE?
-            if (unitValue != null) {
-                hwUnitErrorEventList.remove(hwUnit.name)
-            }
+        if (unitValue != null) {
+            hwUnitErrorEventList.remove(hwUnit.name)
+        }
 //        }
     }
 
@@ -396,7 +397,7 @@ class Home(secureStorage: SecureStorage,
         }")
 // TODO: IS THIS NEEDED TO RUN NEW SCOPE
         //CoroutineScope(Dispatchers.IO).launch {
-            hwUnitsList[hwUnit.name]?.addHwUnitErrorEvent(Throwable(), "Error on $hwUnit : error")
+        hwUnitsList[hwUnit.name]?.addHwUnitErrorEvent(Throwable(), "Error on $hwUnit : error")
         //}
     }
 
@@ -438,7 +439,8 @@ class Home(secureStorage: SecureStorage,
                     it.name == hwUnit.ioPin
                 }?.let { ioPin ->
                     HwUnitI2CMCP23017Actuator(hwUnit.name, hwUnit.location, hwUnit.pinName,
-                            hwUnit.softAddress ?: 0, ioPin) as BaseHwUnit<Any>
+                            hwUnit.softAddress ?: 0, ioPin, hwUnit.inverse
+                            ?: false) as BaseHwUnit<Any>
                 }
             }
             else -> null
@@ -541,7 +543,7 @@ class Home(secureStorage: SecureStorage,
                         delay(endTime - endCurrTime)
                         booleanApplyAction(!newVal, task.inverse, task.periodicallyOnlyHw, task.homeUnitsList)
                         delay(FULL_DAY_IN_MILLIS - endCurrTime)
-                    } else if (endTime < currTime ) {
+                    } else if (endTime < currTime) {
                         delay(FULL_DAY_IN_MILLIS - currTime)
                     } else {
                         booleanApplyAction(newVal, task.inverse, task.periodicallyOnlyHw, task.homeUnitsList)
@@ -732,7 +734,7 @@ class Home(secureStorage: SecureStorage,
                             "addHwUnitErrorEvent another error occurred restart this hwUnit")
                     CoroutineScope(Dispatchers.IO).launch {
                         delay(100)
-                        triple.third?.let{
+                        triple.third?.let {
                             hwUnitStart(it)
                         }
                     }
