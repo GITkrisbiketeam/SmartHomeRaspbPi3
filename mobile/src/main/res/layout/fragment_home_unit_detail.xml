@@ -108,7 +108,7 @@
                     android:layout_marginStart="@dimen/margin_small"
                     android:layout_marginEnd="@dimen/activity_horizontal_margin"
                     app:setChecked="@{viewModel.value}"
-                    android:visibility="@{FirebaseTablesKt.HOME_LIGHT_SWITCHES.equals(viewModel.type) || FirebaseTablesKt.HOME_ACTUATORS.equals(viewModel.type) || FirebaseTablesKt.HOME_BLINDS.equals(viewModel.type) ? View.VISIBLE : View.GONE}"
+                    android:visibility="@{ !safeUnbox(viewModel.isEditMode) &amp;&amp; (FirebaseTablesKt.HOME_LIGHT_SWITCHES.equals(viewModel.type) || FirebaseTablesKt.HOME_ACTUATORS.equals(viewModel.type) || FirebaseTablesKt.HOME_BLINDS.equals(viewModel.type)) ? View.VISIBLE : View.GONE}"
                     app:layout_constraintBottom_toBottomOf="@id/home_unit_value_title"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toEndOf="@+id/home_unit_value"
