@@ -74,6 +74,7 @@ dependencies {
 
     compileOnly "com.google.android.things:androidthings:$thingsVersion"
     implementation "com.google.android.things.contrib:driver-rainbowhat:$rainbowhatVersion"
+    implementation "com.knobtviker.android.things.contrib.community.driver:bme680:$bme680Version"
 
     implementation 'com.jakewharton:process-phoenix:2.0.0'
 

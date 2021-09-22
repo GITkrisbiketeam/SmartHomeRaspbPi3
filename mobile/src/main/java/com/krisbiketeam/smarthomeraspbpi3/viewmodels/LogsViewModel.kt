@@ -91,13 +91,26 @@ class LogsViewModel(application: Application, private val homeRepository: Fireba
                             hwUnitLogsData.values.let { hwUnitLogList ->
                                 val hwUnit = hwUnitLogList.firstOrNull()
                                 when (hwUnit?.type) {
-                                    BoardConfig.TEMP_SENSOR_MCP9808 -> {
+                                    BoardConfig.TEMP_SENSOR_MCP9808,
+                                    BoardConfig.TEMP_SENSOR_TMP102-> {
                                         lineDataSetList.add(getNumberSensorData(hwUnit.name, hwUnitLogList))
                                     }
                                     BoardConfig.TEMP_RH_SENSOR_SI7021,
-                                    BoardConfig.PRESS_TEMP_RH_AIR_SENSOR_BME680,
-                                    BoardConfig.TEMP_RH_SENSOR_AM2320-> {
+                                    BoardConfig.TEMP_RH_SENSOR_AM2320 -> {
+                                        /*
+                                        // TODO rename FirebaseTables temperatures to temperature name should be like in  TemperatureAndHumidity
+                                        TemperatureAndHumidity::class.java.declaredFields.map {
+                                            it.name
+                                        }*/
                                         lineDataSetList.addAll(getMapNumberSensorData(hwUnit.name, listOf("temperature", "humidity"), hwUnitLogList))
+                                    }
+                                    BoardConfig.AIR_QUALITY_SENSOR_BME680 -> {
+                                        /*
+                                        // TODO rename FirebaseTables breathVoc to breathVocEquivalent name should be like in  Bme680Data
+                                        Bme680Data::class.java.declaredFields.map {
+                                            it.name
+                                        }*/
+                                        lineDataSetList.addAll(getMapNumberSensorData(hwUnit.name, listOf("temperature", "humidity", "pressure", "iaq", "gas"), hwUnitLogList))
                                     }
                                     BoardConfig.IO_EXTENDER_MCP23017_OUTPUT,
                                     BoardConfig.IO_EXTENDER_MCP23017_INPUT -> {

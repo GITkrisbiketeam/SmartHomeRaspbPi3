@@ -7,6 +7,8 @@ import androidx.lifecycle.asLiveData
 import com.google.android.gms.tasks.Task
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig
+import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig.GPIO_HW_UNIT_LIST
+import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig.I2C_HW_UNIT_LIST
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver.MCP23017Pin
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.ConnectionType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
@@ -58,10 +60,10 @@ class AddEditHwUnitViewModel(private val homeRepository: FirebaseHomeInformation
     val pinNameList: MutableLiveData<List<String>> =
             Transformations.map(Transformations.distinctUntilChanged(type)) { type ->
                 Timber.d("init pinNameList type: $type")
-                when (type) {
-                    BoardConfig.TEMP_SENSOR_TMP102, BoardConfig.TEMP_SENSOR_MCP9808, BoardConfig.TEMP_RH_SENSOR_SI7021, BoardConfig.TEMP_PRESS_SENSOR_BMP280, BoardConfig.IO_EXTENDER_MCP23017_INPUT, BoardConfig.IO_EXTENDER_MCP23017_OUTPUT, BoardConfig.FOUR_CHAR_DISP -> BoardConfig.IO_I2C_PIN_NAME_LIST
-                    BoardConfig.GPIO_INPUT, BoardConfig.GPIO_OUTPUT                                                                                                                                                                    -> BoardConfig.IO_GPIO_PIN_NAME_LIST
-                    else                                                                                                                                                                                                               -> emptyList()
+                when  {
+                    I2C_HW_UNIT_LIST.contains(type) -> BoardConfig.IO_I2C_PIN_NAME_LIST
+                    GPIO_HW_UNIT_LIST.contains(type) -> BoardConfig.IO_GPIO_PIN_NAME_LIST
+                    else -> emptyList()
                 }.also {
                     if (hwUnitLiveData == null) {
                         if (it.size == 1) pinName.value = it[0]
@@ -72,10 +74,10 @@ class AddEditHwUnitViewModel(private val homeRepository: FirebaseHomeInformation
     //This should be automatically populated by selecting type
     val connectionType = Transformations.map(Transformations.distinctUntilChanged(type)) { type ->
         Timber.d("init connectionType type: $type")
-        when (type) {
-            BoardConfig.TEMP_SENSOR_TMP102, BoardConfig.TEMP_SENSOR_MCP9808, BoardConfig.TEMP_RH_SENSOR_SI7021, BoardConfig.TEMP_PRESS_SENSOR_BMP280, BoardConfig.IO_EXTENDER_MCP23017_INPUT, BoardConfig.IO_EXTENDER_MCP23017_OUTPUT, BoardConfig.FOUR_CHAR_DISP -> ConnectionType.I2C
-            BoardConfig.GPIO_INPUT, BoardConfig.GPIO_OUTPUT                                                                                                                                                                    -> ConnectionType.GPIO
-            else                                                                                                                                                                                                               -> null
+        when {
+            I2C_HW_UNIT_LIST.contains(type) -> ConnectionType.I2C
+            GPIO_HW_UNIT_LIST.contains(type) -> ConnectionType.GPIO
+            else -> null
         }
     } as MutableLiveData<ConnectionType?>
 
@@ -100,6 +102,8 @@ class AddEditHwUnitViewModel(private val homeRepository: FirebaseHomeInformation
                     BoardConfig.TEMP_SENSOR_TMP102                                                  -> BoardConfig.TEMP_SENSOR_TMP102_ADDR_LIST
                     BoardConfig.TEMP_SENSOR_MCP9808                                                 -> BoardConfig.TEMP_SENSOR_MCP9808_ADDR_LIST
                     BoardConfig.TEMP_RH_SENSOR_SI7021                                               -> BoardConfig.TEMP_RH_SENSOR_SI7021_ADDR_LIST
+                    BoardConfig.TEMP_RH_SENSOR_AM2320                                               -> BoardConfig.TEMP_RH_SENSOR_AM2320_ADDR_LIST
+                    BoardConfig.AIR_QUALITY_SENSOR_BME680                                     -> BoardConfig.AIR_QUALITY_SENSOR_BME680_ADDR_LIST
                     BoardConfig.TEMP_PRESS_SENSOR_BMP280                                            -> BoardConfig.TEMP_PRESS_SENSOR_BMP280_ADDR_LIST
                     BoardConfig.IO_EXTENDER_MCP23017_INPUT, BoardConfig.IO_EXTENDER_MCP23017_OUTPUT -> BoardConfig.IO_EXTENDER_MCP23017_ADDR_LIST
                     else                                                                            -> emptyList()

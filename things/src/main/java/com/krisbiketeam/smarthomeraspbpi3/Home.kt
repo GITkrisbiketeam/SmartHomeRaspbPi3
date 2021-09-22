@@ -12,9 +12,8 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformation
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.*
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.*
+import com.krisbiketeam.smarthomeraspbpi3.units.*
 import com.krisbiketeam.smarthomeraspbpi3.units.Actuator
-import com.krisbiketeam.smarthomeraspbpi3.units.BaseHwUnit
-import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
 import com.krisbiketeam.smarthomeraspbpi3.units.hardware.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
@@ -97,13 +96,13 @@ class Home(secureStorage: SecureStorage,
 
             launch(Dispatchers.IO) {
                 homeInformationRepository.homeUnitsFlow().distinctUntilChanged().collect {
-                    // why I need to launch new corutine? why hwUnitStart blocks completly
+                    // why I need to launch new coroutine? why hwUnitStart blocks completely
                     launch { homeUnitsDataProcessor(it) }
                 }
             }
             launch(Dispatchers.IO) {
                 homeInformationRepository.hwUnitsFlow().distinctUntilChanged().collect {
-                    // why I need to launch new corutine? comment above
+                    // why I need to launch new coroutine? comment above
                     launch { hwUnitsDataProcessor(it) }
                 }
             }
@@ -188,7 +187,7 @@ class Home(secureStorage: SecureStorage,
                                     "homeUnitsDataProcessor NODE_ACTION_ADDED set boolean apply function")
                             homeUnit.applyFunction = booleanApplyFunction
                         }
-                        HOME_TEMPERATURES, HOME_PRESSURES, HOME_HUMIDITY -> {
+                        HOME_TEMPERATURES, HOME_PRESSURES, HOME_HUMIDITY, HOME_GAS, HOME_IAQ, HOME_CO2, HOME_BREATH_VOC -> {
                             Timber.d(
                                     "homeUnitsDataProcessor NODE_ACTION_ADDED set sensor apply function")
                             homeUnit.applyFunction = sensorApplyFunction
@@ -415,6 +414,16 @@ class Home(secureStorage: SecureStorage,
             }
             BoardConfig.TEMP_RH_SENSOR_SI7021 -> {
                 HwUnitI2CTempRhSi7021Sensor(hwUnit.name, hwUnit.location, hwUnit.pinName,
+                        hwUnit.softAddress ?: 0,
+                        hwUnit.refreshRate) as BaseHwUnit<Any>
+            }
+            BoardConfig.TEMP_RH_SENSOR_AM2320 -> {
+                HwUnitI2CTempRhAm2320Sensor(hwUnit.name, hwUnit.location, hwUnit.pinName,
+                        hwUnit.softAddress ?: 0,
+                        hwUnit.refreshRate) as BaseHwUnit<Any>
+            }
+            BoardConfig.AIR_QUALITY_SENSOR_BME680 -> {
+                HwUnitI2CAirQualityBme680Sensor(hwUnit.name, hwUnit.location, hwUnit.pinName,
                         hwUnit.softAddress ?: 0,
                         hwUnit.refreshRate) as BaseHwUnit<Any>
             }
@@ -764,7 +773,7 @@ class Home(secureStorage: SecureStorage,
     // region  HomeUnit values update helper methods
 
     private fun HomeUnit<Any>.updateHomeUnitValuesAndTimes(unitValue: Any?, updateTime: Long) {
-        // We need to handel differently values of non Basic Types
+        // We need to handle differently values of non Basic Types
         if (unitValue is TemperatureAndPressure) {
             Timber.d("Received TemperatureAndPressure $unitValue")
             if (type == HOME_TEMPERATURES) {
@@ -778,6 +787,31 @@ class Home(secureStorage: SecureStorage,
                 updateValueMinMax(unitValue.temperature, updateTime)
             } else if (type == HOME_HUMIDITY) {
                 updateValueMinMax(unitValue.humidity, updateTime)
+            }
+        } else if (unitValue is Bme680Data) {
+            Timber.d("Received TemperatureAndHumidity $unitValue")
+            when (type) {
+                HOME_TEMPERATURES -> {
+                    updateValueMinMax(unitValue.temperature, updateTime)
+                }
+                HOME_HUMIDITY -> {
+                    updateValueMinMax(unitValue.humidity, updateTime)
+                }
+                HOME_PRESSURES -> {
+                    updateValueMinMax(unitValue.pressure, updateTime)
+                }
+                HOME_GAS -> {
+                    updateValueMinMax(unitValue.gas, updateTime)
+                }
+                HOME_IAQ -> {
+                    updateValueMinMax(unitValue.iaq, updateTime)
+                }
+                HOME_CO2 -> {
+                    updateValueMinMax(unitValue.co2Equivalent, updateTime)
+                }
+                HOME_BREATH_VOC -> {
+                    updateValueMinMax(unitValue.breathVocEquivalent, updateTime)
+                }
             }
         } else {
             updateValueMinMax(unitValue, updateTime)

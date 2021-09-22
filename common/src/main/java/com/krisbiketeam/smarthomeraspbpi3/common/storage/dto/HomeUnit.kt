@@ -21,6 +21,14 @@ typealias HumidityType = Float
 typealias Humidity = HomeUnit<HumidityType>
 typealias BlindType = Int
 typealias Blind = HomeUnit<BlindType>
+typealias GasType = Float
+typealias Gas = HomeUnit<GasType>
+typealias IaqType = Float
+typealias Iaq = HomeUnit<IaqType>
+typealias Co2Type = Float
+typealias Co2 = HomeUnit<Co2Type>
+typealias BreathVocType = Float
+typealias BreathVoc = HomeUnit<BreathVocType>
 
 val homeUnitTypeIndicatorMap: HashMap<String, Class<out Any?>> = hashMapOf(
         HOME_ACTUATORS to ActuatorType::class.java,
@@ -30,7 +38,11 @@ val homeUnitTypeIndicatorMap: HashMap<String, Class<out Any?>> = hashMapOf(
         HOME_TEMPERATURES to TemperatureType::class.java,
         HOME_PRESSURES to PressureType::class.java,
         HOME_HUMIDITY to HumidityType::class.java,
-        HOME_BLINDS to BlindType::class.java
+        HOME_BLINDS to BlindType::class.java,
+        HOME_GAS to GasType::class.java,
+        HOME_IAQ to IaqType::class.java,
+        HOME_CO2 to Co2Type::class.java,
+        HOME_BREATH_VOC to BreathVocType::class.java
 )
 
 val HOME_STORAGE_UNITS: List<String> = homeUnitTypeIndicatorMap.keys.toList()

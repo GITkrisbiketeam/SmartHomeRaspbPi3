@@ -39,6 +39,7 @@ ext {
     rainbowhatVersion = '1.0'
     thingsVersion = '1.0'
     bmx280Version = '1.0'
+    bme680Version = '1.1.4'
 
 
     // Tooling
