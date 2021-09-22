@@ -36,6 +36,7 @@ class LogsViewModel(application: Application, private val homeRepository: Fireba
 
     @ExperimentalCoroutinesApi
     val startRangeFlow: MutableStateFlow<Long> = MutableStateFlow(System.currentTimeMillis().getOnlyDateLocalTime())
+
     @ExperimentalCoroutinesApi
     val endRangeFlow: MutableStateFlow<Long> = MutableStateFlow(System.currentTimeMillis().getOnlyDateLocalTime())
 
@@ -53,48 +54,6 @@ class LogsViewModel(application: Application, private val homeRepository: Fireba
             )
 
     @ExperimentalCoroutinesApi
-    val logsData1: Flow<ChartData<*>> =
-            filteredHwUnitListFlow.flatMapLatest { filteredHwUnitList ->
-                if (filteredHwUnitList.isNullOrEmpty()) {
-                    flowOf(CombinedData())
-                } else {
-                    combine(filteredHwUnitList.map { homeRepository.logsFlow(it.name) }) { allFilteredHwUnitLogsData ->
-                        Timber.e("logsFlow")
-                        val lineDataSetList = mutableListOf<LineDataSet>()
-                        val scatterDataSetList = mutableListOf<ScatterDataSet>()
-                        allFilteredHwUnitLogsData.forEach { hwUnitLogsData ->
-                            hwUnitLogsData.values.flatMap(Map<String, HwUnitLog<Any?>>::values).let { hwUnitLogList ->
-                                val hwUnit = hwUnitLogList.firstOrNull()
-                                when (hwUnit?.type) {
-                                    BoardConfig.TEMP_SENSOR_MCP9808 -> {
-                                        lineDataSetList.add(getNumberSensorData(hwUnit.name, hwUnitLogList))
-                                    }
-                                    BoardConfig.TEMP_RH_SENSOR_SI7021 -> {
-                                        lineDataSetList.addAll(getMapNumberSensorData(hwUnit.name, listOf("temperature", "humidity"), hwUnitLogList))
-                                    }
-                                    BoardConfig.IO_EXTENDER_MCP23017_OUTPUT,
-                                    BoardConfig.IO_EXTENDER_MCP23017_INPUT -> {
-                                        scatterDataSetList.add(getBooleanSensorData(hwUnit.name, hwUnitLogList))
-                                    }
-                                }
-                            }
-                        }
-                        CombinedData().apply {
-                            val lineDataSetColorFraction = 360f / lineDataSetList.size
-                            lineDataSetList.forEachIndexed { index, lineDataSet ->
-                                lineDataSet.applyStyle(lineDataSetColorFraction * index)
-                            }
-                            val scatterDataSetColorFraction = 360f / scatterDataSetList.size
-                            scatterDataSetList.forEachIndexed { index, lineDataSet ->
-                                lineDataSet.applyStyle(scatterDataSetColorFraction * index)
-                            }
-                            setData(LineData(lineDataSetList.toList()))
-                            setData(ScatterData(scatterDataSetList.toList()))
-                        }
-                    }
-                }
-            }
-    @ExperimentalCoroutinesApi
     val logsData: Flow<ChartData<*>> =
             combine(startRangeFlow, endRangeFlow, filteredHwUnitListFlow) { startRange, endRange, filteredHwUnitList ->
                 Triple(startRange, endRange, filteredHwUnitList)
@@ -102,8 +61,8 @@ class LogsViewModel(application: Application, private val homeRepository: Fireba
                 if (filteredHwUnitList.isNullOrEmpty()) {
                     flowOf(CombinedData())
                 } else {
-                    val listOfFlows: List<Flow<Map<String,HwUnitLog<Any?>>>> = filteredHwUnitList.map { hwUnit ->
-                        val flowList = mutableListOf<Flow<Map<String,HwUnitLog<Any?>>>>().also { list ->
+                    val listOfFlows: List<Flow<Map<String, HwUnitLog<Any?>>>> = filteredHwUnitList.map { hwUnit ->
+                        val flowList = mutableListOf<Flow<Map<String, HwUnitLog<Any?>>>>().also { list ->
                             // calculate days from unit time to now 1000 milliseconds * 60 seconds * 60 minutes * 24 hours = 86400000L
                             for (date in startRange..endRange step FULL_DAY_IN_MILLIS) {
                                 list.add(homeRepository.logsFlow(hwUnit.name, date).onCompletion {
@@ -116,7 +75,7 @@ class LogsViewModel(application: Application, private val homeRepository: Fireba
                             }
                         }
                         combine(flowList) { dailyMapArray ->
-                            val combinedMap = mutableMapOf<String,HwUnitLog<Any?>>()
+                            val combinedMap = mutableMapOf<String, HwUnitLog<Any?>>()
                             dailyMapArray.forEach {
                                 combinedMap.putAll(it)
                             }
@@ -126,7 +85,8 @@ class LogsViewModel(application: Application, private val homeRepository: Fireba
                     combine(listOfFlows) { allFilteredHwUnitLogsData ->
                         Timber.e("logsFlow")
                         val lineDataSetList = mutableListOf<LineDataSet>()
-                        val scatterDataSetList = mutableListOf<ScatterDataSet>()
+                        //val scatterDataSetList = mutableListOf<ScatterDataSet>()
+                        val lineGradDataSetList = mutableListOf<LineDataSet>()
                         allFilteredHwUnitLogsData.forEach { hwUnitLogsData ->
                             hwUnitLogsData.values.let { hwUnitLogList ->
                                 val hwUnit = hwUnitLogList.firstOrNull()
@@ -134,12 +94,15 @@ class LogsViewModel(application: Application, private val homeRepository: Fireba
                                     BoardConfig.TEMP_SENSOR_MCP9808 -> {
                                         lineDataSetList.add(getNumberSensorData(hwUnit.name, hwUnitLogList))
                                     }
-                                    BoardConfig.TEMP_RH_SENSOR_SI7021 -> {
+                                    BoardConfig.TEMP_RH_SENSOR_SI7021,
+                                    BoardConfig.PRESS_TEMP_RH_AIR_SENSOR_BME680,
+                                    BoardConfig.TEMP_RH_SENSOR_AM2320-> {
                                         lineDataSetList.addAll(getMapNumberSensorData(hwUnit.name, listOf("temperature", "humidity"), hwUnitLogList))
                                     }
                                     BoardConfig.IO_EXTENDER_MCP23017_OUTPUT,
                                     BoardConfig.IO_EXTENDER_MCP23017_INPUT -> {
-                                        scatterDataSetList.add(getBooleanSensorData(hwUnit.name, hwUnitLogList))
+                                        //scatterDataSetList.add(getBooleanSensorData(hwUnit.name, hwUnitLogList))
+                                        lineGradDataSetList.add(getBooleanGradSensorData(hwUnit.name, hwUnitLogList))
                                     }
                                 }
                             }
@@ -149,12 +112,17 @@ class LogsViewModel(application: Application, private val homeRepository: Fireba
                             lineDataSetList.forEachIndexed { index, lineDataSet ->
                                 lineDataSet.applyStyle(lineDataSetColorFraction * index)
                             }
-                            val scatterDataSetColorFraction = 360f / scatterDataSetList.size
+                            /*val scatterDataSetColorFraction = 360f / scatterDataSetList.size
                             scatterDataSetList.forEachIndexed { index, lineDataSet ->
                                 lineDataSet.applyStyle(scatterDataSetColorFraction * index)
+                            }*/
+                            val lineGradDataSetColorFraction = 360f / lineGradDataSetList.size
+                            lineGradDataSetList.forEachIndexed { index, lineDataSet ->
+                                lineDataSet.applyGradStyle(lineGradDataSetColorFraction * index)
                             }
-                            setData(LineData(lineDataSetList.toList()))
-                            setData(ScatterData(scatterDataSetList.toList()))
+
+                            setData(LineData(lineDataSetList + lineGradDataSetList))
+                            //setData(ScatterData(scatterDataSetList.toList()))
                         }
                     }
                 }
@@ -236,11 +204,42 @@ class LogsViewModel(application: Application, private val homeRepository: Fireba
         return ScatterDataSet(entries, hwUnitName)
     }
 
-    fun ScatterDataSet.applyStyle(fractionColor: Float) {
+    private fun ScatterDataSet.applyStyle(fractionColor: Float) {
         val color = ColorUtils.HSLToColor(colorFloatArray.apply { set(0, fractionColor) })
         setColor(color)
         setScatterShape(ScatterChart.ScatterShape.CIRCLE)
         scatterShapeSize = 40f
+        valueTextSize = 16f
+        setDrawValues(true)
+    }
+
+    private fun getBooleanGradSensorData(hwUnitName: String, logsList: Collection<HwUnitLog<Any?>>): LineDataSet {
+        val entries: MutableList<Entry> = mutableListOf()
+        logsList.sortedBy { it.servertime as Long }.forEach { hwUnitLog ->
+            hwUnitLog.value?.let { hwValue ->
+                when (hwValue) {
+                    is Boolean -> {
+                        val xValue: Float = (hwUnitLog.servertime as Number).toLogsFloat()
+                        if (hwValue) {
+                            entries.add(Entry(xValue - Float.MIN_VALUE, 0f, hwValue))
+                            entries.add(Entry(xValue, 40f, hwValue))
+                        } else {
+                            entries.add(Entry(xValue, 40f, hwValue))
+                            entries.add(Entry(xValue + Float.MIN_VALUE, 0f, hwValue))
+                        }
+                    }
+                }
+            }
+        }
+        return LineDataSet(entries, hwUnitName)
+    }
+
+    private fun LineDataSet.applyGradStyle(fractionColor: Float) {
+        val color = ColorUtils.HSLToColor(colorFloatArray.apply { set(0, fractionColor) })
+        setColor(color)
+        fillColor = color
+        setCircleColor(color)
+        setDrawFilled(true)
         valueTextSize = 16f
         setDrawValues(true)
     }

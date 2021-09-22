@@ -15,7 +15,10 @@ import com.google.android.material.datepicker.MaterialDatePicker
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
+import com.krisbiketeam.smarthomeraspbpi3.common.FULL_DAY_IN_MILLIS
+import com.krisbiketeam.smarthomeraspbpi3.common.getOnlyDateLocalTime
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentLogsBinding
+import com.krisbiketeam.smarthomeraspbpi3.utils.toLogsFloat
 import com.krisbiketeam.smarthomeraspbpi3.utils.toLogsLong
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.LogsViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -123,6 +126,8 @@ class LogsFragment : androidx.fragment.app.Fragment() {
         logsViewModel.logsData.collect { lineData ->
             Timber.d("subscribeLogsData lineData: $lineData")
             combinedChart.data = lineData
+            combinedChart.xAxis.axisMinimum = lineData.xMin.toLogsLong().getOnlyDateLocalTime().toLogsFloat()
+            combinedChart.xAxis.axisMaximum = (lineData.xMax.toLogsLong().getOnlyDateLocalTime() + FULL_DAY_IN_MILLIS).toLogsFloat()
             combinedChart.invalidate() // refresh
         }
     }
