@@ -44,8 +44,11 @@ class LogsViewModel(application: Application, private val homeRepository: Fireba
     @ExperimentalCoroutinesApi
     val menuItemHwUnitListFlow: StateFlow<List<Triple<HwUnit, Int, Boolean>>> =
             combine(filteredHwUnitListFlow, homeRepository.hwUnitListFlow()) { filteredHwUnitList, hwUnitList ->
+
                 hwUnitList.map {
                     Triple(it, it.hashCode(), filteredHwUnitList.contains(it))
+                }.sortedByDescending {
+                    it.first.type
                 }
             }.stateIn(
                     viewModelScope,

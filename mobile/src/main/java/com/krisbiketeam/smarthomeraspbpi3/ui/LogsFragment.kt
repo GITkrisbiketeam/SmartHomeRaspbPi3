@@ -90,10 +90,16 @@ class LogsFragment : androidx.fragment.app.Fragment() {
         inflater.inflate(R.menu.menu_logs, menu)
         menu.findItem(R.id.action_filter).subMenu.apply {
             clear()
+            var type:String? = null
             logsViewModel.menuItemHwUnitListFlow.value.forEach { (hwUnit, itemId, checked) ->
-                val menuItem = add(Menu.NONE, itemId, Menu.NONE, hwUnit.name)
+                if (type != hwUnit.type) {
+                    add("\t${hwUnit.type}")
+                    type = hwUnit.type
+                }
+                val menuItem = add(hwUnit.type.hashCode(), itemId, Menu.NONE, hwUnit.name)
                 menuItem.isCheckable = true
                 menuItem.isChecked = checked
+
             }
         }
 

@@ -105,8 +105,8 @@ object BoardConfig {
             MCP23017.DEFAULT_I2C_111_ADDRESS)
 
     val IO_HW_UNIT_TYPE_LIST = listOf(
-            TEMP_SENSOR_TMP102,
             TEMP_SENSOR_MCP9808,
+            TEMP_SENSOR_TMP102,
             TEMP_RH_SENSOR_SI7021,
             TEMP_RH_SENSOR_AM2320,
             AIR_QUALITY_SENSOR_BME680,
@@ -117,8 +117,8 @@ object BoardConfig {
             TEMP_PRESS_SENSOR_BMP280)
 
     val I2C_HW_UNIT_LIST = listOf(
-            TEMP_SENSOR_TMP102,
             TEMP_SENSOR_MCP9808,
+            TEMP_SENSOR_TMP102,
             TEMP_RH_SENSOR_SI7021,
             TEMP_RH_SENSOR_AM2320,
             AIR_QUALITY_SENSOR_BME680,
