@@ -1,16 +1,16 @@
 package com.krisbiketeam.smarthomeraspbpi3.units.hardware
 
-import com.knobtviker.android.things.contrib.community.driver.bme680.Bme680
-import com.knobtviker.android.things.contrib.community.driver.bme680.Bme680.ALTERNATIVE_I2C_ADDRESS
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.ConnectionType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.Bme680Data
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
+import com.krisbiketeam.smarthomeraspbpi3.units.Bme680BsecJNI
 import com.krisbiketeam.smarthomeraspbpi3.units.HwUnitI2C
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
 import kotlinx.coroutines.*
 import timber.log.Timber
 
+// Refresh rate is currently hardcoded in native library set to 3 sec or default 300 sec (5 minutes)
 private const val REFRESH_RATE = 300000L // 5 min
 
 class HwUnitI2CAirQualityBme680Sensor(name: String, location: String, private val pinName: String,
@@ -26,6 +26,8 @@ class HwUnitI2CAirQualityBme680Sensor(name: String, location: String, private va
 
     private var job: Job? = null
 
+    private var bme680BsecJNI: Bme680BsecJNI? = null
+
     override suspend fun connect() {
         // Do noting we do not want to block I2C device so it will be opened while setting the value
         // and then immediately closed to release resources
@@ -38,11 +40,10 @@ class HwUnitI2CAirQualityBme680Sensor(name: String, location: String, private va
         Timber.d("registerListener")
         job?.cancel()
         job = GlobalScope.plus(exceptionHandler).launch(Dispatchers.IO) {
-            while (isActive) {
-                delay(refreshRate ?: REFRESH_RATE)
-                // Cancel will not stop non suspending oneShotReadValue function
-                oneShotReadValue()
-                // all data should be updated by suspending oneShotReadValue() method
+            bme680BsecJNI = Bme680BsecJNI(this, pinName, softAddress, refreshRate ?: REFRESH_RATE < REFRESH_RATE) {
+                unitValue = it
+                valueUpdateTime = System.currentTimeMillis()
+                Timber.d("Bme680Data:$unitValue")
                 listener.onHwUnitChanged(hwUnit, unitValue, valueUpdateTime)
             }
         }
@@ -51,16 +52,20 @@ class HwUnitI2CAirQualityBme680Sensor(name: String, location: String, private va
     override suspend fun unregisterListener() {
         Timber.d("unregisterListener")
         job?.cancel()
+        bme680BsecJNI?.close()
+        bme680BsecJNI = null
     }
 
     @Throws(Exception::class)
     override suspend fun close() {
         Timber.d("close")
         job?.cancel()
+        bme680BsecJNI?.close()
+        bme680BsecJNI = null
         super.close()
     }
 
-    @Throws(Exception::class)
+    /*@Throws(Exception::class)
     private suspend fun oneShotReadValue() {
         // We do not want to block I2C buss so open device to only display some data and then immediately close it.
         // use block automatically closes resources referenced to mcp9808
@@ -83,13 +88,13 @@ class HwUnitI2CAirQualityBme680Sensor(name: String, location: String, private va
                 Timber.d("temperatureAndHumidity:$unitValue")
             }
         }
-    }
+    }*/
 
     @Throws(Exception::class)
     override suspend fun readValue(): Bme680Data? {
         // We do not want to block I2C buss so open device to only display some data and then immediately close it.
         // use block automatically closes resources referenced to tmp102
-        withContext(Dispatchers.Main) {
+        /*withContext(Dispatchers.Main) {
             Bme680(pinName, ALTERNATIVE_I2C_ADDRESS).use {
                 // Configure driver oversampling for temperature, humidity or pressure,
                 // threshold filter or gas status settings according to your use case
@@ -103,7 +108,7 @@ class HwUnitI2CAirQualityBme680Sensor(name: String, location: String, private va
                 it.powerMode = Bme680.MODE_SLEEP
                 Timber.d("Bme680Data:$unitValue")
             }
-        }
+        }*/
         return unitValue
     }
 }
