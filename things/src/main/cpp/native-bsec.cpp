@@ -27,6 +27,7 @@ typedef struct bsec_context {
 } BsecContext;
 BsecContext g_ctx;
 
+struct timespec current_time_spec{};
 
 /**********************************************************************************************************************/
 /* functions */
@@ -44,28 +45,30 @@ BsecContext g_ctx;
  */
 int8_t bus_write(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data_ptr, uint16_t data_len) {
     LOGE("bus_write dev_addr:%d reg_addr:%d data_len:%d", dev_addr, reg_addr, data_len);
-    // ...
+    if (g_ctx.done) {
+        LOGI("bus_write sensor is finished");
+        return 0;
+    }
+
     // Please insert system specific function to write to the bus where BME680 is connected
-    // ...
     JavaVM *javaVM = g_ctx.javaVM;
     JNIEnv *env;
     jint res = (*javaVM).GetEnv((void **) &env, JNI_VERSION_1_6);
     if (res != JNI_OK) {
-        res = (*javaVM).AttachCurrentThread(&env, NULL);
+        res = (*javaVM).AttachCurrentThread(&env, nullptr);
         if (JNI_OK != res) {
             LOGE("Failed to AttachCurrentThread, ErrorCode = %d", res);
-            return NULL;
+            return 0;
         }
     }
-    jmethodID writeRegister = (*env).GetMethodID(g_ctx.jniNativeBsecClz,
-                                                 "writeRegister", "(I[BI)I");
+    LOGI("LoadBsecJNI bus_write g_ctx:%s", g_ctx.javaVM);
 
     LOGE("bus_write reg_data_ptr:%d", reg_data_ptr[0]);
     jbyteArray byteArray = env->NewByteArray(data_len);
 
-    jbyte *data = env->GetByteArrayElements(byteArray, NULL);
+    jbyte *data = env->GetByteArrayElements(byteArray, nullptr);
 
-    if (data != NULL) {
+    if (data != nullptr) {
         LOGE("bus_write data:%d", data[0]);
         memcpy(data, reg_data_ptr, data_len);
         LOGE("bus_write data:%d", data[0]);
@@ -81,9 +84,15 @@ int8_t bus_write(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data_ptr, uint
 
         return -1;
     }
+
+    jmethodID writeRegister = (*env).GetMethodID(g_ctx.jniNativeBsecClz,
+                                                 "writeRegister", "(I[BI)I");
+    LOGE("bus_write writeRegister:%s", writeRegister);
+
     //env->GetByteArrayRegion(byteArray, 0, data_len, reg_data_ptr)
     int result = env->CallIntMethod(g_ctx.jniNativeBsecObj, writeRegister, reg_addr, byteArray,
                                     data_len);
+    LOGE("bus_write result:%d", result);
     return result;
 }
 
@@ -99,17 +108,20 @@ int8_t bus_write(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data_ptr, uint
  */
 int8_t bus_read(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data_ptr, uint16_t data_len) {
     LOGE("bus_read dev_addr:%d reg_addr:%d data_len:%d", dev_addr, reg_addr, data_len);
-    // ...
+    if (g_ctx.done) {
+        LOGE("bus_read sensor is finished");
+        return 0;
+    }
+
     // Please insert system specific function to read from bus where BME680 is connected
-    // ...
     JavaVM *javaVM = g_ctx.javaVM;
     JNIEnv *env;
     jint res = (*javaVM).GetEnv((void **) &env, JNI_VERSION_1_6);
     if (res != JNI_OK) {
-        res = (*javaVM).AttachCurrentThread(&env, NULL);
+        res = (*javaVM).AttachCurrentThread(&env, nullptr);
         if (JNI_OK != res) {
             LOGE("Failed to AttachCurrentThread, ErrorCode = %d", res);
-            return NULL;
+            return 0;
         }
     }
     jmethodID readRegister = (*env).GetMethodID(g_ctx.jniNativeBsecClz,
@@ -123,10 +135,10 @@ int8_t bus_read(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data_ptr, uint1
 
     LOGE("bus_read byteArray:%d", byteArray[0]);
 
-    jbyte *data = env->GetByteArrayElements(byteArray, NULL);
+    jbyte *data = env->GetByteArrayElements(byteArray, nullptr);
 
 
-    if (data != NULL) {
+    if (data != nullptr) {
         LOGE("bus_read data:%d", data[0]);
         memcpy(reg_data_ptr, data, data_len);
         LOGE("bus_read reg_data_ptr:%d data:%d", reg_data_ptr[0], data[0]);
@@ -154,10 +166,12 @@ int8_t bus_read(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data_ptr, uint1
  */
 void sleep(uint32_t t_ms) {
     LOGE("sleep t_ms:%d", t_ms);
-    // ...
-    // Please insert system specific function sleep or delay for t_ms milliseconds
-    // ...
+    if (g_ctx.done) {
+        LOGE("sleep sensor is finished");
+        return;
+    }
 
+    // Please insert system specific function sleep or delay for t_ms milliseconds
     JavaVM *javaVM = g_ctx.javaVM;
     JNIEnv *env;
     jint res = (*javaVM).GetEnv((void **) &env, JNI_VERSION_1_6);
@@ -180,13 +194,11 @@ void sleep(uint32_t t_ms) {
  * @return          system_current_time    current system timestamp in microseconds
  */
 int64_t get_timestamp_us() {
-    int64_t system_current_time = 0;
-    // ...
+    int64_t system_current_time;
     // Please insert system specific function to retrieve a timestamp (in microseconds)
-    // ...
-    struct timespec res{};
-    clock_gettime(CLOCK_REALTIME, &res);
-    system_current_time = 1000000.0 * res.tv_sec + (double) res.tv_nsec / 1e3;
+    clock_gettime(CLOCK_REALTIME, &current_time_spec);
+    system_current_time =
+            1000000.0 * current_time_spec.tv_sec + (double) current_time_spec.tv_nsec / 1e3;
 
     LOGE("get_timestamp_us :%lld", system_current_time);
     return system_current_time;
@@ -214,9 +226,7 @@ output_ready(int64_t timestamp, float iaq, uint8_t iaq_accuracy, float temperatu
              bsec_library_return_t bsec_status,
              float static_iaq, float co2_equivalent, float breath_voc_equivalent) {
     LOGE("output_ready timestamp :%lld bsec_library_return_t:%d", timestamp, bsec_status);
-    // ...
     // Please insert system specific code to further process or display the BSEC outputs
-    // ...
 
     JavaVM *javaVM = g_ctx.javaVM;
     JNIEnv *env;
@@ -245,13 +255,52 @@ output_ready(int64_t timestamp, float iaq, uint8_t iaq_accuracy, float temperatu
  */
 uint32_t state_load(uint8_t *state_buffer, uint32_t n_buffer) {
     LOGE("state_load n_buffer :%d", n_buffer);
-    // ...
+    if (g_ctx.done) {
+        LOGE("state_load sensor is finished");
+        return 0;
+    }
+
     // Load a previous library state from non-volatile memory, if available.
     //
     // Return zero if loading was unsuccessful or no state was available,
     // otherwise return length of loaded state string.
-    // ...
-    return 0;
+    JavaVM *javaVM = g_ctx.javaVM;
+    JNIEnv *env;
+    jint res = (*javaVM).GetEnv((void **) &env, JNI_VERSION_1_6);
+    if (res != JNI_OK) {
+        res = (*javaVM).AttachCurrentThread(&env, nullptr);
+        if (JNI_OK != res) {
+            LOGE("Failed to AttachCurrentThread, ErrorCode = %d", res);
+            return 0;
+        }
+    }
+
+    jmethodID stateLoad = (*env).GetMethodID(g_ctx.jniNativeBsecClz, "stateLoad", "([BI)I");
+
+    jbyteArray byteArray = env->NewByteArray(n_buffer);
+
+    LOGE("state_load byteArray:%d", byteArray[0]);
+    int loadCount = env->CallIntMethod(g_ctx.jniNativeBsecObj, stateLoad, byteArray, n_buffer);
+    LOGE("state_load byteArray:%d loadCount:%d", byteArray[0], loadCount);
+
+    jbyte *data = env->GetByteArrayElements(byteArray, nullptr);
+
+    if (data != nullptr) {
+        LOGE("state_load data:%d", data[0]);
+        memcpy(state_buffer, data, loadCount);
+        LOGE("state_load state_buffer:%d data:%d", state_buffer[0], data[0]);
+        env->GetByteArrayRegion(byteArray, 0, loadCount, data);
+
+        env->ReleaseByteArrayElements(byteArray, data, JNI_ABORT);
+        LOGE("state_load data:%d", data[0]);
+    } else {
+        LOGE("state_load GetByteArrayElements Error");
+        return 0;
+    }
+
+    LOGE("state_load state_buffer:%d", state_buffer[0]);
+    //env->GetByteArrayRegion(byteArray, 0, data_len, reg_data_ptr)
+    return loadCount;
 }
 
 /*!
@@ -264,9 +313,49 @@ uint32_t state_load(uint8_t *state_buffer, uint32_t n_buffer) {
  */
 void state_save(const uint8_t *state_buffer, uint32_t length) {
     LOGE("state_save length :%d", length);
-    // ...
+    if (g_ctx.done) {
+        LOGE("state_load sensor is finished");
+        return;
+    }
+
     // Save the string some form of non-volatile memory, if possible.
-    // ...
+    JavaVM *javaVM = g_ctx.javaVM;
+    JNIEnv *env;
+    jint res = (*javaVM).GetEnv((void **) &env, JNI_VERSION_1_6);
+    if (res != JNI_OK) {
+        res = (*javaVM).AttachCurrentThread(&env, nullptr);
+        if (JNI_OK != res) {
+            LOGE("Failed to AttachCurrentThread, ErrorCode = %d", res);
+            return;
+        }
+    }
+    LOGE("state_save state_buffer:%d", state_buffer[0]);
+    jbyteArray byteArray = env->NewByteArray(length);
+
+    jbyte *data = env->GetByteArrayElements(byteArray, nullptr);
+
+    if (data != nullptr) {
+        LOGE("state_save data:%d", data[0]);
+        memcpy(data, state_buffer, length);
+        LOGE("state_save data:%d", data[0]);
+
+        env->SetByteArrayRegion(byteArray, 0, length, data);
+
+        LOGE("state_save byteArray:%s", byteArray[0]);
+        env->ReleaseByteArrayElements(byteArray, data, JNI_ABORT);
+        LOGE("state_save data:%d state_buffer:%d", data[0], state_buffer[0]);
+
+    } else {
+        LOGE("state_save GetByteArrayElements Error");
+        return;
+    }
+
+    jmethodID stateSave = (*env).GetMethodID(g_ctx.jniNativeBsecClz,
+                                             "stateSave", "([BI)V");
+
+    //env->GetByteArrayRegion(byteArray, 0, data_len, reg_data_ptr)
+    env->CallVoidMethod(g_ctx.jniNativeBsecObj, stateSave, byteArray,
+                       length);
 }
 
 /*!
@@ -279,6 +368,10 @@ void state_save(const uint8_t *state_buffer, uint32_t length) {
  */
 uint32_t config_load(uint8_t *config_buffer, uint32_t n_buffer) {
     LOGE("config_load n_buffer :%d", n_buffer);
+    if (g_ctx.done) {
+        LOGE("config_load sensor is finished");
+        return 0;
+    }
     // ...
     // Load a library config from non-volatile memory, if available.
     //
@@ -314,76 +407,15 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
     }
 
     g_ctx.done = 0;
-    g_ctx.jniNativeBsecObj = NULL;
+    g_ctx.jniNativeBsecObj = nullptr;
     return JNI_VERSION_1_6;
 }
 
-/*
- * Main working thread function. From a pthread,
- *     calling back to MainActivity::updateTimer() to display ticks on UI
- *     calling back to JniHelper::updateStatus(String msg) for msg
- */
-void *LoadBsecJNI(void *context) {
-
-    auto *pctx = (BsecContext *) context;
-    JavaVM *javaVM = pctx->javaVM;
-    JNIEnv *env;
-    jint res = (*javaVM).GetEnv((void **) &env, JNI_VERSION_1_6);
-    if (res != JNI_OK) {
-        res = (*javaVM).AttachCurrentThread(&env, nullptr);
-        if (JNI_OK != res) {
-            LOGE("Failed to AttachCurrentThread, ErrorCode = %d", res);
-            return nullptr;
-        }
-    }
-
-    jmethodID bsec_init_result = (*env).GetMethodID(pctx->jniNativeBsecClz, "bsecInitResult", "(I)V");
-    jmethodID bsec_finished = (*env).GetMethodID(pctx->jniNativeBsecClz, "bsecFinished", "(V)V");
-
-    return_values_init ret;
-
-    /* Call to the function which initializes the BSEC library
-     * Switch on low-power mode and provide no temperature offset */
-    ret = bsec_iot_init(pctx->delay, 0.0f, bus_write, bus_read, sleep,
-                        state_load,
-                        config_load);
-
-    if (ret.bme680_status) {
-        LOGE("Could not initialize BME680 %d", (int) ret.bme680_status);
-        /* Could not initialize BME680 */
-        env->CallVoidMethod(pctx->jniNativeBsecObj, bsec_init_result, (int) ret.bme680_status);
-    } else if (ret.bsec_status) {
-        LOGE("Could not initialize BSEC library %d", (int) ret.bsec_status);
-        /* Could not initialize BSEC library */
-        env->CallVoidMethod(pctx->jniNativeBsecObj, bsec_init_result, (int) ret.bsec_status);
-    } else {
-        LOGI("BSEC library initialized");
-        env->CallVoidMethod(pctx->jniNativeBsecObj, bsec_init_result, (int) 0);
-        /* Call to endless loop function which reads and processes data based on sensor settings */
-        /* State is saved every 10.000 samples, which means every 10.000 * 3 secs = 500 minutes  */
-        bsec_iot_loop(sleep, get_timestamp_us, output_ready, state_save, 10000);
-        LOGI("BSEC library Stopped");
-        env->CallVoidMethod(pctx->jniNativeBsecObj, bsec_finished);
-    }
-
-    (*javaVM).DetachCurrentThread();
-    return context;
-}
-
-
 extern "C"
-JNIEXPORT void JNICALL
+JNIEXPORT jint JNICALL
 Java_com_krisbiketeam_smarthomeraspbpi3_units_Bme680BsecJNI_initBme680JNI(JNIEnv *env,
                                                                           jobject instance,
                                                                           jboolean short_delay) {
-    pthread_t threadInfo_;
-    pthread_attr_t threadAttr_;
-
-    pthread_attr_init(&threadAttr_);
-    pthread_attr_setdetachstate(&threadAttr_, PTHREAD_CREATE_DETACHED);
-
-    pthread_mutex_init(&g_ctx.lock, NULL);
-
     jclass clz = env->GetObjectClass(instance);
 
     g_ctx.jniNativeBsecClz = reinterpret_cast<jclass>(env->NewGlobalRef(clz));
@@ -394,18 +426,41 @@ Java_com_krisbiketeam_smarthomeraspbpi3_units_Bme680BsecJNI_initBme680JNI(JNIEnv
         g_ctx.delay = BSEC_SAMPLE_RATE_LP;
     }
 
-    int result = pthread_create(&threadInfo_, &threadAttr_, LoadBsecJNI, &g_ctx);
-    assert(result == 0);
+    return_values_init ret;
 
-    pthread_attr_destroy(&threadAttr_);
+    /* Call to the function which initializes the BSEC library
+     * Switch on low-power mode and provide no temperature offset */
+    ret = bsec_iot_init(BME680_I2C_ADDR_SECONDARY, g_ctx.delay, 0.0f, bus_write, bus_read, sleep,
+                        state_load, config_load);
+    int8_t result;
 
-    (void) result;
+    if (ret.bme680_status) {
+        LOGE("Could not initialize BME680:%d", (int) ret.bme680_status);
+        /* Could not initialize BME680 */
+        return ret.bme680_status;
+    } else if (ret.bsec_status) {
+        LOGE("Could not initialize BSEC library:%d", (int) ret.bsec_status);
+        /* Could not initialize BSEC library */
+        return ret.bsec_status;
+    } else {
+        LOGI("BSEC library initialized");
+        /* Call to endless loop function which reads and processes data based on sensor settings */
+        /* State is saved every 10.000 samples, which means every 10.000 * 3 secs = 500 minutes  */
+        result = bsec_iot_loop(sleep, get_timestamp_us, output_ready, state_save, 10000,
+                               &g_ctx.lock, &g_ctx.done);
+        LOGI("BSEC library Stopped, result:%d", result);
+    }
+    g_ctx.javaVM->DetachCurrentThread();
+
+    return result;
 }
 
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_krisbiketeam_smarthomeraspbpi3_units_Bme680BsecJNI_closeBme680JNI(JNIEnv *env,
                                                                            jobject thiz) {
+    LOGI("BSEC close library");
+
     pthread_mutex_lock(&g_ctx.lock);
     g_ctx.done = 1;
     pthread_mutex_unlock(&g_ctx.lock);
@@ -414,6 +469,7 @@ Java_com_krisbiketeam_smarthomeraspbpi3_units_Bme680BsecJNI_closeBme680JNI(JNIEn
     struct timespec sleepTime;
     memset(&sleepTime, 0, sizeof(sleepTime));
     sleepTime.tv_nsec = 100000000;
+    LOGI("BSEC close library wait for processing finished");
     while (g_ctx.done) {
         nanosleep(&sleepTime, NULL);
     }

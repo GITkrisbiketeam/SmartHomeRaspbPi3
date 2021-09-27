@@ -12,6 +12,8 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.FirebaseCredentials
+import com.krisbiketeam.smarthomeraspbpi3.common.decodeHex
+import com.krisbiketeam.smarthomeraspbpi3.common.toHex
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.SharingStarted
@@ -39,6 +41,8 @@ class SecureStorageImpl(private val context: Context, homeInformationRepository:
     override var homeName: String by encryptedSharedPreferences.homeName()
 
     override var alarmEnabled: Boolean by encryptedSharedPreferences.alarmEnabled()
+
+    override var bme680State: ByteArray by encryptedSharedPreferences.bme680State()
 
     override val firebaseCredentialsLiveData: LiveData<FirebaseCredentials> =
             object : LiveData<FirebaseCredentials>() {
@@ -188,6 +192,18 @@ class SecureStorageImpl(private val context: Context, homeInformationRepository:
 
             override fun setValue(thisRef: Any, property: KProperty<*>, value: Boolean) {
                 edit { putBoolean(ALARM_ENABLED_KEY, value) }
+            }
+        }
+    }
+
+    private fun SharedPreferences.bme680State():
+            ReadWriteProperty<Any, ByteArray> {
+        return object : ReadWriteProperty<Any, ByteArray> {
+            override fun getValue(thisRef: Any, property: KProperty<*>) =
+                    getString(BME680_STATE_KEY,"").decodeHex()
+
+            override fun setValue(thisRef: Any, property: KProperty<*>, value: ByteArray) {
+                edit { putString(BME680_STATE_KEY, value.toHex()) }
             }
         }
     }

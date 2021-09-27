@@ -16,6 +16,8 @@ import timber.log.Timber
 class ThingsApplication : Application() {
     override fun onCreate() {
         super.onCreate()
+        System.loadLibrary("native-bsec")
+
 
         // Set to ulimited number of corutines to run on new threads not limiter do default 64
         System.setProperty(IO_PARALLELISM_PROPERTY_NAME, Int.MAX_VALUE.toString())

@@ -39,7 +39,7 @@ const val SENSOR_ERROR = "error"
 const val SENSOR_NAME = "sensor"
 const val SENSOR_VALUE = "value"
 
-class Home(secureStorage: SecureStorage,
+class Home(private val secureStorage: SecureStorage,
            private val homeInformationRepository: FirebaseHomeInformationRepository,
            private val analytics: Analytics) :
         Sensor.HwUnitListener<Any> {
@@ -423,7 +423,7 @@ class Home(secureStorage: SecureStorage,
                         hwUnit.refreshRate) as BaseHwUnit<Any>
             }
             BoardConfig.AIR_QUALITY_SENSOR_BME680 -> {
-                HwUnitI2CAirQualityBme680Sensor(hwUnit.name, hwUnit.location, hwUnit.pinName,
+                HwUnitI2CAirQualityBme680Sensor(secureStorage, hwUnit.name, hwUnit.location, hwUnit.pinName,
                         hwUnit.softAddress ?: 0,
                         hwUnit.refreshRate) as BaseHwUnit<Any>
             }

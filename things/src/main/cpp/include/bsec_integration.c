@@ -77,6 +77,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <pthread.h>
 
 #include "bsec_integration.h"
 
@@ -156,19 +157,18 @@ static bsec_library_return_t bme680_bsec_update_subscription(float sample_rate)
  *
  * @return      zero if successful, negative otherwise
  */
-return_values_init bsec_iot_init(float sample_rate, float temperature_offset, bme680_com_fptr_t bus_write, 
+return_values_init bsec_iot_init(uint8_t dev_addr, float sample_rate, float temperature_offset, bme680_com_fptr_t bus_write,
                     bme680_com_fptr_t bus_read, sleep_fct sleep, state_load_fct state_load, config_load_fct config_load)
 {
     return_values_init ret = {BME680_OK, BSEC_OK};
-    bsec_library_return_t bsec_status = BSEC_OK;
-    
+
     uint8_t bsec_state[BSEC_MAX_STATE_BLOB_SIZE] = {0};
     uint8_t bsec_config[BSEC_MAX_PROPERTY_BLOB_SIZE] = {0};
     uint8_t work_buffer[BSEC_MAX_WORKBUFFER_SIZE] = {0};
     int bsec_state_len, bsec_config_len;
     
     /* Fixed I2C configuration */
-    bme680_g.dev_id = BME680_I2C_ADDR_PRIMARY;
+    bme680_g.dev_id = dev_addr;
     bme680_g.intf = BME680_I2C_INTF;
     /* User configurable I2C configuration */
     bme680_g.write = bus_write;
@@ -193,7 +193,7 @@ return_values_init bsec_iot_init(float sample_rate, float temperature_offset, bm
     bsec_config_len = config_load(bsec_config, sizeof(bsec_config));
     if (bsec_config_len != 0)
     {       
-        ret.bsec_status = bsec_set_configuration(bsec_config, bsec_config_len, work_buffer, sizeof(work_buffer));     
+        ret.bsec_status = bsec_set_configuration(bsec_config, bsec_config_len, work_buffer, sizeof(work_buffer));
         if (ret.bsec_status != BSEC_OK)
         {
             return ret;
@@ -204,7 +204,7 @@ return_values_init bsec_iot_init(float sample_rate, float temperature_offset, bm
     bsec_state_len = state_load(bsec_state, sizeof(bsec_state));
     if (bsec_state_len != 0)
     {       
-        ret.bsec_status = bsec_set_state(bsec_state, bsec_state_len, work_buffer, sizeof(work_buffer));     
+        ret.bsec_status = bsec_set_state(bsec_state, bsec_state_len, work_buffer, sizeof(work_buffer));
         if (ret.bsec_status != BSEC_OK)
         {
             return ret;
@@ -232,7 +232,7 @@ return_values_init bsec_iot_init(float sample_rate, float temperature_offset, bm
  *
  * @return      none
  */
-static void bme680_bsec_trigger_measurement(bsec_bme_settings_t *sensor_settings, sleep_fct sleep)
+static int8_t bme680_bsec_trigger_measurement(bsec_bme_settings_t *sensor_settings, sleep_fct sleep)
 {
     uint16_t meas_period;
     uint8_t set_required_settings;
@@ -258,10 +258,17 @@ static void bme680_bsec_trigger_measurement(bsec_bme_settings_t *sensor_settings
         
         /* Set the desired sensor configuration */
         bme680_status = bme680_set_sensor_settings(set_required_settings, &bme680_g);
-             
+        if (bme680_status != BME680_OK)
+        {
+            return bme680_status;
+        }
         /* Set power mode as forced mode and trigger forced mode measurement */
         bme680_status = bme680_set_sensor_mode(&bme680_g);
-        
+        if (bme680_status != BME680_OK)
+        {
+            return bme680_status;
+        }
+
         /* Get the total measurement duration so as to sleep or wait till the measurement is complete */
         bme680_get_profile_dur(&meas_period, &bme680_g);
         
@@ -270,7 +277,12 @@ static void bme680_bsec_trigger_measurement(bsec_bme_settings_t *sensor_settings
     }
     
     /* Call the API to get current operation mode of the sensor */
-    bme680_status = bme680_get_sensor_mode(&bme680_g);  
+    bme680_status = bme680_get_sensor_mode(&bme680_g);
+    if (bme680_status != BME680_OK)
+    {
+        return bme680_status;
+    }
+
     /* When the measurement is completed and data is ready for reading, the sensor must be in BME680_SLEEP_MODE.
      * Read operation mode to check whether measurement is completely done and wait until the sensor is no more
      * in BME680_FORCED_MODE. */
@@ -279,7 +291,12 @@ static void bme680_bsec_trigger_measurement(bsec_bme_settings_t *sensor_settings
         /* sleep for 5 ms */
         sleep(5);
         bme680_status = bme680_get_sensor_mode(&bme680_g);
+        if (bme680_status != BME680_OK)
+        {
+            return bme680_status;
+        }
     }
+    return bme680_status;
 }
 
 /*!
@@ -292,7 +309,7 @@ static void bme680_bsec_trigger_measurement(bsec_bme_settings_t *sensor_settings
  *
  * @return      none
  */
-static void bme680_bsec_read_data(int64_t time_stamp_trigger, bsec_input_t *inputs, uint8_t *num_bsec_inputs,
+static int8_t bme680_bsec_read_data(int64_t time_stamp_trigger, bsec_input_t *inputs, uint8_t *num_bsec_inputs,
     int32_t bsec_process_data)
 {
     static struct bme680_field_data data;
@@ -302,6 +319,10 @@ static void bme680_bsec_read_data(int64_t time_stamp_trigger, bsec_input_t *inpu
     if (bsec_process_data)
     {
         bme680_status = bme680_get_sensor_data(&data, &bme680_g);
+        if (bme680_status != BME680_OK)
+        {
+            return bme680_status;
+        }
 
         if (data.status & BME680_NEW_DATA_MSK)
         {
@@ -362,6 +383,7 @@ static void bme680_bsec_read_data(int64_t time_stamp_trigger, bsec_input_t *inpu
             }
         }
     }
+    return bme680_status;
 }
 
 /*!
@@ -488,8 +510,8 @@ static void bme680_bsec_process_data(bsec_input_t *bsec_inputs, uint8_t num_bsec
  *
  * @return      none
  */
-void bsec_iot_loop(sleep_fct sleep, get_timestamp_us_fct get_timestamp_us, output_ready_fct output_ready,
-                    state_save_fct state_save, uint32_t save_intvl)
+int8_t bsec_iot_loop(sleep_fct sleep, get_timestamp_us_fct get_timestamp_us, output_ready_fct output_ready,
+                    state_save_fct state_save, uint32_t save_intvl, pthread_mutex_t* lock, int* done)
 {
     /* Timestamp variables */
     int64_t time_stamp = 0;
@@ -511,22 +533,48 @@ void bsec_iot_loop(sleep_fct sleep, get_timestamp_us_fct get_timestamp_us, outpu
     uint32_t n_samples = 0;
     
     bsec_library_return_t bsec_status = BSEC_OK;
+    int8_t bme680_status = BME680_OK;
 
     while (1)
     {
+        pthread_mutex_lock(lock);
+        int is_done = *done;
+        if (*done) {
+            *done = 0;
+        }
+        pthread_mutex_unlock(lock);
+        if (is_done) {
+            break;
+        }
         /* get the timestamp in nanoseconds before calling bsec_sensor_control() */
         time_stamp = get_timestamp_us() * 1000;
         
         /* Retrieve sensor settings to be used in this time instant by calling bsec_sensor_control */
         bsec_sensor_control(time_stamp, &sensor_settings);
-        
+        if (*done) {
+            break;
+        }
         /* Trigger a measurement if necessary */
-        bme680_bsec_trigger_measurement(&sensor_settings, sleep);
-        
+        bme680_status = bme680_bsec_trigger_measurement(&sensor_settings, sleep);
+        if (bme680_status != BME680_OK)
+        {
+            return bme680_status;
+        }
+        if (*done) {
+            break;
+        }
+
         /* Read data from last measurement */
         num_bsec_inputs = 0;
-        bme680_bsec_read_data(time_stamp, bsec_inputs, &num_bsec_inputs, sensor_settings.process_data);
-        
+        bme680_status = bme680_bsec_read_data(time_stamp, bsec_inputs, &num_bsec_inputs, sensor_settings.process_data);
+        if (bme680_status != BME680_OK)
+        {
+            return bme680_status;
+        }
+        if (*done) {
+            break;
+        }
+
         /* Time to invoke BSEC to perform the actual processing */
         bme680_bsec_process_data(bsec_inputs, num_bsec_inputs, output_ready);
         
@@ -543,7 +591,9 @@ void bsec_iot_loop(sleep_fct sleep, get_timestamp_us_fct get_timestamp_us, outpu
             }
             n_samples = 0;
         }
-        
+        if (*done) {
+            break;
+        }
         
         /* Compute how long we can sleep until we need to call bsec_sensor_control() next */
         /* Time_stamp is converted from microseconds to nanoseconds first and then the difference to milliseconds */
@@ -553,6 +603,7 @@ void bsec_iot_loop(sleep_fct sleep, get_timestamp_us_fct get_timestamp_us, outpu
             sleep((uint32_t)time_stamp_interval_ms);
         }
     }
+    return bme680_status;
 }
 
 /*! @}*/

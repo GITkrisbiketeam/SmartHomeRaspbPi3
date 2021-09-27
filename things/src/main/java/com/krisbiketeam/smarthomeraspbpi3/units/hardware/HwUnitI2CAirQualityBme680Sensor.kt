@@ -2,6 +2,7 @@ package com.krisbiketeam.smarthomeraspbpi3.units.hardware
 
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.ConnectionType
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.Bme680Data
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
 import com.krisbiketeam.smarthomeraspbpi3.units.Bme680BsecJNI
@@ -13,7 +14,7 @@ import timber.log.Timber
 // Refresh rate is currently hardcoded in native library set to 3 sec or default 300 sec (5 minutes)
 private const val REFRESH_RATE = 300000L // 5 min
 
-class HwUnitI2CAirQualityBme680Sensor(name: String, location: String, private val pinName: String,
+class HwUnitI2CAirQualityBme680Sensor(private val secureStorage: SecureStorage, name: String, location: String, private val pinName: String,
                                       private val softAddress: Int, private val refreshRate: Long? = REFRESH_RATE,
                                       override var device: AutoCloseable? = null) :
         HwUnitI2C<Bme680Data>, Sensor<Bme680Data> {
@@ -40,28 +41,29 @@ class HwUnitI2CAirQualityBme680Sensor(name: String, location: String, private va
         Timber.d("registerListener")
         job?.cancel()
         job = GlobalScope.plus(exceptionHandler).launch(Dispatchers.IO) {
-            bme680BsecJNI = Bme680BsecJNI(this, pinName, softAddress, refreshRate ?: REFRESH_RATE < REFRESH_RATE) {
+            bme680BsecJNI = Bme680BsecJNI(this, secureStorage, pinName, softAddress) {
                 unitValue = it
                 valueUpdateTime = System.currentTimeMillis()
                 Timber.d("Bme680Data:$unitValue")
                 listener.onHwUnitChanged(hwUnit, unitValue, valueUpdateTime)
             }
+            bme680BsecJNI?.initBme680JNI(refreshRate ?: REFRESH_RATE < REFRESH_RATE)
         }
     }
 
     override suspend fun unregisterListener() {
         Timber.d("unregisterListener")
-        job?.cancel()
         bme680BsecJNI?.close()
         bme680BsecJNI = null
+        job?.cancel()
     }
 
     @Throws(Exception::class)
     override suspend fun close() {
         Timber.d("close")
-        job?.cancel()
         bme680BsecJNI?.close()
         bme680BsecJNI = null
+        job?.cancel()
         super.close()
     }
 

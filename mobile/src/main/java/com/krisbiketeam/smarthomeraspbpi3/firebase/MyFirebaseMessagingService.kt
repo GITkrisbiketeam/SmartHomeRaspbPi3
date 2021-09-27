@@ -8,7 +8,7 @@ import android.content.Intent
 import android.media.RingtoneManager
 import android.os.Build
 import androidx.core.app.NotificationCompat
-import com.google.firebase.iid.FirebaseInstanceId
+import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.krisbiketeam.smarthomeraspbpi3.LoadActivity
@@ -20,14 +20,14 @@ import timber.log.Timber
 
 fun getFirebaseAppToken(tokenReceived: (String?) -> Unit) {
     // Get token
-    FirebaseInstanceId.getInstance().instanceId.addOnCompleteListener { task ->
+    FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
         if (!task.isSuccessful) {
             Timber.w(task.exception, "getInstanceId failed")
             tokenReceived(null)
         }
 
         // Get new Instance ID token
-        val token = task.result?.token
+        val token = task.result
         Timber.d("getInstanceId token: $token")
         tokenReceived(token)
     }

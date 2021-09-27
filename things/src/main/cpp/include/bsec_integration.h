@@ -138,7 +138,7 @@ typedef struct{
  *
  * @return      zero if successful, negative otherwise
  */
-return_values_init bsec_iot_init(float sample_rate, float temperature_offset, bme680_com_fptr_t bus_write, bme680_com_fptr_t bus_read, 
+return_values_init bsec_iot_init(uint8_t dev_addr, float sample_rate, float temperature_offset, bme680_com_fptr_t bus_write, bme680_com_fptr_t bus_read,
     sleep_fct sleep, state_load_fct state_load, config_load_fct config_load);
 
 /*!
@@ -151,9 +151,9 @@ return_values_init bsec_iot_init(float sample_rate, float temperature_offset, bm
  * @param[in]   save_intvl          interval at which BSEC state should be saved (in samples)
  *
  * @return      return_values_init	struct with the result of the API and the BSEC library
- */ 
-void bsec_iot_loop(sleep_fct sleep, get_timestamp_us_fct get_timestamp_us, output_ready_fct output_ready,
-    state_save_fct state_save, uint32_t save_intvl);
+ */
+int8_t bsec_iot_loop(sleep_fct sleep, get_timestamp_us_fct get_timestamp_us, output_ready_fct output_ready,
+    state_save_fct state_save, uint32_t save_intvl, pthread_mutex_t* lock, int* done);
 
 #ifdef __cplusplus
 }

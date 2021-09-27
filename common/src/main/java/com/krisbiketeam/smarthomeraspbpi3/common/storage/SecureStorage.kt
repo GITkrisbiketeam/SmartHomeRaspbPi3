@@ -9,6 +9,7 @@ internal const val PASSWORD_KEY = "securePasswordKey"
 internal const val UID_KEY = "secureUidKey"
 internal const val HOME_NAME_KEY = "homeNameKey"
 internal const val ALARM_ENABLED_KEY = "alarmEnabledKey"
+internal const val BME680_STATE_KEY = "bme680StateKey"
 
 interface SecureStorage {
 
@@ -18,6 +19,8 @@ interface SecureStorage {
     val homeNameLiveData: LiveData<String>
     var alarmEnabled: Boolean
     val alarmEnabledLiveData : LiveData<Boolean>
+
+    var bme680State: ByteArray
 
     fun isAuthenticated(): Boolean
 

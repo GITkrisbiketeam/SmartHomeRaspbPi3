@@ -2,12 +2,15 @@ package com.krisbiketeam.smarthomeraspbpi3.common.storage
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.core.content.edit
 import androidx.lifecycle.LiveData
 import androidx.preference.PreferenceManager
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.FirebaseCredentials
+import com.krisbiketeam.smarthomeraspbpi3.common.decodeHex
+import com.krisbiketeam.smarthomeraspbpi3.common.toHex
 import kotlinx.coroutines.flow.Flow
 import timber.log.Timber
 import kotlin.properties.ReadWriteProperty
@@ -25,6 +28,8 @@ class NotSecureStorage(context: Context, homeInformationRepository: FirebaseHome
     override var homeName: String by sharedPrefs.homeName()
 
     override var alarmEnabled: Boolean by prefs.alarmEnabled()
+
+    override var bme680State: ByteArray by prefs.bme680State()
 
     override val firebaseCredentialsLiveData: LiveData<FirebaseCredentials> =
             object : LiveData<FirebaseCredentials>() {
@@ -144,6 +149,18 @@ class NotSecureStorage(context: Context, homeInformationRepository: FirebaseHome
 
             override fun setValue(thisRef: Any, property: KProperty<*>, value: Boolean) {
                 edit().putBoolean(ALARM_ENABLED_KEY, value).apply()
+            }
+        }
+    }
+
+    private fun SharedPreferences.bme680State():
+            ReadWriteProperty<Any, ByteArray> {
+        return object : ReadWriteProperty<Any, ByteArray> {
+            override fun getValue(thisRef: Any, property: KProperty<*>) =
+                    getString(BME680_STATE_KEY,"").decodeHex()
+
+            override fun setValue(thisRef: Any, property: KProperty<*>, value: ByteArray) {
+                edit { putString(BME680_STATE_KEY, value.toHex()) }
             }
         }
     }
