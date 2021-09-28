@@ -27,8 +27,6 @@ class HwUnitI2CAirQualityBme680Sensor(private val secureStorage: SecureStorage, 
 
     private var job: Job? = null
 
-    private var bme680BsecJNI: Bme680BsecJNI? = null
-
     override suspend fun connect() {
         // Do noting we do not want to block I2C device so it will be opened while setting the value
         // and then immediately closed to release resources
@@ -41,76 +39,39 @@ class HwUnitI2CAirQualityBme680Sensor(private val secureStorage: SecureStorage, 
         Timber.d("registerListener")
         job?.cancel()
         job = GlobalScope.plus(exceptionHandler).launch(Dispatchers.IO) {
-            bme680BsecJNI = Bme680BsecJNI(this, secureStorage, pinName, softAddress) {
+            val bme680BsecJNI =  Bme680BsecJNI(this, secureStorage, pinName, softAddress) {
                 unitValue = it
                 valueUpdateTime = System.currentTimeMillis()
                 Timber.d("Bme680Data:$unitValue")
                 listener.onHwUnitChanged(hwUnit, unitValue, valueUpdateTime)
             }
-            bme680BsecJNI?.initBme680JNI(refreshRate ?: REFRESH_RATE < REFRESH_RATE)
+            try {
+                bme680BsecJNI.initBme680JNI(refreshRate ?: REFRESH_RATE < REFRESH_RATE)
+            } catch (e: Exception) {
+                Timber.i("Bme680 Job Canceled $e")
+                //TODO: should we call that
+                //throw e
+            } finally {
+                Timber.i("Bme680 finally close")
+                bme680BsecJNI.close()
+            }
         }
     }
 
     override suspend fun unregisterListener() {
         Timber.d("unregisterListener")
-        bme680BsecJNI?.close()
-        bme680BsecJNI = null
-        job?.cancel()
+        job?.cancelAndJoin()
     }
 
     @Throws(Exception::class)
     override suspend fun close() {
         Timber.d("close")
-        bme680BsecJNI?.close()
-        bme680BsecJNI = null
-        job?.cancel()
+        job?.cancelAndJoin()
         super.close()
     }
 
-    /*@Throws(Exception::class)
-    private suspend fun oneShotReadValue() {
-        // We do not want to block I2C buss so open device to only display some data and then immediately close it.
-        // use block automatically closes resources referenced to mcp9808
-        withContext(Dispatchers.Main) {
-            Bme680(pinName, ALTERNATIVE_I2C_ADDRESS).use {
-                // Configure driver oversampling for temperature, humidity or pressure,
-                // threshold filter or gas status settings according to your use case
-                it.temperatureOversample = Bme680.OVERSAMPLING_1X
-                it.humidityOversample = Bme680.OVERSAMPLING_1X
-                // Ensure the driver is powered and not sleeping before trying to read from it
-                it.powerMode = Bme680.MODE_FORCED
-
-                val delay = it.profileDuration.toLong()
-                Timber.d("oneShotReadValue delay for measurement to complete:$delay")
-                delay(it.profileDuration.toLong())
-
-                unitValue = Bme680Data(0, 0f, 0, it.readTemperature(), it.readHumidity(), 0f, 0f, 0f, 0f, 0, 0f, 0f, 0f)
-                it.powerMode = Bme680.MODE_SLEEP
-                valueUpdateTime = System.currentTimeMillis()
-                Timber.d("temperatureAndHumidity:$unitValue")
-            }
-        }
-    }*/
-
     @Throws(Exception::class)
     override suspend fun readValue(): Bme680Data? {
-        // We do not want to block I2C buss so open device to only display some data and then immediately close it.
-        // use block automatically closes resources referenced to tmp102
-        /*withContext(Dispatchers.Main) {
-            Bme680(pinName, ALTERNATIVE_I2C_ADDRESS).use {
-                // Configure driver oversampling for temperature, humidity or pressure,
-                // threshold filter or gas status settings according to your use case
-                it.temperatureOversample = Bme680.OVERSAMPLING_1X
-                it.humidityOversample = Bme680.OVERSAMPLING_1X
-                // Ensure the driver is powered and not sleeping before trying to read from it
-                it.powerMode = Bme680.MODE_FORCED
-
-                unitValue = Bme680Data(0, 0f, 0, it.readTemperature(), it.readHumidity(), 0f, 0f, 0f, 0f, 0, 0f, 0f, 0f)
-                valueUpdateTime = System.currentTimeMillis()
-                it.powerMode = Bme680.MODE_SLEEP
-                Timber.d("Bme680Data:$unitValue")
-            }
-        }*/
         return unitValue
     }
 }

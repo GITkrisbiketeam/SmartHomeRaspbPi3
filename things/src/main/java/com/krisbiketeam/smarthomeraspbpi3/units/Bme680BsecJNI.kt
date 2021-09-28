@@ -10,7 +10,6 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.Bme680Data
 import com.krisbiketeam.smarthomeraspbpi3.common.toHex
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import timber.log.Timber
 
 class Bme680BsecJNI(private val scope: CoroutineScope, private val secureStorage: SecureStorage, bus: String? = null,
@@ -39,20 +38,20 @@ class Bme680BsecJNI(private val scope: CoroutineScope, private val secureStorage
      */
     @Throws(Exception::class)
     @MainThread
-    suspend fun close() {
+    fun close() {
         Timber.d("close started")
         //mDeviceMutex.withLock {
-            try {
-                if (mDevice != null) {
-                    closeBme680JNI()
-                }
-                mDevice?.close()
-            } catch (e: Exception) {
-                throw Exception("Error closing Si7021", e)
-            } finally {
-                mDevice = null
-                Timber.d("close finished")
+        try {
+            if (mDevice != null) {
+                closeBme680JNI()
             }
+            mDevice?.close()
+        } catch (e: Exception) {
+            throw Exception("Error closing Si7021", e)
+        } finally {
+            mDevice = null
+            Timber.d("close finished")
+        }
         //}
     }
 
@@ -64,8 +63,9 @@ class Bme680BsecJNI(private val scope: CoroutineScope, private val secureStorage
     @Keep
     fun readRegister(register: Int, regDataBuffer: ByteArray, dataLen: Int): Int {
         Timber.w("readRegister ${regDataBuffer.toHex()}")
-        return runBlocking(scope.coroutineContext) {
-            //mDeviceMutex.withLock {
+        return try {
+            runBlocking(scope.coroutineContext) {
+                //mDeviceMutex.withLock {
                 mDevice?.run {
                     withContext(Dispatchers.Main) {
                         try {
@@ -81,15 +81,19 @@ class Bme680BsecJNI(private val scope: CoroutineScope, private val secureStorage
                     Timber.w("Sensor I2C already closed, no readRegister")
                     -1
                 }
-            //}
-
+                //}
+            }
+        } catch (e: CancellationException) {
+            Timber.e("readRegister already closed :$e")
+            -1
         }
     }
 
     @Keep
     fun writeRegister(register: Int, regDataBuffer: ByteArray, dataLen: Int): Int {
-        return runBlocking(scope.coroutineContext) {
-            //mDeviceMutex.withLock {
+        return try {
+            runBlocking(scope.coroutineContext) {
+                //mDeviceMutex.withLock {
                 mDevice?.run {
                     Timber.w("writeRegister register:0x${Integer.toHexString(register)} dataLen:$dataLen ${regDataBuffer.toHex()}")
                     withContext(Dispatchers.Main) {
@@ -105,7 +109,11 @@ class Bme680BsecJNI(private val scope: CoroutineScope, private val secureStorage
                     Timber.w("Sensor I2C already closed, no writeRegister")
                     -1
                 }
-            //}
+                //}
+            }
+        } catch (e: CancellationException) {
+            Timber.e("writeRegister already closed :$e")
+            -1
         }
     }
 
@@ -113,10 +121,14 @@ class Bme680BsecJNI(private val scope: CoroutineScope, private val secureStorage
     @Keep
     fun stateSave(stateBuffer: ByteArray, dataLen: Int) {
         Timber.w("stateSave dataLen:$dataLen stateBuffer:0x${stateBuffer.toHex()}")
-        runBlocking(scope.coroutineContext) {
-            withContext(Dispatchers.Main) {
-                secureStorage.bme680State = stateBuffer.copyOf(dataLen)
+        try {
+            runBlocking(scope.coroutineContext) {
+                withContext(Dispatchers.Main) {
+                    secureStorage.bme680State = stateBuffer.copyOf(dataLen)
+                }
             }
+        } catch (e: CancellationException) {
+            Timber.e("stateSave  already closed :$e")
         }
     }
 
@@ -124,13 +136,18 @@ class Bme680BsecJNI(private val scope: CoroutineScope, private val secureStorage
     @Keep
     fun stateLoad(stateBuffer: ByteArray, dataLen: Int): Int {
         Timber.w("stateLoad dataLen:$dataLen buffer:0x${stateBuffer.toHex()}")
-        return runBlocking(scope.coroutineContext) {
-            withContext(Dispatchers.IO) {
-                secureStorage.bme680State.run {
-                    copyInto(stateBuffer)
-                    size
+        return try {
+            runBlocking(scope.coroutineContext) {
+                withContext(Dispatchers.IO) {
+                    secureStorage.bme680State.run {
+                        copyInto(stateBuffer)
+                        size
+                    }
                 }
             }
+        } catch (e: CancellationException) {
+            Timber.e("stateSave already closed :$e")
+            0
         }
     }
 
@@ -138,8 +155,12 @@ class Bme680BsecJNI(private val scope: CoroutineScope, private val secureStorage
     fun sleep(delay: Int) {
         Timber.d("sleep delay:$delay")
         if (mDevice != null) {
-            runBlocking(scope.coroutineContext) {
-                delay(delay.toLong())
+            try {
+                runBlocking(scope.coroutineContext) {
+                    delay(delay.toLong())
+                }
+            } catch (e: CancellationException) {
+                Timber.e("readRegister Exception :$e")
             }
         } else {
             Timber.w("Sensor I2C already closed, no sleep")
@@ -147,13 +168,22 @@ class Bme680BsecJNI(private val scope: CoroutineScope, private val secureStorage
     }
 
     @Keep
-    fun outputReady(timestamp: Long, iaq: Float, iaq_accuracy: Int, temperature: Float, humidity: Float,
-                    pressure: Float, rawTemperature: Float, rawHumidity: Float, gas: Float,
+    fun outputReady(timestamp: Long,
+                    iaq: Float, iaqAccuracy: Int,
+                    temperature: Float,
+                    humidity: Float,
+                    pressure: Float,
+                    rawTemperature: Float, rawHumidity: Float,
+                    gas: Float,
                     bsec_status: Int,
-                    staticIaq: Float, co2Equivalent: Float, breathVocEquivalent: Float) {
+                    staticIaq: Float, staticIaqAccuracy: Int,
+                    co2Equivalent: Float, co2EquivalentAccuracy: Int,
+                    breathVocEquivalent: Float, breathVocEquivalentAccuracy: Int,
+                    compGasValue: Float, compGasAccuracy: Int,
+                    gasPercentage: Float, gasPercentageAccuracy: Int) {
         Timber.w("outputReady timestamp:$timestamp\n" +
                 "    iaq:$iaq\n" +
-                "    iaq_accuracy:$iaq_accuracy\n" +
+                "    iaqAccuracy:$iaqAccuracy\n" +
                 "    temperature:$temperature\n" +
                 "    humidity:$humidity\n" +
                 "    pressure:$pressure\n" +
@@ -162,14 +192,22 @@ class Bme680BsecJNI(private val scope: CoroutineScope, private val secureStorage
                 "    gas:$gas\n" +
                 "        bsec_status:$bsec_status\n" +
                 "    staticIaq:$staticIaq\n" +
+                "    staticIaqAccuracy:$staticIaqAccuracy\n" +
                 "    co2Equivalent:$co2Equivalent\n" +
-                "    breathVocEquivalent:$breathVocEquivalent\n")
+                "    co2EquivalentAccuracy:$co2EquivalentAccuracy\n" +
+                "    breathVocEquivalent:$breathVocEquivalent\n" +
+                "    breathVocEquivalentAccuracy:$breathVocEquivalentAccuracy\n" +
+                "    compGasValue:$compGasValue\n" +
+                "    compGasAccuracy:$compGasAccuracy\n" +
+                "    gasPercentage:$gasPercentage\n" +
+                "    gasPercentageAccuracy:$gasPercentageAccuracy\n")
 
         CoroutineScope(scope.coroutineContext).launch {
-            resultCallback(Bme680Data(timestamp, iaq, iaq_accuracy, temperature, humidity,
-                    pressure, rawTemperature, rawHumidity, gas,
-                    bsec_status,
-                    staticIaq, co2Equivalent, breathVocEquivalent))
+            resultCallback(Bme680Data(timestamp, iaq, iaqAccuracy, temperature, humidity,
+                    pressure, rawTemperature, rawHumidity, gas, bsec_status, staticIaq,
+                    staticIaqAccuracy, co2Equivalent, co2EquivalentAccuracy, breathVocEquivalent,
+                    breathVocEquivalentAccuracy, compGasValue, compGasAccuracy, gasPercentage,
+                    gasPercentageAccuracy))
         }
     }
 

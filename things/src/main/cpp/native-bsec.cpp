@@ -154,7 +154,7 @@ int8_t bus_read(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data_ptr, uint1
 
     LOGE("bus_read reg_data_ptr:%d", reg_data_ptr[0]);
     //env->GetByteArrayRegion(byteArray, 0, data_len, reg_data_ptr)
-    return result;;
+    return result;
 }
 
 /*!
@@ -176,7 +176,7 @@ void sleep(uint32_t t_ms) {
     JNIEnv *env;
     jint res = (*javaVM).GetEnv((void **) &env, JNI_VERSION_1_6);
     if (res != JNI_OK) {
-        res = (*javaVM).AttachCurrentThread(&env, NULL);
+        res = (*javaVM).AttachCurrentThread(&env, nullptr);
         if (JNI_OK != res) {
             LOGE("Failed to AttachCurrentThread, ErrorCode = %d", res);
             return;
@@ -223,8 +223,10 @@ int64_t get_timestamp_us() {
 void
 output_ready(int64_t timestamp, float iaq, uint8_t iaq_accuracy, float temperature, float humidity,
              float pressure, float raw_temperature, float raw_humidity, float gas,
-             bsec_library_return_t bsec_status,
-             float static_iaq, float co2_equivalent, float breath_voc_equivalent) {
+             bsec_library_return_t bsec_status, float static_iaq, uint8_t static_iaq_accuracy,
+             float co2_equivalent, uint8_t co2_accuracy, float breath_voc_equivalent,
+             uint8_t breath_voc_accuracy, float comp_gas_value, uint8_t comp_gas_accuracy,
+             float gas_percentage, uint8_t gas_percentage_accuracy) {
     LOGE("output_ready timestamp :%lld bsec_library_return_t:%d", timestamp, bsec_status);
     // Please insert system specific code to further process or display the BSEC outputs
 
@@ -232,17 +234,20 @@ output_ready(int64_t timestamp, float iaq, uint8_t iaq_accuracy, float temperatu
     JNIEnv *env;
     jint res = (*javaVM).GetEnv((void **) &env, JNI_VERSION_1_6);
     if (res != JNI_OK) {
-        res = (*javaVM).AttachCurrentThread(&env, NULL);
+        res = (*javaVM).AttachCurrentThread(&env, nullptr);
         if (JNI_OK != res) {
             LOGE("Failed to AttachCurrentThread, ErrorCode = %d", res);
             return;
         }
     }
     jmethodID output_ready = (*env).GetMethodID(g_ctx.jniNativeBsecClz,
-                                                "outputReady", "(JFIFFFFFFIFFF)V");
+                                                "outputReady", "(JFIFFFFFFIFIFIFIFIFI)V");
     env->CallVoidMethod(g_ctx.jniNativeBsecObj, output_ready, timestamp, iaq, iaq_accuracy,
                         temperature, humidity, pressure, raw_temperature, raw_humidity, gas,
-                        bsec_status, static_iaq, co2_equivalent, breath_voc_equivalent);
+                        bsec_status, static_iaq, static_iaq_accuracy, co2_equivalent, co2_accuracy,
+                        breath_voc_equivalent, breath_voc_accuracy, comp_gas_value,
+                        comp_gas_accuracy,
+                        gas_percentage, gas_percentage_accuracy);
 }
 
 /*!
@@ -355,7 +360,7 @@ void state_save(const uint8_t *state_buffer, uint32_t length) {
 
     //env->GetByteArrayRegion(byteArray, 0, data_len, reg_data_ptr)
     env->CallVoidMethod(g_ctx.jniNativeBsecObj, stateSave, byteArray,
-                       length);
+                        length);
 }
 
 /*!
@@ -416,6 +421,8 @@ JNIEXPORT jint JNICALL
 Java_com_krisbiketeam_smarthomeraspbpi3_units_Bme680BsecJNI_initBme680JNI(JNIEnv *env,
                                                                           jobject instance,
                                                                           jboolean short_delay) {
+    pthread_mutex_init(&g_ctx.lock, nullptr);
+
     jclass clz = env->GetObjectClass(instance);
 
     g_ctx.jniNativeBsecClz = reinterpret_cast<jclass>(env->NewGlobalRef(clz));
@@ -448,9 +455,11 @@ Java_com_krisbiketeam_smarthomeraspbpi3_units_Bme680BsecJNI_initBme680JNI(JNIEnv
         /* State is saved every 10.000 samples, which means every 10.000 * 3 secs = 500 minutes  */
         result = bsec_iot_loop(sleep, get_timestamp_us, output_ready, state_save, 10000,
                                &g_ctx.lock, &g_ctx.done);
+        pthread_mutex_lock(&g_ctx.lock);
+        g_ctx.done = 1;
+        pthread_mutex_unlock(&g_ctx.lock);
         LOGI("BSEC library Stopped, result:%d", result);
     }
-    g_ctx.javaVM->DetachCurrentThread();
 
     return result;
 }
@@ -459,26 +468,30 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_com_krisbiketeam_smarthomeraspbpi3_units_Bme680BsecJNI_closeBme680JNI(JNIEnv *env,
                                                                            jobject thiz) {
-    LOGI("BSEC close library");
-
+    LOGI("BSEC close library; done?%d", g_ctx.done);
     pthread_mutex_lock(&g_ctx.lock);
-    g_ctx.done = 1;
+    if (g_ctx.done) {
+        g_ctx.done = 0;
+    } else {
+        g_ctx.done = 1;
+    }
     pthread_mutex_unlock(&g_ctx.lock);
 
     // waiting for ticking thread to flip the done flag
     struct timespec sleepTime;
     memset(&sleepTime, 0, sizeof(sleepTime));
     sleepTime.tv_nsec = 100000000;
-    LOGI("BSEC close library wait for processing finished");
+    LOGI("BSEC close library wait for processing to finish");
     while (g_ctx.done) {
-        nanosleep(&sleepTime, NULL);
+        nanosleep(&sleepTime, nullptr);
     }
+    LOGI("BSEC library closed");
 
     // release object we allocated from initBme680JNI() function
     env->DeleteGlobalRef(g_ctx.jniNativeBsecObj);
     env->DeleteGlobalRef(g_ctx.jniNativeBsecClz);
-    g_ctx.jniNativeBsecObj = NULL;
-    g_ctx.jniNativeBsecClz = NULL;
+    g_ctx.jniNativeBsecObj = nullptr;
+    g_ctx.jniNativeBsecClz = nullptr;
 
     pthread_mutex_destroy(&g_ctx.lock);
 }

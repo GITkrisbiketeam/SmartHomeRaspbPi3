@@ -325,6 +325,7 @@ class Home(private val secureStorage: SecureStorage,
     private suspend fun hwUnitRestartListProcessor(restartEventList: List<HwUnitLog<Any>>) {
         Timber.e("hwUnitRestartListProcessor $restartEventList")
         if (!restartEventList.isNullOrEmpty()) {
+            homeInformationRepository.clearHwRestarts()
             val removedHwUnitList = restartEventList.mapNotNull { hwUnitLog ->
                 hwUnitsList.remove(hwUnitLog.name)?.also { hwUnit ->
                     hwUnitStop(hwUnit)
@@ -332,7 +333,6 @@ class Home(private val secureStorage: SecureStorage,
             }
             Timber.d(
                     "hwUnitRestartListProcessor restartEventList.size: ${restartEventList.size} ; restarted count (no error Units) ${removedHwUnitList.size}; restartEventList: $restartEventList")
-            homeInformationRepository.clearHwRestarts()
             removedHwUnitList.forEach { hwUnit ->
                 delay(Random.nextLong(10, 100))
                 hwUnitStart(hwUnit)
