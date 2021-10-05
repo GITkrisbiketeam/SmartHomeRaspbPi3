@@ -6,6 +6,9 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.os.bundleOf
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.flowWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.transition.Fade
@@ -17,12 +20,18 @@ import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentAddEditHwUnitBinding
 import com.krisbiketeam.smarthomeraspbpi3.utils.showTimePicker
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.AddEditHwUnitViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
 import timber.log.Timber
 
 
+@ExperimentalCoroutinesApi
 class AddEditHwUnitFragment : Fragment() {
 
     private val args: AddEditHwUnitFragmentArgs by navArgs()
@@ -45,16 +54,19 @@ class AddEditHwUnitFragment : Fragment() {
         rootBinding = DataBindingUtil.inflate<FragmentAddEditHwUnitBinding>(
                 inflater, R.layout.fragment_add_edit_hw_unit, container, false).apply {
             viewModel = addEditHwUnitViewModel
-            lifecycleOwner = this@AddEditHwUnitFragment
+            lifecycleOwner = viewLifecycleOwner
             hwUnitSensorRefreshRate.setOnClickListener {
                 onClickShowTimePicker()
             }
         }
-        addEditHwUnitViewModel.isEditMode.observe(viewLifecycleOwner, {
-            activity?.invalidateOptionsMenu()
-            // Animate Layout edit mode change
-            TransitionManager.beginDelayedTransition(rootBinding.root as ViewGroup, Fade())
-        })
+        lifecycleScope.launch {
+            addEditHwUnitViewModel.isEditMode.flowWithLifecycle(lifecycle, Lifecycle.State.RESUMED).flowOn(Dispatchers.IO).collect { isEditMode ->
+                Timber.d("onCreateView isEditMode: $isEditMode")
+                activity?.invalidateOptionsMenu()
+                // Animate Layout edit mode change
+                TransitionManager.beginDelayedTransition(rootBinding.root as ViewGroup, Fade())
+            }
+        }
 
         setHasOptionsMenu(true)
 
@@ -94,7 +106,7 @@ class AddEditHwUnitFragment : Fragment() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         // If showing progress do not allow app bar actions
-        if (addEditHwUnitViewModel.showProgress.value != false) {
+        if (addEditHwUnitViewModel.showProgress.value) {
             return super.onOptionsItemSelected(item)
         }
         return when (item.itemId) {

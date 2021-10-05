@@ -61,7 +61,7 @@ class HomeSettingsFragment : Fragment() {
                 }
             })
 
-            lifecycleOwner = this@HomeSettingsFragment
+            lifecycleOwner = viewLifecycleOwner
         }
 
         homeSettingsViewModel.nearByState.observe(viewLifecycleOwner, { pair ->

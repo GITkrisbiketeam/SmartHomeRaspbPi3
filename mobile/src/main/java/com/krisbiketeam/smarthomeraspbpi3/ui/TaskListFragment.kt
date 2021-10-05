@@ -5,6 +5,9 @@ import android.view.*
 import androidx.core.os.bundleOf
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.flowWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -16,12 +19,16 @@ import com.krisbiketeam.smarthomeraspbpi3.adapters.TaskListAdapter
 import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentTaskListBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.TaskListViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import timber.log.Timber
 
-
+@ExperimentalCoroutinesApi
 class TaskListFragment : Fragment() {
 
     private val taskListViewModel by viewModel<TaskListViewModel>()
@@ -49,7 +56,6 @@ class TaskListFragment : Fragment() {
         })
     }
 
-    @ExperimentalCoroutinesApi
     override fun onCreateView(
             inflater: LayoutInflater,
             container: ViewGroup?,
@@ -58,7 +64,7 @@ class TaskListFragment : Fragment() {
         val binding: FragmentTaskListBinding = DataBindingUtil.inflate<FragmentTaskListBinding>(
                 inflater, R.layout.fragment_task_list, container, false).apply {
             viewModel = taskListViewModel
-            lifecycleOwner = this@TaskListFragment
+            lifecycleOwner = viewLifecycleOwner
             fab.setOnClickListener {
                 val direction = TaskListFragmentDirections.actionTaskListFragmentToHomeUnitDetailFragment("","","")
                 findNavController().navigate(direction)
@@ -69,10 +75,12 @@ class TaskListFragment : Fragment() {
 
             subscribeTaskList(adapter)
         }
-        taskListViewModel.isEditMode.observe(viewLifecycleOwner, { editMode ->
-            activity?.invalidateOptionsMenu()
-            itemTouchHelper.attachToRecyclerView(if (editMode) binding.taskList else null)
-        })
+        lifecycleScope.launch {
+            taskListViewModel.isEditMode.flowWithLifecycle(lifecycle, Lifecycle.State.RESUMED).flowOn(Dispatchers.IO).collect { editMode ->
+                activity?.invalidateOptionsMenu()
+                itemTouchHelper.attachToRecyclerView(if (editMode) binding.taskList else null)
+            }
+        }
         setHasOptionsMenu(true)
 
         analytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW, bundleOf(
@@ -114,12 +122,12 @@ class TaskListFragment : Fragment() {
         }
     }
 
-    @ExperimentalCoroutinesApi
     private fun subscribeTaskList(adapter: TaskListAdapter) {
-        taskListViewModel.taskListFromFlow.observe(viewLifecycleOwner,
-                { taskUnitsList ->
-                    Timber.d("subscribeUi taskUnitsList: $taskUnitsList")
-                    adapter.submitList(taskUnitsList)
-                })
+        lifecycleScope.launch {
+            taskListViewModel.taskListFromFlow.flowWithLifecycle(lifecycle, Lifecycle.State.RESUMED).flowOn(Dispatchers.IO).collect { taskUnitsList ->
+                Timber.d("subscribeUi taskUnitsList: $taskUnitsList")
+                adapter.submitList(taskUnitsList)
+            }
+        }
     }
 }

@@ -31,6 +31,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 
+@ExperimentalCoroutinesApi
 class LogsFragment : androidx.fragment.app.Fragment() {
 
     private val analytics: Analytics by inject()

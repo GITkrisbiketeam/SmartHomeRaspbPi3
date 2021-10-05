@@ -67,23 +67,6 @@ class UnitTaskViewModel(
 
     val name: MutableStateFlow<String> = MutableStateFlow("")
 
-    /*val homeUnitTypeList = HOME_ACTION_STORAGE_UNITS
-    val homeUnitType: MutableLiveData<String?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.homeUnitType } as MutableLiveData<String?>
-
-    // List with all available HomeUnits to be used for this Task
-    @ExperimentalCoroutinesApi
-    val homeUnitNameList = Transformations.switchMap(isEditMode) { edit ->      // HomeUnitListLiveData
-        Timber.d("init homeUnitList isEditMode edit: $edit")
-        if (edit) {
-            Transformations.switchMap(homeUnitType) { type ->
-                homeRepository.homeUnitListFlow(type).map { homeUnitList ->
-                    homeUnitList.map(HomeUnit<Any>::name)
-                }.asLiveData(Dispatchers.Default)
-            }
-        } else MutableLiveData(emptyList())
-    }
-    val homeUnitName: MutableLiveData<String?> = if (addingNewUnit) MutableLiveData() else Transformations.map(unitTask) { unit -> unit?.homeUnitName } as MutableLiveData<String?>*/
-
     // Decide how to handle this list
     val homeUnitsTypeNameList: StateFlow<List<String>> = _isEditMode.flatMapLatest { edit ->      // HomeUnitListLiveData
         Timber.d("init homeUnitList isEditMode edit: $edit")

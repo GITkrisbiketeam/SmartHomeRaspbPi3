@@ -6,6 +6,9 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.os.bundleOf
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.flowWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -17,6 +20,12 @@ import com.krisbiketeam.smarthomeraspbpi3.adapters.RoomDetailHomeUnitListAdapter
 import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentRoomDetailBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.RoomDetailViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
@@ -25,12 +34,14 @@ import timber.log.Timber
 /**
  * A fragment representing a single Room detail screen.
  */
+@FlowPreview
+@ExperimentalCoroutinesApi
 class RoomDetailFragment : Fragment() {
 
     private val args: RoomDetailFragmentArgs by navArgs()
 
     private val roomDetailViewModel: RoomDetailViewModel by viewModel {
-        parametersOf(arguments?.let { args.roomName}?: "")
+        parametersOf(arguments?.let { args.roomName } ?: "")
     }
 
     private val analytics: Analytics by inject()
@@ -73,7 +84,7 @@ class RoomDetailFragment : Fragment() {
         val binding: FragmentRoomDetailBinding = DataBindingUtil.inflate<FragmentRoomDetailBinding>(
                 inflater, R.layout.fragment_room_detail, container, false).apply {
             viewModel = roomDetailViewModel
-            lifecycleOwner = this@RoomDetailFragment
+            lifecycleOwner = viewLifecycleOwner
             fab.setOnClickListener {
                 val direction = RoomDetailFragmentDirections.actionRoomDetailFragmentToHomeUnitDetailFragment(
                         roomDetailViewModel.room.value?.name ?: "", "", "")
@@ -84,10 +95,12 @@ class RoomDetailFragment : Fragment() {
             subscribeUi(adapter)
         }
 
-        roomDetailViewModel.isEditMode.observe(viewLifecycleOwner, { editMode ->
-            activity?.invalidateOptionsMenu()
-            itemTouchHelper.attachToRecyclerView(if(editMode)binding.homeUnitList else null)
-        })
+        lifecycleScope.launch {
+            roomDetailViewModel.isEditMode.flowWithLifecycle(lifecycle, Lifecycle.State.RESUMED).flowOn(Dispatchers.IO).collect { editMode ->
+                activity?.invalidateOptionsMenu()
+                itemTouchHelper.attachToRecyclerView(if (editMode) binding.homeUnitList else null)
+            }
+        }
 
         setHasOptionsMenu(true)
 
@@ -100,10 +113,12 @@ class RoomDetailFragment : Fragment() {
     }
 
     private fun subscribeUi(adapter: RoomDetailHomeUnitListAdapter) {
-        roomDetailViewModel.homeUnitsList.observe(viewLifecycleOwner, { homeUnitsList ->
-            Timber.d("subscribeUi homeUnitsList: $homeUnitsList")
-            adapter.submitList(homeUnitsList)
-        })
+        lifecycleScope.launch {
+            roomDetailViewModel.homeUnitsList.flowWithLifecycle(lifecycle, Lifecycle.State.RESUMED).flowOn(Dispatchers.IO).collect { homeUnitsList ->
+                Timber.d("subscribeUi homeUnitsList: $homeUnitsList")
+                adapter.submitList(homeUnitsList)
+            }
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -133,7 +148,7 @@ class RoomDetailFragment : Fragment() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         // If showing progress do not allow app bar actions
-        if (roomDetailViewModel.showProgress.value == true) {
+        if (roomDetailViewModel.showProgress.value) {
             return false
         }
         return when (item.itemId) {

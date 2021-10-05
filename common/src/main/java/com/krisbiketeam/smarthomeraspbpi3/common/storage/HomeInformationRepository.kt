@@ -513,7 +513,12 @@ class FirebaseHomeInformationRepository {
      */
     @ExperimentalCoroutinesApi
     fun hwUnitFlow(hwUnitName: String, closeOnEmpty: Boolean = false): Flow<HwUnit> {
-        return genericReferenceFlow(referenceHWUnits?.child(hwUnitName), closeOnEmpty)
+        return if(hwUnitName.isEmpty()){
+            emptyFlow()
+        }else {
+            genericReferenceFlow(referenceHWUnits?.child(hwUnitName), closeOnEmpty)
+
+        }
     }
 
     // region HW Unit Error/Restart

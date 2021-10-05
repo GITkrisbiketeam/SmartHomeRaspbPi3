@@ -1,10 +1,8 @@
 package com.krisbiketeam.smarthomeraspbpi3.viewmodels
 
-import android.app.Application
 import androidx.core.graphics.ColorUtils
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.github.mikephil.charting.charts.ScatterChart
 import com.github.mikephil.charting.data.*
 import com.krisbiketeam.smarthomeraspbpi3.common.FULL_DAY_IN_MILLIS
 import com.krisbiketeam.smarthomeraspbpi3.common.getOnlyDateLocalTime
@@ -21,7 +19,7 @@ import timber.log.Timber
 /**
  * The ViewModel for [RoomListFragment].
  */
-class LogsViewModel(application: Application, private val homeRepository: FirebaseHomeInformationRepository) : ViewModel() {
+class LogsViewModel(private val homeRepository: FirebaseHomeInformationRepository) : ViewModel() {
 
     private val colorFloatArray = FloatArray(3) { idx ->
         when (idx) {
@@ -88,14 +86,13 @@ class LogsViewModel(application: Application, private val homeRepository: Fireba
                     combine(listOfFlows) { allFilteredHwUnitLogsData ->
                         Timber.e("logsFlow")
                         val lineDataSetList = mutableListOf<LineDataSet>()
-                        //val scatterDataSetList = mutableListOf<ScatterDataSet>()
                         val lineGradDataSetList = mutableListOf<LineDataSet>()
                         allFilteredHwUnitLogsData.forEach { hwUnitLogsData ->
                             hwUnitLogsData.values.let { hwUnitLogList ->
                                 val hwUnit = hwUnitLogList.firstOrNull()
                                 when (hwUnit?.type) {
                                     BoardConfig.TEMP_SENSOR_MCP9808,
-                                    BoardConfig.TEMP_SENSOR_TMP102-> {
+                                    BoardConfig.TEMP_SENSOR_TMP102 -> {
                                         lineDataSetList.add(getNumberSensorData(hwUnit.name, hwUnitLogList))
                                     }
                                     BoardConfig.TEMP_RH_SENSOR_SI7021,
@@ -117,7 +114,6 @@ class LogsViewModel(application: Application, private val homeRepository: Fireba
                                     }
                                     BoardConfig.IO_EXTENDER_MCP23017_OUTPUT,
                                     BoardConfig.IO_EXTENDER_MCP23017_INPUT -> {
-                                        //scatterDataSetList.add(getBooleanSensorData(hwUnit.name, hwUnitLogList))
                                         lineGradDataSetList.add(getBooleanGradSensorData(hwUnit.name, hwUnitLogList))
                                     }
                                 }
@@ -128,17 +124,12 @@ class LogsViewModel(application: Application, private val homeRepository: Fireba
                             lineDataSetList.forEachIndexed { index, lineDataSet ->
                                 lineDataSet.applyStyle(lineDataSetColorFraction * index)
                             }
-                            /*val scatterDataSetColorFraction = 360f / scatterDataSetList.size
-                            scatterDataSetList.forEachIndexed { index, lineDataSet ->
-                                lineDataSet.applyStyle(scatterDataSetColorFraction * index)
-                            }*/
                             val lineGradDataSetColorFraction = 360f / lineGradDataSetList.size
                             lineGradDataSetList.forEachIndexed { index, lineDataSet ->
                                 lineDataSet.applyGradStyle(lineGradDataSetColorFraction * index)
                             }
 
                             setData(LineData(lineDataSetList + lineGradDataSetList))
-                            //setData(ScatterData(scatterDataSetList.toList()))
                         }
                     }
                 }
@@ -202,31 +193,6 @@ class LogsViewModel(application: Application, private val homeRepository: Fireba
         valueTextColor = color // styling, ...
         valueTextSize = 14f
         setCircleColor(color)
-    }
-
-    private fun getBooleanSensorData(hwUnitName: String, logsList: Collection<HwUnitLog<Any?>>): ScatterDataSet {
-        val entries = logsList.sortedBy { it.servertime as Long }.mapNotNull { hwUnitLog ->
-            hwUnitLog.value?.let { hwValue ->
-                when (hwValue) {
-                    is Boolean -> {
-                        val xValue: Float = (hwUnitLog.servertime as Number).toLogsFloat()
-                        val yValue: Float = if (hwValue) 40f else 0f
-                        Entry(xValue, yValue, hwValue)
-                    }
-                    else -> null
-                }
-            }
-        }
-        return ScatterDataSet(entries, hwUnitName)
-    }
-
-    private fun ScatterDataSet.applyStyle(fractionColor: Float) {
-        val color = ColorUtils.HSLToColor(colorFloatArray.apply { set(0, fractionColor) })
-        setColor(color)
-        setScatterShape(ScatterChart.ScatterShape.CIRCLE)
-        scatterShapeSize = 40f
-        valueTextSize = 16f
-        setDrawValues(true)
     }
 
     private fun getBooleanGradSensorData(hwUnitName: String, logsList: Collection<HwUnitLog<Any?>>): LineDataSet {

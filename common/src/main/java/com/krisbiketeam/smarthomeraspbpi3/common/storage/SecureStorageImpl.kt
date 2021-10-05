@@ -14,6 +14,7 @@ import com.google.firebase.database.ValueEventListener
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.FirebaseCredentials
 import com.krisbiketeam.smarthomeraspbpi3.common.decodeHex
 import com.krisbiketeam.smarthomeraspbpi3.common.toHex
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.SharingStarted
@@ -65,6 +66,28 @@ class SecureStorageImpl(private val context: Context, homeInformationRepository:
                 }
             }
 
+    @ExperimentalCoroutinesApi
+    override val firebaseCredentialsFlow = callbackFlow {
+        val preferenceChangeListener =
+                SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+                    Timber.e("homeNameFlow  changed $key")
+                    if (key == EMAIL_KEY || key == PASSWORD_KEY || key == UID_KEY) {
+                        this@callbackFlow.trySendBlocking(firebaseCredentials)
+                    }
+                }
+        this@callbackFlow.trySendBlocking(firebaseCredentials)
+        Timber.e("firebaseCredentialsFlow  register")
+        encryptedSharedPreferences.registerOnSharedPreferenceChangeListener(preferenceChangeListener)
+        awaitClose {
+            Timber.e("firebaseCredentialsFlow  awaitClose")
+            encryptedSharedPreferences.unregisterOnSharedPreferenceChangeListener(preferenceChangeListener)
+        }
+    }.shareIn(
+            ProcessLifecycleOwner.get().lifecycleScope,
+            SharingStarted.WhileSubscribed(),
+            1
+    )
+
     override val homeNameLiveData: LiveData<String> =
             object : LiveData<String>() {
                 private val preferenceChangeListener =
@@ -86,6 +109,7 @@ class SecureStorageImpl(private val context: Context, homeInformationRepository:
                 }
             }
 
+    @ExperimentalCoroutinesApi
     override val homeNameFlow = callbackFlow {
         val preferenceChangeListener =
                 SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
@@ -149,6 +173,48 @@ class SecureStorageImpl(private val context: Context, homeInformationRepository:
                 }
             }
 
+    @ExperimentalCoroutinesApi
+    override val alarmEnabledFlow = callbackFlow {
+        val preferenceChangeListener =
+                SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+                    Timber.e("alarmEnabledFlow changed $key")
+                    if (key == ALARM_ENABLED_KEY) {
+                        homeInformationRepository.setHomePreference(ALARM_ENABLED_KEY, alarmEnabled)
+                    }
+                }
+
+        val alarmListener: ValueEventListener = object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                // A new value has been added, add it to the displayed list
+                val key = dataSnapshot.key
+                val enabled = dataSnapshot.getValue(Boolean::class.java)
+                Timber.d("alarmEnabledFlow onDataChange (key=$key)(alarmEnabled=$enabled)")
+                if (enabled != null) {
+                    this@callbackFlow.trySendBlocking(enabled)
+                    alarmEnabled = enabled
+                }
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                Timber.e("alarmEnabledFlow onCancelled: $databaseError")
+            }
+        }
+
+        this@callbackFlow.trySendBlocking(alarmEnabled)
+        homeInformationRepository.getHomePreference(ALARM_ENABLED_KEY)?.addValueEventListener(alarmListener)
+        Timber.e("alarmEnabledFlow  register")
+        encryptedSharedPreferences.registerOnSharedPreferenceChangeListener(preferenceChangeListener)
+        awaitClose {
+            Timber.e("alarmEnabledFlow  awaitClose")
+            encryptedSharedPreferences.unregisterOnSharedPreferenceChangeListener(preferenceChangeListener)
+            homeInformationRepository.getHomePreference(ALARM_ENABLED_KEY)?.removeEventListener(alarmListener)
+        }
+    }.shareIn(
+            ProcessLifecycleOwner.get().lifecycleScope,
+            SharingStarted.WhileSubscribed(),
+            1
+    )
+
     override fun isAuthenticated(): Boolean {
         return firebaseCredentials.email.isNotEmpty() && firebaseCredentials.password.isNotEmpty() && !firebaseCredentials.uid.isNullOrEmpty()
     }
@@ -200,7 +266,7 @@ class SecureStorageImpl(private val context: Context, homeInformationRepository:
             ReadWriteProperty<Any, ByteArray> {
         return object : ReadWriteProperty<Any, ByteArray> {
             override fun getValue(thisRef: Any, property: KProperty<*>) =
-                    getString(BME680_STATE_KEY,"").decodeHex()
+                    getString(BME680_STATE_KEY, "").decodeHex()
 
             override fun setValue(thisRef: Any, property: KProperty<*>, value: ByteArray) {
                 edit { putString(BME680_STATE_KEY, value.toHex()) }

@@ -15,10 +15,12 @@ interface SecureStorage {
 
     var firebaseCredentials: FirebaseCredentials
     val firebaseCredentialsLiveData: LiveData<FirebaseCredentials>
+    val firebaseCredentialsFlow: Flow<FirebaseCredentials>
     var homeName: String
     val homeNameLiveData: LiveData<String>
     var alarmEnabled: Boolean
     val alarmEnabledLiveData : LiveData<Boolean>
+    val alarmEnabledFlow : Flow<Boolean>
 
     var bme680State: ByteArray
 

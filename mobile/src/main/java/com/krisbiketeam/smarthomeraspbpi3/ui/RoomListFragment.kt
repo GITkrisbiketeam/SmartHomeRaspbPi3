@@ -5,6 +5,9 @@ import android.view.*
 import androidx.core.os.bundleOf
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.flowWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -16,12 +19,16 @@ import com.krisbiketeam.smarthomeraspbpi3.adapters.RoomWithHomeUnitListAdapter
 import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentRoomListBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.RoomListViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import timber.log.Timber
 
-
+@ExperimentalCoroutinesApi
 class RoomListFragment : Fragment() {
 
     private val roomListViewModel by viewModel<RoomListViewModel>()
@@ -49,7 +56,6 @@ class RoomListFragment : Fragment() {
         })
     }
 
-    @ExperimentalCoroutinesApi
     override fun onCreateView(
             inflater: LayoutInflater,
             container: ViewGroup?,
@@ -58,7 +64,7 @@ class RoomListFragment : Fragment() {
         val binding: FragmentRoomListBinding = DataBindingUtil.inflate<FragmentRoomListBinding>(
                 inflater, R.layout.fragment_room_list, container, false).apply {
             viewModel = roomListViewModel
-            lifecycleOwner = this@RoomListFragment
+            lifecycleOwner = viewLifecycleOwner
             fab.setOnClickListener {
                 val direction = RoomListFragmentDirections.actionRoomListFragmentToNewRoomDialogFragment()
                 findNavController().navigate(direction)
@@ -69,10 +75,12 @@ class RoomListFragment : Fragment() {
 
             subscribeRoomHomeUnitList(adapter)
         }
-        roomListViewModel.isEditMode.observe(viewLifecycleOwner, { editMode ->
-            activity?.invalidateOptionsMenu()
-            itemTouchHelper.attachToRecyclerView(if (editMode) binding.roomList else null)
-        })
+        lifecycleScope.launch {
+            roomListViewModel.isEditMode.flowWithLifecycle(lifecycle, Lifecycle.State.RESUMED).flowOn(Dispatchers.IO).collect { editMode ->
+                activity?.invalidateOptionsMenu()
+                itemTouchHelper.attachToRecyclerView(if (editMode) binding.roomList else null)
+            }
+        }
         setHasOptionsMenu(true)
 
         analytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW, bundleOf(
@@ -114,12 +122,12 @@ class RoomListFragment : Fragment() {
         }
     }
 
-    @ExperimentalCoroutinesApi
     private fun subscribeRoomHomeUnitList(adapter: RoomWithHomeUnitListAdapter) {
-        roomListViewModel.roomWithHomeUnitsListFromFlow.observe(viewLifecycleOwner,
-                { roomWithHomeUnitsList ->
-                    Timber.d("subscribeUi roomWithHomeUnitsList: $roomWithHomeUnitsList")
-                    adapter.submitList(roomWithHomeUnitsList)
-                })
+        lifecycleScope.launch {
+            roomListViewModel.roomWithHomeUnitsListFromFlow.flowWithLifecycle(lifecycle, Lifecycle.State.RESUMED).flowOn(Dispatchers.IO).collect { roomWithHomeUnitsList ->
+                Timber.d("subscribeUi roomWithHomeUnitsList: $roomWithHomeUnitsList")
+                adapter.submitList(roomWithHomeUnitsList)
+            }
+        }
     }
 }

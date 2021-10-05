@@ -70,7 +70,7 @@ class NotSecureStorage(context: Context, homeInformationRepository: FirebaseHome
             }
 
     override val alarmEnabledLiveData: LiveData<Boolean> =
-            object  : LiveData<Boolean>() {
+            object : LiveData<Boolean>() {
                 private val preferenceChangeListener =
                         SharedPreferences.OnSharedPreferenceChangeListener { _, _ ->
                             homeInformationRepository.setHomePreference(ALARM_ENABLED_KEY, alarmEnabled)
@@ -92,6 +92,7 @@ class NotSecureStorage(context: Context, homeInformationRepository: FirebaseHome
                         Timber.e("onCancelled: $databaseError")
                     }
                 }
+
                 override fun onActive() {
                     super.onActive()
                     value = alarmEnabled
@@ -111,6 +112,10 @@ class NotSecureStorage(context: Context, homeInformationRepository: FirebaseHome
     }
 
     override val homeNameFlow: Flow<String> get() = TODO("Not yet implemented")
+
+    override val firebaseCredentialsFlow: Flow<FirebaseCredentials> get() = TODO("Not yet implemented")
+
+    override val alarmEnabledFlow: Flow<Boolean> get() = TODO("Not yet implemented")
 
     private fun SharedPreferences.firebaseCredentials():
             ReadWriteProperty<Any, FirebaseCredentials> {
@@ -157,7 +162,7 @@ class NotSecureStorage(context: Context, homeInformationRepository: FirebaseHome
             ReadWriteProperty<Any, ByteArray> {
         return object : ReadWriteProperty<Any, ByteArray> {
             override fun getValue(thisRef: Any, property: KProperty<*>) =
-                    getString(BME680_STATE_KEY,"").decodeHex()
+                    getString(BME680_STATE_KEY, "").decodeHex()
 
             override fun setValue(thisRef: Any, property: KProperty<*>, value: ByteArray) {
                 edit { putString(BME680_STATE_KEY, value.toHex()) }

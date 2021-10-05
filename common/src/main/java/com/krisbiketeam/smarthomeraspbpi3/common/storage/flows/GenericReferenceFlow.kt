@@ -90,7 +90,7 @@ inline fun <reified T> genericReferenceFlow(databaseReference: DatabaseReference
             }
             // A new value has been added, add it to the displayed list
             val value: T? = dataSnapshot.getValue<T>()
-            //Timber.e("genericReferenceFlow onDataChange (key=${dataSnapshot.key})(value=$value)")
+            Timber.e("genericReferenceFlow onDataChange (key=${dataSnapshot.key})(value=$value) exists: ${dataSnapshot.exists()}")
             if (value != null) {
                 this@callbackFlow.trySendBlocking(value)
             }

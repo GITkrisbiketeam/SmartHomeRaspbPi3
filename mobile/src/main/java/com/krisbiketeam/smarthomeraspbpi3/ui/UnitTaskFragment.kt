@@ -52,7 +52,7 @@ class UnitTaskFragment : Fragment() {
         rootBinding = DataBindingUtil.inflate<FragmentUnitTaskBinding>(
                 inflater, R.layout.fragment_unit_task, container, false).apply {
             viewModel = unitTaskViewModel
-            lifecycleOwner = this@UnitTaskFragment
+            lifecycleOwner = viewLifecycleOwner
             unitTaskStartTimeGroup.setOnClickListener {
                 onClickShowTimePicker(unitTaskViewModel.startTime)
             }

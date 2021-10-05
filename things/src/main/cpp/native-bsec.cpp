@@ -453,7 +453,7 @@ Java_com_krisbiketeam_smarthomeraspbpi3_units_Bme680BsecJNI_initBme680JNI(JNIEnv
         LOGI("BSEC library initialized");
         /* Call to endless loop function which reads and processes data based on sensor settings */
         /* State is saved every 10.000 samples, which means every 10.000 * 3 secs = 500 minutes  */
-        result = bsec_iot_loop(sleep, get_timestamp_us, output_ready, state_save, 10000,
+        result = bsec_iot_loop(sleep, get_timestamp_us, output_ready, state_save, 100,
                                &g_ctx.lock, &g_ctx.done);
         pthread_mutex_lock(&g_ctx.lock);
         g_ctx.done = 1;

@@ -64,7 +64,7 @@ class LoginSettingsFragment : Fragment() {
                 }
             })
 
-            lifecycleOwner = this@LoginSettingsFragment
+            lifecycleOwner = viewLifecycleOwner
         }
 
         loginSettingsViewModel.loginState.observe(viewLifecycleOwner, { pair ->

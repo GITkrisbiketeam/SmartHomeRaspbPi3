@@ -1,17 +1,13 @@
 package com.krisbiketeam.smarthomeraspbpi3.viewmodels
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.asLiveData
+import androidx.lifecycle.viewModelScope
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.Room
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.*
 import timber.log.Timber
 import java.text.DateFormat
 import java.util.*
@@ -20,36 +16,36 @@ import java.util.*
 class NavigationViewModel(secureStorage: SecureStorage, homeRepository: FirebaseHomeInformationRepository) :
         ViewModel() {
 
-    val user: LiveData<String>
-    val home: LiveData<String>
-    val alarm: LiveData<String>
-    val online: LiveData<String>
-    val roomListMenu: LiveData<List<Room>>
+    val user: StateFlow<String>
+    val home: StateFlow<String>
+    val alarm: StateFlow<String>
+    val online: StateFlow<String>
+    val roomListMenu: StateFlow<List<Room>>
 
     init {
         Timber.d("init")
-        user = Transformations.map(secureStorage.firebaseCredentialsLiveData) {
+        user = secureStorage.firebaseCredentialsFlow.map {
             if (it.uid.isNullOrEmpty()) {
                 "Login to Firebase"
             } else {
                 homeRepository.startUserToFirebaseConnectionActiveMonitor()
                 it.email
             }
-        }
+        }.flowOn(Dispatchers.IO).stateIn(viewModelScope, SharingStarted.WhileSubscribed(), "")
         home = secureStorage.homeNameFlow.map {
             if (it.isEmpty()) {
                 "Setup Home"
             } else {
                 it
             }
-        }.asLiveData(Dispatchers.IO)
-        alarm = Transformations.map(secureStorage.alarmEnabledLiveData) {
+        }.flowOn(Dispatchers.IO).stateIn(viewModelScope, SharingStarted.WhileSubscribed(), "")
+        alarm = secureStorage.alarmEnabledFlow.map {
             if (it) {
                 "enabled"
             } else {
                 "disabled"
             }
-        }
+        }.flowOn(Dispatchers.IO).stateIn(viewModelScope, SharingStarted.WhileSubscribed(), "")
         online = secureStorage.homeNameFlow.flatMapLatest {
             combine(homeRepository.isHomeOnlineFlow(), homeRepository.lastHomeOnlineTimeFlow()) { online, lastOnlineTime ->
                 if (online == true) {
@@ -64,7 +60,7 @@ class NavigationViewModel(secureStorage: SecureStorage, homeRepository: Firebase
                     }
                 }
             }
-        }.asLiveData(Dispatchers.Default)
+        }.flowOn(Dispatchers.IO).stateIn(viewModelScope, SharingStarted.WhileSubscribed(), "")
         roomListMenu = secureStorage.homeNameFlow.flatMapLatest {
             combine(homeRepository.roomListFlow(), homeRepository.roomListOrderFlow()) { roomList, itemsOrder ->
                 mutableListOf<Room>().apply {
@@ -73,6 +69,6 @@ class NavigationViewModel(secureStorage: SecureStorage, homeRepository: Firebase
                     }
                 }
             }
-        }.asLiveData(Dispatchers.Default)
+        }.flowOn(Dispatchers.IO).stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
     }
 }
