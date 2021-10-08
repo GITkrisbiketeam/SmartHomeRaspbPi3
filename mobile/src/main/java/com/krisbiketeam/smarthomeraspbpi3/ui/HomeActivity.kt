@@ -188,26 +188,26 @@ class HomeActivity : AppCompatActivity() {
                             }
                         }
                     }
-            binding.navigationView.menu.add(Menu.NONE,
-                    R.id.logs_fragment,
-                    Menu.CATEGORY_SECONDARY + 1,
-                    R.string.menu_navigation_logs)
-                    .setIcon(R.drawable.ic_baseline_view_headline_24)
-            binding.navigationView.menu.add(Menu.NONE,
-                    R.id.settings_fragment,
-                    Menu.CATEGORY_SECONDARY + 2,
-                    R.string.menu_navigation_settings)
-                    .setIcon(R.drawable.ic_baseline_settings_24)
+        }
+        binding.navigationView.menu.add(Menu.NONE,
+                R.id.logs_fragment,
+                Menu.CATEGORY_SECONDARY + 1,
+                R.string.menu_navigation_logs)
+                .setIcon(R.drawable.ic_baseline_view_headline_24)
+        binding.navigationView.menu.add(Menu.NONE,
+                R.id.settings_fragment,
+                Menu.CATEGORY_SECONDARY + 2,
+                R.string.menu_navigation_settings)
+                .setIcon(R.drawable.ic_baseline_settings_24)
 
-            navController.addOnDestinationChangedListener { _, destination, arguments ->
-                if (destination.id == R.id.room_detail_fragment) {
-                    for (menuItem in binding.navigationView.menu.iterator()) {
-                        if (menuItem.title.contains(arguments?.get("roomName").toString())) {
-                            menuItem.setChecked(true)
-                            break
-                        }
-
+        navController.addOnDestinationChangedListener { _, destination, arguments ->
+            if (destination.id == R.id.room_detail_fragment) {
+                for (menuItem in binding.navigationView.menu.iterator()) {
+                    if (menuItem.title.contains(arguments?.get("roomName").toString())) {
+                        menuItem.setChecked(true)
+                        break
                     }
+
                 }
             }
         }
