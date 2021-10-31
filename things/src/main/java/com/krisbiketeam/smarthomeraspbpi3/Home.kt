@@ -499,7 +499,7 @@ class Home(private val secureStorage: SecureStorage,
         Timber.v("booleanTaskApply after cancel task.taskJob:${task.taskJob} isActive:${task.taskJob?.isActive} isCancelled:${task.taskJob?.isCancelled} isCompleted:${task.taskJob?.isCompleted}")
 
         if (task.disabled == true) {
-            Timber.d("sensorTaskApply task not enabled $task")
+            Timber.d("booleanTaskApply task not enabled $task")
             return
         }
         if ((task.trigger == null || task.trigger == BOTH)
