@@ -21,7 +21,8 @@
         tools:ignore="GoogleAppIndexingWarning,MissingApplicationIcon">
         <uses-library android:name="com.google.android.things" />
 
-        <activity android:name=".ui.ThingsActivity">
+        <activity android:name=".ui.ThingsActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

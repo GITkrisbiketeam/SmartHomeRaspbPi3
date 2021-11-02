@@ -38,23 +38,23 @@ class UnitTaskViewModel(
     private val unitTaskList: StateFlow<Map<String, UnitTask>> = homeRepository.unitTaskListFlow(unitType, unitName).flowOn(Dispatchers.IO).stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyMap())
 
     private val unitTask: StateFlow<UnitTask?> =
-            (if (addingNewUnit) flowOf(null) else unitTaskList.map { taskList -> taskList[taskName] }.onEach { unitTask ->
+            (if (addingNewUnit) flowOf(null) else unitTaskList.map { taskList -> taskList[taskName] }.filterNotNull().onEach { unitTask ->
                 Timber.e("unitTask changed:$unitTask")
                 showProgress.value = false
-                name.value = unitTask?.name ?: ""
-                homeUnitsTypeName.value = unitTask?.homeUnitsList?.flatMapToString()
-                trigger.value = unitTask?.trigger
-                resetOnInverseTrigger.value = unitTask?.resetOnInverseTrigger
-                inverse.value = unitTask?.inverse
-                startTime.value = unitTask?.startTime
-                endTime.value = unitTask?.endTime
-                delay.value = unitTask?.delay
-                duration.value = unitTask?.duration
-                threshold.value = unitTask?.threshold.toString()
-                hysteresis.value = unitTask?.hysteresis.toString()
-                periodically.value = unitTask?.periodically
-                periodicallyOnlyHw.value = unitTask?.periodicallyOnlyHw
-                disabled.value = unitTask?.disabled
+                name.value = unitTask.name
+                homeUnitsTypeName.value = unitTask.homeUnitsList.flatMapToString()
+                trigger.value = unitTask.trigger
+                resetOnInverseTrigger.value = unitTask.resetOnInverseTrigger
+                inverse.value = unitTask.inverse
+                startTime.value = unitTask.startTime
+                endTime.value = unitTask.endTime
+                delay.value = unitTask.delay
+                duration.value = unitTask.duration
+                threshold.value = unitTask.threshold.toString()
+                hysteresis.value = unitTask.hysteresis.toString()
+                periodically.value = unitTask.periodically
+                periodicallyOnlyHw.value = unitTask.periodicallyOnlyHw
+                disabled.value = unitTask.disabled
             }.flowOn(Dispatchers.IO)).stateIn(viewModelScope, SharingStarted.WhileSubscribed(), null)
 
     private var homeRepositoryTask: Task<Void>? = null
@@ -107,39 +107,55 @@ class UnitTaskViewModel(
     val disabled: MutableStateFlow<Boolean?> = MutableStateFlow(null)
 
     val startTimeVisible: StateFlow<Boolean> = _isEditMode.flatMapLatest { edit ->
-        if (edit) {
-            delay.map {
-                it == null || it <= 0
+        if (isBooleanApplySensor.value) {
+            if (edit) {
+                delay.map {
+                    it == null || it <= 0
+                }
+            } else startTime.map {
+                it != null && it > 0
             }
-        } else startTime.map {
-            it != null && it > 0
+        } else {
+            flowOf(false)
         }
     }.flowOn(Dispatchers.IO).stateIn(viewModelScope, SharingStarted.WhileSubscribed(), false)
     val endTimeVisible: StateFlow<Boolean> = _isEditMode.flatMapLatest { edit ->
-        if (edit) {
-            duration.map {
-                it == null || it <= 0
+        if (isBooleanApplySensor.value) {
+            if (edit) {
+                duration.map {
+                    it == null || it <= 0
+                }
+            } else endTime.map {
+                it != null && it > 0
             }
-        } else endTime.map {
-            it != null && it > 0
+        } else {
+            flowOf(false)
         }
     }.flowOn(Dispatchers.IO).stateIn(viewModelScope, SharingStarted.WhileSubscribed(), false)
     val delayVisible: StateFlow<Boolean> = _isEditMode.flatMapLatest { edit ->
-        if (edit) {
-            startTime.map {
-                it == null || it <= 0
+        if (isBooleanApplySensor.value) {
+            if (edit) {
+                startTime.map {
+                    it == null || it <= 0
+                }
+            } else delay.map {
+                it != null && it > 0
             }
-        } else delay.map {
-            it != null && it > 0
+        } else {
+            flowOf(false)
         }
     }.flowOn(Dispatchers.IO).stateIn(viewModelScope, SharingStarted.WhileSubscribed(), false)
     val durationVisible: StateFlow<Boolean> = _isEditMode.flatMapLatest { edit ->
-        if (edit) {
-            endTime.map {
-                it == null || it <= 0
+        if (isBooleanApplySensor.value) {
+            if (edit) {
+                endTime.map {
+                    it == null || it <= 0
+                }
+            } else duration.map {
+                it != null && it > 0
             }
-        } else duration.map {
-            it != null && it > 0
+        } else {
+            flowOf(false)
         }
     }.flowOn(Dispatchers.IO).stateIn(viewModelScope, SharingStarted.WhileSubscribed(), false)
 

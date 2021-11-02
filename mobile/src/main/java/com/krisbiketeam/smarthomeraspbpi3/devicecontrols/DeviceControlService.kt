@@ -117,7 +117,7 @@ class DeviceControlService : ControlsProviderService() {
                         putExtra(CONTROL_ID, controlId)
                     }
                 },
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_CANCEL_CURRENT)
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE)
     }
 
     private fun getStatelessControl(homeUnit: HomeUnit<Any>): Control {

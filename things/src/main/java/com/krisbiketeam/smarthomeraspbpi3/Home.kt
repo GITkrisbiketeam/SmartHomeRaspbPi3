@@ -499,7 +499,7 @@ class Home(private val secureStorage: SecureStorage,
         Timber.v("booleanTaskApply after cancel task.taskJob:${task.taskJob} isActive:${task.taskJob?.isActive} isCancelled:${task.taskJob?.isCancelled} isCompleted:${task.taskJob?.isCompleted}")
 
         if (task.disabled == true) {
-            Timber.d("sensorTaskApply task not enabled $task")
+            Timber.d("booleanTaskApply task not enabled $task")
             return
         }
         if ((task.trigger == null || task.trigger == BOTH)
@@ -524,12 +524,16 @@ class Home(private val secureStorage: SecureStorage,
             task.taskJob?.cancel()
         } else {
             task.threshold?.let { threshold ->
-                if (newVal >= threshold + (task.hysteresis ?: 0f)) {
+                if ((task.trigger == null || task.trigger == BOTH
+                                || task.trigger == RISING_EDGE) && newVal >= threshold + (task.hysteresis
+                                ?: 0f)) {
                     task.taskJob?.cancel()
                     task.taskJob = GlobalScope.launch(Dispatchers.IO) {
                         booleanTaskTimed(true, task)
                     }
-                } else if (newVal <= threshold - (task.hysteresis ?: 0f)) {
+                } else if ((task.trigger == null || task.trigger == BOTH
+                                || task.trigger == FALLING_EDGE) && newVal <= threshold - (task.hysteresis
+                                ?: 0f)) {
                     task.taskJob?.cancel()
                     task.taskJob = GlobalScope.launch(Dispatchers.IO) {
                         booleanTaskTimed(false, task)
