@@ -11,7 +11,7 @@ ext {
     kotlinxCoroutinesReactive = '1.5.0'
 
     // ClassPath
-    gradlePluginVersion = '7.0.2'
+    gradlePluginVersion = '7.0.3'
     googleServicesClassVersion = '4.3.5'
 
     // Google
