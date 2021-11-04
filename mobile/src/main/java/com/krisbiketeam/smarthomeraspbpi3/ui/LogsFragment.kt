@@ -91,13 +91,14 @@ class LogsFragment : androidx.fragment.app.Fragment() {
         inflater.inflate(R.menu.menu_logs, menu)
         menu.findItem(R.id.action_filter).subMenu.apply {
             clear()
-            var type:String? = null
-            logsViewModel.menuItemHwUnitListFlow.value.forEach { (hwUnit, itemId, checked) ->
-                if (type != hwUnit.type) {
-                    add("\t${hwUnit.type}")
-                    type = hwUnit.type
+            var type: String? = null
+            logsViewModel.menuItemHwUnitListFlow.value.forEach { (hwUnitPair, itemId, checked) ->
+                if (type != hwUnitPair.first.type) {
+                    add("\t${hwUnitPair.first.type}")
+                    type = hwUnitPair.first.type
                 }
-                val menuItem = add(hwUnit.type.hashCode(), itemId, Menu.NONE, hwUnit.name)
+                val menuItem = add(hwUnitPair.first.type.hashCode(), itemId, Menu.NONE, hwUnitPair.first.name.plus(hwUnitPair.second?.let { "_$it" }
+                        ?: ""))
                 menuItem.isCheckable = true
                 menuItem.isChecked = checked
 

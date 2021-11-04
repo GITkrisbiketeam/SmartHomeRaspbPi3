@@ -29,8 +29,9 @@ class LogsViewModel(private val homeRepository: FirebaseHomeInformationRepositor
         }
     }
 
+    // List of HwUnits with their value name ex. temperature or humidity
     @ExperimentalCoroutinesApi
-    private val filteredHwUnitListFlow: MutableStateFlow<List<HwUnit>> = MutableStateFlow(emptyList())
+    private val filteredHwUnitListFlow: MutableStateFlow<List<Pair<HwUnit, String?>>> = MutableStateFlow(emptyList())
 
     @ExperimentalCoroutinesApi
     val startRangeFlow: MutableStateFlow<Long> = MutableStateFlow(System.currentTimeMillis().getOnlyDateLocalTime())
@@ -40,13 +41,34 @@ class LogsViewModel(private val homeRepository: FirebaseHomeInformationRepositor
 
 
     @ExperimentalCoroutinesApi
-    val menuItemHwUnitListFlow: StateFlow<List<Triple<HwUnit, Int, Boolean>>> =
+    val menuItemHwUnitListFlow: StateFlow<List<Triple<Pair<HwUnit, String?>, Int, Boolean>>> =
             combine(filteredHwUnitListFlow, homeRepository.hwUnitListFlow()) { filteredHwUnitList, hwUnitList ->
-
-                hwUnitList.map {
-                    Triple(it, it.hashCode(), filteredHwUnitList.contains(it))
+                mutableListOf<Triple<Pair<HwUnit, String?>, Int, Boolean>>().apply {
+                    hwUnitList.forEach { hwUnit ->
+                        when (hwUnit.type) {
+                            BoardConfig.TEMP_RH_SENSOR_SI7021,
+                            BoardConfig.TEMP_RH_SENSOR_AM2320 -> {
+                                listOf("temperature", "humidity").forEach {
+                                    val pair = hwUnit to it
+                                    add(Triple(pair, pair.hashCode(), filteredHwUnitList.contains(pair)))
+                                }
+                            }
+                            BoardConfig.AIR_QUALITY_SENSOR_BME680 -> {
+                                listOf("temperature", "humidity", "pressure", "iaq", "gas", "staticIaq",
+                                        "co2Equivalent", "breathVocEquivalent", "compGasValue",
+                                        "gasPercentage").forEach {
+                                    val pair = hwUnit to it
+                                    add(Triple(pair, pair.hashCode(), filteredHwUnitList.contains(pair)))
+                                }
+                            }
+                            else -> {
+                                val pair = hwUnit to null
+                                add(Triple(pair, pair.hashCode(), filteredHwUnitList.contains(pair)))
+                            }
+                        }
+                    }
                 }.sortedByDescending {
-                    it.first.type
+                    it.first.first.type
                 }
             }.stateIn(
                     viewModelScope,
@@ -62,11 +84,26 @@ class LogsViewModel(private val homeRepository: FirebaseHomeInformationRepositor
                 if (filteredHwUnitList.isNullOrEmpty()) {
                     flowOf(CombinedData())
                 } else {
-                    val listOfFlows: List<Flow<Map<String, HwUnitLog<Any?>>>> = filteredHwUnitList.map { hwUnit ->
+                    val filteredHwUnitListMapped: MutableMap<HwUnit, List<String>?> = mutableMapOf()
+                    filteredHwUnitList.forEach { (hwUnit: HwUnit, subType: String?) ->
+                        when {
+                            subType == null -> {
+                                filteredHwUnitListMapped[hwUnit] = null
+                            }
+                            filteredHwUnitListMapped.containsKey(hwUnit) -> {
+                                filteredHwUnitListMapped[hwUnit] = filteredHwUnitListMapped[hwUnit]?.plus(subType)
+                            }
+                            else -> {
+                                filteredHwUnitListMapped[hwUnit] = listOf(subType)
+                            }
+                        }
+                    }
+
+                    val listOfFlows: List<Flow<Pair<List<HwUnitLog<Any?>>, List<String>?>>> = filteredHwUnitListMapped.map { hwUnitMapEntry ->
                         val flowList = mutableListOf<Flow<Map<String, HwUnitLog<Any?>>>>().also { list ->
                             // calculate days from unit time to now 1000 milliseconds * 60 seconds * 60 minutes * 24 hours = 86400000L
                             for (date in startRange..endRange step FULL_DAY_IN_MILLIS) {
-                                list.add(homeRepository.logsFlow(hwUnit.name, date).onCompletion {
+                                list.add(homeRepository.logsFlow(hwUnitMapEntry.key.name, date).onCompletion {
                                     Timber.e("onCompletion")
                                     emit(mapOf())
                                 }.onStart {
@@ -76,45 +113,35 @@ class LogsViewModel(private val homeRepository: FirebaseHomeInformationRepositor
                             }
                         }
                         combine(flowList) { dailyMapArray ->
-                            val combinedMap = mutableMapOf<String, HwUnitLog<Any?>>()
+                            val combinedMap = Pair(mutableListOf<HwUnitLog<Any?>>(), hwUnitMapEntry.value)
                             dailyMapArray.forEach {
-                                combinedMap.putAll(it)
+                                combinedMap.first.addAll(it.values)
                             }
                             combinedMap
                         }
                     }
+
                     combine(listOfFlows) { allFilteredHwUnitLogsData ->
                         Timber.e("logsFlow")
                         val lineDataSetList = mutableListOf<LineDataSet>()
                         val lineGradDataSetList = mutableListOf<LineDataSet>()
-                        allFilteredHwUnitLogsData.forEach { hwUnitLogsData ->
-                            hwUnitLogsData.values.let { hwUnitLogList ->
-                                val hwUnit = hwUnitLogList.firstOrNull()
-                                when (hwUnit?.type) {
-                                    BoardConfig.TEMP_SENSOR_MCP9808,
-                                    BoardConfig.TEMP_SENSOR_TMP102 -> {
-                                        lineDataSetList.add(getNumberSensorData(hwUnit.name, hwUnitLogList))
-                                    }
-                                    BoardConfig.TEMP_RH_SENSOR_SI7021,
-                                    BoardConfig.TEMP_RH_SENSOR_AM2320 -> {
-                                        /*
-                                        // TODO rename FirebaseTables temperatures to temperature name should be like in  TemperatureAndHumidity
-                                        TemperatureAndHumidity::class.java.declaredFields.map {
-                                            it.name
-                                        }*/
-                                        lineDataSetList.addAll(getMapNumberSensorData(hwUnit.name, listOf("temperature", "humidity"), hwUnitLogList))
-                                    }
-                                    BoardConfig.AIR_QUALITY_SENSOR_BME680 -> {
-                                        /*
-                                        // TODO rename FirebaseTables breathVoc to breathVocEquivalent name should be like in  Bme680Data
-                                        Bme680Data::class.java.declaredFields.map {
-                                            it.name
-                                        }*/
-                                        lineDataSetList.addAll(getMapNumberSensorData(hwUnit.name, listOf("temperature", "humidity", "pressure", "iaq", "gas"), hwUnitLogList))
-                                    }
-                                    BoardConfig.IO_EXTENDER_MCP23017_OUTPUT,
-                                    BoardConfig.IO_EXTENDER_MCP23017_INPUT -> {
-                                        lineGradDataSetList.add(getBooleanGradSensorData(hwUnit.name, hwUnitLogList))
+                        allFilteredHwUnitLogsData.forEach { (hwUnitLogsData, subTypesList) ->
+                            hwUnitLogsData.let { hwUnitLogList ->
+                                val hwUnitLog = hwUnitLogList.firstOrNull()
+                                if (hwUnitLog != null) {
+                                    when (hwUnitLog.type) {
+                                        BoardConfig.IO_EXTENDER_MCP23017_OUTPUT,
+                                        BoardConfig.IO_EXTENDER_MCP23017_INPUT -> {
+                                            lineGradDataSetList.add(getBooleanGradSensorData(hwUnitLog.name, hwUnitLogList))
+                                        }
+                                        else -> {
+                                            if (subTypesList == null) {
+                                                lineDataSetList.add(getNumberSensorData(hwUnitLog.name, hwUnitLogList))
+                                            } else {
+                                                lineDataSetList.addAll(getMapNumberSensorData(hwUnitLog.name, subTypesList, hwUnitLogList))
+
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -139,9 +166,9 @@ class LogsViewModel(private val homeRepository: FirebaseHomeInformationRepositor
 
     @ExperimentalCoroutinesApi
     fun addFilter(hwUnitHash: Int): Boolean {
-        return menuItemHwUnitListFlow.value.firstOrNull { it.second == hwUnitHash }?.let { (hwUnit, _, _) ->
+        return menuItemHwUnitListFlow.value.firstOrNull { it.second == hwUnitHash }?.let { (hwUnit, _, checked) ->
             val newList = filteredHwUnitListFlow.value.toMutableList()
-            if (newList.contains(hwUnit)) {
+            if (checked) {
                 newList.remove(hwUnit)
             } else {
                 newList.add(hwUnit)
