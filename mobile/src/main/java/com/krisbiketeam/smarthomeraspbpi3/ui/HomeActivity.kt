@@ -73,14 +73,15 @@ class HomeActivity : AppCompatActivity() {
 
         val currentUser = Firebase.auth.currentUser
         if (currentUser == null || !secureStorage.isAuthenticated()) {
-            Timber.d("No Home Name defined, starting HomeSettingsFragment")
+            Timber.d("No credentials defined, starting LoginSettingsFragment")
             navController.navigate(NavHomeDirections.goToLoginSettingsFragment())
         } else if (secureStorage.homeName.isEmpty()) {
+            homeInformationRepository.setUserReference(currentUser.uid)
             Timber.d("No Home Name defined, starting HomeSettingsFragment")
             navController.navigate(NavHomeDirections.goToHomeSettingsFragment())
         } else {
-            homeInformationRepository.setHomeReference(secureStorage.homeName)
             homeInformationRepository.setUserReference(currentUser.uid)
+            homeInformationRepository.setHomeReference(secureStorage.homeName)
         }
 
         val controlId = intent.extras?.getString(CONTROL_ID)

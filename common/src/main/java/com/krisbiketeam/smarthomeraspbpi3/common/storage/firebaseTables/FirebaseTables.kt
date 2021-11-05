@@ -16,6 +16,8 @@ const val NOTIFICATION_INFORMATION_BASE = "notification"
 // region "home"
 const val HOME_INFORMATION_BASE = "home"
 
+const val HOME_LIST = "homes_list"
+
 // region HW Units
 const val HOME_HW_UNITS_BASE = "hw_units"
 

@@ -1,15 +1,14 @@
 package com.krisbiketeam.smarthomeraspbpi3.viewmodels.settings
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.asLiveData
+import androidx.lifecycle.viewModelScope
 import com.krisbiketeam.smarthomeraspbpi3.common.MyLiveDataState
 import com.krisbiketeam.smarthomeraspbpi3.common.nearby.NearbyServiceLiveData
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.ui.settings.WifiSettingsFragment
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.*
 import timber.log.Timber
 
 
@@ -17,22 +16,19 @@ import timber.log.Timber
  * The ViewModel used in [WifiSettingsFragment].
  */
 class HomeSettingsViewModel(val nearByState: NearbyServiceLiveData, private val secureStorage: SecureStorage, private val homeInformationRepository: FirebaseHomeInformationRepository) : ViewModel() {
-    var homeName: MutableLiveData<String> = MutableLiveData()
-    var remoteHomeSetup: MutableLiveData<Boolean> = MutableLiveData()
+    val homeName: MutableStateFlow<String> = MutableStateFlow(secureStorage.homeName)
+    val remoteHomeSetup: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
-    var homeNameList: LiveData<List<String>> = homeInformationRepository.getHomesFLow().asLiveData(Dispatchers.IO)
-
-    init {
-        Timber.d("init")
-        remoteHomeSetup.value = false
-        homeName.value = secureStorage.homeName
-    }
+    val homeNameList: StateFlow<List<String>> = homeInformationRepository.getHomesFLow().flowOn(Dispatchers.IO).stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
 
     fun setupHomeName(homeName: String) {
         Timber.d("setupHomeName")
-        homeInformationRepository.setHomeReference(homeName)
+        if (!homeNameList.value.contains(homeName)) {
+            homeInformationRepository.addHomeToList(homeName)
+        }
         secureStorage.homeName = homeName
-        if (remoteHomeSetup.value == true) {
+        homeInformationRepository.setHomeReference(homeName)
+        if (remoteHomeSetup.value) {
             nearByState.value = Pair(MyLiveDataState.CONNECTING, homeName)
         } else {
             nearByState.value = Pair(MyLiveDataState.DONE, Unit)
