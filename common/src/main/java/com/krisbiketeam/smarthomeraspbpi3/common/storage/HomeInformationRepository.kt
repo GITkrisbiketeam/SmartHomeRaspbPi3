@@ -712,12 +712,10 @@ class FirebaseHomeInformationRepository {
 
     // endregion
 
-    // TODO: this will overLoad FirebaseDB
-    // need to add separate node with only homes list
     fun getHomesFLow(): Flow<List<String>> =
-            genericMapReferenceFlow<Map<String, Any>>(Firebase.database.reference.child(HOME_INFORMATION_BASE)).map {
-        it.keys.toList()
-    }
+            genericListReferenceFlow(Firebase.database.reference.child(HOME_LIST))
+
+    fun addHomeToList(homeName: String): Task<Void> = Firebase.database.reference.child(HOME_LIST).push().setValue(homeName)
 
     // endregion
 }
