@@ -10,6 +10,12 @@ apply plugin: 'koin'
 
 android {
     signingConfigs {
+        debug {
+            storeFile file('./../debug.keystore')
+            storePassword 'krisbiketeam'
+            keyAlias 'krisbiketeam'
+            keyPassword 'krisbiketeam'
+        }
         test {
             storeFile file('/Users/krzysztofplotczyk/workspace/SmartHomeRaspbPi3/Untitled')
             storePassword 'testpassword'

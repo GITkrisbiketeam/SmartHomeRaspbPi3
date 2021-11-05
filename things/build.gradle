@@ -8,6 +8,14 @@ apply plugin: 'com.google.firebase.firebase-perf'
 apply plugin: 'koin'
 
 android {
+    signingConfigs {
+        debug {
+            storeFile file('./../debug.keystore')
+            storePassword 'krisbiketeam'
+            keyAlias 'krisbiketeam'
+            keyPassword 'krisbiketeam'
+        }
+    }
     compileSdkVersion compileWithSDK
     defaultConfig {
         applicationId "com.krisbiketeam.smarthomeraspbpi3"
