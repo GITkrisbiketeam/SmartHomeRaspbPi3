@@ -63,7 +63,9 @@ class LoadActivity : AppCompatActivity() {
             showWarning()
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 ActivityCompat.requestPermissions(this,
-                        arrayOf(Manifest.permission.BLUETOOTH_SCAN),
+                        arrayOf(Manifest.permission.BLUETOOTH_SCAN,
+                                Manifest.permission.BLUETOOTH_CONNECT,
+                                Manifest.permission.ACCESS_FINE_LOCATION),
                         PERMISSION_REQUEST_ID)
             } else {
                 ActivityCompat.requestPermissions(this,

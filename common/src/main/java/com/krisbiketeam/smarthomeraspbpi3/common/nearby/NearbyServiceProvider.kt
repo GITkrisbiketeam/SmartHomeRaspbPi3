@@ -153,7 +153,7 @@ class NearbyServiceProvider(private val context: Context, private val moshi: Mos
                 }
                 .addOnFailureListener {
                     // Nearby Connections failed to request the connection.
-                    Timber.w("requestConnection:FAILURE ${it.stackTrace}")
+                    Timber.w("requestConnection:FAILURE ${it.stackTraceToString()}")
                 }
 
     }
@@ -170,7 +170,7 @@ class NearbyServiceProvider(private val context: Context, private val moshi: Mos
                     Timber.d("startAdvertising:onResult: SUCCESS")
                 }
                 .addOnFailureListener {
-                    Timber.w("Advertising failed! $it")
+                    Timber.w("Advertising failed! ${it.stackTraceToString()}")
                 }
     }
 
@@ -185,7 +185,7 @@ class NearbyServiceProvider(private val context: Context, private val moshi: Mos
                     Timber.d("startDiscovery:SUCCESS")
                 }
                 .addOnFailureListener {
-                    Timber.w("startDiscovery:FAILURE $it")
+                    Timber.w("startDiscovery:FAILURE $it.stackTraceToString()")
                     dataSendResultListener?.onFailure(it)
                 }
     }
