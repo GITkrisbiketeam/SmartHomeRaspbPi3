@@ -273,7 +273,7 @@
                     android:id="@+id/hw_unit_sensor_refresh_rate_group"
                     android:layout_width="0dp"
                     android:layout_height="0dp"
-                    android:visibility="@{BoardConfig.TEMP_SENSOR_MCP9808.equals(viewModel.type) || BoardConfig.TEMP_RH_SENSOR_SI7021.equals(viewModel.type) || BoardConfig.TEMP_RH_SENSOR_AM2320.equals(viewModel.type) || BoardConfig.TEMP_SENSOR_TMP102.equals(viewModel.type)|| BoardConfig.AIR_QUALITY_SENSOR_BME680.equals(viewModel.type) || BoardConfig.TEMP_PRESS_SENSOR_BMP280.equals(viewModel.type) ? View.VISIBLE : View.GONE}"
+                    android:visibility="@{BoardConfig.TEMP_SENSOR_MCP9808.equals(viewModel.type) || BoardConfig.TEMP_RH_SENSOR_SI7021.equals(viewModel.type) || BoardConfig.TEMP_RH_SENSOR_AM2320.equals(viewModel.type) || BoardConfig.TEMP_SENSOR_TMP102.equals(viewModel.type)|| BoardConfig.AIR_QUALITY_SENSOR_BME680.equals(viewModel.type) || BoardConfig.LIGHT_SENSOR_BH1750.equals(viewModel.type) || BoardConfig.TEMP_PRESS_SENSOR_BMP280.equals(viewModel.type) ? View.VISIBLE : View.GONE}"
                     app:constraint_referenced_ids="hw_unit_sensor_refresh_rate_title,hw_unit_sensor_refresh_rate" />
 
                 <TextView

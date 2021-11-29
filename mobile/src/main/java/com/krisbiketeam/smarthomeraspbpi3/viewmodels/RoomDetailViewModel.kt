@@ -82,7 +82,7 @@ class RoomDetailViewModel(
         homeUnitsOrderStateFlow.value = room.value?.unitsOrder ?: emptyList()
     }
 
-    fun actionDeleteHomeUnit(): Task<Void> {
+    fun actionDeleteRoom(): Task<Void> {
         Timber.d("deleteHomeUnit room.name: ${room.value?.name} ")
         showProgress.value = true
         return homeUnitsList.value.let { homeUnitList ->

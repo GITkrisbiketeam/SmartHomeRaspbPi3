@@ -76,6 +76,11 @@ object BoardConfig {
     const val AIR_QUALITY_SENSOR_BME680_ADDR = 0x77
     val AIR_QUALITY_SENSOR_BME680_ADDR_LIST = listOf(0x76, 0x77)
 
+    const val LIGHT_SENSOR_BH1750 = "Ligt Sensor BH1750"
+    const val LIGHT_SENSOR_BH1750_PIN = I2C
+    const val LIGHT_SENSOR_BH1750_ADDR = BH1750.I2C_ADDRESS
+    val LIGHT_SENSOR_BH1750_ADDR_LIST = listOf(BH1750.DEFAULT_I2C_L_ADDRESS, BH1750.DEFAULT_I2C_H_ADDRESS)
+
     const val IO_EXTENDER_PCF8474AT_INPUT = "8-bit IO Extender Input"
     const val IO_EXTENDER_PCF8474AT_OUTPUT = "8-bit IO Extender Output"
     const val IO_EXTENDER_PCF8574AT_PIN = I2C
@@ -110,6 +115,7 @@ object BoardConfig {
             TEMP_RH_SENSOR_SI7021,
             TEMP_RH_SENSOR_AM2320,
             AIR_QUALITY_SENSOR_BME680,
+            LIGHT_SENSOR_BH1750,
             IO_EXTENDER_MCP23017_INPUT,
             IO_EXTENDER_MCP23017_OUTPUT,
             GPIO_INPUT,
@@ -122,6 +128,7 @@ object BoardConfig {
             TEMP_RH_SENSOR_SI7021,
             TEMP_RH_SENSOR_AM2320,
             AIR_QUALITY_SENSOR_BME680,
+            LIGHT_SENSOR_BH1750,
             IO_EXTENDER_MCP23017_INPUT,
             IO_EXTENDER_MCP23017_OUTPUT,
             TEMP_PRESS_SENSOR_BMP280,
