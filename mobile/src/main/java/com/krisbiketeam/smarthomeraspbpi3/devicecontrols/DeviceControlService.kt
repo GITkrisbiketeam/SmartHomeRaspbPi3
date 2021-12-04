@@ -20,11 +20,8 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_ACTUATORS
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_LIGHT_SWITCHES
 import com.krisbiketeam.smarthomeraspbpi3.ui.HomeActivity
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.asPublisher
 import org.koin.android.ext.android.inject
 import org.reactivestreams.FlowAdapters
@@ -42,6 +39,8 @@ class DeviceControlService : ControlsProviderService() {
     private val homeInformationRepository: FirebaseHomeInformationRepository by inject()
     private val secureStorage: SecureStorage by inject()
 
+    private val scope = CoroutineScope(Dispatchers.IO)
+
     override fun onCreate() {
         super.onCreate()
         val currentUser = Firebase.auth.currentUser
@@ -50,6 +49,11 @@ class DeviceControlService : ControlsProviderService() {
             homeInformationRepository.setHomeReference(secureStorage.homeName)
             homeInformationRepository.setUserReference(currentUser.uid)
         }
+    }
+
+    override fun onDestroy() {
+        scope.cancel()
+        super.onDestroy()
     }
 
     override fun createPublisherForAllAvailable(): Flow.Publisher<Control> {
@@ -64,7 +68,7 @@ class DeviceControlService : ControlsProviderService() {
 
                 override fun request(count: Long) {
                     Timber.d("createPublisherForAllAvailable request $count")
-                    job = GlobalScope.launch {
+                    job = scope.launch {
                         combine(homeInformationRepository.homeUnitListFlow(HOME_LIGHT_SWITCHES), homeInformationRepository.homeUnitListFlow(HOME_ACTUATORS)) { lightSwitches, actuators ->
                             Timber.i("createPublisherForAllAvailable lightSwitches: ${lightSwitches.size} actuators: ${actuators.size}")
                             lightSwitches.forEach { homeUnit ->
