@@ -8,6 +8,7 @@ import android.text.format.Formatter
 import android.view.KeyEvent
 import android.view.KeyEvent.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.google.android.things.userdriver.UserDriverManager
 import com.google.android.things.userdriver.input.InputDriver
 import com.google.android.things.userdriver.input.InputDriverEvent
@@ -49,7 +50,7 @@ private const val DRIVER_NAME = "PCF8574AT Button Driver"
 private const val NEARBY_TIMEOUT = 60000L        // 60 sec
 private const val NEARBY_BLINK_DELAY = 1000L        // 1 sec
 
-class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, CoroutineScope {
+class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
     private val authentication: Authentication by inject()
     private val secureStorage: SecureStorage by inject()
     private val homeInformationRepository: FirebaseHomeInformationRepository by inject()
@@ -75,9 +76,6 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
     private lateinit var mDriver: InputDriver
 
     private var connectAndSetupJob: Job? = null
-
-    override val coroutineContext: CoroutineContext
-        get() = Dispatchers.Main
 
     init {
         Timber.d("init")
@@ -133,7 +131,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
             val formattedIpAddress = Formatter.formatIpAddress(ipAddress)
             Timber.v("onAvailable ipAddress: $formattedIpAddress")
             ConsoleLoggerTree.setIpAddress(formattedIpAddress)
-            launch {
+            lifecycleScope.launch {
                 led1.setValueWithException(available)
             }
         }
@@ -142,14 +140,14 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
     private val loginResultListener = object : Authentication.LoginResultListener {
         override fun success(uid: String?) {
             Timber.d("LoginResultListener success $uid")
-            launch {
+            lifecycleScope.launch {
                 led2.setValueWithException(true)
             }
         }
 
         override fun failed(exception: Exception) {
             Timber.d("LoginResultListener failed e: $exception")
-            launch {
+            lifecycleScope.launch {
                 led2.setValueWithException(false)
             }
         }
@@ -163,7 +161,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
 
         homeInformationRepository.clearResetAppFlag()
 
-        launch {
+        lifecycleScope.launch {
             ledA.connectValueWithException()
             ledB.connectValueWithException()
             ledC.connectValueWithException()
@@ -192,7 +190,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
 
         Timber.e("onCreate isNetworkConnected: ${networkConnectionMonitor.isNetworkConnected}")
 
-        launch {
+        lifecycleScope.launch {
             ledA.setValueWithException(false)
             ledB.setValueWithException(false)
             ledC.setValueWithException(false)
@@ -204,7 +202,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
 
         //homeInformationRepository.setHomeReference("test home")
 
-        connectAndSetupJob = launch(Dispatchers.IO) {
+        connectAndSetupJob = lifecycleScope.launch(Dispatchers.IO) {
             if (networkConnectionMonitor.isNetworkConnected) {
                 led1.setValueWithException(true)
             } else {
@@ -436,7 +434,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
 
         networkConnectionMonitor.startListen(networkConnectionListener)
 
-        launch {
+        lifecycleScope.launch {
             buttonAInputDriver.registerListenerWithException(this@ThingsActivity)
             buttonBInputDriver.registerListenerWithException(this@ThingsActivity)
             buttonCInputDriver.registerListenerWithException(this@ThingsActivity)
@@ -444,20 +442,26 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
         if (connectAndSetupJob?.isCompleted == true) {
             home.start()
         } else {
-            launch {
+            lifecycleScope.launch {
                 connectAndSetupJob?.join()
-                Timber.d("onStart home.start()")
-                home.start()
+                if (connectAndSetupJob?.isCancelled != true) {
+                    Timber.d("onStart home.start()")
+                    home.start()
+                } else {
+                    Timber.d("onStart was canceled do not call home.start()")
+                }
             }
         }
 
-        launch(Dispatchers.Main) {
+        lifecycleScope.launch(Dispatchers.Main) {
             connectAndSetupJob?.join()
-            homeInformationRepository.restartAppFlow().collectLatest {
-                Timber.e("Remote restart app $it")
-                if (it) {
-                    homeInformationRepository.clearResetAppFlag()
-                    restartApp()
+            if (connectAndSetupJob?.isCancelled != true) {
+                homeInformationRepository.restartAppFlow().collectLatest {
+                    Timber.e("Remote restart app $it")
+                    if (it) {
+                        homeInformationRepository.clearResetAppFlag()
+                        restartApp()
+                    }
                 }
             }
         }
@@ -468,7 +472,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
 
         networkConnectionMonitor.stopListen()
 
-        launch {
+        lifecycleScope.launch {
             connectAndSetupJob?.cancelAndJoin()
             buttonAInputDriver.unregisterListener()
             buttonBInputDriver.unregisterListener()
@@ -520,19 +524,19 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
         Timber.d("onKeyLongPress keyCode: $keyCode ; keEvent: $event")
         when (keyCode) {
             KEYCODE_A -> {
-                launch {
+                lifecycleScope.launch {
                     ledA.setValueWithException(true)
                 }
             }
             KEYCODE_B -> {
-                launch {
+                lifecycleScope.launch {
                     ledB.setValueWithException(true)
                 }
                 // will cause onKeyUp be called with flag cancelled
                 return true
             }
             KEYCODE_C -> {
-                launch {
+                lifecycleScope.launch {
                     ledC.setValueWithException(true)
                 }
             }
@@ -546,7 +550,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
                 when (event?.repeatCount) {
                     0  -> {
                         Timber.d("onKeyDown keyCode: $keyCode ; keEvent: $event")
-                        launch {
+                        lifecycleScope.launch {
                             homeInformationRepository.logHwUnitEvent(
                                     HwUnitLog(BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_1,
                                             "Raspberry Pi", BoardConfig.IO_EXTENDER_PCF8474AT_INPUT,
@@ -558,7 +562,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
                         event.startTracking()
 
                         if (ledB.unitValue == true) {
-                            CoroutineScope(Dispatchers.Main).launch {
+                            lifecycleScope.launch(Dispatchers.Main) {
                                 restartApp()
                             }
                         }
@@ -567,7 +571,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
                     50 -> {
                         Timber.d("onKeyDown very long press")
                         connectAndSetupJob?.cancel()
-                        connectAndSetupJob = launch {
+                        connectAndSetupJob = lifecycleScope.launch {
                             ledA.setValueWithException(false)
                             startWiFiCredentialsReceiver()
                             Timber.e("startWiFiCredentialsReceiver finished")
@@ -580,7 +584,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
                 when (event?.repeatCount) {
                     0  -> {
                         Timber.d("onKeyDown keyCode: $keyCode ; keEvent: $event")
-                        launch {
+                        lifecycleScope.launch {
                             homeInformationRepository.logHwUnitEvent(
                                     HwUnitLog(BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_2,
                                             "Raspberry Pi", BoardConfig.IO_EXTENDER_PCF8474AT_INPUT,
@@ -592,8 +596,8 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
                         event.startTracking()
 
                         if (ledA.unitValue == true) {
-                            CoroutineScope(Dispatchers.Main).launch {
-                                restartApp()
+                            lifecycleScope.launch(Dispatchers.Main) {
+                            restartApp()
                             }
                         }
                         return true
@@ -601,7 +605,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
                     50 -> {
                         Timber.d("onKeyDown very long press")
                         connectAndSetupJob?.cancel()
-                        connectAndSetupJob = launch {
+                        connectAndSetupJob = lifecycleScope.launch {
                             ledB.setValueWithException(false)
                             startFirebaseCredentialsReceiver()
                             Timber.e("startFirebaseCredentialsReceiver finished")
@@ -614,7 +618,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
                 when (event?.repeatCount) {
                     0  -> {
                         Timber.d("onKeyDown keyCode: $keyCode ; keEvent: $event")
-                        launch {
+                        lifecycleScope.launch {
                             homeInformationRepository.logHwUnitEvent(
                                     HwUnitLog(BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_3,
                                             "Raspberry Pi", BoardConfig.IO_EXTENDER_PCF8474AT_INPUT,
@@ -629,7 +633,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
                     50 -> {
                         Timber.d("onKeyDown very long press")
                         connectAndSetupJob?.cancel()
-                        connectAndSetupJob = launch {
+                        connectAndSetupJob = lifecycleScope.launch {
                             ledC.setValueWithException(false)
                             home.stop()
                             startHomeNameReceiver()
@@ -648,7 +652,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
         Timber.d("onKeyUp keyCode: $keyCode ; keEvent: $event")
         when (keyCode) {
             KEYCODE_A -> {
-                launch {
+                lifecycleScope.launch {
                     homeInformationRepository.logHwUnitEvent(
                             HwUnitLog(BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_1, "Raspberry Pi",
                                     BoardConfig.IO_EXTENDER_PCF8474AT_INPUT,
@@ -658,7 +662,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
                 }
             }
             KEYCODE_B -> {
-                launch {
+                lifecycleScope.launch {
                     homeInformationRepository.logHwUnitEvent(
                             HwUnitLog(BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_2, "Raspberry Pi",
                                     BoardConfig.IO_EXTENDER_PCF8474AT_INPUT,
@@ -668,7 +672,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
                 }
             }
             KEYCODE_C -> {
-                launch {
+                lifecycleScope.launch {
                     homeInformationRepository.logHwUnitEvent(
                             HwUnitLog(BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_3, "Raspberry Pi",
                                     BoardConfig.IO_EXTENDER_PCF8474AT_INPUT,
@@ -725,7 +729,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
     }
 
     private fun blinkLed(led: HwUnitI2CPCF8574ATActuator): Job {
-        return launch(Dispatchers.IO) {
+        return lifecycleScope.launch(Dispatchers.IO) {
             try {
                 repeat((NEARBY_TIMEOUT / NEARBY_BLINK_DELAY).toInt()) {
                     Timber.d("blinkLed ${led.unitValue}")
@@ -755,10 +759,13 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean>, Coro
         }
     }
     private suspend fun <T : Any>Sensor<T>.registerListenerWithException(listener: Sensor.HwUnitListener<T>){
-        try {
-            registerListener(listener)
-        } catch (e: Exception) {
-            addHwUnitErrorEvent(e, "Error registerListener hwUnit on $hwUnit")
+        supervisorScope {
+            registerListener(this, listener, CoroutineExceptionHandler { _, error ->
+                lifecycleScope.launch {
+                    addHwUnitErrorEvent(error,
+                            "Error registerListener CoroutineExceptionHandler hwUnit on $hwUnit")
+                }
+            })
         }
     }
     private suspend fun <T : Any> BaseHwUnit<T>.closeValueWithException(){

@@ -202,7 +202,8 @@ class Bme680BsecJNI(private val scope: CoroutineScope, private val secureStorage
                 "    gasPercentage:$gasPercentage\n" +
                 "    gasPercentageAccuracy:$gasPercentageAccuracy\n")
 
-        CoroutineScope(scope.coroutineContext).launch {
+
+        scope.launch {
             resultCallback(Bme680Data(timestamp, iaq, iaqAccuracy, temperature, humidity,
                     pressure/100, rawTemperature, rawHumidity, gas, bsec_status, staticIaq,
                     staticIaqAccuracy, co2Equivalent, co2EquivalentAccuracy, breathVocEquivalent,

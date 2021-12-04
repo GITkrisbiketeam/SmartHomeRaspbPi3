@@ -34,11 +34,11 @@ class HwUnitI2CAirQualityBme680Sensor(private val secureStorage: SecureStorage, 
 
     @Throws(Exception::class)
     // TODO use Flow here
-    override suspend fun registerListener(listener: Sensor.HwUnitListener<Bme680Data>,
+    override suspend fun registerListener(scope: CoroutineScope, listener: Sensor.HwUnitListener<Bme680Data>,
                                           exceptionHandler: CoroutineExceptionHandler) {
         Timber.d("registerListener")
         job?.cancel()
-        job = GlobalScope.plus(exceptionHandler).launch(Dispatchers.IO) {
+        job = scope.launch(Dispatchers.IO + exceptionHandler) {
             val bme680BsecJNI =  Bme680BsecJNI(this, secureStorage, pinName, softAddress) {
                 unitValue = it
                 valueUpdateTime = System.currentTimeMillis()
@@ -70,7 +70,6 @@ class HwUnitI2CAirQualityBme680Sensor(private val secureStorage: SecureStorage, 
         super.close()
     }
 
-    @Throws(Exception::class)
     override suspend fun readValue(): Bme680Data? {
         return unitValue
     }
