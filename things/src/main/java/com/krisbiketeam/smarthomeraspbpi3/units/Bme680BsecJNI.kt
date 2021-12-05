@@ -45,6 +45,7 @@ class Bme680BsecJNI(private val scope: CoroutineScope, private val secureStorage
             if (mDevice != null) {
                 closeBme680JNI()
             }
+            Timber.d("close mDevice")
             mDevice?.close()
         } catch (e: Exception) {
             throw Exception("Error closing Si7021", e)
@@ -141,6 +142,7 @@ class Bme680BsecJNI(private val scope: CoroutineScope, private val secureStorage
                 withContext(Dispatchers.IO) {
                     secureStorage.bme680State.run {
                         copyInto(stateBuffer)
+                        Timber.w("stateLoad size:$size buffer:0x${stateBuffer.toHex()}")
                         size
                     }
                 }

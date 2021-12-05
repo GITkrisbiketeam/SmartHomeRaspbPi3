@@ -163,7 +163,6 @@ class Home(private val secureStorage: SecureStorage,
                                         hwUnit.setValueWithException(newValue)
                                         homeUnit.lastUpdateTime = hwUnit.valueUpdateTime
 
-                                        //TODO :disable logging as its can overload firebase DB
                                         homeInformationRepository.logHwUnitEvent(HwUnitLog(hwUnit.hwUnit, newValue, "homeUnitsDataProcessor", hwUnit.valueUpdateTime))
                                     }
                                 }
@@ -494,58 +493,62 @@ class Home(private val secureStorage: SecureStorage,
         }
     }
 
-    private suspend fun hwUnitStop(unit: BaseHwUnit<Any>) {
+    private suspend fun hwUnitStop(unit: BaseHwUnit<Any>, doNotAddToHwUnitErrorList: Boolean = false) {
         Timber.v("hwUnitStop close unit: ${unit.hwUnit}")
         // close will automatically unregister listener
-        unit.closeValueWithException()
+        unit.closeValueWithException(doNotAddToHwUnitErrorList)
     }
 
     // region applyFunction helper methods
 
     private suspend fun booleanTaskApply(newVal: Boolean, task: UnitTask, homeUnitName: String) {
-        Timber.v("booleanTaskApply before cancel task.taskJob:${task.taskJob} isActive:${task.taskJob?.isActive} isCancelled:${task.taskJob?.isCancelled} isCompleted:${task.taskJob?.isCompleted}")
-        task.taskJob?.cancel()
-        Timber.v("booleanTaskApply after cancel task.taskJob:${task.taskJob} isActive:${task.taskJob?.isActive} isCancelled:${task.taskJob?.isCancelled} isCompleted:${task.taskJob?.isCompleted}")
+        scope.launch {
+            Timber.v("booleanTaskApply before cancel task.taskJob:${task.taskJob} isActive:${task.taskJob?.isActive} isCancelled:${task.taskJob?.isCancelled} isCompleted:${task.taskJob?.isCompleted}")
+            task.taskJob?.cancel()
+            Timber.v("booleanTaskApply after cancel task.taskJob:${task.taskJob} isActive:${task.taskJob?.isActive} isCancelled:${task.taskJob?.isCancelled} isCompleted:${task.taskJob?.isCompleted}")
 
-        if (task.disabled == true) {
-            Timber.d("booleanTaskApply task not enabled $task")
-            return
-        }
-        if ((task.trigger == null || task.trigger == BOTH)
-                || (task.trigger == RISING_EDGE && newVal)
-                || (task.trigger == FALLING_EDGE && !newVal)) {
-            task.taskJob = scope.launch(Dispatchers.IO) {
-                do {
-                    booleanTaskTimed(newVal, task, homeUnitName)
-                } while (this.isActive && task.periodically == true && ((task.delay.isValidTime() && task.duration.isValidTime())
-                                || (task.startTime.isValidTime() && task.endTime.isValidTime())
-                                || (task.startTime.isValidTime() && task.duration.isValidTime())))
+            if (task.disabled == true) {
+                Timber.d("booleanTaskApply task not enabled $task")
+            } else {
+                if ((task.trigger == null || task.trigger == BOTH)
+                        || (task.trigger == RISING_EDGE && newVal)
+                        || (task.trigger == FALLING_EDGE && !newVal)) {
+                    task.taskJob = scope.launch(Dispatchers.IO) {
+                        do {
+                            booleanTaskTimed(newVal, task, homeUnitName)
+                        } while (this.isActive && task.periodically == true && ((task.delay.isValidTime() && task.duration.isValidTime())
+                                        || (task.startTime.isValidTime() && task.endTime.isValidTime())
+                                        || (task.startTime.isValidTime() && task.duration.isValidTime())))
+                    }
+                    Timber.v("booleanTaskApply after booleanTaskTimed task.taskJob:${task.taskJob} isActive:${task.taskJob?.isActive} isCancelled:${task.taskJob?.isCancelled} isCompleted:${task.taskJob?.isCompleted}")
+                } else if (task.resetOnInverseTrigger == true) {
+                    booleanApplyAction(newVal, task.inverse, task.periodicallyOnlyHw, task.homeUnitsList, task.name, homeUnitName)
+                }
             }
-            Timber.v("booleanTaskApply after booleanTaskTimed task.taskJob:${task.taskJob} isActive:${task.taskJob?.isActive} isCancelled:${task.taskJob?.isCancelled} isCompleted:${task.taskJob?.isCompleted}")
-        } else if (task.resetOnInverseTrigger == true) {
-            booleanApplyAction(newVal, task.inverse, task.periodicallyOnlyHw, task.homeUnitsList, task.name, homeUnitName)
         }
     }
 
     private suspend fun sensorTaskApply(newVal: Float, task: UnitTask, homeUnitName: String) {
-        if (task.disabled == true) {
-            Timber.d("sensorTaskApply task not enabled $task")
-            task.taskJob?.cancel()
-        } else {
-            task.threshold?.let { threshold ->
-                if ((task.trigger == null || task.trigger == BOTH
-                                || task.trigger == RISING_EDGE) && newVal >= threshold + (task.hysteresis
-                                ?: 0f)) {
-                    task.taskJob?.cancel()
-                    task.taskJob = scope.launch(Dispatchers.IO) {
-                        booleanTaskTimed(true, task, homeUnitName)
-                    }
-                } else if ((task.trigger == null || task.trigger == BOTH
-                                || task.trigger == FALLING_EDGE) && newVal <= threshold - (task.hysteresis
-                                ?: 0f)) {
-                    task.taskJob?.cancel()
-                    task.taskJob = scope.launch(Dispatchers.IO) {
-                        booleanTaskTimed(false, task, homeUnitName)
+        scope.launch {
+            if (task.disabled == true) {
+                Timber.d("sensorTaskApply task not enabled $task")
+                task.taskJob?.cancel()
+            } else {
+                task.threshold?.let { threshold ->
+                    if ((task.trigger == null || task.trigger == BOTH
+                                    || task.trigger == RISING_EDGE) && newVal >= threshold + (task.hysteresis
+                                    ?: 0f)) {
+                        task.taskJob?.cancel()
+                        task.taskJob = scope.launch(Dispatchers.IO) {
+                            booleanTaskTimed(true, task, homeUnitName)
+                        }
+                    } else if ((task.trigger == null || task.trigger == BOTH
+                                    || task.trigger == FALLING_EDGE) && newVal <= threshold - (task.hysteresis
+                                    ?: 0f)) {
+                        task.taskJob?.cancel()
+                        task.taskJob = scope.launch(Dispatchers.IO) {
+                            booleanTaskTimed(false, task, homeUnitName)
+                        }
                     }
                 }
             }
@@ -668,15 +671,17 @@ class Home(private val secureStorage: SecureStorage,
             }
         }
 
-        supervisorScope {
-            launch(Dispatchers.IO + handler) {
-                setValue(value)
-                /*if (logEvent) {
-                analytics.logEvent(EVENT_SENSOR_SET_VALUE) {
-                    param(SENSOR_NAME, this@setValueWithException.hwUnit.name)
-                    param(SENSOR_VALUE, value.toString())
+        scope.launch {
+            supervisorScope {
+                launch(Dispatchers.IO + handler) {
+                    setValue(value)
+                    /*if (logEvent) {
+                        analytics.logEvent(EVENT_SENSOR_SET_VALUE) {
+                            param(SENSOR_NAME, this@setValueWithException.hwUnit.name)
+                            param(SENSOR_VALUE, value.toString())
+                        }
+                    }*/
                 }
-            }*/
             }
         }
     }
@@ -711,28 +716,38 @@ class Home(private val secureStorage: SecureStorage,
                 addHwUnitErrorEvent(error, "Error registerListener hwUnit on $hwUnit")
             }
         }
-        supervisorScope {
-            registerListener(this, listener, handler)
-            /*analytics.logEvent(EVENT_REGISTER_LISTENER) {
+        scope.launch {
+            supervisorScope {
+                registerListener(this, listener, handler)
+                /*analytics.logEvent(EVENT_REGISTER_LISTENER) {
                 param(SENSOR_NAME, this@registerListenerWithException.toString())
             }*/
+            }
         }
     }
 
-    private suspend fun BaseHwUnit<Any>.closeValueWithException() {
+    private suspend fun BaseHwUnit<Any>.closeValueWithException(doNotAddToHwUnitErrorList: Boolean) {
         val handler = CoroutineExceptionHandler { _, exception ->
-            Timber.e("closeValueWithException; Error closing hwUnit on $hwUnit $exception")
-            scope.launch {
-                addHwUnitErrorEvent(exception, "Error closing hwUnit on $hwUnit")
+            if (doNotAddToHwUnitErrorList) {
+                Timber.e("closeValueWithException; IGNORED Error closing hwUnit on $hwUnit $exception")
+            } else {
+                Timber.e("closeValueWithException; Error closing hwUnit on $hwUnit $exception")
+                scope.launch {
+                    addHwUnitErrorEvent(exception, "Error closing hwUnit on $hwUnit")
+                }
             }
         }
 
-        supervisorScope {
-            launch(Dispatchers.IO + handler) {
-                close()
-                /*analytics.logEvent(EVENT_SENSOR_CLOSE) {
-                    param(SENSOR_NAME, this@closeValueWithException.hwUnit.name)
-                }*/
+        scope.launch {
+            supervisorScope {
+                launch(Dispatchers.IO + handler) {
+                    withContext(NonCancellable) {
+                        close()
+                        /*analytics.logEvent(EVENT_SENSOR_CLOSE) {
+                        param(SENSOR_NAME, this@closeValueWithException.hwUnit.name)
+                    }*/
+                    }
+                }
             }
         }
     }
@@ -757,7 +772,7 @@ class Home(private val secureStorage: SecureStorage,
     }
 
     private suspend fun BaseHwUnit<Any>.addHwUnitErrorEvent(e: Throwable, logMessage: String) {
-        hwUnitStop(this@addHwUnitErrorEvent)
+        hwUnitStop(this@addHwUnitErrorEvent, doNotAddToHwUnitErrorList = true)
 
         val hwUnitLog = HwUnitLog(hwUnit, unitValue, "$logMessage \n ${e.message}")
 
@@ -793,6 +808,7 @@ class Home(private val secureStorage: SecureStorage,
                 hwUnitStart(it)
             }
         })
+        Timber.e("addHwUnitErrorEvent hwUnitErrorEventList[hwUnit.name]:${hwUnitErrorEventList[hwUnit.name]}")
 
         analytics.logEvent(EVENT_SENSOR_EXCEPTION) {
             param(SENSOR_NAME, this@addHwUnitErrorEvent.hwUnit.name)
