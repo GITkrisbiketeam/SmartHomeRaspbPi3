@@ -88,32 +88,41 @@ class Home(private val secureStorage: SecureStorage,
             // first HwUnitErrorList
             hwUnitErrorEventListDataProcessor(homeInformationRepository.hwUnitErrorEventListFlow().first())
             // second HwUnitList which bases on HwUnitErrorList
+            Timber.i("start: get initial hwUnitList")
             homeInformationRepository.hwUnitListFlow().first().forEach { hwUnit ->
+                Timber.i("start: get initial hwUnitList add/start Hw Unit:${hwUnit.name}")
                 hwUnitsDataProcessor(ChildEventType.NODE_ACTION_ADDED to hwUnit)
             }
+
+            Timber.i("start: get initial homeUnitList")
             // and finally HomeUnitList which bases on HwUnitList
             homeInformationRepository.homeUnitListFlow().first().forEach { homeUnit ->
+                Timber.i("start: get initial homeUnitList add:${homeUnit.name}")
                 homeUnitsList[homeUnit.type to homeUnit.name] = homeUnit
             }
 
             launch(Dispatchers.IO) {
+                Timber.i("start: start listen to homeUnitsFlow")
                 homeInformationRepository.homeUnitsFlow().distinctUntilChanged().collect {
                     // why I need to launch new coroutine? why hwUnitStart blocks completely
                     launch { homeUnitsDataProcessor(it) }
                 }
             }
             launch(Dispatchers.IO) {
+                Timber.i("start: start listen to hwUnitsFlow")
                 homeInformationRepository.hwUnitsFlow().distinctUntilChanged().collect {
                     // why I need to launch new coroutine? comment above
                     launch { hwUnitsDataProcessor(it) }
                 }
             }
             launch(Dispatchers.IO) {
+                Timber.i("start: start listen to hwUnitErrorEventListFlow")
                 homeInformationRepository.hwUnitErrorEventListFlow().distinctUntilChanged().collect {
                     hwUnitErrorEventListDataProcessor(it)
                 }
             }
             launch(Dispatchers.IO) {
+                Timber.i("start: start listen to hwUnitRestartListFlow")
                 homeInformationRepository.hwUnitRestartListFlow().distinctUntilChanged().collect {
                     hwUnitRestartListProcessor(it)
                 }
@@ -293,6 +302,7 @@ class Home(private val secureStorage: SecureStorage,
                     Timber.e("hwUnitsDataObserver unsupported action: $action")
                 }
             }
+            Timber.d("hwUnitsDataObserver END: $pair")
         }
     }
 
@@ -478,6 +488,7 @@ class Home(private val secureStorage: SecureStorage,
                     Timber.w("hwUnitStart readVal:$readVal unit.unitValue:${unit.unitValue}")
                     hwUnitsList[unit.hwUnit.name] = unit
                     unit.registerListenerWithException(this@Home)
+                    Timber.v("hwUnitStart Sensor after registerListenerWithException unit: ${unit.hwUnit}")
                     if (readVal != null) {
                         onHwUnitChanged(unit.hwUnit, readVal, unit.valueUpdateTime)
                     }
@@ -496,6 +507,7 @@ class Home(private val secureStorage: SecureStorage,
                 }
             }
         }
+        Timber.v("hwUnitStart END: ${unit.hwUnit}")
     }
 
     private suspend fun hwUnitStop(unit: BaseHwUnit<Any>, doNotAddToHwUnitErrorList: Boolean = false) {
@@ -716,7 +728,7 @@ class Home(private val secureStorage: SecureStorage,
     private suspend fun Sensor<Any>.registerListenerWithException(
             listener: Sensor.HwUnitListener<Any>) {
         val handler = CoroutineExceptionHandler { _, error ->
-            Timber.e("registerListenerWithException; Error registerListener hwUnit on $hwUnit $error")
+            Timber.e("registerListenerWithException; Error registerListener hwUnit on $hwUnit ${error.stackTraceToString()}")
             // TODO: is this needed???
             scope.launch {
                 addHwUnitErrorEvent(error, "Error registerListener hwUnit on $hwUnit")
@@ -728,8 +740,11 @@ class Home(private val secureStorage: SecureStorage,
                 /*analytics.logEvent(EVENT_REGISTER_LISTENER) {
                 param(SENSOR_NAME, this@registerListenerWithException.toString())
             }*/
+                Timber.e("registerListenerWithException; supervisorScope END hwUnit on $hwUnit")
+
             }
         }
+        Timber.e("registerListenerWithException; END hwUnit on $hwUnit")
     }
 
     private suspend fun BaseHwUnit<Any>.closeValueWithException(doNotAddToHwUnitErrorList: Boolean) {
@@ -739,7 +754,7 @@ class Home(private val secureStorage: SecureStorage,
             } else {
                 Timber.e("closeValueWithException; Error closing hwUnit on $hwUnit $exception")
                 scope.launch {
-                    addHwUnitErrorEvent(exception, "Error closing hwUnit on $hwUnit")
+                    addHwUnitErrorEvent(exception, "Error closing hwUnit on $hwUnit", doNotReStartHwUnit = true)
                 }
             }
         }
@@ -777,7 +792,7 @@ class Home(private val secureStorage: SecureStorage,
         }
     }
 
-    private suspend fun BaseHwUnit<Any>.addHwUnitErrorEvent(e: Throwable, logMessage: String) {
+    private suspend fun BaseHwUnit<Any>.addHwUnitErrorEvent(e: Throwable, logMessage: String, doNotReStartHwUnit: Boolean = false) {
         hwUnitStop(this@addHwUnitErrorEvent, doNotAddToHwUnitErrorList = true)
 
         val hwUnitLog = HwUnitLog(hwUnit, unitValue, "$logMessage \n ${e.message}")
@@ -797,21 +812,25 @@ class Home(private val secureStorage: SecureStorage,
                     }
                 } else {
                     Timber.w(
-                            "addHwUnitErrorEvent another error occurred restart this hwUnit")
-                    scope.launch {
-                        delay(100)
-                        triple.third?.let {
-                            hwUnitStart(it)
+                            "addHwUnitErrorEvent another error occurred do not restart this hwUnit?:$doNotReStartHwUnit")
+                    if (!doNotReStartHwUnit) {
+                        scope.launch {
+                            delay(100)
+                            triple.third?.let {
+                                hwUnitStart(it)
+                            }
                         }
                     }
                 }
             }
         } ?: Triple(hwUnitLog.localtime, 0, this@addHwUnitErrorEvent.also {
             Timber.w(
-                    "addHwUnitErrorEvent new error occurred restart this hwUnit")
-            scope.launch {
-                delay(100)
-                hwUnitStart(it)
+                    "addHwUnitErrorEvent new error occurred do not restart this hwUnit?:$doNotReStartHwUnit")
+            if (!doNotReStartHwUnit) {
+                scope.launch {
+                    delay(100)
+                    hwUnitStart(it)
+                }
             }
         })
         Timber.e("addHwUnitErrorEvent hwUnitErrorEventList[hwUnit.name]:${hwUnitErrorEventList[hwUnit.name]?.third?.hwUnit?.name} ${hwUnitErrorEventList[hwUnit.name]?.second}")
@@ -822,7 +841,7 @@ class Home(private val secureStorage: SecureStorage,
             param(SENSOR_ERROR, e.toString())
         }
         FirebaseCrashlytics.getInstance().recordException(e)
-        Timber.e(e, logMessage)
+        Timber.e(e, "addHwUnitErrorEvent finished : $logMessage")
     }
 
     // endregion

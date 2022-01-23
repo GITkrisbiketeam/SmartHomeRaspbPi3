@@ -56,6 +56,7 @@ class HwUnitI2CAirQualityBme680Sensor(private val secureStorage: SecureStorage, 
                 bme680BsecJNI.close()
             }
         }
+        Timber.i("registerListener FINSHED")
     }
 
     override suspend fun unregisterListener() {
@@ -67,6 +68,7 @@ class HwUnitI2CAirQualityBme680Sensor(private val secureStorage: SecureStorage, 
     override suspend fun close() {
         Timber.d("close")
         job?.cancelAndJoin()
+        unitValue = null
         super.close()
     }
 

@@ -26,9 +26,8 @@ import com.krisbiketeam.smarthomeraspbpi3.databinding.NavHeaderBinding
 import com.krisbiketeam.smarthomeraspbpi3.devicecontrols.CONTROL_ID
 import com.krisbiketeam.smarthomeraspbpi3.devicecontrols.getHomeUnitTypeAndName
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.NavigationViewModel
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import timber.log.Timber
@@ -101,6 +100,103 @@ class HomeActivity : AppCompatActivity() {
                         binding.homeActivityConnectionProgress.visibility = if (userOnline == true) View.GONE else View.VISIBLE
                     }
         }
+
+
+
+
+        /*lifecycleScope.launch {
+            val result2: Boolean? = supervisorScope {
+                val deferred: Deferred<Boolean> = async {
+                    try {
+                        withContext(Dispatchers.Main) {
+                            delay(3000)
+                            //Timber.e("async throwing AssertionError")
+                            //throw AssertionError()
+                            Timber.e("async return true")
+                            true
+                        }
+                    } finally {
+                        Timber.e("async finished")
+                    }
+                }
+                val result: Boolean? = try {
+                    deferred.await()
+                } catch (e: AssertionError) {
+                    Timber.e("async catch exception")
+                    null
+                }
+                Timber.e("lifecycleScope await result: $result")
+                result
+            }
+            Timber.e("lifecycleScope supervisorScope result: $result2")
+
+        }*/
+
+// latest commentout
+        /*val handler = CoroutineExceptionHandler { context, exception ->
+            Timber.e("CoroutineExceptionHandler got $exception")
+            lifecycleScope.launch {
+                supervisorScope {
+                    launch(Dispatchers.IO + CoroutineExceptionHandler { _, exception ->
+                        Timber.e("INNER CoroutineExceptionHandler got $exception")
+                    }) {
+                        Timber.e("throwing IllegalAccessException from CoroutineExceptionHandler")
+                        throw IllegalAccessException()
+                    }
+                }
+            }
+        }
+        lifecycleScope.launch {
+            var job: Job? = null
+            try {
+                supervisorScope {
+                    launch(Dispatchers.IO + handler) {
+
+                        throw NullPointerException()
+
+                        try {
+                            withContext(Dispatchers.Main) {
+                                delay(3000)
+                                Timber.e("throwing AssertionError")
+                                throw AssertionError()
+                            }
+                        } finally {
+                            Timber.e("throwing AssertionError CLOSED")
+                            job?.cancelAndJoin()
+                            Timber.e("throwing AssertionError second corutine CLOSED")
+
+                        }
+                    }
+                    job = launch {
+                        try {
+                            repeat(10) {
+                                delay(500)
+                                Timber.e("Tick Tock")
+                            }
+                        } finally {
+                            Timber.e("Tick Tock CLOSED")
+                        }
+                    }
+                }
+            } catch (e: AssertionError){
+                Timber.e("throwing AssertionError CLOSED")
+            } finally {
+                Timber.e("supervisorScope CLOSED")
+            }
+        }*/
+
+        /*lifecycleScope.launch {
+            try {
+                repeat(100) {
+                    delay(500)
+                    Timber.e(" lifecycleScope Tick Tock")
+                }
+            } finally {
+                Timber.e("lifecycleScope Tick Tock CLOSED")
+            }
+        }
+
+        lifecycleScope.cancel()*/
 
         DataBindingUtil.inflate<NavHeaderBinding>(layoutInflater, R.layout.nav_header,
                 binding.navigationView, false).apply {

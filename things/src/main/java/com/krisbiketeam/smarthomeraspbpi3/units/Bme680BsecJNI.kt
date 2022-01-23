@@ -43,12 +43,19 @@ class Bme680BsecJNI(private val scope: CoroutineScope, private val secureStorage
         //mDeviceMutex.withLock {
         try {
             if (mDevice != null) {
+                // TODO to test hwUnit close loop
+                /*runBlocking(scope.coroutineContext) {
+                    withContext(Dispatchers.Main) {
+                        val array = ByteArray(42) { i -> i.toByte() }
+                        secureStorage.bme680State = array.copyOf()
+                    }
+                }*/
                 closeBme680JNI()
             }
             Timber.d("close mDevice")
             mDevice?.close()
         } catch (e: Exception) {
-            throw Exception("Error closing Si7021", e)
+            throw Exception("Error closing BME680", e)
         } finally {
             mDevice = null
             Timber.d("close finished")
