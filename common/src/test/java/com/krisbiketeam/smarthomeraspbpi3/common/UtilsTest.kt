@@ -1,6 +1,7 @@
 package com.krisbiketeam.smarthomeraspbpi3.common
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
@@ -35,6 +36,6 @@ class UtilsTest {
         byteArray[4] = 127
 
         val bytes = string.decodeHex()
-        assertEquals(byteArray, bytes)
+        assertTrue(byteArray.contentEquals(bytes))
     }
 }

@@ -435,6 +435,11 @@ class Home(private val secureStorage: SecureStorage,
                         hwUnit.softAddress ?: 0,
                         hwUnit.refreshRate) as BaseHwUnit<Any>
             }
+            BoardConfig.PRESS_TEMP_SENSOR_LPS331 -> {
+                HwUnitI2CPressTempLps331Sensor(hwUnit.name, hwUnit.location, hwUnit.pinName,
+                        hwUnit.softAddress ?: 0,
+                        hwUnit.refreshRate) as BaseHwUnit<Any>
+            }
             BoardConfig.TEMP_PRESS_SENSOR_BMP280 -> {
                 HwUnitI2CTempPressBMP280Sensor(hwUnit.name, hwUnit.location, hwUnit.pinName,
                         hwUnit.softAddress ?: 0,
@@ -698,8 +703,9 @@ class Home(private val secureStorage: SecureStorage,
                 }*/
             }
             try {
+                Timber.e("readValueWithException readValue")
                 deferred.await()
-            } catch (e: AssertionError) {
+            } catch (e: Exception) {
                 Timber.e("readValueWithException; Error reading hwUnit value on $hwUnit $e")
                 addHwUnitErrorEvent(e, "Error reading hwUnit value on $hwUnit")
                 null
@@ -763,7 +769,7 @@ class Home(private val secureStorage: SecureStorage,
             }
             try {
                 deferred.await()
-            } catch (e: AssertionError) {
+            } catch (e: Exception) {
                 Timber.e("connectValueWithException; Error connecting hwUnit on $hwUnit $e")
                 addHwUnitErrorEvent(e, "Error connecting hwUnit on $hwUnit")
                 false
@@ -808,7 +814,7 @@ class Home(private val secureStorage: SecureStorage,
                 hwUnitStart(it)
             }
         })
-        Timber.e("addHwUnitErrorEvent hwUnitErrorEventList[hwUnit.name]:${hwUnitErrorEventList[hwUnit.name]}")
+        Timber.e("addHwUnitErrorEvent hwUnitErrorEventList[hwUnit.name]:${hwUnitErrorEventList[hwUnit.name]?.third?.hwUnit?.name} ${hwUnitErrorEventList[hwUnit.name]?.second}")
 
         analytics.logEvent(EVENT_SENSOR_EXCEPTION) {
             param(SENSOR_NAME, this@addHwUnitErrorEvent.hwUnit.name)
@@ -826,8 +832,8 @@ class Home(private val secureStorage: SecureStorage,
 
     private fun HomeUnit<Any>.updateHomeUnitValuesAndTimes(unitValue: Any?, updateTime: Long) {
         // We need to handle differently values of non Basic Types
-        if (unitValue is TemperatureAndPressure) {
-            Timber.d("Received TemperatureAndPressure $unitValue")
+        if (unitValue is PressureAndTemperature) {
+            Timber.d("Received PressureAndTemperature $unitValue")
             if (type == HOME_TEMPERATURES) {
                 updateValueMinMax(unitValue.temperature, updateTime)
             } else if (type == HOME_PRESSURES) {

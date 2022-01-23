@@ -1,8 +1,7 @@
 package com.krisbiketeam.smarthomeraspbpi3.units.hardware
 
-import com.google.android.things.contrib.driver.bmx280.Bmx280
-import com.google.android.things.contrib.driver.rainbowhat.RainbowHat
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig
+import com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver.Lps331
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.ConnectionType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.PressureAndTemperature
@@ -13,23 +12,21 @@ import timber.log.Timber
 
 private const val REFRESH_RATE = 300000L // 5 min
 
-class HwUnitI2CTempPressBMP280Sensor(name: String, location: String, pinName: String,
-                                     softAddress: Int,
-                                     private val refreshRate: Long? = REFRESH_RATE,
+class HwUnitI2CPressTempLps331Sensor(name: String, location: String, private val pinName: String,
+                                     softAddress: Int, private val refreshRate: Long? = REFRESH_RATE,
                                      override var device: AutoCloseable? = null) :
         HwUnitI2C<PressureAndTemperature>, Sensor<PressureAndTemperature> {
 
     override val hwUnit: HwUnit =
-            HwUnit(name, location, BoardConfig.TEMP_PRESS_SENSOR_BMP280, pinName,
-                   ConnectionType.I2C, softAddress, refreshRate = refreshRate)
+            HwUnit(name, location, BoardConfig.PRESS_TEMP_SENSOR_LPS331, pinName, ConnectionType.I2C,
+                   softAddress, refreshRate = refreshRate)
     override var unitValue: PressureAndTemperature? = null
     override var valueUpdateTime: Long = System.currentTimeMillis()
 
     private var job: Job? = null
-    private var hwUnitListener: Sensor.HwUnitListener<PressureAndTemperature>? = null
 
     override suspend fun connect() {
-        // Do noting we o not want to block I2C device so it will be opened while setting the value
+        // Do noting we do not want to block I2C device so it will be opened while setting the value
         // and then immediately closed to release resources
     }
 
@@ -38,18 +35,16 @@ class HwUnitI2CTempPressBMP280Sensor(name: String, location: String, pinName: St
     override suspend fun registerListener(scope: CoroutineScope, listener: Sensor.HwUnitListener<PressureAndTemperature>,
                                           exceptionHandler: CoroutineExceptionHandler) {
         Timber.d("registerListener")
-        hwUnitListener = listener
         job?.cancel()
         job = scope.launch(Dispatchers.IO + exceptionHandler) {
             // We could also check for true as suspending delay() method is cancellable
             while (isActive) {
-                try {
-                    delay(refreshRate ?: REFRESH_RATE)
-                    readValue()
-                    hwUnitListener?.onHwUnitChanged(hwUnit, unitValue, valueUpdateTime)
-                } catch (e: Exception) {
-                    Timber.e(e, "Error readValue on $hwUnit")
-                }
+                delay(refreshRate ?: REFRESH_RATE)
+                // Cancel will not stop non suspending oneShotReadValue function
+                readValue()
+                // all data should be updated by suspending oneShotReadValue() method
+                listener.onHwUnitChanged(hwUnit, unitValue, valueUpdateTime)
+
             }
         }
     }
@@ -57,30 +52,28 @@ class HwUnitI2CTempPressBMP280Sensor(name: String, location: String, pinName: St
     override suspend fun unregisterListener() {
         Timber.d("unregisterListener")
         job?.cancel()
-        hwUnitListener = null
     }
 
     @Throws(Exception::class)
     override suspend fun close() {
+        Timber.d("close")
         job?.cancel()
         super.close()
     }
 
     @Throws(Exception::class)
     override suspend fun readValue(): PressureAndTemperature? {
-        return withContext(Dispatchers.Main) {
-            // We do not want to block I2C buss so open device to only display some data and then immediately close it.
-            // use block automatically closes resources referenced to tmp102
-            // We do not want to block I2C buss so open device to only get some data and then immediately close it.
-            RainbowHat.openSensor().use {
-                it.temperatureOversampling = Bmx280.OVERSAMPLING_1X
-                it.pressureOversampling = Bmx280.OVERSAMPLING_1X
-                it.setMode(Bmx280.MODE_NORMAL)
-                unitValue = PressureAndTemperature(it.readPressure(), it.readTemperature())
+        // We do not want to block I2C buss so open device to only display some data and then immediately close it.
+        // use block automatically closes resources referenced to tmp102
+        withContext(Dispatchers.Main) {
+            Lps331(pinName).use {
+                // TODO do not use callback method here as it will hold I2C buss
+                val (pressure, temperature) = it.readOneShotPressAndTemp()
+                unitValue = PressureAndTemperature(pressure, temperature)
                 valueUpdateTime = System.currentTimeMillis()
-                Timber.d("temperature:$unitValue")
+                Timber.d("pressureAndTemperature:$unitValue")
             }
-            unitValue
         }
+        return unitValue
     }
 }

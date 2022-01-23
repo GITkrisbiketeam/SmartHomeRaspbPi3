@@ -53,6 +53,12 @@ class LogsViewModel(private val homeRepository: FirebaseHomeInformationRepositor
                                     add(Triple(pair, pair.hashCode(), filteredHwUnitList.contains(pair)))
                                 }
                             }
+                            BoardConfig.PRESS_TEMP_SENSOR_LPS331 -> {
+                                listOf("pressure", "temperature").forEach {
+                                    val pair = hwUnit to it
+                                    add(Triple(pair, pair.hashCode(), filteredHwUnitList.contains(pair)))
+                                }
+                            }
                             BoardConfig.AIR_QUALITY_SENSOR_BME680 -> {
                                 listOf("temperature", "humidity", "pressure", "iaq", "gas", "staticIaq",
                                         "co2Equivalent", "breathVocEquivalent", "compGasValue",
