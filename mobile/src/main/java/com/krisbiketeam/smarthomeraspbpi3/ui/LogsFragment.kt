@@ -74,6 +74,10 @@ class LogsFragment : androidx.fragment.app.Fragment() {
                 launch {
                     subscribeFilterMenuItems()
                 }
+
+                launch {
+                    subscribeRemoteLogLevelMenuItems()
+                }
             }
         }
 
@@ -104,7 +108,14 @@ class LogsFragment : androidx.fragment.app.Fragment() {
 
             }
         }
-
+        menu.findItem(R.id.action_remote_log_level).subMenu.apply {
+            clear()
+            logsViewModel.menuItemRemoteLogListFlow.value.forEach { (levelName, itemId,  checked) ->
+                val menuItem = add(R.id.action_remote_log_level, itemId, Menu.NONE, levelName)
+                menuItem.isCheckable = true
+                menuItem.isChecked = checked
+            }
+        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -117,13 +128,31 @@ class LogsFragment : androidx.fragment.app.Fragment() {
                 openDateRangePicker()
                 true
             }
-            else -> if (logsViewModel.addFilter(item.itemId)) true else super.onOptionsItemSelected(item)
+            else -> when {
+                logsViewModel.addFilter(item.itemId) -> {
+                    true
+                }
+                logsViewModel.setLogLevel(item.itemId) -> {
+                    true
+                }
+                else -> {
+                    super.onOptionsItemSelected(item)
+                }
+            }
         }
     }
 
     @ExperimentalCoroutinesApi
     private suspend fun subscribeFilterMenuItems() {
         logsViewModel.menuItemHwUnitListFlow.collect {
+            Timber.d("subscribeFilterMenuItems  size:${it.size}")
+            activity?.invalidateOptionsMenu()
+        }
+    }
+
+    @ExperimentalCoroutinesApi
+    private suspend fun subscribeRemoteLogLevelMenuItems() {
+        logsViewModel.menuItemRemoteLogListFlow.collect {
             Timber.d("subscribeFilterMenuItems  size:${it.size}")
             activity?.invalidateOptionsMenu()
         }

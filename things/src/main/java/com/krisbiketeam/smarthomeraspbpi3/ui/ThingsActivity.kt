@@ -13,7 +13,8 @@ import com.google.android.things.userdriver.UserDriverManager
 import com.google.android.things.userdriver.input.InputDriver
 import com.google.android.things.userdriver.input.InputDriverEvent
 import com.google.firebase.analytics.FirebaseAnalytics
-import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.google.firebase.crashlytics.ktx.crashlytics
+import com.google.firebase.ktx.Firebase
 import com.jakewharton.processphoenix.ProcessPhoenix
 import com.krisbiketeam.smarthomeraspbpi3.Home
 import com.krisbiketeam.smarthomeraspbpi3.R
@@ -33,15 +34,17 @@ import com.krisbiketeam.smarthomeraspbpi3.units.BaseHwUnit
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
 import com.krisbiketeam.smarthomeraspbpi3.units.hardware.HwUnitI2CPCF8574ATActuator
 import com.krisbiketeam.smarthomeraspbpi3.units.hardware.HwUnitI2CPCF8574ATSensor
-import com.krisbiketeam.smarthomeraspbpi3.utils.ConsoleLoggerTree
+import com.krisbiketeam.smarthomeraspbpi3.utils.ConsoleAndCrashliticsLoggerTree
+import com.krisbiketeam.smarthomeraspbpi3.utils.FirebaseDBLoggerTree
 import com.squareup.moshi.Moshi
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
 import org.koin.android.ext.android.inject
 import timber.log.Timber
 import java.io.IOException
 import java.util.*
-import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
@@ -78,6 +81,9 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
     private var connectAndSetupJob: Job? = null
 
     init {
+        FirebaseDBLoggerTree.setMinPriority(secureStorage.remoteLoggingLevel)
+        FirebaseDBLoggerTree.setFirebaseRepository(homeInformationRepository)
+
         Timber.d("init")
 
         ledA = HwUnitI2CPCF8574ATActuator(BoardConfig.IO_EXTENDER_PCF8574AT_LED_1, "Raspberry Pi",
@@ -130,7 +136,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
             val ipAddress = wifiManager.connectionInfo.ipAddress
             val formattedIpAddress = Formatter.formatIpAddress(ipAddress)
             Timber.v("onAvailable ipAddress: $formattedIpAddress")
-            ConsoleLoggerTree.setIpAddress(formattedIpAddress)
+            ConsoleAndCrashliticsLoggerTree.setIpAddress(formattedIpAddress)
             lifecycleScope.launch {
                 led1.setValueWithException(available)
             }
@@ -157,9 +163,16 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
         Timber.d("onCreate")
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
-        ConsoleLoggerTree.setLogConsole(this)
+        ConsoleAndCrashliticsLoggerTree.setLogConsole(this)
 
         homeInformationRepository.clearResetAppFlag()
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            secureStorage.remoteLoggingLevelFlow.distinctUntilChanged().collect { level ->
+                Timber.i("remoteLoggingLevel changed:$level")
+                FirebaseDBLoggerTree.setMinPriority(level)
+            }
+        }
 
         lifecycleScope.launch {
             ledA.connectValueWithException()
@@ -786,7 +799,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
     private fun <T : Any> BaseHwUnit<T>.addHwUnitErrorEvent(e: Throwable, logMessage: String) {
         homeInformationRepository.addHwUnitErrorEvent(
                 HwUnitLog(hwUnit, unitValue, e.message))
-        FirebaseCrashlytics.getInstance().recordException(e)
+        Firebase.crashlytics.recordException(e)
         Timber.e(e, logMessage)
     }
 }

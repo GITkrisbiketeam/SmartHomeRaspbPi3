@@ -19,6 +19,15 @@
                 <group android:checkableBehavior="all"/>
             </menu>
         </item>
+        <item
+            android:id="@+id/action_remote_log_level"
+            android:title="@string/menu_remote_log"
+            app:showAsAction="never">
+            <menu>
+                <group android:checkableBehavior="all" />
+            </menu>
+        </item>
+
     </group>
 
 </menu>

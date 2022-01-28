@@ -6,10 +6,14 @@ import com.google.android.gms.tasks.Task
 import com.google.firebase.database.*
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
+import com.krisbiketeam.smarthomeraspbpi3.common.getOnlyDateLocalTime
 import com.krisbiketeam.smarthomeraspbpi3.common.resetableLazy
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.*
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.*
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.flows.*
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.flows.genericListReferenceFlow
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.flows.genericReferenceFlow
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.flows.getHomeUnitsFlow
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.flows.getHwUnitsFlow
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import timber.log.Timber
@@ -427,7 +431,7 @@ class FirebaseHomeInformationRepository {
      */
     fun logHwUnitEvent(hwUnitLog: HwUnitLog<out Any>) {
         homePathReference?.let {
-            Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/${hwUnitLog.name}/${hwUnitLog.getOnlyDateLocalTime()}/${hwUnitLog.localtime}").setValue(hwUnitLog)
+            Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$LOG_HW_UNIT/${hwUnitLog.name}/${hwUnitLog.getOnlyDateLocalTime()}/${hwUnitLog.localtime}").setValue(hwUnitLog)
         }
     }
 
@@ -436,25 +440,65 @@ class FirebaseHomeInformationRepository {
      */
     fun logHwUnitError(hwUnitLog: HwUnitLog<out Any>) {
         homePathReference?.let {
-            Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/error/${hwUnitLog.name}").push().setValue(hwUnitLog)
+            Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$LOG_HW_UNIT_ERRORS/${hwUnitLog.name}").push().setValue(hwUnitLog)
+        }
+    }
+
+
+    /**
+     *  Adds given @see[HwUnitLog] to the log @see[LOG_INFORMATION_BASE] list in DB
+     */
+    fun logThingsLog(log: RemoteLog, timeStamp:Long) {
+        homePathReference?.let {
+            Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$LOG_THINGS_LOGS/${timeStamp.getOnlyDateLocalTime()}/${timeStamp}").setValue(log)
+        }
+    }
+
+
+        /**
+     * Clear all HwUnit Logs entries from DB
+     */
+    fun clearAllHwUnitLogs() {
+        homePathReference?.let {
+            Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$LOG_HW_UNIT").removeValue()
         }
     }
 
     /**
-     * Clear all Logs entries from DB
+     * Clear HwUnit Logs entries from DB
      */
-    fun clearLog() {
+    fun clearHwUnitLogs(hwUnitLogName: String) {
         homePathReference?.let {
-            Firebase.database.getReference("$it/$LOG_INFORMATION_BASE")
+            Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$LOG_HW_UNIT/$hwUnitLogName").removeValue()
         }
     }
 
     /**
-     * Clear all Logs entries from DB
+     * Clear HwUnit Logs entries from DB
+     * getOnlyDateLocalTime()
      */
-    fun clearLog(hwUnitLogName: String) {
+    fun clearHwUnitLogs(hwUnitLogName: String, dayTime: String) {
         homePathReference?.let {
-            Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/error/$hwUnitLogName").removeValue()
+            Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$LOG_HW_UNIT/$hwUnitLogName/$dayTime").removeValue()
+        }
+    }
+
+
+    /**
+     * Clear all HwUnit Error Logs entries from DB
+     */
+    fun clearAllHwUnitErrorLogs() {
+        homePathReference?.let {
+            Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$LOG_HW_UNIT_ERRORS").removeValue()
+        }
+    }
+
+    /**
+     * Clear HwUnit Error Logs entries from DB
+     */
+    fun clearHwUnitErrorLogs(hwUnitLogName: String) {
+        homePathReference?.let {
+            Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$LOG_HW_UNIT_ERRORS/$hwUnitLogName").removeValue()
         }
     }
 
@@ -689,13 +733,13 @@ class FirebaseHomeInformationRepository {
 
     fun logsFlow(hwUnitName:String): Flow<Map<String,Map<String,HwUnitLog<Any?>>>> {
         return homePathReference?.let {
-            genericReferenceFlow(Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$hwUnitName"))
+            genericReferenceFlow(Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$LOG_HW_UNIT/$hwUnitName"))
         }?: emptyFlow()
     }
 
     fun logsFlow(hwUnitName:String, date: Long): Flow<Map<String,HwUnitLog<Any?>>> {
         return homePathReference?.let {
-            genericReferenceFlow(Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$hwUnitName/$date"))
+            genericReferenceFlow(Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$LOG_HW_UNIT/$hwUnitName/$date"))
         }?: emptyFlow()
     }
 

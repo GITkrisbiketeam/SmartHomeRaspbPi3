@@ -3,7 +3,6 @@ package com.krisbiketeam.smarthomeraspbpi3.common.storage
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.security.crypto.EncryptedSharedPreferences
@@ -17,6 +16,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.toHex
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.trySendBlocking
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.shareIn
@@ -43,28 +43,9 @@ class SecureStorageImpl(private val context: Context, homeInformationRepository:
 
     override var alarmEnabled: Boolean by encryptedSharedPreferences.alarmEnabled()
 
+    override var remoteLoggingLevel: Int by encryptedSharedPreferences.remoteLoggingLevel()
+
     override var bme680State: ByteArray by encryptedSharedPreferences.bme680State()
-
-    override val firebaseCredentialsLiveData: LiveData<FirebaseCredentials> =
-            object : LiveData<FirebaseCredentials>() {
-                private val preferenceChangeListener =
-                        SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-                            if (key == EMAIL_KEY || key == PASSWORD_KEY || key == UID_KEY) {
-                                value = firebaseCredentials
-                            }
-                        }
-
-                override fun onActive() {
-                    super.onActive()
-                    value = firebaseCredentials
-                    encryptedSharedPreferences.registerOnSharedPreferenceChangeListener(preferenceChangeListener)
-                }
-
-                override fun onInactive() {
-                    encryptedSharedPreferences.unregisterOnSharedPreferenceChangeListener(preferenceChangeListener)
-                    super.onInactive()
-                }
-            }
 
     @ExperimentalCoroutinesApi
     override val firebaseCredentialsFlow = callbackFlow {
@@ -88,27 +69,6 @@ class SecureStorageImpl(private val context: Context, homeInformationRepository:
             1
     )
 
-    override val homeNameLiveData: LiveData<String> =
-            object : LiveData<String>() {
-                private val preferenceChangeListener =
-                        SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-                            if (key == HOME_NAME_KEY) {
-                                value = homeName
-                            }
-                        }
-
-                override fun onActive() {
-                    super.onActive()
-                    value = homeName
-                    encryptedSharedPreferences.registerOnSharedPreferenceChangeListener(preferenceChangeListener)
-                }
-
-                override fun onInactive() {
-                    encryptedSharedPreferences.unregisterOnSharedPreferenceChangeListener(preferenceChangeListener)
-                    super.onInactive()
-                }
-            }
-
     @ExperimentalCoroutinesApi
     override val homeNameFlow = callbackFlow {
         val preferenceChangeListener =
@@ -131,48 +91,7 @@ class SecureStorageImpl(private val context: Context, homeInformationRepository:
             1
     )
 
-
     //TODO refactor this is preference needed here?
-    override val alarmEnabledLiveData: LiveData<Boolean> =
-            object : LiveData<Boolean>() {
-                private val preferenceChangeListener =
-                        SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-                            if (key == ALARM_ENABLED_KEY) {
-                                homeInformationRepository.setHomePreference(ALARM_ENABLED_KEY, alarmEnabled)
-                            }
-                        }
-
-                private val alarmListener: ValueEventListener = object : ValueEventListener {
-                    override fun onDataChange(dataSnapshot: DataSnapshot) {
-                        // A new value has been added, add it to the displayed list
-                        val key = dataSnapshot.key
-                        val enabled = dataSnapshot.getValue(Boolean::class.java)
-                        Timber.d("onDataChange (key=$key)(alarmEnabled=$enabled)")
-                        enabled?.let {
-                            value = enabled
-                            alarmEnabled = enabled
-                        }
-                    }
-
-                    override fun onCancelled(databaseError: DatabaseError) {
-                        Timber.e("onCancelled: $databaseError")
-                    }
-                }
-
-                override fun onActive() {
-                    super.onActive()
-                    value = alarmEnabled
-                    homeInformationRepository.getHomePreference(ALARM_ENABLED_KEY)?.addValueEventListener(alarmListener)
-                    encryptedSharedPreferences.registerOnSharedPreferenceChangeListener(preferenceChangeListener)
-                }
-
-                override fun onInactive() {
-                    encryptedSharedPreferences.unregisterOnSharedPreferenceChangeListener(preferenceChangeListener)
-                    homeInformationRepository.getHomePreference(ALARM_ENABLED_KEY)?.removeEventListener(alarmListener)
-                    super.onInactive()
-                }
-            }
-
     @ExperimentalCoroutinesApi
     override val alarmEnabledFlow = callbackFlow {
         val preferenceChangeListener =
@@ -214,6 +133,49 @@ class SecureStorageImpl(private val context: Context, homeInformationRepository:
             SharingStarted.WhileSubscribed(),
             1
     )
+
+    @ExperimentalCoroutinesApi
+    override val remoteLoggingLevelFlow: Flow<Int> = callbackFlow {
+        val preferenceChangeListener =
+                SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+                    Timber.e("remoteLoggingLevelFlow changed $key")
+                    if (key == REMOTE_LOGGING_LEVEL_KEY) {
+                        homeInformationRepository.setHomePreference(REMOTE_LOGGING_LEVEL_KEY, remoteLoggingLevel)
+                    }
+                }
+
+        val alarmListener: ValueEventListener = object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                // A new value has been added, add it to the displayed list
+                val key = dataSnapshot.key
+                val level = dataSnapshot.getValue(Int::class.java)
+                Timber.d("remoteLoggingLevelFlow onDataChange (key=$key)(remoteLoggingLevel=$level)")
+                if (level != null) {
+                    this@callbackFlow.trySendBlocking(level)
+                    remoteLoggingLevel = level
+                }
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                Timber.e("remoteLoggingLevelFlow onCancelled: $databaseError")
+            }
+        }
+
+        this@callbackFlow.trySendBlocking(remoteLoggingLevel)
+        homeInformationRepository.getHomePreference(REMOTE_LOGGING_LEVEL_KEY)?.addValueEventListener(alarmListener)
+        Timber.e("remoteLoggingLevelFlow  register")
+        encryptedSharedPreferences.registerOnSharedPreferenceChangeListener(preferenceChangeListener)
+        awaitClose {
+            Timber.e("remoteLoggingLevelFlow  awaitClose")
+            encryptedSharedPreferences.unregisterOnSharedPreferenceChangeListener(preferenceChangeListener)
+            homeInformationRepository.getHomePreference(REMOTE_LOGGING_LEVEL_KEY)?.removeEventListener(alarmListener)
+        }
+    }.shareIn(
+            ProcessLifecycleOwner.get().lifecycleScope,
+            SharingStarted.WhileSubscribed(),
+            1
+    )
+
 
     override fun isAuthenticated(): Boolean {
         return firebaseCredentials.email.isNotEmpty() && firebaseCredentials.password.isNotEmpty() && !firebaseCredentials.uid.isNullOrEmpty()
@@ -258,6 +220,18 @@ class SecureStorageImpl(private val context: Context, homeInformationRepository:
 
             override fun setValue(thisRef: Any, property: KProperty<*>, value: Boolean) {
                 edit { putBoolean(ALARM_ENABLED_KEY, value) }
+            }
+        }
+    }
+
+    private fun SharedPreferences.remoteLoggingLevel():
+            ReadWriteProperty<Any, Int> {
+        return object : ReadWriteProperty<Any, Int> {
+            override fun getValue(thisRef: Any, property: KProperty<*>) =
+                    getInt(REMOTE_LOGGING_LEVEL_KEY, Int.MAX_VALUE)
+
+            override fun setValue(thisRef: Any, property: KProperty<*>, value: Int) {
+                edit().putInt(REMOTE_LOGGING_LEVEL_KEY, value).apply()
             }
         }
     }

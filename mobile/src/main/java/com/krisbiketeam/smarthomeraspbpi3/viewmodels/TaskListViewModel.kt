@@ -31,7 +31,7 @@ class TaskListViewModel(private val homeRepository: FirebaseHomeInformationRepos
     private var localItemsOrder: List<String> = listOf()
 
     val taskListFromFlow: Flow<List<TaskListAdapterModel>> = secureStorage.homeNameFlow.flatMapLatest {
-        Timber.e("secureStorage.homeNameLiveData")
+        Timber.e("secureStorage.homeNameFlow")
         combine(homeRepository.homeUnitListFlow().debounce(100), homeRepository.hwUnitErrorEventListFlow(), homeRepository.taskListOrderFlow()) { homeUnitsList, hwUnitErrorEventList, itemsOrder ->
             Timber.e("taskListAdapterModelMap")
             val taskListAdapterModelMap: MutableMap<String, TaskListAdapterModel> = mutableMapOf()

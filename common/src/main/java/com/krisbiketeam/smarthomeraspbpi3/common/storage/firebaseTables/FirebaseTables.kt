@@ -89,6 +89,9 @@ const val HOME_LAST_ONLINE_TIME = "lastOnline"
 
 // region Logs
 const val LOG_INFORMATION_BASE = "log"
+const val LOG_HW_UNIT_ERRORS = "error"
+const val LOG_HW_UNIT = "hw_units"
+const val LOG_THINGS_LOGS = "things_logs"
 // endregion
 
 // region "home"

@@ -54,6 +54,7 @@
     <string name="menu_finish">Finish</string>
     <string name="menu_filter">Filter</string>
     <string name="menu_date_picker">Pick Date</string>
+    <string name="menu_remote_log">Things Logging</string>
 
     <string name="menu_navigation_room_list">Room List</string>
     <string name="menu_navigation_task_list">Task List</string>

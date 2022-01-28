@@ -1,7 +1,7 @@
 package com.krisbiketeam.smarthomeraspbpi3
 
-import androidx.lifecycle.LiveData
-import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.google.firebase.crashlytics.ktx.crashlytics
+import com.google.firebase.ktx.Firebase
 import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
 import com.krisbiketeam.smarthomeraspbpi3.common.FULL_DAY_IN_MILLIS
 import com.krisbiketeam.smarthomeraspbpi3.common.getOnlyTodayLocalTime
@@ -16,9 +16,7 @@ import com.krisbiketeam.smarthomeraspbpi3.units.*
 import com.krisbiketeam.smarthomeraspbpi3.units.Actuator
 import com.krisbiketeam.smarthomeraspbpi3.units.hardware.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import timber.log.Timber
@@ -56,8 +54,6 @@ class Home(private val secureStorage: SecureStorage,
             ConcurrentHashMap()
     private val hwUnitErrorEventListMutex = Mutex()
 
-
-    private val alarmEnabledLiveData: LiveData<Boolean> = secureStorage.alarmEnabledLiveData
     private var alarmEnabled: Boolean = secureStorage.alarmEnabled
 
     private var booleanApplyFunction: suspend HomeUnit<in Boolean>.(Any) -> Unit = { newVal: Any ->
@@ -127,9 +123,12 @@ class Home(private val secureStorage: SecureStorage,
                     hwUnitRestartListProcessor(it)
                 }
             }
-        }
-        alarmEnabledLiveData.observeForever {
-            alarmEnabled = it
+            launch(Dispatchers.IO) {
+                Timber.i("start: start listen to hwUnitRestartListFlow")
+                secureStorage.alarmEnabledFlow.distinctUntilChanged().collect {
+                    alarmEnabled = it
+                }
+            }
         }
     }
 
@@ -371,7 +370,6 @@ class Home(private val secureStorage: SecureStorage,
         Timber.d("onHwUnitChanged unit: $hwUnit; unitValue: $unitValue; updateTime: ${
             Date(updateTime)
         }")
-        //TODO :disable logging as its can overload firebase DB
         homeInformationRepository.logHwUnitEvent(HwUnitLog(hwUnit, unitValue, "onHwUnitChanged", updateTime))
 
 // TODO: IS THIS NEEDED TO RUN NEW SCOPE
@@ -663,7 +661,6 @@ class Home(private val secureStorage: SecureStorage,
                                 homeInformationRepository.saveHomeUnit(taskHomeUnit)
                                 // Firebase will be notified by homeUnitsDataProcessor
 
-                                //TODO :disable logging as its can overload firebase DB
                                 homeInformationRepository.logHwUnitEvent(HwUnitLog(taskHwUnit.hwUnit, newActionVal, "booleanApplyAction", taskHwUnit.valueUpdateTime))
                             }
                         }
@@ -840,7 +837,7 @@ class Home(private val secureStorage: SecureStorage,
             param(SENSOR_LOG_MESSAGE, logMessage)
             param(SENSOR_ERROR, e.toString())
         }
-        FirebaseCrashlytics.getInstance().recordException(e)
+        Firebase.crashlytics.recordException(e)
         Timber.e(e, "addHwUnitErrorEvent finished : $logMessage")
     }
 
