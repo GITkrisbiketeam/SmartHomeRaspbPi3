@@ -148,6 +148,7 @@ class SecureStorageImpl(private val context: Context, homeInformationRepository:
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 // A new value has been added, add it to the displayed list
                 val key = dataSnapshot.key
+                Timber.d("remoteLoggingLevelFlow onDataChange (key=$key)(dataSnapshot=$dataSnapshot)")
                 val level = dataSnapshot.getValue(Int::class.java)
                 Timber.d("remoteLoggingLevelFlow onDataChange (key=$key)(remoteLoggingLevel=$level)")
                 if (level != null) {

@@ -81,6 +81,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
     private var connectAndSetupJob: Job? = null
 
     init {
+        Timber.i("init secureStorage.remoteLoggingLevel ${secureStorage.remoteLoggingLevel}")
         FirebaseDBLoggerTree.setMinPriority(secureStorage.remoteLoggingLevel)
         FirebaseDBLoggerTree.setFirebaseRepository(homeInformationRepository)
 
@@ -166,13 +167,6 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
         ConsoleAndCrashliticsLoggerTree.setLogConsole(this)
 
         homeInformationRepository.clearResetAppFlag()
-
-        lifecycleScope.launch(Dispatchers.IO) {
-            secureStorage.remoteLoggingLevelFlow.distinctUntilChanged().collect { level ->
-                Timber.i("remoteLoggingLevel changed:$level")
-                FirebaseDBLoggerTree.setMinPriority(level)
-            }
-        }
 
         lifecycleScope.launch {
             ledA.connectValueWithException()

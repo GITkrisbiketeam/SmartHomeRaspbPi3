@@ -15,6 +15,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.*
 import com.krisbiketeam.smarthomeraspbpi3.units.*
 import com.krisbiketeam.smarthomeraspbpi3.units.Actuator
 import com.krisbiketeam.smarthomeraspbpi3.units.hardware.*
+import com.krisbiketeam.smarthomeraspbpi3.utils.FirebaseDBLoggerTree
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.sync.Mutex
@@ -124,9 +125,17 @@ class Home(private val secureStorage: SecureStorage,
                 }
             }
             launch(Dispatchers.IO) {
-                Timber.i("start: start listen to hwUnitRestartListFlow")
+                Timber.i("start: start listen to alarmEnabledFlow")
                 secureStorage.alarmEnabledFlow.distinctUntilChanged().collect {
+                    Timber.i("alarmEnabledFlow changed $it")
                     alarmEnabled = it
+                }
+            }
+            launch(Dispatchers.IO) {
+                Timber.i("start: start listen to remoteLoggingLevelFlow")
+                secureStorage.remoteLoggingLevelFlow.distinctUntilChanged().collect { level ->
+                    Timber.i("remoteLoggingLevel changed:$level")
+                    FirebaseDBLoggerTree.setMinPriority(level)
                 }
             }
         }
@@ -651,9 +660,9 @@ class Home(private val secureStorage: SecureStorage,
                     if (taskHwUnit is Actuator && taskHwUnit.unitValue is Boolean?) {
                         if (taskHomeUnit.value != newActionVal) {
                             taskHomeUnit.value = newActionVal
-                            Timber.w("booleanApplyAction taskHwUnit actionVal: $actionVal setValue value: $newActionVal periodicallyOnlyHw: $periodicallyOnlyHw")
+                            Timber.i("booleanApplyAction taskHwUnit actionVal: $actionVal setValue value: $newActionVal periodicallyOnlyHw: $periodicallyOnlyHw")
                             taskHwUnit.setValueWithException(newActionVal, periodicallyOnlyHw != true)
-                            Timber.e("booleanApplyAction after set HW Value homeUnit: $taskHomeUnit")
+                            Timber.d("booleanApplyAction after set HW Value homeUnit: $taskHomeUnit")
                             if (periodicallyOnlyHw != true) {
                                 taskHomeUnit.lastUpdateTime = taskHwUnit.valueUpdateTime
                                 taskHomeUnit.lastTriggerSource = "${LAST_TRIGGER_SOURCE_BOOLEAN_APPLY}_from_${homeUnitName}_home_unit_by${taskName}_task"

@@ -172,7 +172,7 @@ class AM2320(bus: String? = null) : AutoCloseable {
     @Throws(Exception::class)
     @MainThread
     suspend fun readOneShotTempAndRh(): Pair<Float?, Float?> {
-        Timber.d("readOneShotTempAndRh start")
+        Timber.i("readOneShotTempAndRh start")
         val result = readTempAndRH()
         Timber.d("readOneShotTempAndRh conversion finished result? $result")
         return result ?: Pair(null, null)
@@ -267,7 +267,7 @@ class AM2320(bus: String? = null) : AutoCloseable {
     @Throws(Exception::class)
     @MainThread
     private suspend fun readSampleTwo16CRC(register: Byte): Pair<Int, Int>? {
-        Timber.w("readSampleTwo16CRC")
+        Timber.d("readSampleTwo16CRC")
         //synchronized(mBuffer) {
         val mWriteBuffer = ByteArray(3)
         // wakeup

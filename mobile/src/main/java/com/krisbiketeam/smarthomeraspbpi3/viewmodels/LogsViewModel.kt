@@ -187,7 +187,7 @@ class LogsViewModel(private val homeRepository: FirebaseHomeInformationRepositor
                 }
             }
 
-    fun clearLogs() = homeRepository.clearAllHwUnitErrorLogs()
+    fun clearLogs() = homeRepository.clearAllThingsLog()
 
     @ExperimentalCoroutinesApi
     fun addFilter(hwUnitHash: Int): Boolean {

@@ -262,7 +262,7 @@ class FirebaseHomeInformationRepository {
      *  Saves/updates given @see[HomeUnit] in DB
      */
     fun saveHomeUnit(homeUnit: HomeUnit<Any>): Task<Void>? {
-        Timber.w("saveHomeUnit $homeUnit")
+        Timber.v("saveHomeUnit $homeUnit")
         //return referenceHomeUnits?.child("${homeUnit.type}/${homeUnit.name}")?.setValue(homeUnit)
         return homePathReference?.let {
             Firebase.database.getReference("$it/$HOME_UNITS_BASE/${homeUnit.type}/${homeUnit.name}")
@@ -429,8 +429,8 @@ class FirebaseHomeInformationRepository {
     /**
      *  Adds given @see[HwUnitLog] to the log @see[LOG_INFORMATION_BASE] list in DB
      */
-    fun logHwUnitEvent(hwUnitLog: HwUnitLog<out Any>) {
-        homePathReference?.let {
+    fun logHwUnitEvent(hwUnitLog: HwUnitLog<out Any>):Task<Void>? {
+        return homePathReference?.let {
             Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$LOG_HW_UNIT/${hwUnitLog.name}/${hwUnitLog.getOnlyDateLocalTime()}/${hwUnitLog.localtime}").setValue(hwUnitLog)
         }
     }
@@ -438,28 +438,26 @@ class FirebaseHomeInformationRepository {
     /**
      *  Adds given @see[HwUnitLog] to the log @see[LOG_INFORMATION_BASE] list in DB
      */
-    fun logHwUnitError(hwUnitLog: HwUnitLog<out Any>) {
-        homePathReference?.let {
+    fun logHwUnitError(hwUnitLog: HwUnitLog<out Any>):Task<Void>? {
+        return homePathReference?.let {
             Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$LOG_HW_UNIT_ERRORS/${hwUnitLog.name}").push().setValue(hwUnitLog)
         }
     }
 
-
     /**
      *  Adds given @see[HwUnitLog] to the log @see[LOG_INFORMATION_BASE] list in DB
      */
-    fun logThingsLog(log: RemoteLog, timeStamp:Long) {
-        homePathReference?.let {
+    fun logThingsLog(log: RemoteLog, timeStamp:Long):Task<Void>? {
+        return homePathReference?.let {
             Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$LOG_THINGS_LOGS/${timeStamp.getOnlyDateLocalTime()}/${timeStamp}").setValue(log)
         }
     }
 
-
-        /**
+    /**
      * Clear all HwUnit Logs entries from DB
      */
-    fun clearAllHwUnitLogs() {
-        homePathReference?.let {
+    fun clearAllHwUnitLogs():Task<Void>? {
+        return homePathReference?.let {
             Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$LOG_HW_UNIT").removeValue()
         }
     }
@@ -467,8 +465,8 @@ class FirebaseHomeInformationRepository {
     /**
      * Clear HwUnit Logs entries from DB
      */
-    fun clearHwUnitLogs(hwUnitLogName: String) {
-        homePathReference?.let {
+    fun clearHwUnitLogs(hwUnitLogName: String):Task<Void>? {
+        return homePathReference?.let {
             Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$LOG_HW_UNIT/$hwUnitLogName").removeValue()
         }
     }
@@ -477,8 +475,8 @@ class FirebaseHomeInformationRepository {
      * Clear HwUnit Logs entries from DB
      * getOnlyDateLocalTime()
      */
-    fun clearHwUnitLogs(hwUnitLogName: String, dayTime: String) {
-        homePathReference?.let {
+    fun clearHwUnitLogs(hwUnitLogName: String, dayTime: String):Task<Void>? {
+        return homePathReference?.let {
             Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$LOG_HW_UNIT/$hwUnitLogName/$dayTime").removeValue()
         }
     }
@@ -487,8 +485,8 @@ class FirebaseHomeInformationRepository {
     /**
      * Clear all HwUnit Error Logs entries from DB
      */
-    fun clearAllHwUnitErrorLogs() {
-        homePathReference?.let {
+    fun clearAllHwUnitErrorLogs():Task<Void>? {
+        return homePathReference?.let {
             Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$LOG_HW_UNIT_ERRORS").removeValue()
         }
     }
@@ -496,11 +494,30 @@ class FirebaseHomeInformationRepository {
     /**
      * Clear HwUnit Error Logs entries from DB
      */
-    fun clearHwUnitErrorLogs(hwUnitLogName: String) {
-        homePathReference?.let {
+    fun clearHwUnitErrorLogs(hwUnitLogName: String):Task<Void>? {
+        return homePathReference?.let {
             Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$LOG_HW_UNIT_ERRORS/$hwUnitLogName").removeValue()
         }
     }
+
+    /**
+     * Clear all HwUnit Error Logs entries from DB
+     */
+    fun clearAllThingsLog():Task<Void>? {
+        return homePathReference?.let {
+            Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$LOG_THINGS_LOGS").removeValue()
+        }
+    }
+
+    /**
+     * Clear day Things Logs entries from DB
+     */
+    fun clearDayThingsLog(dayTime: String):Task<Void>? {
+        return homePathReference?.let {
+            Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$LOG_THINGS_LOGS/$dayTime").removeValue()
+        }
+    }
+
 
     // endregion
 
