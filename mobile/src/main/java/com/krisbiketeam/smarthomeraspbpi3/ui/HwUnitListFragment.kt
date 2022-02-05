@@ -12,6 +12,7 @@ import androidx.navigation.fragment.findNavController
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentHwUnitListBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.HwUnitListViewModel
 import kotlinx.coroutines.Dispatchers

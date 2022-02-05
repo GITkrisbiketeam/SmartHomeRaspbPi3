@@ -97,6 +97,13 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 findNavController().navigate(direction)
                 return true
             }
+            getString(R.string.settings_things_app_logs_fragment_key) -> {
+                Timber.d("onPreferenceTreeClick go to ThingsAppLogsFragment")
+                val direction =
+                        SettingsFragmentDirections.actionSettingsFragmentToThingsAppLogsFragment()
+                findNavController().navigate(direction)
+                return true
+            }
             getString(R.string.settings_restart_rpi_things_app) -> {
                 Timber.d("onPreferenceTreeClick restart Rpi Things App")
                 homeRepository.setResetAppFlag()

@@ -11,7 +11,7 @@ object FirebaseDBLoggerTree : Timber.DebugTree() {
     private var minPriority: Int = Int.MAX_VALUE
     private var repository: FirebaseHomeInformationRepository? = null
 
-    private val timeFormat = SimpleDateFormat("yyyy-MM-dd hh:mm:ss.SSS a zzz", Locale.getDefault())
+    private val timeFormat = SimpleDateFormat("dd MMM HH:mm:ss.SSS", Locale.getDefault())
 
     override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
         val threadedTag = "[${Thread.currentThread().name}] $tag"

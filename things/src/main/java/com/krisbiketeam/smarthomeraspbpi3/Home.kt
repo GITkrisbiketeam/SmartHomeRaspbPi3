@@ -654,24 +654,25 @@ class Home(private val secureStorage: SecureStorage,
         val newActionVal: Boolean = (inverse ?: false) xor actionVal
         taskHomeUnitList.forEach {
             homeUnitsList[it.type to it.name]?.let { taskHomeUnit ->
-                Timber.d("booleanApplyAction homeUnit: $taskHomeUnit")
+                Timber.d("booleanApplyAction taskHomeUnit: $taskHomeUnit")
                 hwUnitsList[taskHomeUnit.hwUnitName]?.let { taskHwUnit ->
-                    Timber.d("booleanApplyAction taskHwUnit: ${taskHwUnit.hwUnit}")
+                    Timber.d("booleanApplyAction taskHwUnit: ${taskHwUnit.hwUnit} unitValue:${taskHwUnit.unitValue} valueUpdateTime:${taskHwUnit.valueUpdateTime}")
                     if (taskHwUnit is Actuator && taskHwUnit.unitValue is Boolean?) {
                         if (taskHomeUnit.value != newActionVal) {
                             taskHomeUnit.value = newActionVal
                             Timber.i("booleanApplyAction taskHwUnit actionVal: $actionVal setValue value: $newActionVal periodicallyOnlyHw: $periodicallyOnlyHw")
                             taskHwUnit.setValueWithException(newActionVal, periodicallyOnlyHw != true)
-                            Timber.d("booleanApplyAction after set HW Value homeUnit: $taskHomeUnit")
+                            Timber.d("booleanApplyAction after set HW Value taskHwUnit: ${taskHwUnit.hwUnit} unitValue:${taskHwUnit.unitValue} valueUpdateTime:${taskHwUnit.valueUpdateTime}")
                             if (periodicallyOnlyHw != true) {
                                 taskHomeUnit.lastUpdateTime = taskHwUnit.valueUpdateTime
-                                taskHomeUnit.lastTriggerSource = "${LAST_TRIGGER_SOURCE_BOOLEAN_APPLY}_from_${homeUnitName}_home_unit_by${taskName}_task"
+                                taskHomeUnit.lastTriggerSource = "${LAST_TRIGGER_SOURCE_BOOLEAN_APPLY}_from_${homeUnitName}_home_unit_by_${taskName}_task"
                                 taskHomeUnit.applyFunction(taskHomeUnit, newActionVal)
                                 homeInformationRepository.saveHomeUnit(taskHomeUnit)
                                 // Firebase will be notified by homeUnitsDataProcessor
 
                                 homeInformationRepository.logHwUnitEvent(HwUnitLog(taskHwUnit.hwUnit, newActionVal, "booleanApplyAction", taskHwUnit.valueUpdateTime))
                             }
+                            Timber.d("booleanApplyAction after set HW Value taskHomeUnit: $taskHomeUnit")
                         }
                     }
                 }

@@ -12,14 +12,13 @@
             android:title="@string/menu_date_picker"
             app:showAsAction="never" />
         <item
-            android:id="@+id/action_filter"
-            app:showAsAction="never"
-            android:title="@string/menu_filter">
+            android:id="@+id/action_remote_log_level"
+            android:title="@string/menu_remote_log"
+            app:showAsAction="never">
             <menu>
-                <group android:checkableBehavior="all"/>
+                <group android:checkableBehavior="all" />
             </menu>
         </item>
-
     </group>
 
 </menu>

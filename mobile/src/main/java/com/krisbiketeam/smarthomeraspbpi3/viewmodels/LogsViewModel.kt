@@ -1,6 +1,5 @@
 package com.krisbiketeam.smarthomeraspbpi3.viewmodels
 
-import android.util.Log
 import androidx.core.graphics.ColorUtils
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,7 +8,6 @@ import com.krisbiketeam.smarthomeraspbpi3.common.FULL_DAY_IN_MILLIS
 import com.krisbiketeam.smarthomeraspbpi3.common.getOnlyDateLocalTime
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnitLog
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomListFragment
@@ -21,7 +19,7 @@ import timber.log.Timber
 /**
  * The ViewModel for [RoomListFragment].
  */
-class LogsViewModel(private val homeRepository: FirebaseHomeInformationRepository, private val secureStorage: SecureStorage) : ViewModel() {
+class LogsViewModel(private val homeRepository: FirebaseHomeInformationRepository) : ViewModel() {
 
     private val colorFloatArray = FloatArray(3) { idx ->
         when (idx) {
@@ -78,23 +76,6 @@ class LogsViewModel(private val homeRepository: FirebaseHomeInformationRepositor
                 }.sortedByDescending {
                     it.first.first.type
                 }
-            }.stateIn(
-                    viewModelScope,
-                    SharingStarted.WhileSubscribed(),
-                    emptyList()
-            )
-
-    @ExperimentalCoroutinesApi
-    val menuItemRemoteLogListFlow: StateFlow<List<Triple<String, Int, Boolean>>> =
-            secureStorage.remoteLoggingLevelFlow.map { level ->
-                listOf(
-                        Triple("VERBOSE", Log.VERBOSE, level == Log.VERBOSE),
-                        Triple("DEBUG", Log.DEBUG, level == Log.DEBUG),
-                        Triple("INFO", Log.INFO, level == Log.INFO),
-                        Triple("WARN", Log.WARN, level == Log.WARN),
-                        Triple("ERROR", Log.ERROR, level == Log.ERROR),
-                        Triple("OFF", Int.MAX_VALUE, level > Log.ERROR || level < Log.VERBOSE)
-                )
             }.stateIn(
                     viewModelScope,
                     SharingStarted.WhileSubscribed(),
@@ -201,15 +182,6 @@ class LogsViewModel(private val homeRepository: FirebaseHomeInformationRepositor
             filteredHwUnitListFlow.value = newList
             true
         } ?: false
-    }
-
-    fun setLogLevel(level: Int): Boolean {
-        return if ((level >= Log.VERBOSE && level <= Log.ERROR) || level == Int.MAX_VALUE) {
-            secureStorage.remoteLoggingLevel = level
-            true
-        } else {
-            false
-        }
     }
 
     private fun getNumberSensorData(hwUnitName: String, logsList: Collection<HwUnitLog<Any?>>): LineDataSet {

@@ -173,6 +173,12 @@
         tools:layout="@layout/fragment_logs" />
 
     <fragment
+        android:id="@+id/things_app_logs_fragment"
+        android:name="com.krisbiketeam.smarthomeraspbpi3.ui.ThingsAppLogsFragment"
+        android:label="@string/things_app_logs_title"
+        tools:layout="@layout/fragment_things_app_logs" />
+
+    <fragment
         android:id="@+id/settings_fragment"
         android:name="com.krisbiketeam.smarthomeraspbpi3.ui.settings.SettingsFragment"
         android:label="@string/settings_title">
@@ -212,6 +218,14 @@
         <action
             android:id="@+id/action_settings_fragment_to_hw_unit_error_event_list_fragment"
             app:destination="@id/hw_unit_error_event_list_fragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+
+        <action
+            android:id="@+id/action_settings_fragment_to_things_app_logs_fragment"
+            app:destination="@id/things_app_logs_fragment"
             app:enterAnim="@anim/slide_in_right"
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"

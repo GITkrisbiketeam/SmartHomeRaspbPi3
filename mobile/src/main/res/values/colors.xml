@@ -17,4 +17,11 @@
     <color name="colorOnSurface">@color/colorSecondaryDark</color>
     <color name="colorOnBackground">@color/colorSecondaryDark</color>
 
+    <color name="thingsAppLogsColorError">#B00020</color>
+    <color name="thingsAppLogsColorWarn">#F9A825</color>
+    <color name="thingsAppLogsColorInfo">#1565C0</color>
+    <color name="thingsAppLogsColorDebug">#2E7D32</color>
+    <color name="thingsAppLogsColorVerbose">#000000</color>
+
+
 </resources>

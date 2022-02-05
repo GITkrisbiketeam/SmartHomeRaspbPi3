@@ -431,6 +431,7 @@ class FirebaseHomeInformationRepository {
      */
     fun logHwUnitEvent(hwUnitLog: HwUnitLog<out Any>):Task<Void>? {
         return homePathReference?.let {
+            Timber.d("logHwUnitEvent hwUnitLog:$hwUnitLog")
             Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$LOG_HW_UNIT/${hwUnitLog.name}/${hwUnitLog.getOnlyDateLocalTime()}/${hwUnitLog.localtime}").setValue(hwUnitLog)
         }
     }
@@ -757,6 +758,13 @@ class FirebaseHomeInformationRepository {
     fun logsFlow(hwUnitName:String, date: Long): Flow<Map<String,HwUnitLog<Any?>>> {
         return homePathReference?.let {
             genericReferenceFlow(Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$LOG_HW_UNIT/$hwUnitName/$date"))
+        }?: emptyFlow()
+    }
+
+
+    fun thingsAppLogsFlow(date: Long): Flow<Map<String,RemoteLog>> {
+        return homePathReference?.let {
+            genericReferenceFlow(Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$LOG_THINGS_LOGS/$date"))
         }?: emptyFlow()
     }
 

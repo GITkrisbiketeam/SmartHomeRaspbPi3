@@ -64,7 +64,7 @@ class MyChildEventListener(homePath: String, private val storageUnit: String, pr
             val unit = try {
                 dataSnapshot.getValue(this)
             } catch (e: DatabaseException) {
-                Timber.e("getHomeUnitsFlow onChildAdded (key=$key)(storageUnit=$storageUnit) could not get HomeUnit")
+                Timber.e(e,"getHomeUnitsFlow onChildAdded (key=$key)(storageUnit=$storageUnit) could not get HomeUnit")
                 null
             }
             Timber.d("getHomeUnitsFlow onChildAdded (key=$key)(unit=${unit?.name})")
@@ -84,7 +84,7 @@ class MyChildEventListener(homePath: String, private val storageUnit: String, pr
             val unit = try {
                 dataSnapshot.getValue(this)
             } catch (e: DatabaseException) {
-                Timber.e("getHomeUnitsFlow onChildChanged (key=$key)(storageUnit=$storageUnit) could not get HomeUnit")
+                Timber.e(e,"getHomeUnitsFlow onChildChanged (key=$key)(storageUnit=$storageUnit) could not get HomeUnit")
                 null
             }
             Timber.d("getHomeUnitsFlow onChildChanged (key=$key)(unit=$unit)")
