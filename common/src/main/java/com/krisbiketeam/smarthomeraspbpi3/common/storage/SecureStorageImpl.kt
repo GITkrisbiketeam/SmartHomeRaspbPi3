@@ -144,7 +144,7 @@ class SecureStorageImpl(private val context: Context, homeInformationRepository:
                     }
                 }
 
-        val alarmListener: ValueEventListener = object : ValueEventListener {
+        val remoteLoggingLevelListener: ValueEventListener = object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 // A new value has been added, add it to the displayed list
                 val key = dataSnapshot.key
@@ -163,13 +163,13 @@ class SecureStorageImpl(private val context: Context, homeInformationRepository:
         }
 
         this@callbackFlow.trySendBlocking(remoteLoggingLevel)
-        homeInformationRepository.getHomePreference(REMOTE_LOGGING_LEVEL_KEY)?.addValueEventListener(alarmListener)
+        homeInformationRepository.getHomePreference(REMOTE_LOGGING_LEVEL_KEY)?.addValueEventListener(remoteLoggingLevelListener)
         Timber.e("remoteLoggingLevelFlow  register")
         encryptedSharedPreferences.registerOnSharedPreferenceChangeListener(preferenceChangeListener)
         awaitClose {
             Timber.e("remoteLoggingLevelFlow  awaitClose")
             encryptedSharedPreferences.unregisterOnSharedPreferenceChangeListener(preferenceChangeListener)
-            homeInformationRepository.getHomePreference(REMOTE_LOGGING_LEVEL_KEY)?.removeEventListener(alarmListener)
+            homeInformationRepository.getHomePreference(REMOTE_LOGGING_LEVEL_KEY)?.removeEventListener(remoteLoggingLevelListener)
         }
     }.shareIn(
             ProcessLifecycleOwner.get().lifecycleScope,

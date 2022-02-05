@@ -705,9 +705,9 @@ class Home(private val secureStorage: SecureStorage,
                             param(SENSOR_VALUE, value.toString())
                         }
                     }*/
-                }
+                }.join()
             }
-        }
+        }.join()
     }
 
     private suspend fun Sensor<Any>.readValueWithException(): Any? {
