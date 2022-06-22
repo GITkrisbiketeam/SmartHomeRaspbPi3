@@ -10,6 +10,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformation
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.RemoteLog
 import com.krisbiketeam.smarthomeraspbpi3.ui.ThingsAppLogsFragment
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import timber.log.Timber
@@ -51,7 +52,7 @@ class ThingsAppLogsViewModel(private val homeRepository: FirebaseHomeInformation
                     }
                     combinedMap.toSortedMap().values.reversed()
                 }
-            }
+            }.flowOn(Dispatchers.IO)
 
     @ExperimentalCoroutinesApi
     val menuItemRemoteLogListFlow: StateFlow<List<Triple<String, Int, Boolean>>> =
@@ -64,7 +65,7 @@ class ThingsAppLogsViewModel(private val homeRepository: FirebaseHomeInformation
                         Triple("ERROR", Log.ERROR, level == Log.ERROR),
                         Triple("OFF", Int.MAX_VALUE, level > Log.ERROR || level < Log.VERBOSE)
                 )
-            }.stateIn(
+            }.flowOn(Dispatchers.IO).stateIn(
                     viewModelScope,
                     SharingStarted.WhileSubscribed(),
                     emptyList()

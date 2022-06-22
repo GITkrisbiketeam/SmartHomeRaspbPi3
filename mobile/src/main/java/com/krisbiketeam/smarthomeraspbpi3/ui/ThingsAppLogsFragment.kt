@@ -5,8 +5,8 @@ import android.view.*
 import androidx.core.os.bundleOf
 import androidx.core.util.Pair
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.datepicker.CalendarConstraints
 import com.google.android.material.datepicker.MaterialDatePicker
 import com.google.firebase.analytics.FirebaseAnalytics
@@ -38,10 +38,22 @@ class ThingsAppLogsFragment : androidx.fragment.app.Fragment() {
             viewModel = logsViewModel
             lifecycleOwner = viewLifecycleOwner
         }
-
-        subscribeThingsAppLogsData()
-
-        subscribeRemoteLogLevelMenuItems()
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                launch {
+                    logsViewModel.logsData.collect { logsList ->
+                        Timber.d("subscribeLogsData logsList: ${logsList.size}")
+                        logsViewModel.thingsAppLogsListAdapter.submitList(logsList)
+                    }
+                }
+                launch {
+                    logsViewModel.menuItemRemoteLogListFlow.collect {
+                        Timber.d("subscribeFilterMenuItems  size:${it.size}")
+                        activity?.invalidateOptionsMenu()
+                    }
+                }
+            }
+        }
 
         setHasOptionsMenu(true)
 
@@ -83,26 +95,6 @@ class ThingsAppLogsFragment : androidx.fragment.app.Fragment() {
                 else -> {
                     super.onOptionsItemSelected(item)
                 }
-            }
-        }
-    }
-
-    @ExperimentalCoroutinesApi
-    private fun subscribeThingsAppLogsData() {
-        lifecycleScope.launch {
-            logsViewModel.logsData.flowWithLifecycle(lifecycle, Lifecycle.State.RESUMED).flowOn(Dispatchers.IO).collect { logsList ->
-                Timber.d("subscribeLogsData logsList: ${logsList.size}")
-                logsViewModel.thingsAppLogsListAdapter.submitList(logsList)
-            }
-        }
-    }
-
-    @ExperimentalCoroutinesApi
-    private fun subscribeRemoteLogLevelMenuItems() {
-        lifecycleScope.launch {
-            logsViewModel.menuItemRemoteLogListFlow.flowWithLifecycle(lifecycle, Lifecycle.State.RESUMED).flowOn(Dispatchers.IO).collect {
-                Timber.d("subscribeFilterMenuItems  size:${it.size}")
-                activity?.invalidateOptionsMenu()
             }
         }
     }
