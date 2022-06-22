@@ -59,7 +59,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
         }
     }
 
-    override fun onPreferenceTreeClick(preference: Preference?): Boolean {
+    override fun onPreferenceTreeClick(preference: Preference): Boolean {
         Timber.d("onPreferenceTreeClick preference: $preference")
         when (preference?.key) {
             getString(R.string.settings_wifi_fragment_key) -> {

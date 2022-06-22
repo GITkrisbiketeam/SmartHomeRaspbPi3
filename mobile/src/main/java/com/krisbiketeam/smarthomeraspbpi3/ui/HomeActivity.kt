@@ -62,7 +62,8 @@ class HomeActivity : AppCompatActivity() {
 
         drawerLayout = binding.drawerLayout
 
-        val navHostFragment = supportFragmentManager.findFragmentById(R.id.home_nav_fragment) as NavHostFragment
+        val navHostFragment =
+            supportFragmentManager.findFragmentById(R.id.home_nav_fragment) as NavHostFragment
         navController = navHostFragment.navController
 
         // Set up navigation menu
@@ -71,12 +72,26 @@ class HomeActivity : AppCompatActivity() {
         // Set up ActionBar
         setSupportActionBar(binding.toolbar)
 
-        appBarConfiguration = AppBarConfiguration(setOf(R.id.room_list_fragment, R.id.task_list_fragment, R.id.room_detail_fragment), drawerLayout)
+        appBarConfiguration = AppBarConfiguration(
+            setOf(
+                R.id.room_list_fragment,
+                R.id.task_list_fragment,
+                R.id.room_detail_fragment
+            ), drawerLayout
+        )
         setupActionBarWithNavController(navController, appBarConfiguration)
 
         // Set up BottomBar
-        binding.bottomNavigation.setupWithNavController(navController)
-
+        binding.bottomNavigation.apply {
+            setupWithNavController(navController)
+            setOnItemSelectedListener { item ->
+                NavigationUI.onNavDestinationSelected(item, navController)
+                true
+            }
+            setOnItemReselectedListener {
+                navController.popBackStack(destinationId = it.itemId, inclusive = false)
+            }
+        }
         val currentUser = Firebase.auth.currentUser
         if (currentUser == null || !secureStorage.isAuthenticated()) {
             Timber.d("No credentials defined, starting LoginSettingsFragment")
@@ -214,8 +229,10 @@ class HomeActivity : AppCompatActivity() {
 
         lifecycleScope.cancel()*/
 
-        DataBindingUtil.inflate<NavHeaderBinding>(layoutInflater, R.layout.nav_header,
-                binding.navigationView, false).apply {
+        DataBindingUtil.inflate<NavHeaderBinding>(
+            layoutInflater, R.layout.nav_header,
+            binding.navigationView, false
+        ).apply {
             binding.navigationView.addHeaderView(root)
             viewModel = navigationViewModel
             lifecycleOwner = this@HomeActivity
