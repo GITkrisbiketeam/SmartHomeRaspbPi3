@@ -45,6 +45,8 @@ const val HOME_REED_SWITCHES = "reed_switches"
 const val HOME_MOTIONS = "motions"
 // combined actuator/sensor
 const val HOME_LIGHT_SWITCHES = "light_switches"
+// combined actuator/sensor
+const val HOME_LIGHT_SWITCHES_V2 = "light_switches_v2"
 // float sensors
 const val HOME_TEMPERATURES = "temperatures"
 const val HOME_PRESSURES = "pressures"

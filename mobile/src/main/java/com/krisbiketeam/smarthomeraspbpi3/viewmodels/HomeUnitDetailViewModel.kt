@@ -30,8 +30,8 @@ class HomeUnitDetailViewModel(application: Application,
 
     val unitTaskListAdapter = UnitTaskListAdapter(homeRepository, unitName, unitType)
 
-    val homeUnit: StateFlow<HomeUnit<Any>?>? =
-            if (unitName.isEmpty() && unitType.isEmpty()) null else homeRepository.homeUnitFlow(
+    val homeUnit: StateFlow<GenericHomeUnit<Any>?>? =
+            if (unitName.isEmpty() && unitType.isEmpty()) null else homeRepository.genericHomeUnitFlow(
                     unitType, unitName).onEach { homeUnit ->
                 Timber.e("homeUnit changed:$homeUnit")
                 showProgress.value = false
@@ -316,7 +316,7 @@ class HomeUnitDetailViewModel(application: Application,
     private fun doSaveChanges(): Task<Void>? {
         showProgress.value = true
         return homeRepository.saveHomeUnit(
-                HomeUnit(name = name.value, type = type.value, room = room.value,
+            GenericHomeUnit(name = name.value, type = type.value, room = room.value,
                         hwUnitName = hwUnitName.value,
                         secondHwUnitName = secondHwUnitName.value,
                         firebaseNotify = firebaseNotify.value,

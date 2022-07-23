@@ -4,7 +4,9 @@ import androidx.annotation.StringDef
 import com.google.firebase.database.Exclude
 import kotlinx.coroutines.Job
 
-@Target(AnnotationTarget.VALUE_PARAMETER, AnnotationTarget.TYPE_PARAMETER)
+@Target(AnnotationTarget.VALUE_PARAMETER, AnnotationTarget.TYPE_PARAMETER,
+    AnnotationTarget.PROPERTY
+)
 @StringDef(BOTH, RISING_EDGE, FALLING_EDGE)
 @Retention(AnnotationRetention.SOURCE)
 annotation class TriggerType

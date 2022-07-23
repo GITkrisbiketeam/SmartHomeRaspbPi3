@@ -7,6 +7,7 @@ import androidx.navigation.findNavController
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.GenericHomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_LIGHT_SWITCHES
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.LAST_TRIGGER_SOURCE_ROOM_HOME_UNITS_LIST
@@ -52,6 +53,8 @@ class RoomDetailHomeUnitListAdapter(private val homeInformationRepository: Fireb
                 clickListener = listener
                 homeUnit = item
                 lastUpdateTime = getLastUpdateTime(root.context, item.lastUpdateTime)
+                // TODO Add handling of other type of HomeUnits (LightSwitchhomeUnit etc...
+                //  add some other types of ViewHolder for them)
                 secondLastUpdateTime = if (item.type == HOME_LIGHT_SWITCHES) {
                     getLastUpdateTime(root.context, item.secondLastUpdateTime)
                 } else {
@@ -67,7 +70,7 @@ class RoomDetailHomeUnitListAdapter(private val homeInformationRepository: Fireb
 
                 homeUnitItemSwitch.setOnCheckedChangeListener { _, isChecked ->
                     Timber.d("OnCheckedChangeListener isChecked: $isChecked item: $item")
-                    if (item.value != isChecked) {
+                    if (item.value != isChecked && item is GenericHomeUnit) {
                         item.copy().also { unit ->
                             unit.value = isChecked
                             unit.lastUpdateTime = System.currentTimeMillis()

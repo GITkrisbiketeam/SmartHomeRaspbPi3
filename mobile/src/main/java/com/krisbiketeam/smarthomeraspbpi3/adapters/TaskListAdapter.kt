@@ -8,6 +8,7 @@ import androidx.navigation.findNavController
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.GenericHomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_LIGHT_SWITCHES
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.LAST_TRIGGER_SOURCE_TASK_LIST
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentTaskListItemCardBinding
@@ -60,7 +61,8 @@ class TaskListAdapter(private val homeInformationRepository: FirebaseHomeInforma
                 binding.apply {
                     clickListener = listener
                     taskModel = item
-
+                    // TODO Add handling of other type of HomeUnits (LightSwitchhomeUnit etc...
+                    //  add some other types of ViewHolder for them)
                     value = if(item.homeUnit?.value is Double || item.homeUnit?.value is Float) {
                         String.format("%.2f", item.homeUnit?.value)
                     } else if(item.homeUnit?.type == HOME_LIGHT_SWITCHES) {
@@ -71,14 +73,17 @@ class TaskListAdapter(private val homeInformationRepository: FirebaseHomeInforma
 
                     taskItemValueSwitch.setOnCheckedChangeListener { _, isChecked ->
                         Timber.d("OnCheckedChangeListener isChecked: $isChecked item: $item")
-                        if (item.homeUnit?.value != isChecked) {
-                            item.homeUnit?.copy()?.also { unit ->
-                                unit.value = isChecked
-                                unit.lastUpdateTime = System.currentTimeMillis()
-                                unit.lastTriggerSource = LAST_TRIGGER_SOURCE_TASK_LIST
-                                homeInformationRepository.updateHomeUnitValue(unit)
+                        item.homeUnit?.let { homeUnit ->
+                            if (homeUnit.value != isChecked && homeUnit is GenericHomeUnit) {
+                                homeUnit.copy().also { unit ->
+                                    unit.value = isChecked
+                                    unit.lastUpdateTime = System.currentTimeMillis()
+                                    unit.lastTriggerSource = LAST_TRIGGER_SOURCE_TASK_LIST
+                                    homeInformationRepository.updateHomeUnitValue(unit)
+                                }
                             }
                         }
+
                     }
 
                     executePendingBindings()

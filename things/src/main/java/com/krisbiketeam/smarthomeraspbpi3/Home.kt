@@ -223,7 +223,15 @@ class Home(private val secureStorage: SecureStorage,
                                     homeUnit.lastUpdateTime = hwUnit.valueUpdateTime
                                 }
                             } else if (hwUnit is Sensor) {
-                                homeUnit.updateHomeUnitValuesAndTimes(hwUnit.unitValue, hwUnit.valueUpdateTime)
+                                if (homeUnit is GenericHomeUnit) {
+                                    homeUnit.updateHomeUnitValuesAndTimes(
+                                        hwUnit.unitValue,
+                                        hwUnit.valueUpdateTime
+                                    )
+                                } else {
+                                    homeUnit.value = hwUnit.unitValue
+                                    homeUnit.lastUpdateTime = hwUnit.valueUpdateTime
+                                }
                                 homeUnit.lastTriggerSource = LAST_TRIGGER_SOURCE_HOME_UNIT_ADDED
                                 homeInformationRepository.saveHomeUnit(homeUnit)
                             }
@@ -390,7 +398,12 @@ class Home(private val secureStorage: SecureStorage,
                 it.secondHwUnitName == hwUnit.name
             }
         }.forEach { homeUnit ->
-            homeUnit.updateHomeUnitValuesAndTimes(unitValue, updateTime)
+            if (homeUnit is GenericHomeUnit) {
+                homeUnit.updateHomeUnitValuesAndTimes(unitValue, updateTime)
+            } else {
+                homeUnit.value = unitValue
+                homeUnit.lastUpdateTime = updateTime
+            }
             val newValue = if (homeUnit.type != HOME_LIGHT_SWITCHES) homeUnit.value else homeUnit.secondValue
             if (newValue != null) {
                 homeUnit.applyFunction(homeUnit, newValue)
@@ -856,7 +869,7 @@ class Home(private val secureStorage: SecureStorage,
 
     // region  HomeUnit values update helper methods
 
-    private fun HomeUnit<Any>.updateHomeUnitValuesAndTimes(unitValue: Any?, updateTime: Long) {
+    private fun GenericHomeUnit<Any>.updateHomeUnitValuesAndTimes(unitValue: Any?, updateTime: Long) {
         // We need to handle differently values of non Basic Types
         if (unitValue is PressureAndTemperature) {
             Timber.d("Received PressureAndTemperature $unitValue")
@@ -908,7 +921,7 @@ class Home(private val secureStorage: SecureStorage,
         }
     }
 
-    private fun HomeUnit<Any>.updateValueMinMax(unitValue: Any?, updateTime: Long) {
+    private fun GenericHomeUnit<Any>.updateValueMinMax(unitValue: Any?, updateTime: Long) {
         if (type != HOME_LIGHT_SWITCHES) {
             value = unitValue
             lastUpdateTime = updateTime
@@ -918,11 +931,13 @@ class Home(private val secureStorage: SecureStorage,
         }
         when (unitValue) {
             is Float -> {
-                if (unitValue <= (min.takeIf { it is Number? } as Number?)?.toFloat() ?: Float.MAX_VALUE) {
+                if (unitValue <= ((min.takeIf { it is Number? } as Number?)?.toFloat()
+                        ?: Float.MAX_VALUE)) {
                     min = unitValue
                     minLastUpdateTime = updateTime
                 }
-                if (unitValue >= (max.takeIf { it is Number? } as Number?)?.toFloat() ?: Float.MIN_VALUE) {
+                if (unitValue >= ((max.takeIf { it is Number? } as Number?)?.toFloat()
+                        ?: Float.MIN_VALUE)) {
                     max = unitValue
                     maxLastUpdateTime = updateTime
                 }

@@ -15,21 +15,6 @@ import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.callbackFlow
 import timber.log.Timber
 
-
-private val typeIndicatorMap: HashMap<String, GenericTypeIndicator<out HomeUnit<out Any>>> by lazy {
-    hashMapOf(HOME_ACTUATORS to object : GenericTypeIndicator<HomeUnit<ActuatorType>>() {},
-            HOME_LIGHT_SWITCHES to object :
-                    GenericTypeIndicator<HomeUnit<LightSwitchType>>() {},
-            HOME_REED_SWITCHES to object :
-                    GenericTypeIndicator<HomeUnit<ReedSwitchType>>() {},
-            HOME_MOTIONS to object : GenericTypeIndicator<HomeUnit<MotionType>>() {},
-            HOME_TEMPERATURES to object :
-                    GenericTypeIndicator<HomeUnit<TemperatureType>>() {},
-            HOME_PRESSURES to object : GenericTypeIndicator<HomeUnit<PressureType>>() {},
-            HOME_HUMIDITY to object : GenericTypeIndicator<HomeUnit<HumidityType>>() {},
-            HOME_BLINDS to object : GenericTypeIndicator<HomeUnit<BlindType>>() {})
-}
-
 @ExperimentalCoroutinesApi
 fun getHomeUnitsFlow(homeNamePath: String?) = callbackFlow<Pair<ChildEventType, HomeUnit<Any>>> {
     val unitsList: List<MyChildEventListener> =
@@ -60,7 +45,7 @@ class MyChildEventListener(homePath: String, private val storageUnit: String, pr
     override fun onChildAdded(dataSnapshot: DataSnapshot, previousChildName: String?) {
         // A new value has been added, add it to the displayed list
         val key = dataSnapshot.key
-        typeIndicatorMap[storageUnit]?.run {
+        homeUnitTypeIndicatorMap[storageUnit]?.run {
             val unit = try {
                 dataSnapshot.getValue(this)
             } catch (e: DatabaseException) {
@@ -80,7 +65,7 @@ class MyChildEventListener(homePath: String, private val storageUnit: String, pr
         // A value has changed, use the key to determine if we are displaying this
         // value and if so displayed the changed value.
         val key = dataSnapshot.key
-        typeIndicatorMap[storageUnit]?.run {
+        homeUnitTypeIndicatorMap[storageUnit]?.run {
             val unit = try {
                 dataSnapshot.getValue(this)
             } catch (e: DatabaseException) {
@@ -101,7 +86,7 @@ class MyChildEventListener(homePath: String, private val storageUnit: String, pr
         // A value has changed, use the key to determine if we are displaying this
         // value and if so remove it.
         val key = dataSnapshot.key
-        typeIndicatorMap[storageUnit]?.run {
+        homeUnitTypeIndicatorMap[storageUnit]?.run {
             val unit = dataSnapshot.getValue(this)
             Timber.d("getHomeUnitsFlow onChildRemoved (key=$key)(unit=$unit)")
             unit?.let {
@@ -116,7 +101,7 @@ class MyChildEventListener(homePath: String, private val storageUnit: String, pr
         // A value has changed position, use the key to determine if we are
         // displaying this value and if so move it.
         val key = dataSnapshot.key
-        typeIndicatorMap[storageUnit]?.run {
+        homeUnitTypeIndicatorMap[storageUnit]?.run {
             val unit = dataSnapshot.getValue(this)
             //TODO does it also cover onChildChanged ??? or are those events both called???
             Timber.d("getHomeUnitsFlow onChildMoved (key=$key)(unit=$unit)")

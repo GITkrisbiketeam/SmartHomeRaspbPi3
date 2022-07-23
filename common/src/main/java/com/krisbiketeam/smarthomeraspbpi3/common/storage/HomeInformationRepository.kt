@@ -669,12 +669,13 @@ class FirebaseHomeInformationRepository {
         return homePathReference?.let { home ->
             if (unitType != null) {
                 Firebase.database.getReference("$home/$HOME_UNITS_BASE/$unitType").let { reference ->
+
                     genericListReferenceFlow(reference)
                 }
             } else {
                 combine(HOME_STORAGE_UNITS.map { type ->
                     Firebase.database.getReference("$home/$HOME_UNITS_BASE/$type").let { reference ->
-                        genericListReferenceFlow<HomeUnit<Any>>(reference)
+                        genericListReferenceFlow<GenericHomeUnit<Any>>(reference)
                     }
                 }) { types ->
                     types.flatMap { it }
@@ -685,6 +686,7 @@ class FirebaseHomeInformationRepository {
 
     /**
      * get instance of a Flow with @see[HomeUnit] List changes for listening to changes in entries in DB
+     * this method properly maps HomeUnit impementations like [GenericHomeUnit] or [LightSwitchHomeUnit]
      */
     @ExperimentalCoroutinesApi
     fun homeUnitsFlow(): Flow<Pair<ChildEventType, HomeUnit<Any>>> {
@@ -692,11 +694,11 @@ class FirebaseHomeInformationRepository {
     }
 
     /**
-     * get Flow of @see[HomeUnit<Any>] for for given unit type and name for listening to changes
+     * get Flow of @see[GenericHomeUnit<Any>] for for given unit type and name for listening to changes
      * in entries in DB
      */
     @ExperimentalCoroutinesApi
-    fun homeUnitFlow(unitType: String, unitName: String, closeOnEmpty: Boolean = false): Flow<HomeUnit<Any>> {
+    fun genericHomeUnitFlow(unitType: String, unitName: String, closeOnEmpty: Boolean = false): Flow<GenericHomeUnit<Any>> {
         return homePathReference?.let {
             genericReferenceFlow(Firebase.database.getReference("$it/$HOME_UNITS_BASE/$unitType/$unitName"), closeOnEmpty)
         } ?: emptyFlow()

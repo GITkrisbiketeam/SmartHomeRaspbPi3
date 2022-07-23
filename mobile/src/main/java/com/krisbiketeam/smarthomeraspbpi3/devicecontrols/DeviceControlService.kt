@@ -85,7 +85,7 @@ class DeviceControlService : ControlsProviderService() {
         val controlsFlowList: List<kotlinx.coroutines.flow.Flow<Control>> = controlIds.map { controlId ->
             Timber.e("createPublisherFor controlId: $controlId")
             val (type, name) = controlId.getHomeUnitTypeAndName()
-            homeInformationRepository.homeUnitFlow(type, name, true).distinctUntilChanged { old, new -> old.value == new.value }.map { homeUnit ->
+            homeInformationRepository.genericHomeUnitFlow(type, name, true).distinctUntilChanged { old, new -> old.value == new.value }.map { homeUnit ->
                 Timber.e("createPublisherFor homeUnitFlow homeUnit: $homeUnit")
                 getStatefulControl(homeUnit)
             }.catch {
