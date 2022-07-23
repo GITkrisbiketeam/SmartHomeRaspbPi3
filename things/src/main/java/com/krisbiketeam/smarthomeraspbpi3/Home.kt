@@ -822,7 +822,7 @@ class Home(private val secureStorage: SecureStorage,
                             "addHwUnitErrorEvent another error occurred do not restart this hwUnit?:$doNotReStartHwUnit")
                     if (!doNotReStartHwUnit) {
                         scope.launch {
-                            delay(100)
+                            delay(500)
                             triple.third?.let {
                                 hwUnitStart(it)
                             }

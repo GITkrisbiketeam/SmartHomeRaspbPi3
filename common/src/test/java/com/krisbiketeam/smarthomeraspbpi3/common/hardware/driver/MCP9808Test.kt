@@ -2,6 +2,7 @@ package com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver
 
 import android.util.Log
 import com.google.android.things.pio.I2cDevice
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
@@ -10,6 +11,7 @@ import org.mockito.Matchers.any
 import org.mockito.Matchers.eq
 import org.mockito.Mock
 import org.mockito.Mockito
+import org.mockito.Mockito.times
 import org.mockito.junit.MockitoJUnit
 import org.mockito.junit.MockitoRule
 import org.powermock.api.mockito.PowerMockito
@@ -37,6 +39,16 @@ class MCP9808Test {
         val mcp9808 = MCP9808(mI2c, DEF_MCP9808_CONFIG)
         val value: Float? = mcp9808.readTemperature()
         Mockito.verify(mI2c).readRegBuffer(eq(0x05), any(ByteArray::class.java), eq(2))
+    }
+
+    @Test
+    fun readOneShotTemperature() {
+        runBlocking {
+            PowerMockito.mockStatic(Log::class.java)
+            val mcp9808 = MCP9808(mI2c, DEF_MCP9808_CONFIG)
+            val value: Float? = mcp9808.readOneShotTemperature()
+            Mockito.verify(mI2c, times(3)).readRegBuffer(eq(0x05), any(ByteArray::class.java), eq(2))
+        }
     }
 
     @Test
