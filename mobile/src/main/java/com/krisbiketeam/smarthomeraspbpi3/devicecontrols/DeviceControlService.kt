@@ -175,13 +175,13 @@ class DeviceControlService : ControlsProviderService() {
 @RequiresApi(Build.VERSION_CODES.R)
 private fun HomeUnit<Any>.getControlType(): Int {
     return when (this.type) {
-        HomeUnitType.HOME_LIGHT_SWITCHES.firebaseTableName -> DeviceTypes.TYPE_LIGHT
+        HomeUnitType.HOME_LIGHT_SWITCHES -> DeviceTypes.TYPE_LIGHT
         else -> DeviceTypes.TYPE_GENERIC_ON_OFF
     }
 }
 
 fun HomeUnit<Any>.getControlId(): String {
-    return this.type + '.' + this.name
+    return this.type.toString() + '.' + this.name
 }
 
 fun String.getHomeUnitTypeAndName(): Pair<String, String> {

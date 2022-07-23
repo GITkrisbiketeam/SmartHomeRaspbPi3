@@ -1,10 +1,11 @@
 package com.krisbiketeam.smarthomeraspbpi3.common.storage.dto
 
 import com.google.firebase.database.Exclude
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
 
 data class LightSwitchHomeUnit<T : Any>(
     override var name: String = "", // Name should be unique for all units
-    override var type: String = "",
+    override var type: HomeUnitType = HomeUnitType.HOME_TEMPERATURES,
     override var room: String = "",
     override var hwUnitName: String? = "",
     override var value: T? = null,
@@ -45,25 +46,6 @@ data class LightSwitchHomeUnit<T : Any>(
     @set:Exclude
     @get:Exclude
     override var applyFunction: suspend HomeUnit<in Any>.(Any) -> Unit = { }
-
-    override fun makeInvariant(): LightSwitchHomeUnit<Any> {
-        return LightSwitchHomeUnit(
-            name,
-            type,
-            room,
-            hwUnitName,
-            value,
-            lastUpdateTime,
-            secondHwUnitName,
-            secondValue,
-            secondLastUpdateTime,
-            lastTriggerSource,
-            firebaseNotify = firebaseNotify,
-            firebaseNotifyTrigger = firebaseNotifyTrigger,
-            showInTaskList = showInTaskList,
-            unitsTasks = unitsTasks
-        )
-    }
 
     override fun makeNotification(): LightSwitchHomeUnit<T> {
         return LightSwitchHomeUnit(

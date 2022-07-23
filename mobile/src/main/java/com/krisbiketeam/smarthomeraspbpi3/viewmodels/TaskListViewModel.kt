@@ -39,7 +39,7 @@ class TaskListViewModel(private val homeRepository: FirebaseHomeInformationRepos
             homeUnitsList.filter {
                 it.room.isEmpty() || it.hwUnitName.isNullOrEmpty() || it.showInTaskList
             }.forEach {
-                taskListAdapterModelMap[it.type + '.' + it.name] = TaskListAdapterModel(null, it, hwUnitErrorEventList.firstOrNull { hwUnitLog -> hwUnitLog.name == it.hwUnitName } != null)
+                taskListAdapterModelMap[it.type.firebaseTableName + '.' + it.name] = TaskListAdapterModel(null, it, hwUnitErrorEventList.firstOrNull { hwUnitLog -> hwUnitLog.name == it.hwUnitName } != null)
             }
 
             // save current RoomListOrder
@@ -55,7 +55,7 @@ class TaskListViewModel(private val homeRepository: FirebaseHomeInformationRepos
                 // save new updated order
                 apply {
                     val newItemsOrder = this.mapNotNull { model ->
-                        model.room?.name ?: model.homeUnit?.let { it.type + '.' + it.name }
+                        model.room?.name ?: model.homeUnit?.let { it.type.firebaseTableName + '.' + it.name }
                     }
                     if (newItemsOrder != localItemsOrder) {
                         localItemsOrder = newItemsOrder

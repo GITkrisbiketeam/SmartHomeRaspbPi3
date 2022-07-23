@@ -5,7 +5,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.*
 
 data class GenericHomeUnit<T:Any>(
     override var name: String = "", // Name should be unique for all units
-    override var type: String = "",
+    override var type: HomeUnitType = HomeUnitType.HOME_TEMPERATURES,
     override var room: String = "",
     override var hwUnitName: String? = "",
     override var value: T? = null,
@@ -47,27 +47,6 @@ data class GenericHomeUnit<T:Any>(
     @get:Exclude
     override var applyFunction: suspend HomeUnit<in Any>.(Any) -> Unit = { }
 
-    override fun makeInvariant(): GenericHomeUnit<Any>{
-        return GenericHomeUnit(
-                name,
-                type,
-                room,
-                hwUnitName,
-                value,
-                lastUpdateTime,
-                secondHwUnitName,
-                secondValue,
-                secondLastUpdateTime,
-                min,
-                minLastUpdateTime,
-                max,
-                maxLastUpdateTime,
-                lastTriggerSource,
-                firebaseNotify,
-                firebaseNotifyTrigger,
-                showInTaskList,
-                unitsTasks)
-    }
     override fun makeNotification(): GenericHomeUnit<T>{
         return GenericHomeUnit(
                 name,

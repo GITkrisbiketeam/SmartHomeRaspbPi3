@@ -42,7 +42,7 @@ class TaskListAdapter(private val homeInformationRepository: FirebaseHomeInforma
             Timber.d("onClick")
             val direction = when {
                 item.homeUnit != null -> TaskListFragmentDirections.actionTaskListFragmentToHomeUnitDetailFragment(
-                        "", item.homeUnit?.name ?: "", item.homeUnit?.type ?: "")
+                        "", item.homeUnit?.name ?: "", item.homeUnit?.type?.firebaseTableName ?: "")
                 else -> null
             }
             direction?.let {
@@ -65,7 +65,7 @@ class TaskListAdapter(private val homeInformationRepository: FirebaseHomeInforma
                     //  add some other types of ViewHolder for them)
                     value = if(item.homeUnit?.value is Double || item.homeUnit?.value is Float) {
                         String.format("%.2f", item.homeUnit?.value)
-                    } else if(item.homeUnit?.type == HomeUnitType.HOME_LIGHT_SWITCHES.firebaseTableName) {
+                    } else if(item.homeUnit?.type == HomeUnitType.HOME_LIGHT_SWITCHES) {
                         item.homeUnit?.secondValue.toString()
                     } else{
                         item.homeUnit?.value.toString()

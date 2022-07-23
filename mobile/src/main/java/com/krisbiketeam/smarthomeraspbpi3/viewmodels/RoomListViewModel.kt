@@ -31,7 +31,7 @@ class RoomListViewModel(private val homeRepository: FirebaseHomeInformationRepos
             homeUnitsList.forEach {
                 if (roomListAdapterModelMap.containsKey(it.room)) {
                     // set Given room Temperature if present
-                    if (it.type == HomeUnitType.HOME_TEMPERATURES.firebaseTableName) {
+                    if (it.type == HomeUnitType.HOME_TEMPERATURES) {
                         roomListAdapterModelMap[it.room]?.homeUnit = it
                     }
                     roomListAdapterModelMap[it.room]?.error =
@@ -52,7 +52,7 @@ class RoomListViewModel(private val homeRepository: FirebaseHomeInformationRepos
                 // save new updated order
                 apply {
                     val newItemsOrder = this.mapNotNull { model ->
-                        model.room?.name ?: model.homeUnit?.let { it.type + '.' + it.name }
+                        model.room?.name ?: model.homeUnit?.let { it.type.firebaseTableName + '.' + it.name }
                     }
                     if (newItemsOrder != localItemsOrder) {
                         localItemsOrder = newItemsOrder

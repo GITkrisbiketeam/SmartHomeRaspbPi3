@@ -39,7 +39,7 @@ class HomeUnitDetailViewModel(
             Timber.e("homeUnit changed:$homeUnit")
             showProgress.value = false
             name.value = homeUnit.name
-            type.value = homeUnit.type
+            type.value = homeUnit.type.firebaseTableName
             room.value = homeUnit.room
             hwUnitName.value = homeUnit.hwUnitName
             secondHwUnitName.value = homeUnit.secondHwUnitName
@@ -90,7 +90,7 @@ class HomeUnitDetailViewModel(
                     type
                 ) { homeUnitList, hwUnitList, type ->
                     homeUnitOfSelectedTypeList = homeUnitList.filter {
-                        it.type == type
+                        it.type.firebaseTableName == type
                     }
                     hwUnitList.map {
                         Pair(it.name,
@@ -209,7 +209,7 @@ class HomeUnitDetailViewModel(
     fun noChangesMade(): Boolean {
         return homeUnit?.value?.let { unit ->
             unit.name == name.value
-                    && unit.type == type.value
+                    && unit.type.firebaseTableName == type.value
                     && unit.room == room.value
                     && unit.hwUnitName == hwUnitName.value
                     && unit.secondHwUnitName == secondHwUnitName.value
@@ -238,7 +238,7 @@ class HomeUnitDetailViewModel(
             isEditMode.value = false
             homeUnit.value?.let { unit ->
                 name.value = unit.name
-                type.value = unit.type
+                type.value = unit.type.firebaseTableName
                 room.value = unit.room
                 hwUnitName.value = unit.hwUnitName
                 secondHwUnitName.value = unit.secondHwUnitName
@@ -284,7 +284,7 @@ class HomeUnitDetailViewModel(
                     Pair(R.string.add_edit_home_unit_empty_name, null)
                 } else if (name.value.trim() != unit.name && homeUnitOfSelectedTypeList.find { it.name == name.value.trim() } != null) {
                     return Pair(R.string.add_edit_home_unit_name_already_used, null)
-                } else if (name.value.trim() != unit.name || type.value.trim() != unit.type) {
+                } else if (name.value.trim() != unit.name || type.value.trim() != unit.type.firebaseTableName) {
                     Pair(R.string.add_edit_home_unit_save_with_delete, R.string.overwrite)
                 } else if (noChangesMade()) {
                     Pair(R.string.add_edit_home_unit_no_changes, null)
@@ -319,7 +319,7 @@ class HomeUnitDetailViewModel(
             showProgress.value = true
             Timber.e("Save all changes")
             doSaveChanges().apply {
-                if (name.value != unit.name || type.value != unit.type) {
+                if (name.value != unit.name || type.value != unit.type.firebaseTableName) {
                     Timber.d(
                         "Name or type changed will need to delete old value name=${name.value}, type = ${type.value}"
                     )
@@ -337,7 +337,7 @@ class HomeUnitDetailViewModel(
     private fun doSaveChanges(): Task<Void>? {
         showProgress.value = true
         return homeRepository.saveHomeUnit(
-            GenericHomeUnit(name = name.value, type = type.value, room = room.value,
+            GenericHomeUnit(name = name.value, type = type.value.toHomeUnitType(), room = room.value,
                 hwUnitName = hwUnitName.value,
                 secondHwUnitName = secondHwUnitName.value,
                 firebaseNotify = firebaseNotify.value,

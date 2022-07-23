@@ -63,6 +63,14 @@ enum class HomeUnitType(val firebaseTableName: String) {
     override fun toString(): String {
         return firebaseTableName
     }
+
+    fun getHomeUnitType(type: String): HomeUnitType {
+        return values().first { it.firebaseTableName == type }
+    }
+}
+
+fun String.toHomeUnitType(): HomeUnitType {
+    return HomeUnitType.values().first { it.firebaseTableName == this }
 }
 
 const val HOME_VAL = "value"

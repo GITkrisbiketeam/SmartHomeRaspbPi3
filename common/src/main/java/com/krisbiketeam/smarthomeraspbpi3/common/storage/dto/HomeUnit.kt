@@ -7,7 +7,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.*
 typealias LightType = Boolean
 typealias Light = GenericHomeUnit<LightType>
 typealias ActuatorType = Boolean
-typealias Actuator = GenericHomeUnit<LightType>
+typealias Actuator = GenericHomeUnit<ActuatorType>
 typealias LightSwitchType = Boolean
 typealias LightSwitch = GenericHomeUnit<LightSwitchType>
 typealias ReedSwitchType = Boolean
@@ -67,7 +67,7 @@ val HOME_ACTION_STORAGE_UNITS: List<HomeUnitType> =
 
 interface HomeUnit<T : Any> {
     var name: String // Name should be unique for all units
-    var type: String
+    var type: HomeUnitType
     var room: String
     var hwUnitName: String?
     var value: T?
@@ -92,8 +92,6 @@ interface HomeUnit<T : Any> {
     @set:Exclude
     @get:Exclude
     var applyFunction: suspend HomeUnit<in Any>.(Any) -> Unit
-
-    fun makeInvariant(): HomeUnit<Any>
 
     fun makeNotification(): HomeUnit<T>
 }

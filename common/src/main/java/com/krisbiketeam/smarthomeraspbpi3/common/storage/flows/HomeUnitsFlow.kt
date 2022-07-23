@@ -85,7 +85,7 @@ class MyChildEventListener(
             Timber.d("getHomeUnitsFlow onChildChanged (key=$key)(unit=$unit)")
             unit?.let {
                 Timber.d("getHomeUnitsFlow onChildChanged (unit.room=${it.room})")
-                sendChannel.trySendBlocking(ChildEventType.NODE_ACTION_CHANGED to it.makeInvariant())
+                sendChannel.trySendBlocking(ChildEventType.NODE_ACTION_CHANGED to it)
             }
         }
     }
@@ -101,7 +101,7 @@ class MyChildEventListener(
             Timber.d("getHomeUnitsFlow onChildRemoved (key=$key)(unit=$unit)")
             unit?.let {
                 Timber.d("getHomeUnitsFlow onChildRemoved (unit.room=${it.room})")
-                sendChannel.trySendBlocking(ChildEventType.NODE_ACTION_DELETED to it.makeInvariant())
+                sendChannel.trySendBlocking(ChildEventType.NODE_ACTION_DELETED to it)
             }
         }
     }

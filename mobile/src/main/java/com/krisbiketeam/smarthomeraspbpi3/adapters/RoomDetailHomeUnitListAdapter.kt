@@ -38,7 +38,7 @@ class RoomDetailHomeUnitListAdapter(private val homeInformationRepository: Fireb
     private fun createOnClickListener(item: HomeUnit<Any>): View.OnClickListener {
         return View.OnClickListener { view ->
             Timber.d("onClick item: $item")
-            val direction = RoomDetailFragmentDirections.actionRoomDetailFragmentToHomeUnitDetailFragment(item.room, item.name, item.type)
+            val direction = RoomDetailFragmentDirections.actionRoomDetailFragmentToHomeUnitDetailFragment(item.room, item.name, item.type.firebaseTableName)
             view.findNavController().navigate(direction)
         }
     }
@@ -55,14 +55,14 @@ class RoomDetailHomeUnitListAdapter(private val homeInformationRepository: Fireb
                 lastUpdateTime = getLastUpdateTime(root.context, item.lastUpdateTime)
                 // TODO Add handling of other type of HomeUnits (LightSwitchhomeUnit etc...
                 //  add some other types of ViewHolder for them)
-                secondLastUpdateTime = if (item.type == HomeUnitType.HOME_LIGHT_SWITCHES.firebaseTableName) {
+                secondLastUpdateTime = if (item.type == HomeUnitType.HOME_LIGHT_SWITCHES) {
                     getLastUpdateTime(root.context, item.secondLastUpdateTime)
                 } else {
                     null
                 }
                 value = if(item.value is Double || item.value is Float) {
                     String.format("%.2f", item.value)
-                } else if(item.type == HomeUnitType.HOME_LIGHT_SWITCHES.firebaseTableName) {
+                } else if(item.type == HomeUnitType.HOME_LIGHT_SWITCHES) {
                     item.secondValue.toString()
                 } else{
                     item.value.toString()
