@@ -3,7 +3,7 @@ package com.krisbiketeam.smarthomeraspbpi3.viewmodels
 import androidx.lifecycle.ViewModel
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_TEMPERATURES
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
 import com.krisbiketeam.smarthomeraspbpi3.model.RoomListAdapterModel
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomListFragment
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -31,7 +31,7 @@ class RoomListViewModel(private val homeRepository: FirebaseHomeInformationRepos
             homeUnitsList.forEach {
                 if (roomListAdapterModelMap.containsKey(it.room)) {
                     // set Given room Temperature if present
-                    if (it.type == HOME_TEMPERATURES) {
+                    if (it.type == HomeUnitType.HOME_TEMPERATURES.firebaseTableName) {
                         roomListAdapterModelMap[it.room]?.homeUnit = it
                     }
                     roomListAdapterModelMap[it.room]?.error =

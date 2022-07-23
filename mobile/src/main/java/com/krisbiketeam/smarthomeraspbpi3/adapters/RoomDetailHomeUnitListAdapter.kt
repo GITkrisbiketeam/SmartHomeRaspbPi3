@@ -9,7 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.GenericHomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_LIGHT_SWITCHES
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.LAST_TRIGGER_SOURCE_ROOM_HOME_UNITS_LIST
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentRoomDetailListItemBinding
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomDetailFragmentDirections
@@ -55,14 +55,14 @@ class RoomDetailHomeUnitListAdapter(private val homeInformationRepository: Fireb
                 lastUpdateTime = getLastUpdateTime(root.context, item.lastUpdateTime)
                 // TODO Add handling of other type of HomeUnits (LightSwitchhomeUnit etc...
                 //  add some other types of ViewHolder for them)
-                secondLastUpdateTime = if (item.type == HOME_LIGHT_SWITCHES) {
+                secondLastUpdateTime = if (item.type == HomeUnitType.HOME_LIGHT_SWITCHES.firebaseTableName) {
                     getLastUpdateTime(root.context, item.secondLastUpdateTime)
                 } else {
                     null
                 }
                 value = if(item.value is Double || item.value is Float) {
                     String.format("%.2f", item.value)
-                } else if(item.type == HOME_LIGHT_SWITCHES) {
+                } else if(item.type == HomeUnitType.HOME_LIGHT_SWITCHES.firebaseTableName) {
                     item.secondValue.toString()
                 } else{
                     item.value.toString()

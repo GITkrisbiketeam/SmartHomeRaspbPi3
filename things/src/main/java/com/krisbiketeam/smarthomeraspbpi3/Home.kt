@@ -200,12 +200,23 @@ class Home(private val secureStorage: SecureStorage,
                     Timber.d(
                             "homeUnitsDataProcessor NODE_ACTION_ADDED EXISTING $existingUnit ; NEW  $homeUnit")
                     when (homeUnit.type) {
-                        HOME_ACTUATORS, HOME_LIGHT_SWITCHES, HOME_REED_SWITCHES, HOME_MOTIONS -> {
+                        HomeUnitType.HOME_ACTUATORS.firebaseTableName,
+                        HomeUnitType.HOME_LIGHT_SWITCHES.firebaseTableName,
+                        HomeUnitType.HOME_REED_SWITCHES.firebaseTableName,
+                        HomeUnitType.HOME_MOTIONS.firebaseTableName -> {
                             Timber.d(
                                     "homeUnitsDataProcessor NODE_ACTION_ADDED set boolean apply function")
                             homeUnit.applyFunction = booleanApplyFunction
                         }
-                        HOME_TEMPERATURES, HOME_PRESSURES, HOME_HUMIDITY, HOME_GAS, HOME_GAS_PERCENT, HOME_IAQ, HOME_STATIC_IAQ, HOME_CO2, HOME_BREATH_VOC -> {
+                        HomeUnitType.HOME_TEMPERATURES.firebaseTableName,
+                        HomeUnitType.HOME_PRESSURES.firebaseTableName,
+                        HomeUnitType.HOME_HUMIDITY.firebaseTableName,
+                        HomeUnitType.HOME_GAS.firebaseTableName,
+                        HomeUnitType.HOME_GAS_PERCENT.firebaseTableName,
+                        HomeUnitType.HOME_IAQ.firebaseTableName,
+                        HomeUnitType.HOME_STATIC_IAQ.firebaseTableName,
+                        HomeUnitType.HOME_CO2.firebaseTableName,
+                        HomeUnitType.HOME_BREATH_VOC.firebaseTableName -> {
                             Timber.d(
                                     "homeUnitsDataProcessor NODE_ACTION_ADDED set sensor apply function")
                             homeUnit.applyFunction = sensorApplyFunction
@@ -392,7 +403,7 @@ class Home(private val secureStorage: SecureStorage,
 // TODO: IS THIS NEEDED TO RUN NEW SCOPE
 //        scope.launch {
         homeUnitsList.values.filter {
-            if (it.type != HOME_LIGHT_SWITCHES) {
+            if (it.type != HomeUnitType.HOME_LIGHT_SWITCHES.firebaseTableName) {
                 it.hwUnitName == hwUnit.name
             } else {
                 it.secondHwUnitName == hwUnit.name
@@ -404,7 +415,7 @@ class Home(private val secureStorage: SecureStorage,
                 homeUnit.value = unitValue
                 homeUnit.lastUpdateTime = updateTime
             }
-            val newValue = if (homeUnit.type != HOME_LIGHT_SWITCHES) homeUnit.value else homeUnit.secondValue
+            val newValue = if (homeUnit.type != HomeUnitType.HOME_LIGHT_SWITCHES.firebaseTableName) homeUnit.value else homeUnit.secondValue
             if (newValue != null) {
                 homeUnit.applyFunction(homeUnit, newValue)
             }
@@ -873,46 +884,46 @@ class Home(private val secureStorage: SecureStorage,
         // We need to handle differently values of non Basic Types
         if (unitValue is PressureAndTemperature) {
             Timber.d("Received PressureAndTemperature $unitValue")
-            if (type == HOME_TEMPERATURES) {
+            if (type == HomeUnitType.HOME_TEMPERATURES.firebaseTableName) {
                 updateValueMinMax(unitValue.temperature, updateTime)
-            } else if (type == HOME_PRESSURES) {
+            } else if (type == HomeUnitType.HOME_PRESSURES.firebaseTableName) {
                 updateValueMinMax(unitValue.pressure, updateTime)
             }
         } else if (unitValue is TemperatureAndHumidity) {
             Timber.d("Received TemperatureAndHumidity $unitValue")
-            if (type == HOME_TEMPERATURES) {
+            if (type == HomeUnitType.HOME_TEMPERATURES.firebaseTableName) {
                 updateValueMinMax(unitValue.temperature, updateTime)
-            } else if (type == HOME_HUMIDITY) {
+            } else if (type == HomeUnitType.HOME_HUMIDITY.firebaseTableName) {
                 updateValueMinMax(unitValue.humidity, updateTime)
             }
         } else if (unitValue is Bme680Data) {
             Timber.d("Received TemperatureAndHumidity $unitValue")
             when (type) {
-                HOME_TEMPERATURES -> {
+                HomeUnitType.HOME_TEMPERATURES.firebaseTableName -> {
                     updateValueMinMax(unitValue.temperature, updateTime)
                 }
-                HOME_HUMIDITY -> {
+                HomeUnitType.HOME_HUMIDITY.firebaseTableName -> {
                     updateValueMinMax(unitValue.humidity, updateTime)
                 }
-                HOME_PRESSURES -> {
+                HomeUnitType.HOME_PRESSURES.firebaseTableName -> {
                     updateValueMinMax(unitValue.pressure, updateTime)
                 }
-                HOME_GAS -> {
+                HomeUnitType.HOME_GAS.firebaseTableName -> {
                     updateValueMinMax(unitValue.gas, updateTime)
                 }
-                HOME_GAS_PERCENT -> {
+                HomeUnitType.HOME_GAS_PERCENT.firebaseTableName -> {
                     updateValueMinMax(unitValue.gasPercentage, updateTime)
                 }
-                HOME_IAQ -> {
+                HomeUnitType.HOME_IAQ.firebaseTableName -> {
                     updateValueMinMax(unitValue.iaq, updateTime)
                 }
-                HOME_STATIC_IAQ -> {
+                HomeUnitType.HOME_STATIC_IAQ.firebaseTableName -> {
                     updateValueMinMax(unitValue.staticIaq, updateTime)
                 }
-                HOME_CO2 -> {
+                HomeUnitType.HOME_CO2.firebaseTableName -> {
                     updateValueMinMax(unitValue.co2Equivalent, updateTime)
                 }
-                HOME_BREATH_VOC -> {
+                HomeUnitType.HOME_BREATH_VOC.firebaseTableName -> {
                     updateValueMinMax(unitValue.breathVocEquivalent, updateTime)
                 }
             }
@@ -922,7 +933,7 @@ class Home(private val secureStorage: SecureStorage,
     }
 
     private fun GenericHomeUnit<Any>.updateValueMinMax(unitValue: Any?, updateTime: Long) {
-        if (type != HOME_LIGHT_SWITCHES) {
+        if (type != HomeUnitType.HOME_LIGHT_SWITCHES.firebaseTableName) {
             value = unitValue
             lastUpdateTime = updateTime
         } else {

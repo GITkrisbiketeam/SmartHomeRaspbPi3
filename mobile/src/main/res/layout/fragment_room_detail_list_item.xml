@@ -6,7 +6,7 @@
 
     <data>
         <import type="android.view.View" />
-        <import type="com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.FirebaseTablesKt" />
+        <import type="com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType" />
         <import type="com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository" />
 
         <variable
@@ -115,7 +115,7 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             app:setChecked="@{homeUnit.value}"
-            android:visibility="@{FirebaseTablesKt.HOME_LIGHT_SWITCHES.equals(homeUnit.type) || FirebaseTablesKt.HOME_ACTUATORS.equals(homeUnit.type) || FirebaseTablesKt.HOME_BLINDS.equals(homeUnit.type) ? View.VISIBLE : View.GONE}"
+            android:visibility="@{HomeUnitType.HOME_LIGHT_SWITCHES.firebaseTableName.equals(homeUnit.type) || HomeUnitType.HOME_ACTUATORS.firebaseTableName.equals(homeUnit.type) || HomeUnitType.HOME_BLINDS.firebaseTableName.equals(homeUnit.type) ? View.VISIBLE : View.GONE}"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent" />

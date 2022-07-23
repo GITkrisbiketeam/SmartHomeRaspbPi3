@@ -5,7 +5,7 @@
     <data>
 
         <import type="android.view.View" />
-        <import type="com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.FirebaseTablesKt" />
+        <import type="com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType" />
 
         <variable
             name="viewModel"
@@ -108,7 +108,7 @@
                     android:layout_marginStart="@dimen/margin_small"
                     android:layout_marginEnd="@dimen/activity_horizontal_margin"
                     app:setChecked="@{viewModel.value}"
-                    android:visibility="@{ !safeUnbox(viewModel.isEditMode) &amp;&amp; (FirebaseTablesKt.HOME_LIGHT_SWITCHES.equals(viewModel.type) || FirebaseTablesKt.HOME_ACTUATORS.equals(viewModel.type) || FirebaseTablesKt.HOME_BLINDS.equals(viewModel.type)) ? View.VISIBLE : View.GONE}"
+                    android:visibility="@{ !safeUnbox(viewModel.isEditMode) &amp;&amp; (HomeUnitType.HOME_LIGHT_SWITCHES.firebaseTableName.equals(viewModel.type) || HomeUnitType.HOME_ACTUATORS.firebaseTableName.equals(viewModel.type) || HomeUnitType.HOME_BLINDS.firebaseTableName.equals(viewModel.type)) ? View.VISIBLE : View.GONE}"
                     app:layout_constraintBottom_toBottomOf="@id/home_unit_value_title"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toEndOf="@+id/home_unit_value"
@@ -129,7 +129,7 @@
                 <androidx.constraintlayout.widget.Group
                     android:layout_width="0dp"
                     android:layout_height="0dp"
-                    android:visibility='@{!FirebaseTablesKt.HOME_LIGHT_SWITCHES.equals(viewModel.type) || safeUnbox(viewModel.isEditMode) ? View.GONE : View.VISIBLE}'
+                    android:visibility='@{!HomeUnitType.HOME_LIGHT_SWITCHES.firebaseTableName.equals(viewModel.type) || safeUnbox(viewModel.isEditMode) ? View.GONE : View.VISIBLE}'
                     app:constraint_referenced_ids="home_unit_second_value_title,home_unit_second_value, home_unit_second_value_last_update_time" />
 
                 <TextView
@@ -371,7 +371,7 @@
                     android:layout_marginHorizontal="@dimen/activity_horizontal_margin"
                     android:layout_marginTop="@dimen/margin_normal"
                     android:hint="@string/add_edit_home_unit_text_second_hw_unit_title"
-                    android:visibility='@{FirebaseTablesKt.HOME_LIGHT_SWITCHES.equals(viewModel.type) ? View.VISIBLE : View.GONE}'
+                    android:visibility='@{HomeUnitType.HOME_LIGHT_SWITCHES.firebaseTableName.equals(viewModel.type) ? View.VISIBLE : View.GONE}'
                     app:endIconDropDownEnabled="@{viewModel.isEditMode}"
                     app:helperText="@string/add_edit_home_unit_text_room_spinner_prompt"
                     app:helperTextEnabled="@{viewModel.isEditMode}"

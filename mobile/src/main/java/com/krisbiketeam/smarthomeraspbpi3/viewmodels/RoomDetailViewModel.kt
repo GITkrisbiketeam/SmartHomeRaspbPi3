@@ -42,7 +42,7 @@ class RoomDetailViewModel(
             val map: MutableMap<String, HomeUnit<Any>?> = orderList.associateWithTo(LinkedHashMap(orderList.size), { null })
             homeUnitList.forEach {
                 if (it.room == room.value?.name) {
-                    Timber.e("homeUnitsMap Flow filter")
+                    //Timber.e("homeUnitsMap Flow filter")
                     map[it.type + '.' + it.name] = it
                 }
             }

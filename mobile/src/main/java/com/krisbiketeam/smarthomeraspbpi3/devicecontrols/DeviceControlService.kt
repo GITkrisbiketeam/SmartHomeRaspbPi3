@@ -17,8 +17,7 @@ import com.google.firebase.ktx.Firebase
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_ACTUATORS
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_LIGHT_SWITCHES
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
 import com.krisbiketeam.smarthomeraspbpi3.ui.HomeActivity
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.GlobalScope
@@ -65,7 +64,10 @@ class DeviceControlService : ControlsProviderService() {
                 override fun request(count: Long) {
                     Timber.d("createPublisherForAllAvailable request $count")
                     job = GlobalScope.launch {
-                        combine(homeInformationRepository.homeUnitListFlow(HOME_LIGHT_SWITCHES), homeInformationRepository.homeUnitListFlow(HOME_ACTUATORS)) { lightSwitches, actuators ->
+                        combine(
+                            homeInformationRepository.homeUnitListFlow(HomeUnitType.HOME_LIGHT_SWITCHES),
+                            homeInformationRepository.homeUnitListFlow(HomeUnitType.HOME_ACTUATORS)
+                        ) { lightSwitches, actuators ->
                             Timber.i("createPublisherForAllAvailable lightSwitches: ${lightSwitches.size} actuators: ${actuators.size}")
                             lightSwitches.forEach { homeUnit ->
                                 flowSubscriber.onNext(getStatelessControl(homeUnit))
@@ -173,7 +175,7 @@ class DeviceControlService : ControlsProviderService() {
 @RequiresApi(Build.VERSION_CODES.R)
 private fun HomeUnit<Any>.getControlType(): Int {
     return when (this.type) {
-        HOME_LIGHT_SWITCHES -> DeviceTypes.TYPE_LIGHT
+        HomeUnitType.HOME_LIGHT_SWITCHES.firebaseTableName -> DeviceTypes.TYPE_LIGHT
         else -> DeviceTypes.TYPE_GENERIC_ON_OFF
     }
 }

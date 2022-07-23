@@ -17,7 +17,7 @@ import timber.log.Timber
 import java.util.concurrent.CancellationException
 
 @ExperimentalCoroutinesApi
-fun getHomeUnitListFlow(homeNamePath: String?, unitType: String? = null): Flow<List<HomeUnit<Any>>> {
+fun getHomeUnitListFlow(homeNamePath: String?, unitType: HomeUnitType?): Flow<List<HomeUnit<Any>>> {
     return homeNamePath?.let { home ->
         if (unitType != null) {
             Firebase.database.getReference("$home/$HOME_UNITS_BASE/$unitType").let { reference ->
@@ -36,7 +36,11 @@ fun getHomeUnitListFlow(homeNamePath: String?, unitType: String? = null): Flow<L
 }
 
 @ExperimentalCoroutinesApi
-private fun genericListReferenceFlow(databaseReference: DatabaseReference?, storageUnitType:String, closeOnEmpty: Boolean = false) = callbackFlow<List<HomeUnit<Any>>> {
+private fun genericListReferenceFlow(
+    databaseReference: DatabaseReference?,
+    storageUnitType: HomeUnitType,
+    closeOnEmpty: Boolean = false
+) = callbackFlow<List<HomeUnit<Any>>> {
     Timber.d("genericListReferenceFlow init on ${databaseReference?.toString()}")
     val eventListener = databaseReference?.addValueEventListener(object : ValueEventListener {
         override fun onCancelled(databaseError: DatabaseError) {
@@ -51,13 +55,16 @@ private fun genericListReferenceFlow(databaseReference: DatabaseReference?, stor
             }
             // A new value has been added, add it to the displayed list
             val list = dataSnapshot.children.mapNotNull {
-                    try {
-                        it.getValue(getHomeUnitTypeIndicatorMap(storageUnitType))
-                    } catch (e: DatabaseException) {
-                        Timber.e(e,"getHomeUnitListFlow error (dataSnapshot=$it)(storageUnitType=$storageUnitType) could not get HomeUnit")
-                        null
-                    }
+                try {
+                    it.getValue(getHomeUnitTypeIndicatorMap(storageUnitType))
+                } catch (e: DatabaseException) {
+                    Timber.e(
+                        e,
+                        "getHomeUnitListFlow error (dataSnapshot=$it)(storageUnitType=$storageUnitType) could not get HomeUnit"
+                    )
+                    null
                 }
+            }
             //Timber.e("genericListReferenceFlow onDataChange (key=${dataSnapshot.key})(homeUnits=$list)")
             this@callbackFlow.trySendBlocking(list)
         }

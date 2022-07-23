@@ -9,9 +9,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HOME_ACTION_STORAGE
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.TRIGGER_TYPE_LIST
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.UnitTask
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.UnitTaskHomeUnit
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_HUMIDITY
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_PRESSURES
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_TEMPERATURES
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomDetailFragment
 import com.krisbiketeam.smarthomeraspbpi3.ui.UnitTaskFragment
 import kotlinx.coroutines.Dispatchers
@@ -25,37 +23,43 @@ import timber.log.Timber
  */
 @ExperimentalCoroutinesApi
 class UnitTaskViewModel(
-        private val homeRepository: FirebaseHomeInformationRepository,
-        taskName: String,
-        private val unitName: String,
-        private val unitType: String
+    private val homeRepository: FirebaseHomeInformationRepository,
+    taskName: String,
+    private val unitName: String,
+    private val unitType: String
 ) : ViewModel() {
     private val addingNewUnit = taskName.isEmpty()
 
-    val isBooleanApplySensor = MutableStateFlow(!(unitType == HOME_TEMPERATURES || unitType == HOME_PRESSURES || unitType == HOME_HUMIDITY))
+    val isBooleanApplySensor =
+        MutableStateFlow(!(unitType == HomeUnitType.HOME_TEMPERATURES.firebaseTableName
+                || unitType == HomeUnitType.HOME_PRESSURES.firebaseTableName
+                || unitType == HomeUnitType.HOME_HUMIDITY.firebaseTableName))
 
     // Helper LiveData for UnitTaskList
-    private val unitTaskList: StateFlow<Map<String, UnitTask>> = homeRepository.unitTaskListFlow(unitType, unitName).flowOn(Dispatchers.IO).stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyMap())
+    private val unitTaskList: StateFlow<Map<String, UnitTask>> =
+        homeRepository.unitTaskListFlow(unitType, unitName).flowOn(Dispatchers.IO)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyMap())
 
     private val unitTask: StateFlow<UnitTask?> =
-            (if (addingNewUnit) flowOf(null) else unitTaskList.map { taskList -> taskList[taskName] }.filterNotNull().onEach { unitTask ->
-                Timber.e("unitTask changed:$unitTask")
-                showProgress.value = false
-                name.value = unitTask.name
-                homeUnitsTypeName.value = unitTask.homeUnitsList.flatMapToString()
-                trigger.value = unitTask.trigger
-                resetOnInverseTrigger.value = unitTask.resetOnInverseTrigger
-                inverse.value = unitTask.inverse
-                startTime.value = unitTask.startTime
-                endTime.value = unitTask.endTime
-                delay.value = unitTask.delay
-                duration.value = unitTask.duration
-                threshold.value = unitTask.threshold.toString()
-                hysteresis.value = unitTask.hysteresis.toString()
-                periodically.value = unitTask.periodically
-                periodicallyOnlyHw.value = unitTask.periodicallyOnlyHw
-                disabled.value = unitTask.disabled
-            }.flowOn(Dispatchers.IO)).stateIn(viewModelScope, SharingStarted.WhileSubscribed(), null)
+        (if (addingNewUnit) flowOf(null) else unitTaskList.map { taskList -> taskList[taskName] }
+            .filterNotNull().onEach { unitTask ->
+            Timber.e("unitTask changed:$unitTask")
+            showProgress.value = false
+            name.value = unitTask.name
+            homeUnitsTypeName.value = unitTask.homeUnitsList.flatMapToString()
+            trigger.value = unitTask.trigger
+            resetOnInverseTrigger.value = unitTask.resetOnInverseTrigger
+            inverse.value = unitTask.inverse
+            startTime.value = unitTask.startTime
+            endTime.value = unitTask.endTime
+            delay.value = unitTask.delay
+            duration.value = unitTask.duration
+            threshold.value = unitTask.threshold.toString()
+            hysteresis.value = unitTask.hysteresis.toString()
+            periodically.value = unitTask.periodically
+            periodicallyOnlyHw.value = unitTask.periodicallyOnlyHw
+            disabled.value = unitTask.disabled
+        }.flowOn(Dispatchers.IO)).stateIn(viewModelScope, SharingStarted.WhileSubscribed(), null)
 
     private var homeRepositoryTask: Task<Void>? = null
 
@@ -63,27 +67,31 @@ class UnitTaskViewModel(
 
     private val _isEditMode: MutableStateFlow<Boolean> = MutableStateFlow(addingNewUnit)
 
-    val isEditMode: StateFlow<Boolean> = unitTask.flatMapLatest { _isEditMode }.flowOn(Dispatchers.IO).stateIn(viewModelScope, SharingStarted.WhileSubscribed(), _isEditMode.value)
+    val isEditMode: StateFlow<Boolean> =
+        unitTask.flatMapLatest { _isEditMode }.flowOn(Dispatchers.IO)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), _isEditMode.value)
 
     val name: MutableStateFlow<String> = MutableStateFlow("")
 
     // Decide how to handle this list
-    val homeUnitsTypeNameList: StateFlow<List<String>> = _isEditMode.flatMapLatest { edit ->      // HomeUnitListLiveData
-        Timber.d("init homeUnitList isEditMode edit: $edit")
-        if (edit) {
-            combine(HOME_ACTION_STORAGE_UNITS.map { type ->
-                homeRepository.homeUnitListFlow(type)
-            }) { array ->
-                array.flatMap {
-                    it.map { homeUnit ->
-                        "${homeUnit.type}.${homeUnit.name}"
+    val homeUnitsTypeNameList: StateFlow<List<String>> =
+        _isEditMode.flatMapLatest { edit ->      // HomeUnitListLiveData
+            Timber.d("init homeUnitList isEditMode edit: $edit")
+            if (edit) {
+                combine(HOME_ACTION_STORAGE_UNITS.map { type ->
+                    homeRepository.homeUnitListFlow(type)
+                }) { array ->
+                    array.flatMap {
+                        it.map { homeUnit ->
+                            "${homeUnit.type}.${homeUnit.name}"
+                        }
                     }
                 }
+            } else {
+                flowOf(emptyList())
             }
-        } else {
-            flowOf(emptyList())
-        }
-    }.flowOn(Dispatchers.IO).stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
+        }.flowOn(Dispatchers.IO)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
     val homeUnitsTypeName: MutableStateFlow<String?> = MutableStateFlow(null)
 
     val triggerTypeList = TRIGGER_TYPE_LIST
@@ -233,7 +241,8 @@ class UnitTaskViewModel(
             // Adding new HomeUnit
             when {
                 name.value.trim().isEmpty() -> Pair(R.string.unit_task_empty_name, null)
-                homeUnitsTypeName.value.mapToList().isNullOrEmpty() -> Pair(R.string.unit_task_empty_home_unit_name, null)
+                homeUnitsTypeName.value.mapToList()
+                    .isNullOrEmpty() -> Pair(R.string.unit_task_empty_home_unit_name, null)
                 unitTaskList.value.keys.contains(name.value.trim()) -> {
                     //This name is already used
                     Timber.d("This name is already used")
@@ -245,7 +254,8 @@ class UnitTaskViewModel(
             // Editing existing HomeUnit
             unitTask.value?.let {
                 return when {
-                    name.value.trim().isEmpty() || homeUnitsTypeName.value.mapToList().isNullOrEmpty() /* || homeUnitType.value.isNullOrEmpty() || homeUnitName.value.isNullOrEmpty() && hwUnitName.value.isNullOrEmpty()*/ -> {
+                    name.value.trim().isEmpty() || homeUnitsTypeName.value.mapToList()
+                        .isNullOrEmpty() /* || homeUnitType.value.isNullOrEmpty() || homeUnitName.value.isNullOrEmpty() && hwUnitName.value.isNullOrEmpty()*/ -> {
                         Pair(R.string.unit_task_empty_name_unit_or_hw, null)
                     }
                     noChangesMade() -> {
@@ -299,23 +309,25 @@ class UnitTaskViewModel(
 
     private fun doSaveChanges(): Task<Void>? {
         return homeUnitsTypeName.value?.mapToList()?.let { homeUnitsTypeNameList ->
-            homeRepository.saveUnitTask(unitType, unitName,
-                    UnitTask(
-                            name = name.value,
-                            homeUnitsList = homeUnitsTypeNameList,
-                            inverse = inverse.value,
-                            trigger = trigger.value,
-                            resetOnInverseTrigger = resetOnInverseTrigger.value,
-                            delay = delay.value,
-                            duration = duration.value,
-                            periodically = periodically.value,
-                            periodicallyOnlyHw = periodicallyOnlyHw.value,
-                            startTime = startTime.value,
-                            endTime = endTime.value,
-                            threshold = threshold.value?.toFloatOrNull(),
-                            hysteresis = hysteresis.value?.toFloatOrNull(),
-                            disabled = disabled.value
-                    ))
+            homeRepository.saveUnitTask(
+                unitType, unitName,
+                UnitTask(
+                    name = name.value,
+                    homeUnitsList = homeUnitsTypeNameList,
+                    inverse = inverse.value,
+                    trigger = trigger.value,
+                    resetOnInverseTrigger = resetOnInverseTrigger.value,
+                    delay = delay.value,
+                    duration = duration.value,
+                    periodically = periodically.value,
+                    periodicallyOnlyHw = periodicallyOnlyHw.value,
+                    startTime = startTime.value,
+                    endTime = endTime.value,
+                    threshold = threshold.value?.toFloatOrNull(),
+                    hysteresis = hysteresis.value?.toFloatOrNull(),
+                    disabled = disabled.value
+                )
+            )
         }
     }
 }

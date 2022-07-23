@@ -10,10 +10,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.getOnlyDateLocalTime
 import com.krisbiketeam.smarthomeraspbpi3.common.resetableLazy
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.*
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.*
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.flows.genericListReferenceFlow
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.flows.genericReferenceFlow
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.flows.getHomeUnitsFlow
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.flows.getHwUnitsFlow
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.flows.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import timber.log.Timber
@@ -665,23 +662,8 @@ class FirebaseHomeInformationRepository {
      * get Flow of @see[List<HomeUnit<Any>>] for listening to changes in entries in DB
      */
     @ExperimentalCoroutinesApi
-    fun homeUnitListFlow(unitType: String? = null): Flow<List<HomeUnit<Any>>> {
-        return homePathReference?.let { home ->
-            if (unitType != null) {
-                Firebase.database.getReference("$home/$HOME_UNITS_BASE/$unitType").let { reference ->
-
-                    genericListReferenceFlow(reference)
-                }
-            } else {
-                combine(HOME_STORAGE_UNITS.map { type ->
-                    Firebase.database.getReference("$home/$HOME_UNITS_BASE/$type").let { reference ->
-                        genericListReferenceFlow<GenericHomeUnit<Any>>(reference)
-                    }
-                }) { types ->
-                    types.flatMap { it }
-                }
-            }
-        } ?: emptyFlow()
+    fun homeUnitListFlow(unitType: HomeUnitType? = null): Flow<List<HomeUnit<Any>>> {
+        return getHomeUnitListFlow(homePathReference, unitType)
     }
 
     /**

@@ -9,7 +9,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.GenericHomeUnit
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_LIGHT_SWITCHES
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.LAST_TRIGGER_SOURCE_TASK_LIST
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentTaskListItemCardBinding
 import com.krisbiketeam.smarthomeraspbpi3.model.TaskListAdapterModel
@@ -65,7 +65,7 @@ class TaskListAdapter(private val homeInformationRepository: FirebaseHomeInforma
                     //  add some other types of ViewHolder for them)
                     value = if(item.homeUnit?.value is Double || item.homeUnit?.value is Float) {
                         String.format("%.2f", item.homeUnit?.value)
-                    } else if(item.homeUnit?.type == HOME_LIGHT_SWITCHES) {
+                    } else if(item.homeUnit?.type == HomeUnitType.HOME_LIGHT_SWITCHES.firebaseTableName) {
                         item.homeUnit?.secondValue.toString()
                     } else{
                         item.homeUnit?.value.toString()

@@ -5,89 +5,65 @@ import com.google.firebase.database.GenericTypeIndicator
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.*
 
 typealias LightType = Boolean
-typealias Light = HomeUnit<LightType>
+typealias Light = GenericHomeUnit<LightType>
 typealias ActuatorType = Boolean
-typealias Actuator = HomeUnit<LightType>
+typealias Actuator = GenericHomeUnit<LightType>
 typealias LightSwitchType = Boolean
-typealias LightSwitch = HomeUnit<LightSwitchType>
+typealias LightSwitch = GenericHomeUnit<LightSwitchType>
 typealias ReedSwitchType = Boolean
-typealias ReedSwitch = HomeUnit<ReedSwitchType>
+typealias ReedSwitch = GenericHomeUnit<ReedSwitchType>
 typealias MotionType = Boolean
-typealias Motion = HomeUnit<MotionType>
+typealias Motion = GenericHomeUnit<MotionType>
 typealias TemperatureType = Float
-typealias Temperature = HomeUnit<TemperatureType>
+typealias Temperature = GenericHomeUnit<TemperatureType>
 typealias PressureType = Float
-typealias Pressure = HomeUnit<PressureType>
+typealias Pressure = GenericHomeUnit<PressureType>
 typealias HumidityType = Float
-typealias Humidity = HomeUnit<HumidityType>
+typealias Humidity = GenericHomeUnit<HumidityType>
 typealias BlindType = Int
-typealias Blind = HomeUnit<BlindType>
+typealias Blind = GenericHomeUnit<BlindType>
 typealias GasType = Float
-typealias Gas = HomeUnit<GasType>
+typealias Gas = GenericHomeUnit<GasType>
 typealias GasPercentType = Float
-typealias GasPercent = HomeUnit<GasPercentType>
+typealias GasPercent = GenericHomeUnit<GasPercentType>
 typealias IaqType = Float
-typealias Iaq = HomeUnit<IaqType>
+typealias Iaq = GenericHomeUnit<IaqType>
 typealias Co2Type = Float
-typealias Co2 = HomeUnit<Co2Type>
+typealias Co2 = GenericHomeUnit<Co2Type>
 typealias BreathVocType = Float
-typealias BreathVoc = HomeUnit<BreathVocType>
+typealias BreathVoc = GenericHomeUnit<BreathVocType>
 
-val homeUnitValueTypeIndicatorMap: Map<String, Class<out Any?>> = mapOf(
-    HOME_ACTUATORS to ActuatorType::class.java,
-    HOME_LIGHT_SWITCHES to LightSwitchType::class.java,
-    HOME_LIGHT_SWITCHES_V2 to LightSwitchType::class.java,
-    HOME_REED_SWITCHES to ReedSwitchType::class.java,
-    HOME_MOTIONS to MotionType::class.java,
-    HOME_TEMPERATURES to TemperatureType::class.java,
-    HOME_PRESSURES to PressureType::class.java,
-    HOME_HUMIDITY to HumidityType::class.java,
-    HOME_BLINDS to BlindType::class.java,
-    HOME_GAS to GasType::class.java,
-    HOME_GAS_PERCENT to GasPercentType::class.java,
-    HOME_IAQ to IaqType::class.java,
-    HOME_STATIC_IAQ to IaqType::class.java,
-    HOME_CO2 to Co2Type::class.java,
-    HOME_BREATH_VOC to BreathVocType::class.java
-)
-val homeUnitTypeIndicatorMap: HashMap<String, GenericTypeIndicator<out HomeUnit<out Any>>> by lazy {
-    hashMapOf(HOME_ACTUATORS to object : GenericTypeIndicator<GenericHomeUnit<ActuatorType>>() {},
-        HOME_LIGHT_SWITCHES to object :
-            GenericTypeIndicator<GenericHomeUnit<LightSwitchType>>() {},
-        HOME_LIGHT_SWITCHES_V2 to object :
-            GenericTypeIndicator<LightSwitchHomeUnit<LightSwitchType>>() {},
-        HOME_REED_SWITCHES to object :
-            GenericTypeIndicator<GenericHomeUnit<ReedSwitchType>>() {},
-        HOME_MOTIONS to object : GenericTypeIndicator<GenericHomeUnit<MotionType>>() {},
-        HOME_TEMPERATURES to object :
-            GenericTypeIndicator<GenericHomeUnit<TemperatureType>>() {},
-        HOME_PRESSURES to object : GenericTypeIndicator<GenericHomeUnit<PressureType>>() {},
-        HOME_HUMIDITY to object : GenericTypeIndicator<GenericHomeUnit<HumidityType>>() {},
-        HOME_BLINDS to object : GenericTypeIndicator<GenericHomeUnit<BlindType>>() {})
-}
-fun getHomeUnitTypeIndicatorMap(type: String): GenericTypeIndicator<*> {
-    return when(type) {
-        HOME_ACTUATORS -> object : GenericTypeIndicator<GenericHomeUnit<ActuatorType>>() {}
-        HOME_LIGHT_SWITCHES -> object :
-            GenericTypeIndicator<GenericHomeUnit<LightSwitchType>>() {}
-        HOME_LIGHT_SWITCHES_V2 -> object :
+
+fun getHomeUnitTypeIndicatorMap(type: HomeUnitType): GenericTypeIndicator<HomeUnit<Any>> {
+    return when (type) {
+        HomeUnitType.HOME_ACTUATORS -> object : GenericTypeIndicator<Actuator>() {}
+        HomeUnitType.HOME_LIGHT_SWITCHES -> object : GenericTypeIndicator<LightSwitch>() {}
+        HomeUnitType.HOME_LIGHT_SWITCHES_V2 -> object :
             GenericTypeIndicator<LightSwitchHomeUnit<LightSwitchType>>() {}
-        HOME_REED_SWITCHES -> object :
-            GenericTypeIndicator<GenericHomeUnit<ReedSwitchType>>() {}
-        HOME_MOTIONS -> object : GenericTypeIndicator<GenericHomeUnit<MotionType>>() {}
-        HOME_TEMPERATURES -> object :
-            GenericTypeIndicator<GenericHomeUnit<TemperatureType>>() {}
-        HOME_PRESSURES -> object : GenericTypeIndicator<GenericHomeUnit<PressureType>>() {}
-        HOME_HUMIDITY -> object : GenericTypeIndicator<GenericHomeUnit<HumidityType>>() {}
-        HOME_BLINDS -> object : GenericTypeIndicator<GenericHomeUnit<BlindType>>() {}
-        else -> object : GenericTypeIndicator<GenericHomeUnit<Any>>() {}
-    }
+        HomeUnitType.HOME_REED_SWITCHES -> object : GenericTypeIndicator<ReedSwitch>() {}
+        HomeUnitType.HOME_MOTIONS -> object : GenericTypeIndicator<Motion>() {}
+        HomeUnitType.HOME_TEMPERATURES -> object : GenericTypeIndicator<Temperature>() {}
+        HomeUnitType.HOME_PRESSURES -> object : GenericTypeIndicator<Pressure>() {}
+        HomeUnitType.HOME_HUMIDITY -> object : GenericTypeIndicator<Humidity>() {}
+        HomeUnitType.HOME_BLINDS -> object : GenericTypeIndicator<Blind>() {}
+        HomeUnitType.HOME_GAS -> object : GenericTypeIndicator<Gas>() {}
+        HomeUnitType.HOME_GAS_PERCENT -> object : GenericTypeIndicator<GasPercent>() {}
+        HomeUnitType.HOME_IAQ -> object : GenericTypeIndicator<Iaq>() {}
+        HomeUnitType.HOME_STATIC_IAQ -> object : GenericTypeIndicator<Iaq>() {}
+        HomeUnitType.HOME_CO2 -> object : GenericTypeIndicator<Co2>() {}
+        HomeUnitType.HOME_BREATH_VOC -> object : GenericTypeIndicator<BreathVoc>() {}
+    } as GenericTypeIndicator<HomeUnit<Any>>
 }
 
-val HOME_STORAGE_UNITS: List<String> = homeUnitValueTypeIndicatorMap.keys.toList()
+val HOME_STORAGE_UNITS: Array<HomeUnitType> = HomeUnitType.values()
 
-val HOME_ACTION_STORAGE_UNITS: List<String> =
-    listOf(HOME_LIGHT_SWITCHES, HOME_BLINDS, HOME_ACTUATORS, HOME_LIGHT_SWITCHES_V2)
+val HOME_ACTION_STORAGE_UNITS: List<HomeUnitType> =
+    listOf(
+        HomeUnitType.HOME_LIGHT_SWITCHES,
+        HomeUnitType.HOME_BLINDS,
+        HomeUnitType.HOME_ACTUATORS,
+        HomeUnitType.HOME_LIGHT_SWITCHES_V2
+    )
 
 interface HomeUnit<T : Any> {
     var name: String // Name should be unique for all units
@@ -107,6 +83,7 @@ interface HomeUnit<T : Any> {
     var maxLastUpdateTime: Long?
     var lastTriggerSource: String?
     var firebaseNotify: Boolean
+
     @TriggerType
     var firebaseNotifyTrigger: String?
     var showInTaskList: Boolean
