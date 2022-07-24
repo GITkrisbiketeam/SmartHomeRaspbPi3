@@ -23,7 +23,6 @@ import com.krisbiketeam.smarthomeraspbpi3.viewmodels.RoomDetailViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
@@ -87,7 +86,7 @@ class RoomDetailFragment : Fragment() {
             lifecycleOwner = viewLifecycleOwner
             fab.setOnClickListener {
                 val direction = RoomDetailFragmentDirections.actionRoomDetailFragmentToHomeUnitDetailFragment(
-                        roomDetailViewModel.room.value?.name ?: "", "", "")
+                        roomDetailViewModel.room.value?.name)
                 findNavController().navigate(direction)
             }
             val adapter: RoomDetailHomeUnitListAdapter by inject()

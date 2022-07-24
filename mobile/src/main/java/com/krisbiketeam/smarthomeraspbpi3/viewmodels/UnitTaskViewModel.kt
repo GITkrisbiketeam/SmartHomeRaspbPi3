@@ -24,16 +24,16 @@ import timber.log.Timber
 @ExperimentalCoroutinesApi
 class UnitTaskViewModel(
     private val homeRepository: FirebaseHomeInformationRepository,
-    taskName: String,
+    taskName: String?,
     private val unitName: String,
-    private val unitType: String
+    private val unitType: HomeUnitType
 ) : ViewModel() {
-    private val addingNewUnit = taskName.isEmpty()
+    private val addingNewUnit = taskName.isNullOrEmpty()
 
     val isBooleanApplySensor =
-        MutableStateFlow(!(unitType == HomeUnitType.HOME_TEMPERATURES.firebaseTableName
-                || unitType == HomeUnitType.HOME_PRESSURES.firebaseTableName
-                || unitType == HomeUnitType.HOME_HUMIDITY.firebaseTableName))
+        MutableStateFlow(!(unitType == HomeUnitType.HOME_TEMPERATURES
+                || unitType == HomeUnitType.HOME_PRESSURES
+                || unitType == HomeUnitType.HOME_HUMIDITY))
 
     // Helper LiveData for UnitTaskList
     private val unitTaskList: StateFlow<Map<String, UnitTask>> =

@@ -55,8 +55,7 @@
         android:id="@+id/new_room_dialog_fragment"
         android:name="com.krisbiketeam.smarthomeraspbpi3.ui.NewRoomFragmentDialog"
         android:label="@string/new_room_dialog_title"
-        tools:layout="@layout/fragment_new_room_dialog_fragment">
-    </fragment>
+        tools:layout="@layout/fragment_new_room_dialog_fragment"></fragment>
 
     <fragment
         android:id="@+id/room_detail_fragment"
@@ -82,13 +81,19 @@
         tools:layout="@layout/fragment_home_unit_detail">
         <argument
             android:name="roomName"
-            app:argType="string" />
+            android:defaultValue="@null"
+            app:argType="string"
+            app:nullable="true" />
         <argument
             android:name="homeUnitName"
-            app:argType="string" />
+            android:defaultValue="@null"
+            app:argType="string"
+            app:nullable="true" />
         <argument
             android:name="homeUnitType"
-            app:argType="string" />
+            android:defaultValue="@null"
+            app:argType="com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType"
+            app:nullable="true" />
         <action
             android:id="@+id/action_home_unit_detail_fragment_to_unitTaskFragment"
             app:destination="@id/unit_task_fragment"
@@ -114,13 +119,14 @@
 
         <argument
             android:name="taskName"
-            app:argType="string" />
+            app:argType="string"
+            app:nullable="true" />
         <argument
             android:name="homeUnitName"
             app:argType="string" />
         <argument
             android:name="homeUnitType"
-            app:argType="string" />
+            app:argType="com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType" />
     </fragment>
 
 
@@ -242,7 +248,7 @@
         android:id="@+id/login_settings_fragment"
         android:name="com.krisbiketeam.smarthomeraspbpi3.ui.settings.LoginSettingsFragment"
         android:label="@string/settings_login_title"
-        tools:layout="@layout/fragment_settings_login" >
+        tools:layout="@layout/fragment_settings_login">
 
         <action
             android:id="@+id/action_login_settings_fragment_to_wifi_settings_fragment"
@@ -266,9 +272,7 @@
         app:enterAnim="@anim/slide_in_right"
         app:exitAnim="@anim/slide_out_left"
         app:popEnterAnim="@anim/slide_in_left"
-        app:popExitAnim="@anim/slide_out_right"
-        >
-    </action>
+        app:popExitAnim="@anim/slide_out_right"></action>
 
     <action
         android:id="@+id/goToRoomFragment"
@@ -277,9 +281,7 @@
         app:exitAnim="@anim/fade_out"
         app:popEnterAnim="@anim/fade_in"
         app:popExitAnim="@anim/fade_out"
-        app:popUpTo="@id/room_list_fragment"
-        >
-    </action>
+        app:popUpTo="@id/room_list_fragment"></action>
 
     <action
         android:id="@+id/goToLoginSettingsFragment"
@@ -287,9 +289,7 @@
         app:enterAnim="@anim/slide_in_right"
         app:exitAnim="@anim/slide_out_left"
         app:popEnterAnim="@anim/slide_in_left"
-        app:popExitAnim="@anim/slide_out_right"
-        >
-    </action>
+        app:popExitAnim="@anim/slide_out_right"></action>
 
     <action
         android:id="@+id/goToHomeSettingsFragment"
@@ -297,8 +297,6 @@
         app:enterAnim="@anim/slide_in_right"
         app:exitAnim="@anim/slide_out_left"
         app:popEnterAnim="@anim/slide_in_left"
-        app:popExitAnim="@anim/slide_out_right"
-        >
-    </action>
+        app:popExitAnim="@anim/slide_out_right"></action>
 
 </navigation>

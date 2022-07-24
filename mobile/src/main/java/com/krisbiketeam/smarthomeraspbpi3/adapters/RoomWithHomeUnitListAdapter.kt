@@ -39,7 +39,7 @@ class RoomWithHomeUnitListAdapter : ListAdapter<RoomListAdapterModel, RoomWithHo
                 item.room != null     -> RoomListFragmentDirections.actionRoomListFragmentToRoomDetailFragment(
                         item.room.name)
                 item.homeUnit != null -> RoomListFragmentDirections.actionRoomListFragmentToHomeUnitDetailFragment(
-                        "", item.homeUnit?.name ?: "", item.homeUnit?.type?.firebaseTableName ?: "")
+                        "", item.homeUnit?.name, item.homeUnit?.type)
                 else                  -> null
             }
             direction?.let {

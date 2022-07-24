@@ -40,9 +40,10 @@ class TaskListAdapter(private val homeInformationRepository: FirebaseHomeInforma
     private fun createOnClickListener(item: TaskListAdapterModel): View.OnClickListener {
         return View.OnClickListener { view ->
             Timber.d("onClick")
+            val homeUnit = item.homeUnit
             val direction = when {
-                item.homeUnit != null -> TaskListFragmentDirections.actionTaskListFragmentToHomeUnitDetailFragment(
-                        "", item.homeUnit?.name ?: "", item.homeUnit?.type?.firebaseTableName ?: "")
+                homeUnit != null -> TaskListFragmentDirections.actionTaskListFragmentToHomeUnitDetailFragment(
+                        "", homeUnit.name, item.homeUnit?.type)
                 else -> null
             }
             direction?.let {

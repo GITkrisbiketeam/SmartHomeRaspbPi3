@@ -26,14 +26,14 @@ import kotlin.collections.set
 class HomeUnitDetailViewModel(
     application: Application,
     private val homeRepository: FirebaseHomeInformationRepository,
-    roomName: String, unitName: String, unitType: String
+    roomName: String?, unitName: String?, unitType: HomeUnitType?
 ) :
     ViewModel() {
 
     val unitTaskListAdapter = UnitTaskListAdapter(homeRepository, unitName, unitType)
 
     val homeUnit: StateFlow<GenericHomeUnit<Any>?>? =
-        if (unitName.isEmpty() && unitType.isEmpty()) null else homeRepository.genericHomeUnitFlow(
+        if (unitName.isNullOrEmpty() || unitType == null) null else homeRepository.genericHomeUnitFlow(
             unitType, unitName
         ).onEach { homeUnit ->
             Timber.e("homeUnit changed:$homeUnit")
@@ -61,11 +61,12 @@ class HomeUnitDetailViewModel(
 
     val isEditMode: MutableStateFlow<Boolean> = MutableStateFlow(homeUnit == null)
 
-    val name: MutableStateFlow<String> = MutableStateFlow(unitName)
+    // TODO check if possible nullable
+    val name: MutableStateFlow<String> = MutableStateFlow(unitName?: "")
 
     // TODO check is possible toi use enum
     val typeList = HOME_STORAGE_UNITS.map { it.firebaseTableName }
-    val type: MutableStateFlow<String> = MutableStateFlow(unitType)
+    val type: MutableStateFlow<String> = MutableStateFlow(unitType?.firebaseTableName?: "")
 
     val roomList: StateFlow<List<String>> =
         isEditMode.flatMapLatest { isEdit ->
@@ -78,7 +79,8 @@ class HomeUnitDetailViewModel(
             }
         }.flowOn(Dispatchers.IO)
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
-    val room: MutableStateFlow<String> = MutableStateFlow(roomName)
+    // TODO check if possible nullable
+    val room: MutableStateFlow<String> = MutableStateFlow(roomName?: "")
 
     val hwUnitNameList: StateFlow<List<Pair<String, Boolean>>> =
         isEditMode.flatMapLatest { isEdit ->
@@ -141,7 +143,7 @@ class HomeUnitDetailViewModel(
 
     // Decide how to handle this list
     val unitTaskList: StateFlow<Map<String, UnitTask>> =
-        if (homeUnit != null) {
+        if (homeUnit != null && unitType != null && !unitName.isNullOrEmpty()) {
             combine(
                 isEditMode,
                 homeRepository.unitTaskListFlow(unitType, unitName)
@@ -353,7 +355,7 @@ class HomeUnitDetailViewModel(
             if (type.value == HomeUnitType.HOME_LIGHT_SWITCHES.firebaseTableName) {
                 task.continueWithTask {
                     homeRepository.saveUnitTask(
-                        type.value, name.value,
+                        type.value.toHomeUnitType(), name.value,
                         UnitTask(
                             name = name.value,
                             homeUnitsList = listOf(UnitTaskHomeUnit(type.value, name.value))

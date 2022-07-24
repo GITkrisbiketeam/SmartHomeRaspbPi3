@@ -18,6 +18,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformation
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.toHomeUnitType
 import com.krisbiketeam.smarthomeraspbpi3.ui.HomeActivity
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.GlobalScope
@@ -161,7 +162,7 @@ class DeviceControlService : ControlsProviderService() {
                 .build()
     }
 
-    private fun getErrorStatefulControl(controlId: String, type: String, name: String): Control {
+    private fun getErrorStatefulControl(controlId: String, type: HomeUnitType, name: String): Control {
         Timber.d(
                 "getErrorStatefulControl create Error Control for type: $type name: $name")
         return Control.StatefulBuilder(controlId, getAppPendingIntent())
@@ -184,9 +185,9 @@ fun HomeUnit<Any>.getControlId(): String {
     return this.type.toString() + '.' + this.name
 }
 
-fun String.getHomeUnitTypeAndName(): Pair<String, String> {
+fun String.getHomeUnitTypeAndName(): Pair<HomeUnitType, String> {
     val delimiterIdx = this.indexOfFirst { it == '.' }
-    val type = this.substring(0, delimiterIdx)
+    val type = this.substring(0, delimiterIdx).toHomeUnitType()
     val name = this.substring(delimiterIdx + 1)
     return type to name
 }

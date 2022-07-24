@@ -14,6 +14,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.nearby.NearbyServiceProvider
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorageImpl
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.*
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.settings.HomeSettingsViewModel
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.settings.LoginSettingsViewModel
@@ -30,10 +31,10 @@ val myModule: Module = module {
     viewModel { TaskListViewModel(get(), get()) }
     viewModel { NewRoomDialogViewModel(androidApplication(), get()) }
     viewModel { (roomName: String) -> RoomDetailViewModel(get(), roomName) }
-    viewModel { (roomName: String, homeUnitName: String, homeUnitType: String) ->
+    viewModel { (roomName: String?, homeUnitName: String?, homeUnitType: HomeUnitType?) ->
         HomeUnitDetailViewModel(androidApplication(), get(), roomName, homeUnitName, homeUnitType)
     }
-    viewModel { (taskName: String, homeUnitName: String, homeUnitType: String) ->
+    viewModel { (taskName: String?, homeUnitName: String, homeUnitType: HomeUnitType) ->
         UnitTaskViewModel(get(), taskName, homeUnitName, homeUnitType)
     }
     viewModel { (wifiManager: WifiManager, connectivityManager: ConnectivityManager) ->

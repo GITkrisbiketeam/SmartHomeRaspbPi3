@@ -23,7 +23,6 @@ import com.krisbiketeam.smarthomeraspbpi3.viewmodels.UnitTaskViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
@@ -38,9 +37,9 @@ class UnitTaskFragment : Fragment() {
 
     private val unitTaskViewModel: UnitTaskViewModel by viewModel {
         parametersOf(
-                arguments?.let { args.taskName } ?: "",
-                arguments?.let { args.homeUnitName } ?: "",
-                arguments?.let { args.homeUnitType } ?: "")
+                args.taskName,
+                args.homeUnitName,
+                args.homeUnitType)
     }
 
     private val analytics: Analytics by inject()
@@ -96,10 +95,7 @@ class UnitTaskFragment : Fragment() {
             true -> {
                 menu.findItem((R.id.action_discard))?.isVisible = true
                 menu.findItem((R.id.action_save))?.isVisible = true
-                menu.findItem((R.id.action_delete))?.isVisible =
-                        arguments?.let {
-                            args.homeUnitName.isNotEmpty()
-                        } ?: false
+                menu.findItem((R.id.action_delete))?.isVisible = !args.homeUnitName.isEmpty()
                 menu.findItem((R.id.action_edit))?.isVisible = false
             }
             else -> {

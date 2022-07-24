@@ -41,4 +41,5 @@ data class UnitTask(var name: String = "",
     var taskJob: Job? = null
 }
 
+// TODO: can be changed to HomeUnitType enum??
 data class UnitTaskHomeUnit(val type:String = "", val name: String = "")

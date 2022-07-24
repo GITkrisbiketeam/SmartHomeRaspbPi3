@@ -22,7 +22,6 @@ import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentHomeUnitDetailBind
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.HomeUnitDetailViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
@@ -39,9 +38,10 @@ class HomeUnitDetailFragment : Fragment() {
 
     private val homeUnitDetailViewModel: HomeUnitDetailViewModel by viewModel {
         parametersOf(
-                arguments?.let { args.roomName } ?: "",
-                arguments?.let { args.homeUnitName } ?: "",
-                arguments?.let { args.homeUnitType } ?: "")
+            args.roomName,
+            args.homeUnitName,
+            args.homeUnitType
+        )
     }
 
     private val analytics: Analytics by inject()
@@ -75,7 +75,7 @@ class HomeUnitDetailFragment : Fragment() {
                 Timber.d("onCreateView unitTaskList Observer taskListMap: $taskListMap")
                 // Update UnitTask list
                 // Do not show default HOME_LIGHT_SWITCHES UnitTask (with UnitTask name same as HomeUnit name) responsible for linking two hwUnits
-                homeUnitDetailViewModel.unitTaskListAdapter.submitList(taskListMap.values.filterNot { args.homeUnitType == HomeUnitType.HOME_LIGHT_SWITCHES.firebaseTableName && it.name == args.homeUnitName })
+                homeUnitDetailViewModel.unitTaskListAdapter.submitList(taskListMap.values.filterNot { args.homeUnitType == HomeUnitType.HOME_LIGHT_SWITCHES && it.name == args.homeUnitName })
             }
         }
 
@@ -149,10 +149,7 @@ class HomeUnitDetailFragment : Fragment() {
             true -> {
                 menu.findItem((R.id.action_discard))?.isVisible = true
                 menu.findItem((R.id.action_save))?.isVisible = true
-                menu.findItem((R.id.action_delete))?.isVisible =
-                        arguments?.let {
-                            args.homeUnitName.isNotEmpty()
-                        } ?: false
+                menu.findItem((R.id.action_delete))?.isVisible = !args.homeUnitName.isNullOrEmpty()
                 menu.findItem((R.id.action_edit))?.isVisible = false
             }
             else -> {

@@ -287,7 +287,7 @@ class FirebaseHomeInformationRepository {
     /**
      *  Updates given @see[HomeUnit] value updateTime in DB
      */
-    fun updateHomeUnitValue(homeUnitType: String, homeUnitName: String, newVal: Any?): Task<Void>? {
+    fun updateHomeUnitValue(homeUnitType: HomeUnitType, homeUnitName: String, newVal: Any?): Task<Void>? {
         Timber.w("updateHomeUnitValue $homeUnitType $homeUnitName")
         return homePathReference?.let {
             Firebase.database.getReference("$it/$HOME_UNITS_BASE/$homeUnitType/$homeUnitName")
@@ -343,7 +343,7 @@ class FirebaseHomeInformationRepository {
     /**
      *  Saves/updates given @see[UnitTask] in DB
      */
-    fun saveUnitTask(homeUnitType: String, homeUnitName: String, unitTask: UnitTask): Task<Void>? {
+    fun saveUnitTask(homeUnitType: HomeUnitType, homeUnitName: String, unitTask: UnitTask): Task<Void>? {
         return homePathReference?.let {
             Firebase.database.getReference(
                     "$it/$HOME_UNITS_BASE/$homeUnitType/$homeUnitName/$HOME_UNIT_TASKS/${unitTask.name}")
@@ -354,7 +354,7 @@ class FirebaseHomeInformationRepository {
     /**
      *  Deletes given @see[UnitTask] from DB
      */
-    fun deleteUnitTask(homeUnitType: String, homeUnitName: String,
+    fun deleteUnitTask(homeUnitType: HomeUnitType, homeUnitName: String,
                        unitTask: UnitTask): Task<Void>? {
         return homePathReference?.let {
             Firebase.database.getReference(
@@ -680,7 +680,7 @@ class FirebaseHomeInformationRepository {
      * in entries in DB
      */
     @ExperimentalCoroutinesApi
-    fun genericHomeUnitFlow(unitType: String, unitName: String, closeOnEmpty: Boolean = false): Flow<GenericHomeUnit<Any>> {
+    fun genericHomeUnitFlow(unitType: HomeUnitType, unitName: String, closeOnEmpty: Boolean = false): Flow<GenericHomeUnit<Any>> {
         return homePathReference?.let {
             genericReferenceFlow(Firebase.database.getReference("$it/$HOME_UNITS_BASE/$unitType/$unitName"), closeOnEmpty)
         } ?: emptyFlow()
@@ -692,7 +692,7 @@ class FirebaseHomeInformationRepository {
     /**
      * get Flow of Map<String, UnitTask> for listening to changes in specific HomeUnit UnitTask List entry in DB
      */
-    fun unitTaskListFlow(unitType: String, unitName: String): Flow<Map<String, UnitTask>> {
+    fun unitTaskListFlow(unitType: HomeUnitType, unitName: String): Flow<Map<String, UnitTask>> {
         return homePathReference?.let { home ->
             Firebase.database.getReference("$home/$HOME_UNITS_BASE/$unitType/$unitName/$HOME_UNIT_TASKS").let { reference ->
                 genericListReferenceFlow<UnitTask>(reference)

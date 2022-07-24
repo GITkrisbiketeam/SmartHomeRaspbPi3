@@ -38,7 +38,7 @@ class RoomDetailHomeUnitListAdapter(private val homeInformationRepository: Fireb
     private fun createOnClickListener(item: HomeUnit<Any>): View.OnClickListener {
         return View.OnClickListener { view ->
             Timber.d("onClick item: $item")
-            val direction = RoomDetailFragmentDirections.actionRoomDetailFragmentToHomeUnitDetailFragment(item.room, item.name, item.type.firebaseTableName)
+            val direction = RoomDetailFragmentDirections.actionRoomDetailFragmentToHomeUnitDetailFragment(item.room, item.name, item.type)
             view.findNavController().navigate(direction)
         }
     }
