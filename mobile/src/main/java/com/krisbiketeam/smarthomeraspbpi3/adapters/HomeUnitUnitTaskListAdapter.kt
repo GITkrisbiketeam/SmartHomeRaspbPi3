@@ -25,7 +25,7 @@ private const val VIEW_TYPE_ADD_NEW = 1
 class UnitTaskListAdapter(
     private val homeRepository: FirebaseHomeInformationRepository,
     private val unitName: String?,
-    private val unitType: HomeUnitType?
+    private val unitType: HomeUnitType
 ) : ListAdapter<UnitTask, UnitTaskListAdapter.ViewHolder>(HomeUnitUnitTaskListAdapterDiffCallback()) {
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
@@ -59,7 +59,7 @@ class UnitTaskListAdapter(
     private fun createOnClickListener(taskName: String?): View.OnClickListener {
         return View.OnClickListener { view ->
             Timber.d("onClick taskName: $taskName")
-            if (unitType != null && !unitName.isNullOrEmpty()) {
+            if (unitType != HomeUnitType.UNKNOWN && !unitName.isNullOrEmpty()) {
                 view.findNavController().navigate(
                     HomeUnitDetailFragmentDirections.actionHomeUnitDetailFragmentToUnitTaskFragment(
                         taskName,
@@ -73,7 +73,7 @@ class UnitTaskListAdapter(
 
     private fun saveSwitchValue(unitTask: UnitTask, isChecked: Boolean) {
         Timber.d("saveSwitchValue unitTask: $unitTask isChecked: $isChecked")
-        if (unitType != null && !unitName.isNullOrEmpty()) {
+        if (unitType != HomeUnitType.UNKNOWN && !unitName.isNullOrEmpty()) {
             homeRepository.saveUnitTask(
                 unitType,
                 unitName,

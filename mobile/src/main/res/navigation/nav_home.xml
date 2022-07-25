@@ -91,9 +91,8 @@
             app:nullable="true" />
         <argument
             android:name="homeUnitType"
-            android:defaultValue="@null"
-            app:argType="com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType"
-            app:nullable="true" />
+            android:defaultValue="UNKNOWN"
+            app:argType="com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType" />
         <action
             android:id="@+id/action_home_unit_detail_fragment_to_unitTaskFragment"
             app:destination="@id/unit_task_fragment"
@@ -126,6 +125,7 @@
             app:argType="string" />
         <argument
             android:name="homeUnitType"
+            android:defaultValue="UNKNOWN"
             app:argType="com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType" />
     </fragment>
 

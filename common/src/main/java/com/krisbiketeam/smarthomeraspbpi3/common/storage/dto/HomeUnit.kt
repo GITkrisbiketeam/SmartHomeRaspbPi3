@@ -3,6 +3,7 @@ package com.krisbiketeam.smarthomeraspbpi3.common.storage.dto
 import com.google.firebase.database.Exclude
 import com.google.firebase.database.GenericTypeIndicator
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.*
+import java.lang.IllegalArgumentException
 
 typealias LightType = Boolean
 typealias Light = GenericHomeUnit<LightType>
@@ -52,10 +53,11 @@ fun getHomeUnitTypeIndicatorMap(type: HomeUnitType): GenericTypeIndicator<HomeUn
         HomeUnitType.HOME_STATIC_IAQ -> object : GenericTypeIndicator<Iaq>() {}
         HomeUnitType.HOME_CO2 -> object : GenericTypeIndicator<Co2>() {}
         HomeUnitType.HOME_BREATH_VOC -> object : GenericTypeIndicator<BreathVoc>() {}
+        HomeUnitType.UNKNOWN -> throw IllegalArgumentException("NotSupported HomeUnitType requested")
     } as GenericTypeIndicator<HomeUnit<Any>>
 }
 
-val HOME_STORAGE_UNITS: Array<HomeUnitType> = HomeUnitType.values()
+val HOME_STORAGE_UNITS: List<HomeUnitType> = HomeUnitType.values().filterNot { it == HomeUnitType.UNKNOWN }
 
 val HOME_ACTION_STORAGE_UNITS: List<HomeUnitType> =
     listOf(

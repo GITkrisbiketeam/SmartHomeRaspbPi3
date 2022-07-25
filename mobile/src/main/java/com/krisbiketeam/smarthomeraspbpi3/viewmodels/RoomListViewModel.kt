@@ -52,7 +52,7 @@ class RoomListViewModel(private val homeRepository: FirebaseHomeInformationRepos
                 // save new updated order
                 apply {
                     val newItemsOrder = this.mapNotNull { model ->
-                        model.room?.name ?: model.homeUnit?.let { it.type.firebaseTableName + '.' + it.name }
+                        model.room?.name ?: model.homeUnit?.let { it.type.toString() + '.' + it.name }
                     }
                     if (newItemsOrder != localItemsOrder) {
                         localItemsOrder = newItemsOrder

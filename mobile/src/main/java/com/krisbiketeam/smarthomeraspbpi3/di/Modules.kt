@@ -31,7 +31,7 @@ val myModule: Module = module {
     viewModel { TaskListViewModel(get(), get()) }
     viewModel { NewRoomDialogViewModel(androidApplication(), get()) }
     viewModel { (roomName: String) -> RoomDetailViewModel(get(), roomName) }
-    viewModel { (roomName: String?, homeUnitName: String?, homeUnitType: HomeUnitType?) ->
+    viewModel { (roomName: String?, homeUnitName: String?, homeUnitType: HomeUnitType) ->
         HomeUnitDetailViewModel(androidApplication(), get(), roomName, homeUnitName, homeUnitType)
     }
     viewModel { (taskName: String?, homeUnitName: String, homeUnitType: HomeUnitType) ->

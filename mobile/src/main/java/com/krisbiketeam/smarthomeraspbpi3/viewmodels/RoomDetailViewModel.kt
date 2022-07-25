@@ -39,15 +39,15 @@ class RoomDetailViewModel(
         combine(homeRepository.homeUnitListFlow().debounce(100), homeUnitsOrderStateFlow, room.map { it?.unitsOrder?: emptyList() }) { homeUnitList, newOrderList, existingOrderList ->
             Timber.e("homeUnitsMap Flow")
             val orderList = if (newOrderList.isNullOrEmpty()) existingOrderList else newOrderList
-            val map: MutableMap<String, HomeUnit<Any>?> = orderList.associateWithTo(LinkedHashMap(orderList.size), { null })
+            val map: MutableMap<String, HomeUnit<Any>?> = orderList.associateWithTo(LinkedHashMap(orderList.size)) { null }
             homeUnitList.forEach {
                 if (it.room == room.value?.name) {
                     //Timber.e("homeUnitsMap Flow filter")
-                    map[it.type.firebaseTableName + '.' + it.name] = it
+                    map[it.type.toString() + '.' + it.name] = it
                 }
             }
             map.values.filterNotNull().also { unitsList ->
-                val newOrder = unitsList.map { it.type.firebaseTableName + '.' + it.name }
+                val newOrder = unitsList.map { it.type.toString() + '.' + it.name }
                 if (newOrder != orderList || newOrderList.isNullOrEmpty()) {
                     homeUnitsOrderStateFlow.value = newOrder
                 }

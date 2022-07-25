@@ -37,7 +37,8 @@ const val HOME_TASKS_ORDER = "tasksOrder"
 // region HomeUnits
 const val HOME_UNITS_BASE = "home_units"
 
-enum class HomeUnitType(val firebaseTableName: String) {
+enum class HomeUnitType(private val firebaseTableName: String) {
+    UNKNOWN(""),
     HOME_ACTUATORS("actuators"),
     HOME_BLINDS("blinds"),
 
@@ -63,14 +64,10 @@ enum class HomeUnitType(val firebaseTableName: String) {
     override fun toString(): String {
         return firebaseTableName
     }
-
-    fun getHomeUnitType(type: String): HomeUnitType {
-        return values().first { it.firebaseTableName == type }
-    }
 }
 
 fun String.toHomeUnitType(): HomeUnitType {
-    return HomeUnitType.values().first { it.firebaseTableName == this }
+    return HomeUnitType.values().first { it.toString() == this }
 }
 
 const val HOME_VAL = "value"

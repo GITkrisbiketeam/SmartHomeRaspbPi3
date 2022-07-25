@@ -662,7 +662,7 @@ class FirebaseHomeInformationRepository {
      * get Flow of @see[List<HomeUnit<Any>>] for listening to changes in entries in DB
      */
     @ExperimentalCoroutinesApi
-    fun homeUnitListFlow(unitType: HomeUnitType? = null): Flow<List<HomeUnit<Any>>> {
+    fun homeUnitListFlow(unitType: HomeUnitType = HomeUnitType.UNKNOWN): Flow<List<HomeUnit<Any>>> {
         return getHomeUnitListFlow(homePathReference, unitType)
     }
 

@@ -43,7 +43,7 @@ class TaskListAdapter(private val homeInformationRepository: FirebaseHomeInforma
             val homeUnit = item.homeUnit
             val direction = when {
                 homeUnit != null -> TaskListFragmentDirections.actionTaskListFragmentToHomeUnitDetailFragment(
-                        "", homeUnit.name, item.homeUnit?.type)
+                        "", homeUnit.name, homeUnit.type)
                 else -> null
             }
             direction?.let {

@@ -26,20 +26,20 @@ import kotlin.collections.set
 class HomeUnitDetailViewModel(
     application: Application,
     private val homeRepository: FirebaseHomeInformationRepository,
-    roomName: String?, unitName: String?, unitType: HomeUnitType?
+    roomName: String?, unitName: String?, unitType: HomeUnitType
 ) :
     ViewModel() {
 
     val unitTaskListAdapter = UnitTaskListAdapter(homeRepository, unitName, unitType)
 
     val homeUnit: StateFlow<GenericHomeUnit<Any>?>? =
-        if (unitName.isNullOrEmpty() || unitType == null) null else homeRepository.genericHomeUnitFlow(
+        if (unitName.isNullOrEmpty() || unitType == HomeUnitType.UNKNOWN) null else homeRepository.genericHomeUnitFlow(
             unitType, unitName
         ).onEach { homeUnit ->
             Timber.e("homeUnit changed:$homeUnit")
             showProgress.value = false
             name.value = homeUnit.name
-            type.value = homeUnit.type.firebaseTableName
+            type.value = homeUnit.type.toString()
             room.value = homeUnit.room
             hwUnitName.value = homeUnit.hwUnitName
             secondHwUnitName.value = homeUnit.secondHwUnitName
@@ -64,9 +64,9 @@ class HomeUnitDetailViewModel(
     // TODO check if possible nullable
     val name: MutableStateFlow<String> = MutableStateFlow(unitName?: "")
 
-    // TODO check is possible toi use enum
-    val typeList = HOME_STORAGE_UNITS.map { it.firebaseTableName }
-    val type: MutableStateFlow<String> = MutableStateFlow(unitType?.firebaseTableName?: "")
+    // TODO check is possible to use enum
+    val typeList = HOME_STORAGE_UNITS.map { it.toString() }
+    val type: MutableStateFlow<String> = MutableStateFlow(if(unitType != HomeUnitType.UNKNOWN) unitType.toString() else "")
 
     val roomList: StateFlow<List<String>> =
         isEditMode.flatMapLatest { isEdit ->
@@ -92,7 +92,7 @@ class HomeUnitDetailViewModel(
                     type
                 ) { homeUnitList, hwUnitList, type ->
                     homeUnitOfSelectedTypeList = homeUnitList.filter {
-                        it.type.firebaseTableName == type
+                        it.type.toString() == type
                     }
                     hwUnitList.map {
                         Pair(it.name,
@@ -126,19 +126,19 @@ class HomeUnitDetailViewModel(
     val firebaseNotifyTrigger: MutableStateFlow<String?> = MutableStateFlow(RISING_EDGE)
     val showFirebaseNotifyTrigger: StateFlow<Boolean> =
         combine(firebaseNotify, type) { notify, type ->
-            notify && (HomeUnitType.HOME_ACTUATORS.firebaseTableName == type ||
-                    HomeUnitType.HOME_BLINDS.firebaseTableName == type ||
-                    HomeUnitType.HOME_REED_SWITCHES.firebaseTableName == type ||
-                    HomeUnitType.HOME_MOTIONS.firebaseTableName == type ||
-                    HomeUnitType.HOME_LIGHT_SWITCHES.firebaseTableName == type)
+            notify && (HomeUnitType.HOME_ACTUATORS.toString() == type ||
+                    HomeUnitType.HOME_BLINDS.toString() == type ||
+                    HomeUnitType.HOME_REED_SWITCHES.toString() == type ||
+                    HomeUnitType.HOME_MOTIONS.toString() == type ||
+                    HomeUnitType.HOME_LIGHT_SWITCHES.toString() == type)
         }.flowOn(Dispatchers.IO).stateIn(viewModelScope, SharingStarted.WhileSubscribed(), false)
 
     val showInTaskList: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val showInTaskListVisibility: StateFlow<Boolean> =
         combine(hwUnitName, type) { hwUnitName, type ->
-            !hwUnitName.isNullOrEmpty() && (HomeUnitType.HOME_LIGHT_SWITCHES.firebaseTableName == type ||
-                    HomeUnitType.HOME_ACTUATORS.firebaseTableName == type ||
-                    HomeUnitType.HOME_BLINDS.firebaseTableName == type)
+            !hwUnitName.isNullOrEmpty() && (HomeUnitType.HOME_LIGHT_SWITCHES.toString() == type ||
+                    HomeUnitType.HOME_ACTUATORS.toString() == type ||
+                    HomeUnitType.HOME_BLINDS.toString() == type)
         }.flowOn(Dispatchers.IO).stateIn(viewModelScope, SharingStarted.WhileSubscribed(), false)
 
     // Decide how to handle this list
@@ -211,7 +211,7 @@ class HomeUnitDetailViewModel(
     fun noChangesMade(): Boolean {
         return homeUnit?.value?.let { unit ->
             unit.name == name.value
-                    && unit.type.firebaseTableName == type.value
+                    && unit.type.toString() == type.value
                     && unit.room == room.value
                     && unit.hwUnitName == hwUnitName.value
                     && unit.secondHwUnitName == secondHwUnitName.value
@@ -240,7 +240,7 @@ class HomeUnitDetailViewModel(
             isEditMode.value = false
             homeUnit.value?.let { unit ->
                 name.value = unit.name
-                type.value = unit.type.firebaseTableName
+                type.value = unit.type.toString()
                 room.value = unit.room
                 hwUnitName.value = unit.hwUnitName
                 secondHwUnitName.value = unit.secondHwUnitName
@@ -269,7 +269,7 @@ class HomeUnitDetailViewModel(
                 /*hwUnitName.value?.trim()
                         .isNullOrEmpty() -> return Pair(
                         R.string.add_edit_home_unit_empty_unit_hw_unit, null)*/
-                type.value.trim() == HomeUnitType.HOME_LIGHT_SWITCHES.firebaseTableName && secondHwUnitName.value?.trim()
+                type.value.trim() == HomeUnitType.HOME_LIGHT_SWITCHES.toString() && secondHwUnitName.value?.trim()
                     .isNullOrEmpty() -> return Pair(
                     R.string.add_edit_home_unit_empty_unit_second_hw_unit, null
                 )
@@ -286,7 +286,7 @@ class HomeUnitDetailViewModel(
                     Pair(R.string.add_edit_home_unit_empty_name, null)
                 } else if (name.value.trim() != unit.name && homeUnitOfSelectedTypeList.find { it.name == name.value.trim() } != null) {
                     return Pair(R.string.add_edit_home_unit_name_already_used, null)
-                } else if (name.value.trim() != unit.name || type.value.trim() != unit.type.firebaseTableName) {
+                } else if (name.value.trim() != unit.name || type.value.trim() != unit.type.toString()) {
                     Pair(R.string.add_edit_home_unit_save_with_delete, R.string.overwrite)
                 } else if (noChangesMade()) {
                     Pair(R.string.add_edit_home_unit_no_changes, null)
@@ -321,7 +321,7 @@ class HomeUnitDetailViewModel(
             showProgress.value = true
             Timber.e("Save all changes")
             doSaveChanges().apply {
-                if (name.value != unit.name || type.value != unit.type.firebaseTableName) {
+                if (name.value != unit.name || type.value != unit.type.toString()) {
                     Timber.d(
                         "Name or type changed will need to delete old value name=${name.value}, type = ${type.value}"
                     )
@@ -352,7 +352,7 @@ class HomeUnitDetailViewModel(
                     it.remove("")
                 })
         )?.let { task ->
-            if (type.value == HomeUnitType.HOME_LIGHT_SWITCHES.firebaseTableName) {
+            if (type.value == HomeUnitType.HOME_LIGHT_SWITCHES.toString()) {
                 task.continueWithTask {
                     homeRepository.saveUnitTask(
                         type.value.toHomeUnitType(), name.value,

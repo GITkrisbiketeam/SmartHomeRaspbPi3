@@ -38,8 +38,11 @@ class RoomWithHomeUnitListAdapter : ListAdapter<RoomListAdapterModel, RoomWithHo
             val direction = when {
                 item.room != null     -> RoomListFragmentDirections.actionRoomListFragmentToRoomDetailFragment(
                         item.room.name)
-                item.homeUnit != null -> RoomListFragmentDirections.actionRoomListFragmentToHomeUnitDetailFragment(
-                        "", item.homeUnit?.name, item.homeUnit?.type)
+                item.homeUnit != null -> item.homeUnit?.let { homeUnit ->
+                    RoomListFragmentDirections.actionRoomListFragmentToHomeUnitDetailFragment(
+                        "", homeUnit.name, homeUnit.type
+                    )
+                }
                 else                  -> null
             }
             direction?.let {

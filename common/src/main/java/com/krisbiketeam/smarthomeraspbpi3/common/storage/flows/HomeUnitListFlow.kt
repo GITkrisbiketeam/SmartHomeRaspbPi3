@@ -2,14 +2,13 @@ package com.krisbiketeam.smarthomeraspbpi3.common.storage.flows
 
 import com.google.firebase.database.*
 import com.google.firebase.database.ktx.database
-import com.google.firebase.database.ktx.getValue
 import com.google.firebase.ktx.Firebase
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.ChildEventType
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.*
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.*
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HOME_STORAGE_UNITS
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.getHomeUnitTypeIndicatorMap
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_UNITS_BASE
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
-import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.*
@@ -17,9 +16,9 @@ import timber.log.Timber
 import java.util.concurrent.CancellationException
 
 @ExperimentalCoroutinesApi
-fun getHomeUnitListFlow(homeNamePath: String?, unitType: HomeUnitType?): Flow<List<HomeUnit<Any>>> {
+fun getHomeUnitListFlow(homeNamePath: String?, unitType: HomeUnitType): Flow<List<HomeUnit<Any>>> {
     return homeNamePath?.let { home ->
-        if (unitType != null) {
+        if (unitType != HomeUnitType.UNKNOWN) {
             Firebase.database.getReference("$home/$HOME_UNITS_BASE/$unitType").let { reference ->
                 genericListReferenceFlow(reference, unitType)
             }
