@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <import type="android.view.View" />
+        <import type="com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType" />
+
+        <variable
+            name="viewModel"
+            type="com.krisbiketeam.smarthomeraspbpi3.viewmodels.HomeUnitTypeChooserDialogViewModel" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="16dp">
+
+        <TextView
+            android:id="@+id/home_unit_type_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/add_edit_home_unit_text_unit_type_title"
+            android:textSize="18sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/unit_type_layout"
+            style="@style/LargeTitleDropDownOutlineInputLayoutStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/activity_horizontal_margin"
+            android:layout_marginTop="@dimen/margin_normal"
+            android:hint="@string/add_edit_home_unit_text_unit_type_title"
+            app:endIconDropDownEnabled="@{true}"
+            app:helperText="@string/add_edit_home_unit_text_unit_type_spinner_prompt"
+            app:helperTextEnabled="true"
+            app:hintEnabled="true"
+            app:layout_constraintTop_toBottomOf="@id/home_unit_type_title">
+
+            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                android:id="@+id/unit_type_spinner"
+                style="@style/EnabledColorMaterialAutoCompleteTextViewStyle"
+                app:entriesAutoComplete="@{viewModel.typeList}"
+                app:value="@={viewModel.type}" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <Button
+            android:id="@+id/cancel_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@android:string/cancel"
+            android:layout_marginEnd="@dimen/margin_normal"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/confirm_button"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <Button
+            android:id="@+id/confirm_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@android:string/ok"
+            android:enabled="@{!HomeUnitType.UNKNOWN.equals(viewModel.type)}"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/cancel_button" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

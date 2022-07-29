@@ -25,6 +25,7 @@ import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.Room
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
 import com.krisbiketeam.smarthomeraspbpi3.databinding.HomeActivityBinding
 import com.krisbiketeam.smarthomeraspbpi3.databinding.NavHeaderBinding
 import com.krisbiketeam.smarthomeraspbpi3.devicecontrols.CONTROL_ID
@@ -32,7 +33,6 @@ import com.krisbiketeam.smarthomeraspbpi3.devicecontrols.getHomeUnitTypeAndName
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.NavigationViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
@@ -109,7 +109,21 @@ class HomeActivity : AppCompatActivity() {
         if (controlId != null) {
             val (type, name) = controlId.getHomeUnitTypeAndName()
             Timber.e("onCreate controlId:$controlId")
-            navController.navigate(NavHomeDirections.goToHomeUnitDetailFragment("", name, type))
+            when (type) {
+                HomeUnitType.HOME_LIGHT_SWITCHES_V2 -> navController.navigate(
+                    NavHomeDirections.goToHomeUnitLightSwitchDetailFragment(
+                        "",
+                        name
+                    )
+                )
+                else -> navController.navigate(
+                    NavHomeDirections.goToHomeUnitDetailFragment(
+                        "",
+                        name,
+                        type
+                    )
+                )
+            }
         }
         FirebaseAuth.getInstance().addAuthStateListener { firebaseAuth ->
             Timber.e("AuthStateListener  firebaseAuth:$firebaseAuth currentUser: ${firebaseAuth.currentUser?.email}")

@@ -1,0 +1,246 @@
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <import type="android.view.View" />
+
+        <import type="com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType" />
+
+        <variable
+            name="viewModel"
+            type="com.krisbiketeam.smarthomeraspbpi3.viewmodels.HomeUnitDetailViewModel" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <androidx.constraintlayout.widget.Group
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:visibility="@{safeUnbox(viewModel.isEditMode) ? View.GONE : View.VISIBLE}"
+            app:constraint_referenced_ids="home_unit_value_title,home_unit_value, home_unit_value_last_update_time,
+                    home_unit_values_separator" />
+
+        <TextView
+            android:id="@+id/home_unit_value_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/activity_horizontal_margin"
+            android:text="@string/add_edit_home_unit_text_value"
+            android:textAppearance="@style/TextAppearance.AppCompat.Title"
+            app:layout_constraintEnd_toStartOf="@id/home_unit_value"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/home_unit_value"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/margin_small"
+            android:layout_marginEnd="@dimen/margin_small"
+            android:text="@{viewModel.value}"
+            android:textAppearance="@style/TextAppearance.AppCompat.Title"
+            app:layout_constraintBottom_toBottomOf="@id/home_unit_value_title"
+            app:layout_constraintEnd_toStartOf="@+id/home_unit_value_switch"
+            app:layout_constraintStart_toEndOf="@+id/home_unit_value_title"
+            app:layout_constraintTop_toTopOf="@id/home_unit_value_title"
+            tools:text="false" />
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/home_unit_value_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/margin_small"
+            android:layout_marginEnd="@dimen/activity_horizontal_margin"
+            app:layout_constraintBottom_toBottomOf="@id/home_unit_value_title"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/home_unit_value"
+            app:layout_constraintTop_toTopOf="@id/home_unit_value_title"
+            app:setChecked="@{viewModel.value}"
+            app:visibility="@{viewModel.valueSwitchVisible}" />
+
+        <TextView
+            android:id="@+id/home_unit_value_last_update_time"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/activity_horizontal_margin"
+            android:paddingStart="@dimen/margin_small"
+            android:text="@{viewModel.lastUpdateTime}"
+            android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/home_unit_value_title" />
+
+        <androidx.constraintlayout.widget.Group
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:visibility='@{!HomeUnitType.HOME_LIGHT_SWITCHES.equals(viewModel.type) || safeUnbox(viewModel.isEditMode) ? View.GONE : View.VISIBLE}'
+            app:constraint_referenced_ids="home_unit_second_value_title,home_unit_second_value, home_unit_second_value_last_update_time" />
+
+        <TextView
+            android:id="@+id/home_unit_second_value_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/activity_horizontal_margin"
+            android:text="@string/add_edit_home_unit_text_second_value"
+            android:textAppearance="@style/TextAppearance.AppCompat.Title"
+            app:layout_constraintEnd_toStartOf="@id/home_unit_second_value"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/home_unit_value_last_update_time" />
+
+        <TextView
+            android:id="@+id/home_unit_second_value"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/margin_small"
+            android:layout_marginEnd="@dimen/activity_horizontal_margin"
+            android:text="@{viewModel.secondValue}"
+            android:textAppearance="@style/TextAppearance.AppCompat.Title"
+            app:layout_constraintBottom_toBottomOf="@id/home_unit_second_value_title"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/home_unit_second_value_title"
+            app:layout_constraintTop_toTopOf="@id/home_unit_second_value_title" />
+
+        <TextView
+            android:id="@+id/home_unit_second_value_last_update_time"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/activity_horizontal_margin"
+            android:paddingStart="@dimen/margin_small"
+            android:text="@{viewModel.secondLastUpdateTime}"
+            android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/home_unit_second_value_title" />
+
+        <androidx.constraintlayout.widget.Group
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:visibility='@{safeUnbox(viewModel.isEditMode || viewModel.minValue == "null") ? View.GONE : View.VISIBLE}'
+            app:constraint_referenced_ids="home_unit_min_value_title,home_unit_min_value,home_unit_min_value_last_update_time,home_unit_min_clear_button" />
+
+        <TextView
+            android:id="@+id/home_unit_min_value_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/activity_horizontal_margin"
+            android:layout_marginTop="@dimen/margin_small"
+            android:paddingStart="@dimen/margin_small"
+            android:text="@string/add_edit_home_unit_text_min_value"
+            android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+            app:layout_constraintEnd_toStartOf="@id/home_unit_min_value"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/home_unit_second_value_last_update_time"
+            tools:ignore="RtlSymmetry" />
+
+        <TextView
+            android:id="@+id/home_unit_min_value"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/margin_small"
+            android:text="@{viewModel.minValue}"
+            android:textAppearance="@style/TextAppearance.AppCompat.Body2"
+            app:layout_constraintBottom_toBottomOf="@id/home_unit_min_value_title"
+            app:layout_constraintEnd_toStartOf="@+id/home_unit_min_clear_button"
+            app:layout_constraintStart_toEndOf="@+id/home_unit_min_value_title"
+            app:layout_constraintTop_toTopOf="@id/home_unit_min_value_title" />
+
+        <TextView
+            android:id="@+id/home_unit_min_value_last_update_time"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/activity_horizontal_margin"
+            android:paddingStart="@dimen/margin_normal"
+            android:text="@{viewModel.minLastUpdateTime}"
+            android:textAppearance="@style/TextAppearance.AppCompat.Caption"
+            app:layout_constraintEnd_toStartOf="@+id/home_unit_min_clear_button"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/home_unit_min_value_title"
+            tools:ignore="RtlSymmetry" />
+
+        <ImageButton
+            android:id="@+id/home_unit_min_clear_button"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="@dimen/margin_normal"
+            android:padding="@dimen/margin_normal"
+            android:src="@drawable/ic_baseline_clear_24"
+            app:layout_constraintBottom_toBottomOf="@id/home_unit_min_value_last_update_time"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/home_unit_min_value_title"
+            tools:ignore="ContentDescription" />
+
+        <androidx.constraintlayout.widget.Group
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:visibility='@{safeUnbox(viewModel.isEditMode || viewModel.maxValue == "null") ? View.GONE : View.VISIBLE}'
+            app:constraint_referenced_ids="home_unit_max_value_title,home_unit_max_value,home_unit_max_value_last_update_time,home_unit_max_clear_button" />
+
+        <TextView
+            android:id="@+id/home_unit_max_value_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/margin_normal"
+            android:layout_marginTop="@dimen/margin_small"
+            android:paddingStart="@dimen/margin_small"
+            android:text="@string/add_edit_home_unit_text_max_value"
+            android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+            app:layout_constraintEnd_toStartOf="@id/home_unit_max_value"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/home_unit_min_value_last_update_time"
+            tools:ignore="RtlSymmetry" />
+
+        <TextView
+            android:id="@+id/home_unit_max_value"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/margin_small"
+            android:text="@{viewModel.maxValue}"
+            android:textAppearance="@style/TextAppearance.AppCompat.Body2"
+            app:layout_constraintBottom_toBottomOf="@id/home_unit_max_value_title"
+            app:layout_constraintEnd_toStartOf="@+id/home_unit_max_clear_button"
+            app:layout_constraintStart_toEndOf="@+id/home_unit_max_value_title"
+            app:layout_constraintTop_toTopOf="@id/home_unit_max_value_title" />
+
+        <TextView
+            android:id="@+id/home_unit_max_value_last_update_time"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/activity_horizontal_margin"
+            android:paddingStart="@dimen/margin_normal"
+            android:text="@{viewModel.maxLastUpdateTime}"
+            android:textAppearance="@style/TextAppearance.AppCompat.Caption"
+            app:layout_constraintEnd_toStartOf="@+id/home_unit_max_clear_button"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/home_unit_max_value_title"
+            tools:ignore="RtlSymmetry" />
+
+        <ImageButton
+            android:id="@+id/home_unit_max_clear_button"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="@dimen/margin_normal"
+            android:padding="@dimen/margin_normal"
+            android:src="@drawable/ic_baseline_clear_24"
+            app:layout_constraintBottom_toBottomOf="@id/home_unit_max_value_last_update_time"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/home_unit_max_value_title"
+            tools:ignore="ContentDescription" />
+
+        <View
+            android:id="@+id/home_unit_values_separator"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginHorizontal="@dimen/margin_small"
+            android:layout_marginTop="@dimen/margin_normal"
+            android:background="@color/colorPrimaryDark"
+            app:layout_constraintTop_toBottomOf="@+id/home_unit_max_value_last_update_time" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</layout>

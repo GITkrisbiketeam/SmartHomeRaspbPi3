@@ -5,19 +5,14 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnit
 
 data class LightSwitchHomeUnit<T : Any>(
     override var name: String = "", // Name should be unique for all units
-    override var type: HomeUnitType = HomeUnitType.HOME_TEMPERATURES,
+    override var type: HomeUnitType = HomeUnitType.HOME_LIGHT_SWITCHES_V2,
     override var room: String = "",
     override var hwUnitName: String? = "",
     override var value: T? = null,
     override var lastUpdateTime: Long? = null,
-    override var secondHwUnitName: String? = null,
-    override var secondValue: T? = null,
-    override var secondLastUpdateTime: Long? = null,
-
-    override var min: T? = null,
-    override var minLastUpdateTime: Long? = null,
-    override var max: T? = null,
-    override var maxLastUpdateTime: Long? = null,
+    var switchHwUnitName: String? = null,
+    var switchValue: T? = null,
+    var switchLastUpdateTime: Long? = null,
 
     override var lastTriggerSource: String? = null,
     override var firebaseNotify: Boolean = false,
@@ -25,16 +20,16 @@ data class LightSwitchHomeUnit<T : Any>(
     override var showInTaskList: Boolean = false,
     override var unitsTasks: Map<String, UnitTask> = HashMap(),
 ) : HomeUnit<T> {
-    constructor(homeUnit: HomeUnit<T>) : this(
+    constructor(homeUnit: LightSwitchHomeUnit<T>) : this(
         homeUnit.name,
         homeUnit.type,
         homeUnit.room,
         homeUnit.hwUnitName,
         homeUnit.value,
         homeUnit.lastUpdateTime,
-        homeUnit.secondHwUnitName,
-        homeUnit.secondValue,
-        homeUnit.secondLastUpdateTime,
+        homeUnit.switchHwUnitName,
+        homeUnit.switchValue,
+        homeUnit.switchLastUpdateTime,
         lastTriggerSource = homeUnit.lastTriggerSource,
         firebaseNotify = homeUnit.firebaseNotify,
         firebaseNotifyTrigger = homeUnit.firebaseNotifyTrigger,
@@ -55,9 +50,9 @@ data class LightSwitchHomeUnit<T : Any>(
             hwUnitName,
             value,
             lastUpdateTime,
-            secondHwUnitName,
-            secondValue,
-            secondLastUpdateTime,
+            switchHwUnitName,
+            switchValue,
+            switchLastUpdateTime,
             lastTriggerSource = lastTriggerSource
         )
     }
@@ -66,7 +61,7 @@ data class LightSwitchHomeUnit<T : Any>(
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as HomeUnit<*>
+        other as LightSwitchHomeUnit<*>
 
         if (name != other.name) return false
         if (type != other.type) return false
@@ -74,9 +69,9 @@ data class LightSwitchHomeUnit<T : Any>(
         if (hwUnitName != other.hwUnitName) return false
         if (value != other.value) return false
         if (lastUpdateTime != other.lastUpdateTime) return false
-        if (secondHwUnitName != other.secondHwUnitName) return false
-        if (secondValue != other.secondValue) return false
-        if (secondLastUpdateTime != other.secondLastUpdateTime) return false
+        if (switchHwUnitName != other.switchHwUnitName) return false
+        if (switchValue != other.switchValue) return false
+        if (switchLastUpdateTime != other.switchLastUpdateTime) return false
         if (lastTriggerSource != other.lastTriggerSource) return false
         if (firebaseNotify != other.firebaseNotify) return false
         if (firebaseNotifyTrigger != other.firebaseNotifyTrigger) return false
@@ -93,14 +88,28 @@ data class LightSwitchHomeUnit<T : Any>(
         result = 31 * result + (hwUnitName?.hashCode() ?: 0)
         result = 31 * result + (value?.hashCode() ?: 0)
         result = 31 * result + (lastUpdateTime?.hashCode() ?: 0)
-        result = 31 * result + (secondHwUnitName?.hashCode() ?: 0)
-        result = 31 * result + (secondValue?.hashCode() ?: 0)
-        result = 31 * result + (secondLastUpdateTime?.hashCode() ?: 0)
+        result = 31 * result + (switchHwUnitName?.hashCode() ?: 0)
+        result = 31 * result + (switchValue?.hashCode() ?: 0)
+        result = 31 * result + (switchLastUpdateTime?.hashCode() ?: 0)
         result = 31 * result + (lastTriggerSource?.hashCode() ?: 0)
         result = 31 * result + firebaseNotify.hashCode()
         result = 31 * result + (firebaseNotifyTrigger?.hashCode() ?: 0)
         result = 31 * result + showInTaskList.hashCode()
         result = 31 * result + unitsTasks.hashCode()
         return result
+    }
+
+    override fun isUnitAffected(hwUnit: HwUnit): Boolean {
+        return switchHwUnitName == hwUnit.name
+    }
+
+    override fun getHomeUnitValue(): T? {
+        return switchValue
+    }
+
+    override fun updateHomeUnitValuesAndTimes(hwUnit: HwUnit, unitValue: Any?, updateTime: Long) {
+        switchValue = unitValue as T?
+        value = unitValue
+        switchLastUpdateTime = updateTime
     }
 }

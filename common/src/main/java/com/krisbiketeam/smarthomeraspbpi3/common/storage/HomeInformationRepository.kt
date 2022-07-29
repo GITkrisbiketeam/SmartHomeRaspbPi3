@@ -578,9 +578,8 @@ class FirebaseHomeInformationRepository {
     fun hwUnitFlow(hwUnitName: String, closeOnEmpty: Boolean = false): Flow<HwUnit> {
         return if(hwUnitName.isEmpty()){
             emptyFlow()
-        }else {
+        } else {
             genericReferenceFlow(referenceHWUnits?.child(hwUnitName), closeOnEmpty)
-
         }
     }
 
@@ -683,6 +682,17 @@ class FirebaseHomeInformationRepository {
     fun genericHomeUnitFlow(unitType: HomeUnitType, unitName: String, closeOnEmpty: Boolean = false): Flow<GenericHomeUnit<Any>> {
         return homePathReference?.let {
             genericReferenceFlow(Firebase.database.getReference("$it/$HOME_UNITS_BASE/$unitType/$unitName"), closeOnEmpty)
+        } ?: emptyFlow()
+    }
+
+    /**
+     * get Flow of @see[LightSwitchHomeUnit<Any>] for [HomeUnitType.HOME_LIGHT_SWITCHES_V2] type and
+     * name for listening to changes in entries in DB
+     */
+    @ExperimentalCoroutinesApi
+    fun lightSwitchHomeUnitFlow(unitName: String, closeOnEmpty: Boolean = false): Flow<LightSwitchHomeUnit<Any>> {
+        return homePathReference?.let {
+            genericReferenceFlow(Firebase.database.getReference("$it/$HOME_UNITS_BASE/${HomeUnitType.HOME_LIGHT_SWITCHES_V2}/$unitName"), closeOnEmpty)
         } ?: emptyFlow()
     }
 

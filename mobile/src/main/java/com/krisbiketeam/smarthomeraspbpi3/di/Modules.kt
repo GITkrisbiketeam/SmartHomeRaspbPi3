@@ -30,9 +30,13 @@ val myModule: Module = module {
     viewModel { RoomListViewModel(get(), get()) }
     viewModel { TaskListViewModel(get(), get()) }
     viewModel { NewRoomDialogViewModel(androidApplication(), get()) }
+    viewModel { HomeUnitTypeChooserDialogViewModel() }
     viewModel { (roomName: String) -> RoomDetailViewModel(get(), roomName) }
     viewModel { (roomName: String?, homeUnitName: String?, homeUnitType: HomeUnitType) ->
         HomeUnitDetailViewModel(androidApplication(), get(), roomName, homeUnitName, homeUnitType)
+    }
+    viewModel { (roomName: String?, homeUnitName: String?) ->
+        HomeUnitLightSwitchDetailViewModel(androidApplication(), get(), roomName, homeUnitName)
     }
     viewModel { (taskName: String?, homeUnitName: String, homeUnitType: HomeUnitType) ->
         UnitTaskViewModel(get(), taskName, homeUnitName, homeUnitType)

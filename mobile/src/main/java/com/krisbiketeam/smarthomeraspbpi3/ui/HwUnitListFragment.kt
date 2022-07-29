@@ -17,7 +17,6 @@ import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentHwUnitListBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.HwUnitListViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject

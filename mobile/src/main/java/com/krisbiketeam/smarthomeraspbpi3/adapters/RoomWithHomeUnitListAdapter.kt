@@ -7,6 +7,7 @@ import androidx.databinding.ViewDataBinding
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentRoomListItemWithHomeUnitCardBinding
 import com.krisbiketeam.smarthomeraspbpi3.model.RoomListAdapterModel
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomListFragment
@@ -39,9 +40,14 @@ class RoomWithHomeUnitListAdapter : ListAdapter<RoomListAdapterModel, RoomWithHo
                 item.room != null     -> RoomListFragmentDirections.actionRoomListFragmentToRoomDetailFragment(
                         item.room.name)
                 item.homeUnit != null -> item.homeUnit?.let { homeUnit ->
-                    RoomListFragmentDirections.actionRoomListFragmentToHomeUnitDetailFragment(
-                        "", homeUnit.name, homeUnit.type
-                    )
+                    when (homeUnit.type) {
+                        HomeUnitType.HOME_LIGHT_SWITCHES_V2 -> RoomListFragmentDirections.actionRoomListFragmentToHomeUnitLightSwitchDetailFragment(
+                            "", homeUnit.name
+                        )
+                        else -> RoomListFragmentDirections.actionRoomListFragmentToHomeUnitDetailFragment(
+                            "", homeUnit.name, homeUnit.type
+                        )
+                    }
                 }
                 else                  -> null
             }

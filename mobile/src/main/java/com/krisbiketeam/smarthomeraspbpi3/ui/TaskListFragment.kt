@@ -65,7 +65,7 @@ class TaskListFragment : Fragment() {
             viewModel = taskListViewModel
             lifecycleOwner = viewLifecycleOwner
             fab.setOnClickListener {
-                val direction = TaskListFragmentDirections.actionTaskListFragmentToHomeUnitDetailFragment()
+                val direction = TaskListFragmentDirections.actionTaskListFragmentToHomeUnitTypeChooserDialogFragment()
                 findNavController().navigate(direction)
             }
             val adapter: TaskListAdapter by inject()

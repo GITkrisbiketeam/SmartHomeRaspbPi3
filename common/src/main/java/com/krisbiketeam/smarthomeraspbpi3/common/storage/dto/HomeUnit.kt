@@ -62,9 +62,18 @@ val HOME_STORAGE_UNITS: List<HomeUnitType> = HomeUnitType.values().filterNot { i
 val HOME_ACTION_STORAGE_UNITS: List<HomeUnitType> =
     listOf(
         HomeUnitType.HOME_LIGHT_SWITCHES,
+        HomeUnitType.HOME_LIGHT_SWITCHES_V2,
         HomeUnitType.HOME_BLINDS,
         HomeUnitType.HOME_ACTUATORS,
-        HomeUnitType.HOME_LIGHT_SWITCHES_V2
+    )
+val HOME_FIREBASE_NOTIFY_STORAGE_UNITS: List<HomeUnitType> =
+    listOf(
+        HomeUnitType.HOME_ACTUATORS,
+        HomeUnitType.HOME_BLINDS,
+        HomeUnitType.HOME_REED_SWITCHES,
+        HomeUnitType.HOME_MOTIONS,
+        HomeUnitType.HOME_LIGHT_SWITCHES,
+        HomeUnitType.HOME_LIGHT_SWITCHES_V2,
     )
 
 interface HomeUnit<T : Any> {
@@ -75,14 +84,6 @@ interface HomeUnit<T : Any> {
     var value: T?
     var lastUpdateTime: Long?
 
-    var secondHwUnitName: String?
-    var secondValue: T?
-    var secondLastUpdateTime: Long?
-
-    var min: T?
-    var minLastUpdateTime: Long?
-    var max: T?
-    var maxLastUpdateTime: Long?
     var lastTriggerSource: String?
     var firebaseNotify: Boolean
 
@@ -96,4 +97,10 @@ interface HomeUnit<T : Any> {
     var applyFunction: suspend HomeUnit<in Any>.(Any) -> Unit
 
     fun makeNotification(): HomeUnit<T>
+
+    fun isUnitAffected(hwUnit: HwUnit): Boolean
+
+    fun getHomeUnitValue(): T?
+
+    fun updateHomeUnitValuesAndTimes(hwUnit: HwUnit, unitValue: Any?, updateTime: Long)
 }

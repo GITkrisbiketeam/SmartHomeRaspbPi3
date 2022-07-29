@@ -46,7 +46,6 @@ class Home(private val secureStorage: SecureStorage,
 
     private var lifecycleStartStopJob: Job? = null
 
-    //TODO: Check if possible to swithc HomeUnitType enum
     private val homeUnitsList: MutableMap<Pair<HomeUnitType, String>, HomeUnit<Any>> = ConcurrentHashMap()
 
     private val hwUnitsList: MutableMap<String, BaseHwUnit<Any>> = ConcurrentHashMap()
@@ -235,15 +234,9 @@ class Home(private val secureStorage: SecureStorage,
                                     homeUnit.lastUpdateTime = hwUnit.valueUpdateTime
                                 }
                             } else if (hwUnit is Sensor) {
-                                if (homeUnit is GenericHomeUnit) {
-                                    homeUnit.updateHomeUnitValuesAndTimes(
-                                        hwUnit.unitValue,
-                                        hwUnit.valueUpdateTime
-                                    )
-                                } else {
-                                    homeUnit.value = hwUnit.unitValue
-                                    homeUnit.lastUpdateTime = hwUnit.valueUpdateTime
-                                }
+                                homeUnit.updateHomeUnitValuesAndTimes(
+                                    hwUnit.hwUnit, hwUnit.unitValue, hwUnit.valueUpdateTime
+                                )
                                 homeUnit.lastTriggerSource = LAST_TRIGGER_SOURCE_HOME_UNIT_ADDED
                                 homeInformationRepository.saveHomeUnit(homeUnit)
                             }
@@ -403,20 +396,10 @@ class Home(private val secureStorage: SecureStorage,
 
 // TODO: IS THIS NEEDED TO RUN NEW SCOPE
 //        scope.launch {
-        homeUnitsList.values.filter {
-            if (it.type != HomeUnitType.HOME_LIGHT_SWITCHES) {
-                it.hwUnitName == hwUnit.name
-            } else {
-                it.secondHwUnitName == hwUnit.name
-            }
-        }.forEach { homeUnit ->
-            if (homeUnit is GenericHomeUnit) {
-                homeUnit.updateHomeUnitValuesAndTimes(unitValue, updateTime)
-            } else {
-                homeUnit.value = unitValue
-                homeUnit.lastUpdateTime = updateTime
-            }
-            val newValue = if (homeUnit.type != HomeUnitType.HOME_LIGHT_SWITCHES) homeUnit.value else homeUnit.secondValue
+        homeUnitsList.values.filter { it.isUnitAffected(hwUnit) }.forEach { homeUnit ->
+            homeUnit.updateHomeUnitValuesAndTimes(hwUnit, unitValue, updateTime)
+
+            val newValue = homeUnit.getHomeUnitValue()
             if (newValue != null) {
                 homeUnit.applyFunction(homeUnit, newValue)
             }
@@ -878,84 +861,7 @@ class Home(private val secureStorage: SecureStorage,
 
     // endregion
 
-
     // region  HomeUnit values update helper methods
-
-    private fun GenericHomeUnit<Any>.updateHomeUnitValuesAndTimes(unitValue: Any?, updateTime: Long) {
-        // We need to handle differently values of non Basic Types
-        if (unitValue is PressureAndTemperature) {
-            Timber.d("Received PressureAndTemperature $unitValue")
-            if (type == HomeUnitType.HOME_TEMPERATURES) {
-                updateValueMinMax(unitValue.temperature, updateTime)
-            } else if (type == HomeUnitType.HOME_PRESSURES) {
-                updateValueMinMax(unitValue.pressure, updateTime)
-            }
-        } else if (unitValue is TemperatureAndHumidity) {
-            Timber.d("Received TemperatureAndHumidity $unitValue")
-            if (type == HomeUnitType.HOME_TEMPERATURES) {
-                updateValueMinMax(unitValue.temperature, updateTime)
-            } else if (type == HomeUnitType.HOME_HUMIDITY) {
-                updateValueMinMax(unitValue.humidity, updateTime)
-            }
-        } else if (unitValue is Bme680Data) {
-            Timber.d("Received TemperatureAndHumidity $unitValue")
-            when (type) {
-                HomeUnitType.HOME_TEMPERATURES -> {
-                    updateValueMinMax(unitValue.temperature, updateTime)
-                }
-                HomeUnitType.HOME_HUMIDITY -> {
-                    updateValueMinMax(unitValue.humidity, updateTime)
-                }
-                HomeUnitType.HOME_PRESSURES -> {
-                    updateValueMinMax(unitValue.pressure, updateTime)
-                }
-                HomeUnitType.HOME_GAS -> {
-                    updateValueMinMax(unitValue.gas, updateTime)
-                }
-                HomeUnitType.HOME_GAS_PERCENT -> {
-                    updateValueMinMax(unitValue.gasPercentage, updateTime)
-                }
-                HomeUnitType.HOME_IAQ -> {
-                    updateValueMinMax(unitValue.iaq, updateTime)
-                }
-                HomeUnitType.HOME_STATIC_IAQ -> {
-                    updateValueMinMax(unitValue.staticIaq, updateTime)
-                }
-                HomeUnitType.HOME_CO2 -> {
-                    updateValueMinMax(unitValue.co2Equivalent, updateTime)
-                }
-                HomeUnitType.HOME_BREATH_VOC -> {
-                    updateValueMinMax(unitValue.breathVocEquivalent, updateTime)
-                }
-            }
-        } else {
-            updateValueMinMax(unitValue, updateTime)
-        }
-    }
-
-    private fun GenericHomeUnit<Any>.updateValueMinMax(unitValue: Any?, updateTime: Long) {
-        if (type != HomeUnitType.HOME_LIGHT_SWITCHES) {
-            value = unitValue
-            lastUpdateTime = updateTime
-        } else {
-            secondValue = unitValue
-            secondLastUpdateTime = updateTime
-        }
-        when (unitValue) {
-            is Float -> {
-                if (unitValue <= ((min.takeIf { it is Number? } as Number?)?.toFloat()
-                        ?: Float.MAX_VALUE)) {
-                    min = unitValue
-                    minLastUpdateTime = updateTime
-                }
-                if (unitValue >= ((max.takeIf { it is Number? } as Number?)?.toFloat()
-                        ?: Float.MIN_VALUE)) {
-                    max = unitValue
-                    maxLastUpdateTime = updateTime
-                }
-            }
-        }
-    }
 
     private fun HomeUnit<Any>.shouldFirebaseNotify(newVal: Any?): Boolean {
         return alarmEnabled && firebaseNotify &&

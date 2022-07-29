@@ -1,43 +1,40 @@
 package com.krisbiketeam.smarthomeraspbpi3.ui
 
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import androidx.databinding.DataBindingUtil
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.krisbiketeam.smarthomeraspbpi3.R
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.GenericHomeUnit
-import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentHomeUnitGenericAdditionalHwUnitsBinding
-import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentHomeUnitGenericAdditionalValueFieldsBinding
-import com.krisbiketeam.smarthomeraspbpi3.viewmodels.HomeUnitDetailViewModel
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.LightSwitchHomeUnit
+import com.krisbiketeam.smarthomeraspbpi3.databinding.*
+import com.krisbiketeam.smarthomeraspbpi3.viewmodels.HomeUnitLightSwitchDetailViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
 
 @ExperimentalCoroutinesApi
-class HomeUnitDetailFragment : HomeUnitDetailFragmentBase<GenericHomeUnit<Any>>() {
+class HomeUnitLightSwitchDetailFragment : HomeUnitDetailFragmentBase<LightSwitchHomeUnit<Any>>() {
 
-    private val args: HomeUnitDetailFragmentArgs by navArgs()
+    private val args: HomeUnitLightSwitchDetailFragmentArgs by navArgs()
 
-    private var additionalValueFieldsBindings: FragmentHomeUnitGenericAdditionalValueFieldsBinding? =
+    private var additionalValueFieldsBindings: FragmentHomeUnitLightSwitchAdditionalValueFieldsBinding? =
         null
-    private var additionalHwUnitBindings: FragmentHomeUnitGenericAdditionalHwUnitsBinding? = null
+    private var additionalHwUnitBindings: FragmentHomeUnitLightSwitchAdditionalHwUnitsBinding? =
+        null
 
-    override val homeUnitDetailViewModel: HomeUnitDetailViewModel by viewModel {
+    override val homeUnitDetailViewModel: HomeUnitLightSwitchDetailViewModel by viewModel {
         parametersOf(
             args.roomName,
-            args.homeUnitName,
-            args.homeUnitType
+            args.homeUnitName
         )
     }
 
     override fun bindAdditionalValueFields(inflater: LayoutInflater, container: ViewGroup?): View? {
         additionalValueFieldsBindings =
-            DataBindingUtil.inflate<FragmentHomeUnitGenericAdditionalValueFieldsBinding>(
+            DataBindingUtil.inflate<FragmentHomeUnitLightSwitchAdditionalValueFieldsBinding>(
                 inflater,
-                R.layout.fragment_home_unit_generic_additional_value_fields,
+                R.layout.fragment_home_unit_light_switch_additional_value_fields,
                 container,
                 false
             ).apply {
@@ -49,8 +46,11 @@ class HomeUnitDetailFragment : HomeUnitDetailFragmentBase<GenericHomeUnit<Any>>(
 
     override fun bindAdditionalHwUnits(inflater: LayoutInflater, container: ViewGroup?): View? {
         additionalHwUnitBindings =
-            DataBindingUtil.inflate<FragmentHomeUnitGenericAdditionalHwUnitsBinding>(
-                inflater, R.layout.fragment_home_unit_generic_additional_hw_units, container, false
+            DataBindingUtil.inflate<FragmentHomeUnitLightSwitchAdditionalHwUnitsBinding>(
+                inflater,
+                R.layout.fragment_home_unit_light_switch_additional_hw_units,
+                container,
+                false
             ).apply {
                 viewModel = homeUnitDetailViewModel
                 lifecycleOwner = viewLifecycleOwner
@@ -61,19 +61,13 @@ class HomeUnitDetailFragment : HomeUnitDetailFragmentBase<GenericHomeUnit<Any>>(
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         additionalValueFieldsBindings?.run {
-            homeUnitMinClearButton.setOnClickListener {
-                homeUnitDetailViewModel.clearMinValue()
-            }
-            homeUnitMaxClearButton.setOnClickListener {
-                homeUnitDetailViewModel.clearMaxValue()
-            }
             homeUnitValueSwitch.setOnCheckedChangeListener { _, isChecked ->
                 homeUnitDetailViewModel.setValueFromSwitch(isChecked)
             }
         }
         additionalHwUnitBindings?.run {
             secondHwUnitNameSpinner.setOnLongClickListener {
-                val hwUnitName = homeUnitDetailViewModel.secondHwUnitName.value
+                val hwUnitName = homeUnitDetailViewModel.switchHwUnitName.value
                 if (hwUnitName != null && homeUnitDetailViewModel.isEditMode.value) {
                     findNavController().navigate(
                         HomeUnitDetailFragmentDirections.actionHomeUnitDetailFragmentToAddEditHwUnitFragment(
@@ -86,7 +80,7 @@ class HomeUnitDetailFragment : HomeUnitDetailFragmentBase<GenericHomeUnit<Any>>(
                 }
             }
             secondHwUnitNameSpinner.setOnClickListener {
-                val hwUnitName = homeUnitDetailViewModel.secondHwUnitName.value
+                val hwUnitName = homeUnitDetailViewModel.switchHwUnitName.value
                 if (hwUnitName != null && !homeUnitDetailViewModel.isEditMode.value) {
                     findNavController().navigate(
                         HomeUnitDetailFragmentDirections.actionHomeUnitDetailFragmentToAddEditHwUnitFragment(
