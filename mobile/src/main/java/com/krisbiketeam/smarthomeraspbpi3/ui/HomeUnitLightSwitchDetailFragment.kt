@@ -70,7 +70,7 @@ class HomeUnitLightSwitchDetailFragment : HomeUnitDetailFragmentBase<LightSwitch
                 val hwUnitName = homeUnitDetailViewModel.switchHwUnitName.value
                 if (hwUnitName != null && homeUnitDetailViewModel.isEditMode.value) {
                     findNavController().navigate(
-                        HomeUnitDetailFragmentDirections.actionHomeUnitDetailFragmentToAddEditHwUnitFragment(
+                        HomeUnitLightSwitchDetailFragmentDirections.actionHomeUnitLightSwitchDetailFragmentToAddEditHwUnitFragment(
                             hwUnitName
                         )
                     )
@@ -83,7 +83,7 @@ class HomeUnitLightSwitchDetailFragment : HomeUnitDetailFragmentBase<LightSwitch
                 val hwUnitName = homeUnitDetailViewModel.switchHwUnitName.value
                 if (hwUnitName != null && !homeUnitDetailViewModel.isEditMode.value) {
                     findNavController().navigate(
-                        HomeUnitDetailFragmentDirections.actionHomeUnitDetailFragmentToAddEditHwUnitFragment(
+                        HomeUnitLightSwitchDetailFragmentDirections.actionHomeUnitLightSwitchDetailFragmentToAddEditHwUnitFragment(
                             hwUnitName
                         )
                     )

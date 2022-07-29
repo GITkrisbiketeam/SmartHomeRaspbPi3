@@ -50,7 +50,7 @@ class TaskListAdapter(private val homeInformationRepository: FirebaseHomeInforma
                 homeUnit != null && homeUnit.type == HomeUnitType.HOME_LIGHT_SWITCHES_V2 -> TaskListFragmentDirections.actionTaskListFragmentToHomeUnitLightSwitchDetailFragment(
                     "", homeUnit.name
                 )
-                homeUnit != null -> TaskListFragmentDirections.actionTaskListFragmentToHomeUnitDetailFragment(
+                homeUnit != null -> TaskListFragmentDirections.actionTaskListFragmentToHomeUnitGenericDetailFragment(
                     "", homeUnit.name, homeUnit.type
                 )
                 else -> null

@@ -50,7 +50,7 @@ class HomeUnitTypeChooserDialogFragment : Fragment() {
                             )
                             HomeUnitType.UNKNOWN -> Unit
                             else -> navigate(
-                                HomeUnitTypeChooserDialogFragmentDirections.actionHomeUnitTypeChooserDialogFragmentToHomeUnitDetailFragment(
+                                HomeUnitTypeChooserDialogFragmentDirections.actionHomeUnitTypeChooserDialogFragmentToHomeUnitGenericDetailFragment(
                                     args.roomName, homeUnitType = homeUnitTypeChooserDialogViewModel.type.value
                                 )
                             )

@@ -346,7 +346,7 @@ class HomeActivity : AppCompatActivity() {
             roomList.forEachIndexed { index, room ->
                 binding.navigationView.menu.add(
                     R.id.room_list_fragment,
-                    R.id.home_unit_detail_fragment,
+                    R.id.home_unit_generic_detail_fragment,
                     index + 1,
                     "\t\t${room.name}"
                 )

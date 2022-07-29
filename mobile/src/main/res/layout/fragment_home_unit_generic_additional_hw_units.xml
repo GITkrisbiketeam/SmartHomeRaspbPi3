@@ -9,7 +9,7 @@
 
         <variable
             name="viewModel"
-            type="com.krisbiketeam.smarthomeraspbpi3.viewmodels.HomeUnitDetailViewModel" />
+            type="com.krisbiketeam.smarthomeraspbpi3.viewmodels.HomeUnitGenericDetailViewModel" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout

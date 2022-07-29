@@ -11,21 +11,21 @@ import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.GenericHomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentHomeUnitGenericAdditionalHwUnitsBinding
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentHomeUnitGenericAdditionalValueFieldsBinding
-import com.krisbiketeam.smarthomeraspbpi3.viewmodels.HomeUnitDetailViewModel
+import com.krisbiketeam.smarthomeraspbpi3.viewmodels.HomeUnitGenericDetailViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
 
 @ExperimentalCoroutinesApi
-class HomeUnitDetailFragment : HomeUnitDetailFragmentBase<GenericHomeUnit<Any>>() {
+class HomeUnitGenericDetailFragment : HomeUnitDetailFragmentBase<GenericHomeUnit<Any>>() {
 
-    private val args: HomeUnitDetailFragmentArgs by navArgs()
+    private val args: HomeUnitGenericDetailFragmentArgs by navArgs()
 
     private var additionalValueFieldsBindings: FragmentHomeUnitGenericAdditionalValueFieldsBinding? =
         null
     private var additionalHwUnitBindings: FragmentHomeUnitGenericAdditionalHwUnitsBinding? = null
 
-    override val homeUnitDetailViewModel: HomeUnitDetailViewModel by viewModel {
+    override val homeUnitDetailViewModel: HomeUnitGenericDetailViewModel by viewModel {
         parametersOf(
             args.roomName,
             args.homeUnitName,
@@ -76,7 +76,7 @@ class HomeUnitDetailFragment : HomeUnitDetailFragmentBase<GenericHomeUnit<Any>>(
                 val hwUnitName = homeUnitDetailViewModel.secondHwUnitName.value
                 if (hwUnitName != null && homeUnitDetailViewModel.isEditMode.value) {
                     findNavController().navigate(
-                        HomeUnitDetailFragmentDirections.actionHomeUnitDetailFragmentToAddEditHwUnitFragment(
+                        HomeUnitGenericDetailFragmentDirections.actionHomeUnitGenericDetailFragmentToAddEditHwUnitFragment(
                             hwUnitName
                         )
                     )
@@ -89,7 +89,7 @@ class HomeUnitDetailFragment : HomeUnitDetailFragmentBase<GenericHomeUnit<Any>>(
                 val hwUnitName = homeUnitDetailViewModel.secondHwUnitName.value
                 if (hwUnitName != null && !homeUnitDetailViewModel.isEditMode.value) {
                     findNavController().navigate(
-                        HomeUnitDetailFragmentDirections.actionHomeUnitDetailFragmentToAddEditHwUnitFragment(
+                        HomeUnitGenericDetailFragmentDirections.actionHomeUnitGenericDetailFragmentToAddEditHwUnitFragment(
                             hwUnitName
                         )
                     )

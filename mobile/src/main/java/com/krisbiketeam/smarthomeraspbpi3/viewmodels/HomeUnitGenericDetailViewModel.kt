@@ -10,7 +10,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HOME_ACTION_STORAGE
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.LAST_TRIGGER_SOURCE_HOME_UNIT_DETAILS
-import com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitDetailFragment
+import com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitGenericDetailFragment
 import com.krisbiketeam.smarthomeraspbpi3.utils.getLastUpdateTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -18,10 +18,10 @@ import kotlinx.coroutines.flow.*
 import timber.log.Timber
 
 /**
- * The Base ViewModel used in [HomeUnitDetailFragment].
+ * The Base ViewModel used in [HomeUnitGenericDetailFragment].
  */
 @ExperimentalCoroutinesApi
-class HomeUnitDetailViewModel(
+class HomeUnitGenericDetailViewModel(
     application: Application,
     homeRepository: FirebaseHomeInformationRepository,
     roomName: String?, unitName: String?, unitType: HomeUnitType

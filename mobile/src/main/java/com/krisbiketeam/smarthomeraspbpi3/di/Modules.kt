@@ -33,7 +33,7 @@ val myModule: Module = module {
     viewModel { HomeUnitTypeChooserDialogViewModel() }
     viewModel { (roomName: String) -> RoomDetailViewModel(get(), roomName) }
     viewModel { (roomName: String?, homeUnitName: String?, homeUnitType: HomeUnitType) ->
-        HomeUnitDetailViewModel(androidApplication(), get(), roomName, homeUnitName, homeUnitType)
+        HomeUnitGenericDetailViewModel(androidApplication(), get(), roomName, homeUnitName, homeUnitType)
     }
     viewModel { (roomName: String?, homeUnitName: String?) ->
         HomeUnitLightSwitchDetailViewModel(androidApplication(), get(), roomName, homeUnitName)

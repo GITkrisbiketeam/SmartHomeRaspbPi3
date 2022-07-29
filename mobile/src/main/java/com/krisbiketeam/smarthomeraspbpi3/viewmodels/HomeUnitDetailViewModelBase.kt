@@ -9,7 +9,7 @@ import com.krisbiketeam.smarthomeraspbpi3.adapters.UnitTaskListAdapter
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.*
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
-import com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitDetailFragment
+import com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitGenericDetailFragment
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomDetailFragment
 import com.krisbiketeam.smarthomeraspbpi3.utils.getLastUpdateTime
 import kotlinx.coroutines.Dispatchers
@@ -188,7 +188,7 @@ abstract class HomeUnitDetailViewModelBase<T : HomeUnit<Any>>(
     }
 
     /**
-     * return true if we want to exit [HomeUnitDetailFragment]
+     * return true if we want to exit [HomeUnitGenericDetailFragment]
      */
     fun actionDiscard(): Boolean {
         return if (homeUnit == null) {

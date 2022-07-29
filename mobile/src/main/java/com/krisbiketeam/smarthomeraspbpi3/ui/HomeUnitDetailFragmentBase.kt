@@ -91,7 +91,8 @@ abstract class HomeUnitDetailFragmentBase<T : HomeUnit<Any>> : Fragment() {
             hwUnitNameSpinner.setOnLongClickListener {
                 val hwUnitName = homeUnitDetailViewModel.hwUnitName.value
                 if (hwUnitName != null && homeUnitDetailViewModel.isEditMode.value) {
-                    findNavController().navigate(HomeUnitDetailFragmentDirections.actionHomeUnitDetailFragmentToAddEditHwUnitFragment(hwUnitName))
+                    // TODO we should hadle navigation from Generic and from LightSwitch
+                    findNavController().navigate(HomeUnitGenericDetailFragmentDirections.actionHomeUnitGenericDetailFragmentToAddEditHwUnitFragment(hwUnitName))
                     true
                 } else {
                     false
@@ -100,7 +101,8 @@ abstract class HomeUnitDetailFragmentBase<T : HomeUnit<Any>> : Fragment() {
             hwUnitNameSpinner.setOnClickListener {
                 val hwUnitName = homeUnitDetailViewModel.hwUnitName.value
                 if (hwUnitName != null && !homeUnitDetailViewModel.isEditMode.value) {
-                    findNavController().navigate(HomeUnitDetailFragmentDirections.actionHomeUnitDetailFragmentToAddEditHwUnitFragment(hwUnitName))
+                    // TODO we should hadle navigation from Generic and from LightSwitch
+                    findNavController().navigate(HomeUnitGenericDetailFragmentDirections.actionHomeUnitGenericDetailFragmentToAddEditHwUnitFragment(hwUnitName))
                 }
             }
         }

@@ -44,7 +44,7 @@ class RoomDetailHomeUnitListAdapter(private val homeInformationRepository: Fireb
                     item.room,
                     item.name
                 )
-                else -> RoomDetailFragmentDirections.actionRoomDetailFragmentToHomeUnitDetailFragment(
+                else -> RoomDetailFragmentDirections.actionRoomDetailFragmentToHomeUnitGenericDetailFragment(
                     item.room,
                     item.name,
                     item.type

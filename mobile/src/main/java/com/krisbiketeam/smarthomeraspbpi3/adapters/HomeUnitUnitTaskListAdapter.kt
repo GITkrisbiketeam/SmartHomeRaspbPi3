@@ -12,15 +12,15 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.UnitTask
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentHomeUnitDetailUnitTaskListItemAddBinding
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentHomeUnitDetailUnitTaskListItemBinding
-import com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitDetailFragment
-import com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitDetailFragmentDirections
+import com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitGenericDetailFragment
+import com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitGenericDetailFragmentDirections
 import timber.log.Timber
 
 private const val VIEW_TYPE_NORMAL = 0
 private const val VIEW_TYPE_ADD_NEW = 1
 
 /**
- * Adapter for the [RecyclerView] in [HomeUnitDetailFragment].
+ * Adapter for the [RecyclerView] in [HomeUnitGenericDetailFragment].
  */
 class UnitTaskListAdapter(
     private val homeRepository: FirebaseHomeInformationRepository,
@@ -61,7 +61,7 @@ class UnitTaskListAdapter(
             Timber.d("onClick taskName: $taskName")
             if (unitType != HomeUnitType.UNKNOWN && !unitName.isNullOrEmpty()) {
                 view.findNavController().navigate(
-                    HomeUnitDetailFragmentDirections.actionHomeUnitDetailFragmentToUnitTaskFragment(
+                    HomeUnitGenericDetailFragmentDirections.actionHomeUnitGenericDetailFragmentToUnitTaskFragment(
                         taskName,
                         unitName,
                         unitType

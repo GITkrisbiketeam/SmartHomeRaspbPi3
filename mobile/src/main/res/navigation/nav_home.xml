@@ -20,8 +20,8 @@
             app:popExitAnim="@anim/slide_out_right" />
 
         <action
-            android:id="@+id/action_room_list_fragment_to_home_unit_detail_fragment"
-            app:destination="@id/home_unit_detail_fragment"
+            android:id="@+id/action_room_list_fragment_to_home_unit_generic_detail_fragment"
+            app:destination="@id/home_unit_generic_detail_fragment"
             app:enterAnim="@anim/slide_in_right"
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
@@ -51,8 +51,8 @@
         tools:layout="@layout/fragment_task_list">
 
         <action
-            android:id="@+id/action_task_list_fragment_to_home_unit_detail_fragment"
-            app:destination="@id/home_unit_detail_fragment"
+            android:id="@+id/action_task_list_fragment_to_home_unit_generic_detail_fragment"
+            app:destination="@id/home_unit_generic_detail_fragment"
             app:enterAnim="@anim/slide_in_right"
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
@@ -92,8 +92,8 @@
             app:argType="string"
             app:nullable="true" />
         <action
-            android:id="@+id/action_home_unit_type_chooser_dialog_fragment_to_home_unit_detail_fragment"
-            app:destination="@id/home_unit_detail_fragment"
+            android:id="@+id/action_home_unit_type_chooser_dialog_fragment_to_home_unit_generic_detail_fragment"
+            app:destination="@id/home_unit_generic_detail_fragment"
             app:enterAnim="@anim/slide_in_right"
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
@@ -120,8 +120,8 @@
             android:name="roomName"
             app:argType="string" />
         <action
-            android:id="@+id/action_room_detail_fragment_to_home_unit_detail_fragment"
-            app:destination="@id/home_unit_detail_fragment"
+            android:id="@+id/action_room_detail_fragment_to_home_unit_generic_detail_fragment"
+            app:destination="@id/home_unit_generic_detail_fragment"
             app:enterAnim="@anim/slide_in_right"
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
@@ -143,8 +143,8 @@
     </fragment>
 
     <fragment
-        android:id="@+id/home_unit_detail_fragment"
-        android:name="com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitDetailFragment"
+        android:id="@+id/home_unit_generic_detail_fragment"
+        android:name="com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitGenericDetailFragment"
         android:label="@string/home_unit_detail_title"
         tools:layout="@layout/fragment_home_unit_detail_base">
         <argument
@@ -162,14 +162,14 @@
             android:defaultValue="UNKNOWN"
             app:argType="com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType" />
         <action
-            android:id="@+id/action_home_unit_detail_fragment_to_unitTaskFragment"
+            android:id="@+id/action_home_unit_generic_detail_fragment_to_unit_task_fragment"
             app:destination="@id/unit_task_fragment"
             app:enterAnim="@anim/slide_in_right"
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
             app:popExitAnim="@anim/slide_out_right" />
         <action
-            android:id="@+id/action_home_unit_detail_fragment_to_add_edit_hw_unit_fragment"
+            android:id="@+id/action_home_unit_generic_detail_fragment_to_add_edit_hw_unit_fragment"
             app:destination="@id/add_edit_hw_unit_fragment"
             app:enterAnim="@anim/slide_in_right"
             app:exitAnim="@anim/slide_out_left"
@@ -368,7 +368,7 @@
 
     <action
         android:id="@+id/goToHomeUnitDetailFragment"
-        app:destination="@id/home_unit_detail_fragment"
+        app:destination="@id/home_unit_generic_detail_fragment"
         app:enterAnim="@anim/slide_in_right"
         app:exitAnim="@anim/slide_out_left"
         app:popEnterAnim="@anim/slide_in_left"

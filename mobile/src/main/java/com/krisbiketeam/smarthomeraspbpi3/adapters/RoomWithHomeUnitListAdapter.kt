@@ -44,7 +44,7 @@ class RoomWithHomeUnitListAdapter : ListAdapter<RoomListAdapterModel, RoomWithHo
                         HomeUnitType.HOME_LIGHT_SWITCHES_V2 -> RoomListFragmentDirections.actionRoomListFragmentToHomeUnitLightSwitchDetailFragment(
                             "", homeUnit.name
                         )
-                        else -> RoomListFragmentDirections.actionRoomListFragmentToHomeUnitDetailFragment(
+                        else -> RoomListFragmentDirections.actionRoomListFragmentToHomeUnitGenericDetailFragment(
                             "", homeUnit.name, homeUnit.type
                         )
                     }

@@ -17,7 +17,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fitsSystemWindows="true"
-        tools:context="com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitDetailFragment"
+        tools:context="com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitGenericDetailFragment"
         tools:ignore="MergeRootFrame">
 
         <com.google.android.material.appbar.AppBarLayout
