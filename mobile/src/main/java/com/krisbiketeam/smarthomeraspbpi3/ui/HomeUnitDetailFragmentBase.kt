@@ -84,6 +84,8 @@ abstract class HomeUnitDetailFragmentBase<T : HomeUnit<Any>> : Fragment() {
 
     abstract fun bindAdditionalHwUnits(inflater: LayoutInflater, container: ViewGroup?): View?
 
+    abstract fun navigateToddEditHwUnitFragment(hwUnitName:String)
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -91,8 +93,7 @@ abstract class HomeUnitDetailFragmentBase<T : HomeUnit<Any>> : Fragment() {
             hwUnitNameSpinner.setOnLongClickListener {
                 val hwUnitName = homeUnitDetailViewModel.hwUnitName.value
                 if (hwUnitName != null && homeUnitDetailViewModel.isEditMode.value) {
-                    // TODO we should hadle navigation from Generic and from LightSwitch
-                    findNavController().navigate(HomeUnitGenericDetailFragmentDirections.actionHomeUnitGenericDetailFragmentToAddEditHwUnitFragment(hwUnitName))
+                    navigateToddEditHwUnitFragment(hwUnitName)
                     true
                 } else {
                     false
@@ -101,8 +102,7 @@ abstract class HomeUnitDetailFragmentBase<T : HomeUnit<Any>> : Fragment() {
             hwUnitNameSpinner.setOnClickListener {
                 val hwUnitName = homeUnitDetailViewModel.hwUnitName.value
                 if (hwUnitName != null && !homeUnitDetailViewModel.isEditMode.value) {
-                    // TODO we should hadle navigation from Generic and from LightSwitch
-                    findNavController().navigate(HomeUnitGenericDetailFragmentDirections.actionHomeUnitGenericDetailFragmentToAddEditHwUnitFragment(hwUnitName))
+                    navigateToddEditHwUnitFragment(hwUnitName)
                 }
             }
         }

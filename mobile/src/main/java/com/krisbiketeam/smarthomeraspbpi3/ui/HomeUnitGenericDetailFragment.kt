@@ -102,4 +102,12 @@ class HomeUnitGenericDetailFragment : HomeUnitDetailFragmentBase<GenericHomeUnit
         additionalValueFieldsBindings = null
         super.onDestroyView()
     }
+
+    override fun navigateToddEditHwUnitFragment(hwUnitName: String) {
+        findNavController().navigate(
+            HomeUnitGenericDetailFragmentDirections.actionHomeUnitGenericDetailFragmentToAddEditHwUnitFragment(
+                hwUnitName
+            )
+        )
+    }
 }

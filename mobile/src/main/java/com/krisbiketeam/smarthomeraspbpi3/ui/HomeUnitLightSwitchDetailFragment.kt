@@ -96,4 +96,12 @@ class HomeUnitLightSwitchDetailFragment : HomeUnitDetailFragmentBase<LightSwitch
         additionalValueFieldsBindings = null
         super.onDestroyView()
     }
+
+    override fun navigateToddEditHwUnitFragment(hwUnitName: String) {
+        findNavController().navigate(
+            HomeUnitLightSwitchDetailFragmentDirections.actionHomeUnitLightSwitchDetailFragmentToAddEditHwUnitFragment(
+                hwUnitName
+            )
+        )
+    }
 }
