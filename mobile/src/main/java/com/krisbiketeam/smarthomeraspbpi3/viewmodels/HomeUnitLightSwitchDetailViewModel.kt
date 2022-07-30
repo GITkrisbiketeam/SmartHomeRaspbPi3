@@ -27,7 +27,7 @@ class HomeUnitLightSwitchDetailViewModel(
     homeRepository,
     roomName,
     unitName,
-    HomeUnitType.HOME_LIGHT_SWITCHES_V2
+    HomeUnitType.HOME_LIGHT_SWITCHES
 ) {
 
     val switchHwUnitName: MutableStateFlow<String?> = MutableStateFlow(null)

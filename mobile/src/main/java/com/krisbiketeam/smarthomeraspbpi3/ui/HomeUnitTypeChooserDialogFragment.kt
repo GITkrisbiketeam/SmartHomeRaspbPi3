@@ -43,7 +43,7 @@ class HomeUnitTypeChooserDialogFragment : Fragment() {
                 confirmButton.setOnClickListener {
                     findNavController().run {
                         when (homeUnitTypeChooserDialogViewModel.type.value) {
-                            HomeUnitType.HOME_LIGHT_SWITCHES_V2 -> navigate(
+                            HomeUnitType.HOME_LIGHT_SWITCHES -> navigate(
                                 HomeUnitTypeChooserDialogFragmentDirections.actionHomeUnitTypeChooserDialogFragmentToHomeUnitLightSwitchDetailFragment(
                                     args.roomName
                                 )

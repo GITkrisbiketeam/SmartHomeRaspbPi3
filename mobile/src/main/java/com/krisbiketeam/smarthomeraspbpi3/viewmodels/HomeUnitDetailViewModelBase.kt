@@ -56,8 +56,9 @@ abstract class HomeUnitDetailViewModelBase<T : HomeUnit<Any>>(
     // TODO check if possible nullable
     val name: MutableStateFlow<String> = MutableStateFlow(unitName ?: "")
 
-    open val typeList = HOME_STORAGE_UNITS.filterNot { it == HomeUnitType.HOME_LIGHT_SWITCHES_V2 }
-    open val type: MutableStateFlow<HomeUnitType> = MutableStateFlow(unitType)
+    open val typeList = HOME_STORAGE_UNITS.filterNot { it == HomeUnitType.HOME_LIGHT_SWITCHES }
+    val type: MutableStateFlow<HomeUnitType> = MutableStateFlow(unitType)
+    val isTypeVisible: StateFlow<Boolean> = MutableStateFlow(unitType != HomeUnitType.HOME_LIGHT_SWITCHES)
 
     val roomList: StateFlow<List<String>> =
         isEditMode.flatMapLatest { isEdit ->
@@ -88,7 +89,7 @@ abstract class HomeUnitDetailViewModelBase<T : HomeUnit<Any>>(
                     }
                     hwUnitList.map {
                         Pair(it.name,
-                            homeUnitList.find { unit -> unit.hwUnitName == it.name || (unit is GenericHomeUnit<*> && unit.secondHwUnitName == it.name) } != null)
+                            homeUnitList.find { unit -> unit.hwUnitName == it.name || (unit is LightSwitchHomeUnit<*> && unit.switchHwUnitName == it.name) } != null)
                     }
                 }
             } else {

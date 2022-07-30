@@ -686,13 +686,13 @@ class FirebaseHomeInformationRepository {
     }
 
     /**
-     * get Flow of @see[LightSwitchHomeUnit<Any>] for [HomeUnitType.HOME_LIGHT_SWITCHES_V2] type and
+     * get Flow of @see[LightSwitchHomeUnit<Any>] for [HomeUnitType.HOME_LIGHT_SWITCHES] type and
      * name for listening to changes in entries in DB
      */
     @ExperimentalCoroutinesApi
     fun lightSwitchHomeUnitFlow(unitName: String, closeOnEmpty: Boolean = false): Flow<LightSwitchHomeUnit<Any>> {
         return homePathReference?.let {
-            genericReferenceFlow(Firebase.database.getReference("$it/$HOME_UNITS_BASE/${HomeUnitType.HOME_LIGHT_SWITCHES_V2}/$unitName"), closeOnEmpty)
+            genericReferenceFlow(Firebase.database.getReference("$it/$HOME_UNITS_BASE/${HomeUnitType.HOME_LIGHT_SWITCHES}/$unitName"), closeOnEmpty)
         } ?: emptyFlow()
     }
 

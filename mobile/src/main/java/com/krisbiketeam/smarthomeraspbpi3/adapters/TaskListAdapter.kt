@@ -8,7 +8,6 @@ import androidx.navigation.findNavController
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.GenericHomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.LightSwitchHomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.LAST_TRIGGER_SOURCE_TASK_LIST
@@ -47,7 +46,7 @@ class TaskListAdapter(private val homeInformationRepository: FirebaseHomeInforma
             Timber.d("onClick")
             val homeUnit = item.homeUnit
             val direction = when {
-                homeUnit != null && homeUnit.type == HomeUnitType.HOME_LIGHT_SWITCHES_V2 -> TaskListFragmentDirections.actionTaskListFragmentToHomeUnitLightSwitchDetailFragment(
+                homeUnit != null && homeUnit.type == HomeUnitType.HOME_LIGHT_SWITCHES -> TaskListFragmentDirections.actionTaskListFragmentToHomeUnitLightSwitchDetailFragment(
                     "", homeUnit.name
                 )
                 homeUnit != null -> TaskListFragmentDirections.actionTaskListFragmentToHomeUnitGenericDetailFragment(
@@ -76,9 +75,7 @@ class TaskListAdapter(private val homeInformationRepository: FirebaseHomeInforma
                     value = item.homeUnit?.let { homeUnit ->
                         if (homeUnit.value is Double || homeUnit.value is Float) {
                             String.format("%.2f", homeUnit.value)
-                        } else if (homeUnit.type == HomeUnitType.HOME_LIGHT_SWITCHES && homeUnit is GenericHomeUnit) {
-                            homeUnit.secondValue.toString()
-                        } else if (homeUnit.type == HomeUnitType.HOME_LIGHT_SWITCHES_V2 && homeUnit is LightSwitchHomeUnit) {
+                        } else if (homeUnit.type == HomeUnitType.HOME_LIGHT_SWITCHES && homeUnit is LightSwitchHomeUnit) {
                             homeUnit.switchValue.toString()
                         } else {
                             homeUnit.value.toString()
@@ -88,7 +85,7 @@ class TaskListAdapter(private val homeInformationRepository: FirebaseHomeInforma
                     taskItemValueSwitch.setOnCheckedChangeListener { _, isChecked ->
                         Timber.d("OnCheckedChangeListener isChecked: $isChecked item: $item")
                         item.homeUnit?.let { homeUnit ->
-                            if (homeUnit.value != isChecked && homeUnit is GenericHomeUnit) {
+                            if (homeUnit.value != isChecked) {
                                 homeUnit.copy().also { unit ->
                                     unit.value = isChecked
                                     unit.lastUpdateTime = System.currentTimeMillis()

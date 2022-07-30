@@ -47,8 +47,8 @@ abstract class HomeUnitDetailFragmentBase<T : HomeUnit<Any>> : Fragment() {
 
             setHasOptionsMenu(true)
 
-            homeUnitGenericAdditionalValueFields.addView(bindAdditionalValueFields(inflater, container))
-            homeUnitGenericAdditionalHwUnits.addView(bindAdditionalHwUnits(inflater, container))
+            bindAdditionalValueFields(inflater, container)?.run(homeUnitGenericAdditionalValueFields::addView)
+            bindAdditionalHwUnits(inflater, container)?.run(homeUnitGenericAdditionalHwUnits::addView)
 
             rootBinding = this
         }

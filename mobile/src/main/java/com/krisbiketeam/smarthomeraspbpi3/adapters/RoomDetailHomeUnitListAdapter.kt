@@ -7,7 +7,6 @@ import androidx.navigation.findNavController
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.GenericHomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.LightSwitchHomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
@@ -40,7 +39,7 @@ class RoomDetailHomeUnitListAdapter(private val homeInformationRepository: Fireb
         return View.OnClickListener { view ->
             Timber.d("onClick item: $item")
             val direction = when (item.type) {
-                HomeUnitType.HOME_LIGHT_SWITCHES_V2 -> RoomDetailFragmentDirections.actionRoomDetailFragmentToHomeUnitLightSwitchDetailFragment(
+                HomeUnitType.HOME_LIGHT_SWITCHES -> RoomDetailFragmentDirections.actionRoomDetailFragmentToHomeUnitLightSwitchDetailFragment(
                     item.room,
                     item.name
                 )
@@ -67,18 +66,14 @@ class RoomDetailHomeUnitListAdapter(private val homeInformationRepository: Fireb
                 // TODO Add handling of other type of HomeUnits (LightSwitchhomeUnit etc...
                 //  add some other types of ViewHolder for them)
                 secondLastUpdateTime =
-                    if (item.type == HomeUnitType.HOME_LIGHT_SWITCHES && item is GenericHomeUnit) {
-                        getLastUpdateTime(root.context, item.secondLastUpdateTime)
-                    } else if (item.type == HomeUnitType.HOME_LIGHT_SWITCHES_V2 && item is LightSwitchHomeUnit) {
+                    if (item.type == HomeUnitType.HOME_LIGHT_SWITCHES && item is LightSwitchHomeUnit) {
                         getLastUpdateTime(root.context, item.switchLastUpdateTime)
                     } else {
                     null
                 }
                 value = if(item.value is Double || item.value is Float) {
                     String.format("%.2f", item.value)
-                } else if(item.type == HomeUnitType.HOME_LIGHT_SWITCHES && item is GenericHomeUnit) {
-                    item.secondValue.toString()
-                } else if(item.type == HomeUnitType.HOME_LIGHT_SWITCHES_V2 && item is LightSwitchHomeUnit) {
+                } else if(item.type == HomeUnitType.HOME_LIGHT_SWITCHES && item is LightSwitchHomeUnit) {
                     item.switchValue.toString()
                 } else{
                     item.value.toString()
@@ -86,7 +81,7 @@ class RoomDetailHomeUnitListAdapter(private val homeInformationRepository: Fireb
 
                 homeUnitItemSwitch.setOnCheckedChangeListener { _, isChecked ->
                     Timber.d("OnCheckedChangeListener isChecked: $isChecked item: $item")
-                    if (item.value != isChecked && item is GenericHomeUnit) {
+                    if (item.value != isChecked) {
                         item.copy().also { unit ->
                             unit.value = isChecked
                             unit.lastUpdateTime = System.currentTimeMillis()

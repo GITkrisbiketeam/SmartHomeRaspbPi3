@@ -9,7 +9,6 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.GenericHomeUnit
-import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentHomeUnitGenericAdditionalHwUnitsBinding
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentHomeUnitGenericAdditionalValueFieldsBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.HomeUnitGenericDetailViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -23,7 +22,6 @@ class HomeUnitGenericDetailFragment : HomeUnitDetailFragmentBase<GenericHomeUnit
 
     private var additionalValueFieldsBindings: FragmentHomeUnitGenericAdditionalValueFieldsBinding? =
         null
-    private var additionalHwUnitBindings: FragmentHomeUnitGenericAdditionalHwUnitsBinding? = null
 
     override val homeUnitDetailViewModel: HomeUnitGenericDetailViewModel by viewModel {
         parametersOf(
@@ -48,14 +46,7 @@ class HomeUnitGenericDetailFragment : HomeUnitDetailFragmentBase<GenericHomeUnit
     }
 
     override fun bindAdditionalHwUnits(inflater: LayoutInflater, container: ViewGroup?): View? {
-        additionalHwUnitBindings =
-            DataBindingUtil.inflate<FragmentHomeUnitGenericAdditionalHwUnitsBinding>(
-                inflater, R.layout.fragment_home_unit_generic_additional_hw_units, container, false
-            ).apply {
-                viewModel = homeUnitDetailViewModel
-                lifecycleOwner = viewLifecycleOwner
-            }
-        return additionalHwUnitBindings?.root
+        return null
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -69,31 +60,6 @@ class HomeUnitGenericDetailFragment : HomeUnitDetailFragmentBase<GenericHomeUnit
             }
             homeUnitValueSwitch.setOnCheckedChangeListener { _, isChecked ->
                 homeUnitDetailViewModel.setValueFromSwitch(isChecked)
-            }
-        }
-        additionalHwUnitBindings?.run {
-            secondHwUnitNameSpinner.setOnLongClickListener {
-                val hwUnitName = homeUnitDetailViewModel.secondHwUnitName.value
-                if (hwUnitName != null && homeUnitDetailViewModel.isEditMode.value) {
-                    findNavController().navigate(
-                        HomeUnitGenericDetailFragmentDirections.actionHomeUnitGenericDetailFragmentToAddEditHwUnitFragment(
-                            hwUnitName
-                        )
-                    )
-                    true
-                } else {
-                    false
-                }
-            }
-            secondHwUnitNameSpinner.setOnClickListener {
-                val hwUnitName = homeUnitDetailViewModel.secondHwUnitName.value
-                if (hwUnitName != null && !homeUnitDetailViewModel.isEditMode.value) {
-                    findNavController().navigate(
-                        HomeUnitGenericDetailFragmentDirections.actionHomeUnitGenericDetailFragmentToAddEditHwUnitFragment(
-                            hwUnitName
-                        )
-                    )
-                }
             }
         }
     }

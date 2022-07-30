@@ -67,14 +67,10 @@ class DeviceControlService : ControlsProviderService() {
                     job = GlobalScope.launch {
                         combine(
                             homeInformationRepository.homeUnitListFlow(HomeUnitType.HOME_LIGHT_SWITCHES),
-                            homeInformationRepository.homeUnitListFlow(HomeUnitType.HOME_LIGHT_SWITCHES_V2),
                             homeInformationRepository.homeUnitListFlow(HomeUnitType.HOME_ACTUATORS)
-                        ) { lightSwitches, lightSwitchesV2, actuators ->
-                            Timber.i("createPublisherForAllAvailable lightSwitches: ${lightSwitches.size} lightSwitchesV2: ${lightSwitchesV2.size} actuators: ${actuators.size}")
+                        ) { lightSwitches, actuators ->
+                            Timber.i("createPublisherForAllAvailable lightSwitches: ${lightSwitches.size} actuators: ${actuators.size}")
                             lightSwitches.forEach { homeUnit ->
-                                flowSubscriber.onNext(getStatelessControl(homeUnit))
-                            }
-                            lightSwitchesV2.forEach { homeUnit ->
                                 flowSubscriber.onNext(getStatelessControl(homeUnit))
                             }
                             actuators.forEach { homeUnit ->
@@ -181,7 +177,6 @@ class DeviceControlService : ControlsProviderService() {
 private fun HomeUnit<Any>.getControlType(): Int {
     return when (this.type) {
         HomeUnitType.HOME_LIGHT_SWITCHES -> DeviceTypes.TYPE_LIGHT
-        HomeUnitType.HOME_LIGHT_SWITCHES_V2 -> DeviceTypes.TYPE_LIGHT
         else -> DeviceTypes.TYPE_GENERIC_ON_OFF
     }
 }

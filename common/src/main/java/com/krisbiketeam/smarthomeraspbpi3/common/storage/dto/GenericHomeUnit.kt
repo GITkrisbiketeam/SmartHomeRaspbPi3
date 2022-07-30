@@ -11,9 +11,6 @@ data class GenericHomeUnit<T : Any>(
     override var hwUnitName: String? = "",
     override var value: T? = null,
     override var lastUpdateTime: Long? = null,
-    var secondHwUnitName: String? = null,
-    var secondValue: T? = null,
-    var secondLastUpdateTime: Long? = null,
     var min: T? = null,
     var minLastUpdateTime: Long? = null,
     var max: T? = null,
@@ -24,26 +21,6 @@ data class GenericHomeUnit<T : Any>(
     override var showInTaskList: Boolean = false,
     override var unitsTasks: Map<String, UnitTask> = HashMap()
 ) : HomeUnit<T> {
-    constructor(homeUnit: GenericHomeUnit<T>) : this(
-        homeUnit.name,
-        homeUnit.type,
-        homeUnit.room,
-        homeUnit.hwUnitName,
-        homeUnit.value,
-        homeUnit.lastUpdateTime,
-        homeUnit.secondHwUnitName,
-        homeUnit.secondValue,
-        homeUnit.secondLastUpdateTime,
-        homeUnit.min,
-        homeUnit.minLastUpdateTime,
-        homeUnit.max,
-        homeUnit.maxLastUpdateTime,
-        homeUnit.lastTriggerSource,
-        homeUnit.firebaseNotify,
-        homeUnit.firebaseNotifyTrigger,
-        homeUnit.showInTaskList,
-        homeUnit.unitsTasks
-    )
 
     @Exclude
     @set:Exclude
@@ -58,9 +35,6 @@ data class GenericHomeUnit<T : Any>(
             hwUnitName,
             value,
             lastUpdateTime,
-            secondHwUnitName,
-            secondValue,
-            secondLastUpdateTime,
             min,
             minLastUpdateTime,
             max,
@@ -81,9 +55,6 @@ data class GenericHomeUnit<T : Any>(
         if (hwUnitName != other.hwUnitName) return false
         if (value != other.value) return false
         if (lastUpdateTime != other.lastUpdateTime) return false
-        if (secondHwUnitName != other.secondHwUnitName) return false
-        if (secondValue != other.secondValue) return false
-        if (secondLastUpdateTime != other.secondLastUpdateTime) return false
         if (min != other.min) return false
         if (minLastUpdateTime != other.minLastUpdateTime) return false
         if (max != other.max) return false
@@ -104,9 +75,6 @@ data class GenericHomeUnit<T : Any>(
         result = 31 * result + (hwUnitName?.hashCode() ?: 0)
         result = 31 * result + (value?.hashCode() ?: 0)
         result = 31 * result + (lastUpdateTime?.hashCode() ?: 0)
-        result = 31 * result + (secondHwUnitName?.hashCode() ?: 0)
-        result = 31 * result + (secondValue?.hashCode() ?: 0)
-        result = 31 * result + (secondLastUpdateTime?.hashCode() ?: 0)
         result = 31 * result + (min?.hashCode() ?: 0)
         result = 31 * result + (minLastUpdateTime?.hashCode() ?: 0)
         result = 31 * result + (max?.hashCode() ?: 0)
@@ -119,16 +87,32 @@ data class GenericHomeUnit<T : Any>(
         return result
     }
 
+    override fun copy(): HomeUnit<T> {
+        return GenericHomeUnit(
+            name,
+            type,
+            room,
+            hwUnitName,
+            value,
+            lastUpdateTime,
+            min,
+            minLastUpdateTime,
+            max,
+            maxLastUpdateTime,
+            lastTriggerSource,
+            firebaseNotify,
+            firebaseNotifyTrigger,
+            showInTaskList,
+            unitsTasks
+        )
+    }
+
     override fun isUnitAffected(hwUnit: HwUnit): Boolean {
-        return if (type != HomeUnitType.HOME_LIGHT_SWITCHES) {
-            hwUnitName == hwUnit.name
-        } else {
-            secondHwUnitName == hwUnit.name
-        }
+        return hwUnitName == hwUnit.name
     }
 
     override fun getHomeUnitValue(): T? {
-        return if (type != HomeUnitType.HOME_LIGHT_SWITCHES) value else secondValue
+        return value
     }
 
     override fun updateHomeUnitValuesAndTimes(hwUnit: HwUnit, unitValue: Any?, updateTime: Long) {
@@ -184,15 +168,9 @@ data class GenericHomeUnit<T : Any>(
     }
 
 
-
     private fun updateValueMinMax(unitValue: Any?, updateTime: Long) {
-        if (type != HomeUnitType.HOME_LIGHT_SWITCHES) {
-            value = unitValue as T?
-            lastUpdateTime = updateTime
-        } else {
-            secondValue = unitValue as T?
-            secondLastUpdateTime = updateTime
-        }
+        value = unitValue as T?
+        lastUpdateTime = updateTime
         when (unitValue) {
             is Float -> {
                 if (unitValue <= ((min.takeIf { it is Number? } as Number?)?.toFloat()
@@ -208,5 +186,4 @@ data class GenericHomeUnit<T : Any>(
             }
         }
     }
-
 }

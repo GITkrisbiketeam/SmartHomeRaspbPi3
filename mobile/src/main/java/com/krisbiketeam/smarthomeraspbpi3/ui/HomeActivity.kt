@@ -110,7 +110,7 @@ class HomeActivity : AppCompatActivity() {
             val (type, name) = controlId.getHomeUnitTypeAndName()
             Timber.e("onCreate controlId:$controlId")
             when (type) {
-                HomeUnitType.HOME_LIGHT_SWITCHES_V2 -> navController.navigate(
+                HomeUnitType.HOME_LIGHT_SWITCHES -> navController.navigate(
                     NavHomeDirections.goToHomeUnitLightSwitchDetailFragment(
                         "",
                         name

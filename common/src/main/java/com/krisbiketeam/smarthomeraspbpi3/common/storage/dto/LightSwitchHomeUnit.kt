@@ -5,7 +5,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnit
 
 data class LightSwitchHomeUnit<T : Any>(
     override var name: String = "", // Name should be unique for all units
-    override var type: HomeUnitType = HomeUnitType.HOME_LIGHT_SWITCHES_V2,
+    override var type: HomeUnitType = HomeUnitType.HOME_LIGHT_SWITCHES,
     override var room: String = "",
     override var hwUnitName: String? = "",
     override var value: T? = null,
@@ -20,22 +20,6 @@ data class LightSwitchHomeUnit<T : Any>(
     override var showInTaskList: Boolean = false,
     override var unitsTasks: Map<String, UnitTask> = HashMap(),
 ) : HomeUnit<T> {
-    constructor(homeUnit: LightSwitchHomeUnit<T>) : this(
-        homeUnit.name,
-        homeUnit.type,
-        homeUnit.room,
-        homeUnit.hwUnitName,
-        homeUnit.value,
-        homeUnit.lastUpdateTime,
-        homeUnit.switchHwUnitName,
-        homeUnit.switchValue,
-        homeUnit.switchLastUpdateTime,
-        lastTriggerSource = homeUnit.lastTriggerSource,
-        firebaseNotify = homeUnit.firebaseNotify,
-        firebaseNotifyTrigger = homeUnit.firebaseNotifyTrigger,
-        showInTaskList = homeUnit.showInTaskList,
-        unitsTasks = homeUnit.unitsTasks
-    )
 
     @Exclude
     @set:Exclude
@@ -99,6 +83,25 @@ data class LightSwitchHomeUnit<T : Any>(
         return result
     }
 
+    override fun copy(): HomeUnit<T> {
+        return LightSwitchHomeUnit(
+            name,
+            type,
+            room,
+            hwUnitName,
+            value,
+            lastUpdateTime,
+            switchHwUnitName,
+            switchValue,
+            switchLastUpdateTime,
+            lastTriggerSource,
+            firebaseNotify,
+            firebaseNotifyTrigger,
+            showInTaskList,
+            unitsTasks
+        )
+    }
+
     override fun isUnitAffected(hwUnit: HwUnit): Boolean {
         return switchHwUnitName == hwUnit.name
     }
@@ -108,8 +111,8 @@ data class LightSwitchHomeUnit<T : Any>(
     }
 
     override fun updateHomeUnitValuesAndTimes(hwUnit: HwUnit, unitValue: Any?, updateTime: Long) {
+        // We set Switch and normal value as updateHomeUnitValuesAndTimes is only called by HwUnit
         switchValue = unitValue as T?
-        value = unitValue
         switchLastUpdateTime = updateTime
     }
 }

@@ -10,7 +10,7 @@ typealias Light = GenericHomeUnit<LightType>
 typealias ActuatorType = Boolean
 typealias Actuator = GenericHomeUnit<ActuatorType>
 typealias LightSwitchType = Boolean
-typealias LightSwitch = GenericHomeUnit<LightSwitchType>
+typealias LightSwitch = LightSwitchHomeUnit<LightSwitchType>
 typealias ReedSwitchType = Boolean
 typealias ReedSwitch = GenericHomeUnit<ReedSwitchType>
 typealias MotionType = Boolean
@@ -39,8 +39,6 @@ fun getHomeUnitTypeIndicatorMap(type: HomeUnitType): GenericTypeIndicator<HomeUn
     return when (type) {
         HomeUnitType.HOME_ACTUATORS -> object : GenericTypeIndicator<Actuator>() {}
         HomeUnitType.HOME_LIGHT_SWITCHES -> object : GenericTypeIndicator<LightSwitch>() {}
-        HomeUnitType.HOME_LIGHT_SWITCHES_V2 -> object :
-            GenericTypeIndicator<LightSwitchHomeUnit<LightSwitchType>>() {}
         HomeUnitType.HOME_REED_SWITCHES -> object : GenericTypeIndicator<ReedSwitch>() {}
         HomeUnitType.HOME_MOTIONS -> object : GenericTypeIndicator<Motion>() {}
         HomeUnitType.HOME_TEMPERATURES -> object : GenericTypeIndicator<Temperature>() {}
@@ -62,7 +60,6 @@ val HOME_STORAGE_UNITS: List<HomeUnitType> = HomeUnitType.values().filterNot { i
 val HOME_ACTION_STORAGE_UNITS: List<HomeUnitType> =
     listOf(
         HomeUnitType.HOME_LIGHT_SWITCHES,
-        HomeUnitType.HOME_LIGHT_SWITCHES_V2,
         HomeUnitType.HOME_BLINDS,
         HomeUnitType.HOME_ACTUATORS,
     )
@@ -73,7 +70,6 @@ val HOME_FIREBASE_NOTIFY_STORAGE_UNITS: List<HomeUnitType> =
         HomeUnitType.HOME_REED_SWITCHES,
         HomeUnitType.HOME_MOTIONS,
         HomeUnitType.HOME_LIGHT_SWITCHES,
-        HomeUnitType.HOME_LIGHT_SWITCHES_V2,
     )
 
 interface HomeUnit<T : Any> {
@@ -103,4 +99,6 @@ interface HomeUnit<T : Any> {
     fun getHomeUnitValue(): T?
 
     fun updateHomeUnitValuesAndTimes(hwUnit: HwUnit, unitValue: Any?, updateTime: Long)
+
+    fun copy(): HomeUnit<T>
 }
