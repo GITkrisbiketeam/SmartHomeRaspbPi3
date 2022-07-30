@@ -1,8 +1,10 @@
 package com.krisbiketeam.smarthomeraspbpi3.viewmodels
 
 import android.app.Application
+import androidx.lifecycle.viewModelScope
 import com.google.android.gms.tasks.Task
 import com.krisbiketeam.smarthomeraspbpi3.R
+import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.LightSwitchHomeUnit
@@ -10,8 +12,9 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.LAST_TRIGGER_SOURCE_HOME_UNIT_DETAILS
 import com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitLightSwitchDetailFragment
 import com.krisbiketeam.smarthomeraspbpi3.utils.getLastUpdateTime
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.*
 import timber.log.Timber
 
 /**
@@ -30,6 +33,26 @@ class HomeUnitLightSwitchDetailViewModel(
     HomeUnitType.HOME_LIGHT_SWITCHES
 ) {
 
+    val switchHwUnitNameList: StateFlow<List<Pair<String, Boolean>>> =
+        isEditMode.flatMapLatest { isEdit ->
+            Timber.d("init hwUnitNameList isEditMode: $isEdit")
+            if (isEdit) {
+                combine(
+                    homeRepository.homeUnitListFlow(),
+                    homeRepository.hwUnitListFlow()
+                ) { homeUnitList, hwUnitList ->
+                    hwUnitList.filter {
+                        it.type == BoardConfig.IO_EXTENDER_MCP23017_INPUT
+                    }.map {
+                        Pair(it.name,
+                            homeUnitList.find { unit -> unit.hwUnitName == it.name || (unit is LightSwitchHomeUnit<*> && unit.switchHwUnitName == it.name) } != null)
+                    }
+                }
+            } else {
+                flowOf(emptyList())
+            }
+        }.flowOn(Dispatchers.IO)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
     val switchHwUnitName: MutableStateFlow<String?> = MutableStateFlow(null)
 
     val switchValue: MutableStateFlow<String> = MutableStateFlow("")

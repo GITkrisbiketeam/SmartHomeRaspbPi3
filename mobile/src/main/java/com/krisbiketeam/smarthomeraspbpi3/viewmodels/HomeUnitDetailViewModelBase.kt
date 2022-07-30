@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.android.gms.tasks.Task
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.adapters.UnitTaskListAdapter
+import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.*
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
@@ -87,7 +88,40 @@ abstract class HomeUnitDetailViewModelBase<T : HomeUnit<Any>>(
                     homeUnitOfSelectedTypeList = homeUnitList.filter {
                         it.type == type
                     }
-                    hwUnitList.map {
+                    hwUnitList.filter {
+                        when (type) {
+                            HomeUnitType.HOME_ACTUATORS,
+                            HomeUnitType.HOME_LIGHT_SWITCHES,
+                            HomeUnitType.HOME_BLINDS ->
+                                it.type == BoardConfig.IO_EXTENDER_MCP23017_OUTPUT
+                            HomeUnitType.HOME_MOTIONS, HomeUnitType.HOME_REED_SWITCHES ->
+                                it.type == BoardConfig.IO_EXTENDER_MCP23017_INPUT
+                            HomeUnitType.HOME_TEMPERATURES -> {
+                                it.type == BoardConfig.TEMP_SENSOR_TMP102 ||
+                                        it.type == BoardConfig.TEMP_SENSOR_MCP9808 ||
+                                        it.type == BoardConfig.PRESS_TEMP_SENSOR_LPS331 ||
+                                        it.type == BoardConfig.AIR_QUALITY_SENSOR_BME680 ||
+                                        it.type == BoardConfig.TEMP_RH_SENSOR_AM2320 ||
+                                        it.type == BoardConfig.TEMP_RH_SENSOR_SI7021
+                            }
+                            HomeUnitType.HOME_HUMIDITY -> {
+                                it.type == BoardConfig.AIR_QUALITY_SENSOR_BME680 ||
+                                        it.type == BoardConfig.TEMP_RH_SENSOR_AM2320 ||
+                                        it.type == BoardConfig.TEMP_RH_SENSOR_SI7021
+                            }
+                            HomeUnitType.HOME_PRESSURES -> {
+                                it.type == BoardConfig.AIR_QUALITY_SENSOR_BME680 ||
+                                        it.type == BoardConfig.PRESS_TEMP_SENSOR_LPS331
+                            }
+                            HomeUnitType.HOME_CO2,
+                            HomeUnitType.HOME_GAS,
+                            HomeUnitType.HOME_GAS_PERCENT,
+                            HomeUnitType.HOME_IAQ,
+                            HomeUnitType.HOME_STATIC_IAQ,
+                            HomeUnitType.HOME_BREATH_VOC-> it.type == BoardConfig.AIR_QUALITY_SENSOR_BME680
+                            HomeUnitType.UNKNOWN -> true
+                        }
+                    }.map {
                         Pair(it.name,
                             homeUnitList.find { unit -> unit.hwUnitName == it.name || (unit is LightSwitchHomeUnit<*> && unit.switchHwUnitName == it.name) } != null)
                     }

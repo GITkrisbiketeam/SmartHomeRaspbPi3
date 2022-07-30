@@ -35,7 +35,7 @@
                 style="@style/EnabledColorMaterialAutoCompleteTextViewStyle"
                 android:clickable="@{viewModel.isEditMode}"
                 android:focusable="@{true}"
-                app:entriesAutoComplete="@{viewModel.hwUnitNameList}"
+                app:entriesAutoComplete="@{viewModel.switchHwUnitNameList}"
                 app:entriesUsed="@{true}"
                 app:entriesWithEmpty="@{true}"
                 app:value="@={viewModel.switchHwUnitName}" />
