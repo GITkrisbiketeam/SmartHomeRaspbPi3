@@ -3,8 +3,6 @@ package com.krisbiketeam.smarthomeraspbpi3
 import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
 import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
-import com.krisbiketeam.smarthomeraspbpi3.common.FULL_DAY_IN_MILLIS
-import com.krisbiketeam.smarthomeraspbpi3.common.getOnlyTodayLocalTime
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver.MCP23017Pin
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.ChildEventType
@@ -12,12 +10,14 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformation
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.*
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.*
-import com.krisbiketeam.smarthomeraspbpi3.units.*
 import com.krisbiketeam.smarthomeraspbpi3.units.Actuator
+import com.krisbiketeam.smarthomeraspbpi3.units.BaseHwUnit
+import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
 import com.krisbiketeam.smarthomeraspbpi3.units.hardware.*
 import com.krisbiketeam.smarthomeraspbpi3.utils.FirebaseDBLoggerTree
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import timber.log.Timber
@@ -57,25 +57,10 @@ class Home(private val secureStorage: SecureStorage,
 
     private var alarmEnabled: Boolean = secureStorage.alarmEnabled
 
-    private var booleanApplyFunction: suspend HomeUnit<in Boolean>.(Any) -> Unit = { newVal: Any ->
-        if (newVal is Boolean) {
-            unitsTasks.values.forEach { task ->
-                booleanTaskApply(newVal, task, this.name)
-            }
-        } else {
-            Timber.e("booleanApplyFunction new value is not Boolean or is null")
+    private val booleanApplyAction: suspend HomeUnit<Any>.(Boolean, UnitTask) -> Unit =
+        { actionVal: Boolean, task: UnitTask ->
+            this.booleanApplyAction(actionVal, task)
         }
-    }
-
-    private var sensorApplyFunction: suspend HomeUnit<in Float>.(Any) -> Unit = { newVal: Any ->
-        if (newVal is Float) {
-            unitsTasks.values.forEach { task ->
-                sensorTaskApply(newVal, task, this.name)
-            }
-        } else {
-            Timber.e("sensorApplyFunction new value is not Float or is null")
-        }
-    }
 
     @ExperimentalCoroutinesApi
     fun start() {
@@ -159,7 +144,6 @@ class Home(private val secureStorage: SecureStorage,
                     homeUnitsList[homeUnit.type to homeUnit.name]?.run {
                         Timber.d("homeUnitsDataProcessor NODE_ACTION_CHANGED EXISTING: $this}")
                         // set previous apply function to new homeUnit
-                        homeUnit.applyFunction = applyFunction
                         unitsTasks.forEach { (key, value) ->
                             if (homeUnit.unitsTasks.contains(key)) {
                                 homeUnit.unitsTasks[key]?.taskJob = value.taskJob
@@ -183,7 +167,7 @@ class Home(private val secureStorage: SecureStorage,
                                         homeInformationRepository.logHwUnitEvent(HwUnitLog(hwUnit.hwUnit, newValue, "homeUnitsDataProcessor", hwUnit.valueUpdateTime))
                                     }
                                 }
-                                homeUnit.applyFunction(newValue)
+                                homeUnit.applyFunction(scope, newValue, booleanApplyAction)
 
                                 if (homeUnit.shouldFirebaseNotify(newValue)) {
                                     Timber.d(
@@ -199,29 +183,6 @@ class Home(private val secureStorage: SecureStorage,
                     val existingUnit = homeUnitsList[homeUnit.type to homeUnit.name]
                     Timber.d(
                             "homeUnitsDataProcessor NODE_ACTION_ADDED EXISTING $existingUnit ; NEW  $homeUnit")
-                    when (homeUnit.type) {
-                        HomeUnitType.HOME_ACTUATORS,
-                        HomeUnitType.HOME_LIGHT_SWITCHES,
-                        HomeUnitType.HOME_REED_SWITCHES,
-                        HomeUnitType.HOME_MOTIONS -> {
-                            Timber.d(
-                                    "homeUnitsDataProcessor NODE_ACTION_ADDED set boolean apply function")
-                            homeUnit.applyFunction = booleanApplyFunction
-                        }
-                        HomeUnitType.HOME_TEMPERATURES,
-                        HomeUnitType.HOME_PRESSURES,
-                        HomeUnitType.HOME_HUMIDITY,
-                        HomeUnitType.HOME_GAS,
-                        HomeUnitType.HOME_GAS_PERCENT,
-                        HomeUnitType.HOME_IAQ,
-                        HomeUnitType.HOME_STATIC_IAQ,
-                        HomeUnitType.HOME_CO2,
-                        HomeUnitType.HOME_BREATH_VOC -> {
-                            Timber.d(
-                                    "homeUnitsDataProcessor NODE_ACTION_ADDED set sensor apply function")
-                            homeUnit.applyFunction = sensorApplyFunction
-                        }
-                    }
                     // Set/Update HhUnit States according to HomeUnit state and vice versa
                     hwUnitsList[homeUnit.hwUnitName]?.let { hwUnit ->
                         Timber.d("homeUnitsDataProcessor NODE_ACTION_ADDED hwUnit: $hwUnit")
@@ -243,7 +204,7 @@ class Home(private val secureStorage: SecureStorage,
                         }
                     }
                     homeUnit.value?.let { value ->
-                        homeUnit.applyFunction(homeUnit, value)
+                        homeUnit.applyFunction(scope, value, booleanApplyAction)
                     }
                     homeUnitsList[homeUnit.type to homeUnit.name] = homeUnit
                 }
@@ -401,7 +362,7 @@ class Home(private val secureStorage: SecureStorage,
 
             val newValue = homeUnit.getHomeUnitValue()
             if (newValue != null) {
-                homeUnit.applyFunction(homeUnit, newValue)
+                homeUnit.applyFunction(scope, newValue, booleanApplyAction)
             }
             homeUnit.lastTriggerSource = "${LAST_TRIGGER_SOURCE_HW_UNIT}_from_${hwUnit.name}"
             homeInformationRepository.saveHomeUnit(homeUnit)
@@ -533,134 +494,9 @@ class Home(private val secureStorage: SecureStorage,
 
     // region applyFunction helper methods
 
-    private suspend fun booleanTaskApply(newVal: Boolean, task: UnitTask, homeUnitName: String) {
-        scope.launch {
-            Timber.v("booleanTaskApply before cancel task.taskJob:${task.taskJob} isActive:${task.taskJob?.isActive} isCancelled:${task.taskJob?.isCancelled} isCompleted:${task.taskJob?.isCompleted}")
-            task.taskJob?.cancel()
-            Timber.v("booleanTaskApply after cancel task.taskJob:${task.taskJob} isActive:${task.taskJob?.isActive} isCancelled:${task.taskJob?.isCancelled} isCompleted:${task.taskJob?.isCompleted}")
-
-            if (task.disabled == true) {
-                Timber.d("booleanTaskApply task not enabled $task")
-            } else {
-                if ((task.trigger == null || task.trigger == BOTH)
-                        || (task.trigger == RISING_EDGE && newVal)
-                        || (task.trigger == FALLING_EDGE && !newVal)) {
-                    task.taskJob = scope.launch(Dispatchers.IO) {
-                        do {
-                            booleanTaskTimed(newVal, task, homeUnitName)
-                        } while (this.isActive && task.periodically == true && ((task.delay.isValidTime() && task.duration.isValidTime())
-                                        || (task.startTime.isValidTime() && task.endTime.isValidTime())
-                                        || (task.startTime.isValidTime() && task.duration.isValidTime())))
-                    }
-                    Timber.v("booleanTaskApply after booleanTaskTimed task.taskJob:${task.taskJob} isActive:${task.taskJob?.isActive} isCancelled:${task.taskJob?.isCancelled} isCompleted:${task.taskJob?.isCompleted}")
-                } else if (task.resetOnInverseTrigger == true) {
-                    booleanApplyAction(newVal, task.inverse, task.periodicallyOnlyHw, task.homeUnitsList, task.name, homeUnitName)
-                }
-            }
-        }
-    }
-
-    private suspend fun sensorTaskApply(newVal: Float, task: UnitTask, homeUnitName: String) {
-        scope.launch {
-            if (task.disabled == true) {
-                Timber.d("sensorTaskApply task not enabled $task")
-                task.taskJob?.cancel()
-            } else {
-                task.threshold?.let { threshold ->
-                    if ((task.trigger == null || task.trigger == BOTH
-                                    || task.trigger == RISING_EDGE) && newVal >= threshold + (task.hysteresis
-                                    ?: 0f)) {
-                        task.taskJob?.cancel()
-                        task.taskJob = scope.launch(Dispatchers.IO) {
-                            booleanTaskTimed(true, task, homeUnitName)
-                        }
-                    } else if ((task.trigger == null || task.trigger == BOTH
-                                    || task.trigger == FALLING_EDGE) && newVal <= threshold - (task.hysteresis
-                                    ?: 0f)) {
-                        task.taskJob?.cancel()
-                        task.taskJob = scope.launch(Dispatchers.IO) {
-                            booleanTaskTimed(false, task, homeUnitName)
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private suspend fun booleanTaskTimed(newVal: Boolean, task: UnitTask, homeUnitName: String) {
-        task.startTime.takeIf { it.isValidTime() }?.let { startTime ->
-            val currTime = System.currentTimeMillis().getOnlyTodayLocalTime()
-            task.endTime.takeIf { it.isValidTime() }?.let { endTime ->
-                Timber.e("booleanTaskTimed startTime:$startTime endTime:$endTime currTime: $currTime")
-                if (startTime < endTime) {
-                    if (currTime < startTime) {
-                        delay(startTime - currTime)
-                        booleanApplyAction(newVal, task.inverse, task.periodicallyOnlyHw, task.homeUnitsList, task.name, homeUnitName)
-                        val endCurrTime = System.currentTimeMillis().getOnlyTodayLocalTime()
-                        delay(endTime - endCurrTime)
-                        booleanApplyAction(!newVal, task.inverse, task.periodicallyOnlyHw, task.homeUnitsList, task.name, homeUnitName)
-                        delay(FULL_DAY_IN_MILLIS - endCurrTime)
-                    } else if (endTime < currTime) {
-                        delay(FULL_DAY_IN_MILLIS - currTime)
-                    } else {
-                        booleanApplyAction(newVal, task.inverse, task.periodicallyOnlyHw, task.homeUnitsList, task.name, homeUnitName)
-                        val endCurrTime = System.currentTimeMillis().getOnlyTodayLocalTime()
-                        delay(endTime - endCurrTime)
-                        booleanApplyAction(!newVal, task.inverse, task.periodicallyOnlyHw, task.homeUnitsList, task.name, homeUnitName)
-                        delay(FULL_DAY_IN_MILLIS - endCurrTime)
-                    }
-                } else if (endTime < startTime) {
-                    if (currTime < endTime) {
-                        booleanApplyAction(newVal, task.inverse, task.periodicallyOnlyHw, task.homeUnitsList, task.name, homeUnitName)
-                        delay(endTime - currTime)
-                        booleanApplyAction(!newVal, task.inverse, task.periodicallyOnlyHw, task.homeUnitsList, task.name, homeUnitName)
-                        val endCurrTime = System.currentTimeMillis().getOnlyTodayLocalTime()
-                        delay(startTime - endCurrTime)
-                        booleanApplyAction(newVal, task.inverse, task.periodicallyOnlyHw, task.homeUnitsList, task.name, homeUnitName)
-                        delay(FULL_DAY_IN_MILLIS - startTime)
-                    } else if (currTime < startTime) {
-                        delay(startTime - currTime)
-                        booleanApplyAction(newVal, task.inverse, task.periodicallyOnlyHw, task.homeUnitsList, task.name, homeUnitName)
-                        delay(FULL_DAY_IN_MILLIS - startTime)
-                    } else {
-                        booleanApplyAction(newVal, task.inverse, task.periodicallyOnlyHw, task.homeUnitsList, task.name, homeUnitName)
-                        delay(FULL_DAY_IN_MILLIS - currTime)
-                    }
-                }
-            } ?: task.duration?.let { duration ->
-                booleanApplyAction(newVal, task.inverse, task.periodicallyOnlyHw, task.homeUnitsList, task.name, homeUnitName)
-                delay(duration)
-                booleanApplyAction(!newVal, task.inverse, task.periodicallyOnlyHw, task.homeUnitsList, task.name, homeUnitName)
-            } ?: run {
-                if (currTime < startTime) {
-                    delay(startTime - currTime)
-                }
-                booleanApplyAction(newVal, task.inverse, task.periodicallyOnlyHw, task.homeUnitsList, task.name, homeUnitName)
-            }
-        } ?: task.endTime.takeIf { it.isValidTime() }?.let { endTime ->
-            val endCurrTime = System.currentTimeMillis().getOnlyTodayLocalTime()
-            if (endCurrTime < endTime) {
-                delay(endTime - endCurrTime)
-            }
-            booleanApplyAction(!newVal, task.inverse, task.periodicallyOnlyHw, task.homeUnitsList, task.name, homeUnitName)
-        } ?: task.delay.takeIf { it.isValidTime() }?.let { delay ->
-            delay(delay)
-            booleanApplyAction(newVal, task.inverse, task.periodicallyOnlyHw, task.homeUnitsList, task.name, homeUnitName)
-            task.duration?.let { duration ->
-                delay(duration)
-                booleanApplyAction(!newVal, task.inverse, task.periodicallyOnlyHw, task.homeUnitsList, task.name, homeUnitName)
-            }
-        } ?: task.duration.takeIf { it.isValidTime() }?.let { duration ->
-            booleanApplyAction(newVal, task.inverse, task.periodicallyOnlyHw, task.homeUnitsList, task.name, homeUnitName)
-            delay(duration)
-            booleanApplyAction(!newVal, task.inverse, task.periodicallyOnlyHw, task.homeUnitsList, task.name, homeUnitName)
-        }
-        ?: booleanApplyAction(newVal, task.inverse, task.periodicallyOnlyHw, task.homeUnitsList, task.name, homeUnitName)
-    }
-
-    private suspend fun booleanApplyAction(actionVal: Boolean, inverse: Boolean?, periodicallyOnlyHw: Boolean?, taskHomeUnitList: List<UnitTaskHomeUnit>, taskName: String, homeUnitName: String) {
-        val newActionVal: Boolean = (inverse ?: false) xor actionVal
-        taskHomeUnitList.forEach {
+    private suspend fun HomeUnit<Any>.booleanApplyAction(actionVal: Boolean, task: UnitTask) {
+        val newActionVal: Boolean = (task.inverse ?: false) xor actionVal
+        task.homeUnitsList.forEach {
             homeUnitsList[it.type.toHomeUnitType() to it.name]?.let { taskHomeUnit ->
                 Timber.d("booleanApplyAction taskHomeUnit: $taskHomeUnit")
                 hwUnitsList[taskHomeUnit.hwUnitName]?.let { taskHwUnit ->
@@ -668,25 +504,36 @@ class Home(private val secureStorage: SecureStorage,
                     if (taskHwUnit is Actuator && taskHwUnit.unitValue is Boolean?) {
                         if (taskHomeUnit.value != newActionVal) {
                             taskHomeUnit.value = newActionVal
-                            Timber.i("booleanApplyAction taskHwUnit actionVal: $actionVal setValue value: $newActionVal periodicallyOnlyHw: $periodicallyOnlyHw")
-                            taskHwUnit.setValueWithException(newActionVal, periodicallyOnlyHw != true)
+                            Timber.i("booleanApplyAction taskHwUnit actionVal: $actionVal setValue value: $newActionVal periodicallyOnlyHw: $task.periodicallyOnlyHw")
+                            taskHwUnit.setValueWithException(
+                                newActionVal,
+                                task.periodicallyOnlyHw != true
+                            )
                             Timber.d("booleanApplyAction after set HW Value taskHwUnit: ${taskHwUnit.hwUnit} unitValue:${taskHwUnit.unitValue} valueUpdateTime:${taskHwUnit.valueUpdateTime}")
-                            if (periodicallyOnlyHw != true) {
+                            if (task.periodicallyOnlyHw != true) {
                                 taskHomeUnit.lastUpdateTime = taskHwUnit.valueUpdateTime
-                                taskHomeUnit.lastTriggerSource = "${LAST_TRIGGER_SOURCE_BOOLEAN_APPLY}_from_${homeUnitName}_home_unit_by_${taskName}_task"
-                                taskHomeUnit.applyFunction(taskHomeUnit, newActionVal)
+                                taskHomeUnit.lastTriggerSource =
+                                    "${LAST_TRIGGER_SOURCE_BOOLEAN_APPLY}_from_${this.name}_home_unit_by_${task.name}_task"
+                                taskHomeUnit.applyFunction(scope, newActionVal, booleanApplyAction)
                                 homeInformationRepository.saveHomeUnit(taskHomeUnit)
                                 // Firebase will be notified by homeUnitsDataProcessor
 
-                                homeInformationRepository.logHwUnitEvent(HwUnitLog(taskHwUnit.hwUnit, newActionVal, "booleanApplyAction", taskHwUnit.valueUpdateTime))
+                                homeInformationRepository.logHwUnitEvent(
+                                    HwUnitLog(
+                                        taskHwUnit.hwUnit,
+                                        newActionVal,
+                                        "booleanApplyAction",
+                                        taskHwUnit.valueUpdateTime
+                                    )
+                                )
                             }
                             Timber.d("booleanApplyAction after set HW Value taskHomeUnit: $taskHomeUnit")
                         }
                     }
                 }
-                        ?: Timber.w("booleanApplyAction taskHwUnit:${taskHomeUnit.hwUnitName}: not exist yet or anymore")
+                    ?: Timber.w("booleanApplyAction taskHwUnit:${taskHomeUnit.hwUnitName}: not exist yet or anymore")
             }
-                    ?: Timber.w("booleanApplyAction taskHomeUnit:${it.type}/${it.name}: not exist yet or anymore")
+                ?: Timber.w("booleanApplyAction taskHomeUnit:${it.type}/${it.name}: not exist yet or anymore")
 
         }
     }
@@ -872,8 +719,4 @@ class Home(private val secureStorage: SecureStorage,
     }
 
     // endregion
-}
-
-private fun Long?.isValidTime(): Boolean {
-    return this != null && this > 0
 }

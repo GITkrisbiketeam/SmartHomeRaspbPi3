@@ -30,6 +30,8 @@ class HwUnitListFragment : Fragment() {
 
     private val analytics: Analytics by inject()
 
+    private val repository: FirebaseHomeInformationRepository by inject()
+
     override fun onCreateView(
             inflater: LayoutInflater,
             container: ViewGroup?,
@@ -44,6 +46,23 @@ class HwUnitListFragment : Fragment() {
         hwUnitListViewModel.apply {
             lifecycleScope.launch {
                 hwUnitList.flowWithLifecycle(lifecycle, Lifecycle.State.RESUMED).flowOn(Dispatchers.IO).collect { hwUnitList ->
+                    /*val startTime = 1624665600000
+                    val endTime = 1641945600000
+                    withContext(Dispatchers.IO){
+                        hwUnitList.forEach { hwUnit ->
+                            for(time in startTime .. endTime step FULL_DAY_IN_MILLIS){
+                                Timber.d("clear logs:${hwUnit.name} time:$time ")
+                                repository.clearHwUnitLogs(hwUnit.name, time.toString())?.addOnCanceledListener {
+                                    Timber.e("addOnCanceledListener clear logs:${hwUnit.name} time:$time ")
+                                }?.addOnFailureListener {
+                                    Timber.e("addOnFailureListener clear logs:${hwUnit.name} time:$time ")
+                                }?.addOnSuccessListener {
+                                    Timber.e("addOnSuccessListener clear logs:${hwUnit.name} time:$time ")
+                                }
+                            }
+                        }
+                    }*/
+
                     hwUnitListAdapter.submitList(hwUnitList)
                 }
             }

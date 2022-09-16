@@ -1,6 +1,5 @@
 package com.krisbiketeam.smarthomeraspbpi3.common.storage.dto
 
-import com.google.firebase.database.Exclude
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
 
 data class LightSwitchHomeUnit<T : Any>(
@@ -20,11 +19,6 @@ data class LightSwitchHomeUnit<T : Any>(
     override var showInTaskList: Boolean = false,
     override var unitsTasks: Map<String, UnitTask> = HashMap(),
 ) : HomeUnit<T> {
-
-    @Exclude
-    @set:Exclude
-    @get:Exclude
-    override var applyFunction: suspend HomeUnit<in Any>.(Any) -> Unit = { }
 
     override fun makeNotification(): LightSwitchHomeUnit<T> {
         return LightSwitchHomeUnit(

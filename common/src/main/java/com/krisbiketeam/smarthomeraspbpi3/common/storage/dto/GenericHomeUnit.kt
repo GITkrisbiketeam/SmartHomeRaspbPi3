@@ -1,7 +1,6 @@
 package com.krisbiketeam.smarthomeraspbpi3.common.storage.dto
 
-import com.google.firebase.database.Exclude
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.*
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
 import timber.log.Timber
 
 data class GenericHomeUnit<T : Any>(
@@ -21,11 +20,6 @@ data class GenericHomeUnit<T : Any>(
     override var showInTaskList: Boolean = false,
     override var unitsTasks: Map<String, UnitTask> = HashMap()
 ) : HomeUnit<T> {
-
-    @Exclude
-    @set:Exclude
-    @get:Exclude
-    override var applyFunction: suspend HomeUnit<in Any>.(Any) -> Unit = { }
 
     override fun makeNotification(): GenericHomeUnit<T> {
         return GenericHomeUnit(
