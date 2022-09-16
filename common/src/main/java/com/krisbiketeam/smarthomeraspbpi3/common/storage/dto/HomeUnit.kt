@@ -4,6 +4,7 @@ import com.google.firebase.database.GenericTypeIndicator
 import com.krisbiketeam.smarthomeraspbpi3.common.FULL_DAY_IN_MILLIS
 import com.krisbiketeam.smarthomeraspbpi3.common.getOnlyTodayLocalTime
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.toHomeUnitType
 import kotlinx.coroutines.*
 import timber.log.Timber
 
@@ -94,7 +95,7 @@ interface HomeUnit<T : Any> {
     suspend fun applyFunction(
         scope: CoroutineScope,
         newVal: T,
-        booleanApplyAction: suspend HomeUnit<T>.(actionVal: Boolean, task: UnitTask) -> Unit
+        booleanApplyAction: suspend HomeUnit<T>.(actionVal: Boolean, taskHomeUnitType: HomeUnitType, taskHomeUnitName: String, taskName: String, periodicallyOnlyHw: Boolean) -> Unit
     ) {
         unitsTasks.values.forEach { task ->
             when (type) {
@@ -143,7 +144,7 @@ interface HomeUnit<T : Any> {
         scope: CoroutineScope,
         newVal: Boolean,
         task: UnitTask,
-        booleanApplyAction: suspend HomeUnit<T>.(actionVal: Boolean, task: UnitTask) -> Unit
+        booleanApplyAction: suspend HomeUnit<T>.(actionVal: Boolean, taskHomeUnitType: HomeUnitType, taskHomeUnitName: String, taskName: String, periodicallyOnlyHw: Boolean) -> Unit
     ) {
         scope.launch {
             Timber.v("booleanTaskApply before cancel task.taskJob:${task.taskJob} isActive:${task.taskJob?.isActive} isCancelled:${task.taskJob?.isCancelled} isCompleted:${task.taskJob?.isCompleted}")
@@ -167,7 +168,7 @@ interface HomeUnit<T : Any> {
                     }
                     Timber.v("booleanTaskApply after booleanTaskTimed task.taskJob:${task.taskJob} isActive:${task.taskJob?.isActive} isCancelled:${task.taskJob?.isCancelled} isCompleted:${task.taskJob?.isCompleted}")
                 } else if (task.resetOnInverseTrigger == true) {
-                    booleanApplyAction(newVal, task)
+                    booleanApplyAction(newVal, task, booleanApplyAction)
                 }
             }
         }
@@ -178,7 +179,7 @@ interface HomeUnit<T : Any> {
         scope: CoroutineScope,
         newVal: Float,
         task: UnitTask,
-        booleanApplyAction: suspend HomeUnit<T>.(actionVal: Boolean, task: UnitTask) -> Unit
+        booleanApplyAction: suspend HomeUnit<T>.(actionVal: Boolean, taskHomeUnitType: HomeUnitType, taskHomeUnitName: String, taskName: String, periodicallyOnlyHw: Boolean) -> Unit
     ) {
         scope.launch {
             if (task.disabled == true) {
@@ -211,7 +212,7 @@ interface HomeUnit<T : Any> {
     private suspend fun booleanTaskTimed(
         newVal: Boolean,
         task: UnitTask,
-        booleanApplyAction: suspend HomeUnit<T>.(actionVal: Boolean, task: UnitTask) -> Unit
+        booleanApplyAction: suspend HomeUnit<T>.(actionVal: Boolean, taskHomeUnitType: HomeUnitType, taskHomeUnitName: String, taskName: String, periodicallyOnlyHw: Boolean) -> Unit
     ) {
         task.startTime.takeIf { it.isValidTime() }?.let { startTime ->
             val currTime = System.currentTimeMillis().getOnlyTodayLocalTime()
@@ -220,67 +221,84 @@ interface HomeUnit<T : Any> {
                 if (startTime < endTime) {
                     if (currTime < startTime) {
                         delay(startTime - currTime)
-                        booleanApplyAction(newVal, task)
+                        booleanApplyAction(newVal, task, booleanApplyAction)
                         val endCurrTime = System.currentTimeMillis().getOnlyTodayLocalTime()
                         delay(endTime - endCurrTime)
-                        booleanApplyAction(!newVal, task)
+                        booleanApplyAction(!newVal, task, booleanApplyAction)
                         delay(FULL_DAY_IN_MILLIS - endCurrTime)
                     } else if (endTime < currTime) {
                         delay(FULL_DAY_IN_MILLIS - currTime)
                     } else {
-                        booleanApplyAction(newVal, task)
+                        booleanApplyAction(newVal, task, booleanApplyAction)
                         val endCurrTime = System.currentTimeMillis().getOnlyTodayLocalTime()
                         delay(endTime - endCurrTime)
-                        booleanApplyAction(!newVal, task)
+                        booleanApplyAction(!newVal, task, booleanApplyAction)
                         delay(FULL_DAY_IN_MILLIS - endCurrTime)
                     }
                 } else if (endTime < startTime) {
                     if (currTime < endTime) {
-                        booleanApplyAction(newVal, task)
+                        booleanApplyAction(newVal, task, booleanApplyAction)
                         delay(endTime - currTime)
-                        booleanApplyAction(!newVal, task)
+                        booleanApplyAction(!newVal, task, booleanApplyAction)
                         val endCurrTime = System.currentTimeMillis().getOnlyTodayLocalTime()
                         delay(startTime - endCurrTime)
-                        booleanApplyAction(newVal, task)
+                        booleanApplyAction(newVal, task, booleanApplyAction)
                         delay(FULL_DAY_IN_MILLIS - startTime)
                     } else if (currTime < startTime) {
                         delay(startTime - currTime)
-                        booleanApplyAction(newVal, task)
+                        booleanApplyAction(newVal, task, booleanApplyAction)
                         delay(FULL_DAY_IN_MILLIS - startTime)
                     } else {
-                        booleanApplyAction(newVal, task)
+                        booleanApplyAction(newVal, task, booleanApplyAction)
                         delay(FULL_DAY_IN_MILLIS - currTime)
                     }
                 }
             } ?: task.duration?.let { duration ->
-                booleanApplyAction(newVal, task)
+                booleanApplyAction(newVal, task, booleanApplyAction)
                 delay(duration)
-                booleanApplyAction(!newVal, task)
+                booleanApplyAction(!newVal, task, booleanApplyAction)
             } ?: run {
                 if (currTime < startTime) {
                     delay(startTime - currTime)
                 }
-                booleanApplyAction(newVal, task)
+                booleanApplyAction(newVal, task, booleanApplyAction)
             }
         } ?: task.endTime.takeIf { it.isValidTime() }?.let { endTime ->
             val endCurrTime = System.currentTimeMillis().getOnlyTodayLocalTime()
             if (endCurrTime < endTime) {
                 delay(endTime - endCurrTime)
             }
-            booleanApplyAction(!newVal, task)
+            booleanApplyAction(!newVal, task, booleanApplyAction)
         } ?: task.delay.takeIf { it.isValidTime() }?.let { delay ->
             delay(delay)
-            booleanApplyAction(newVal, task)
+            booleanApplyAction(newVal, task, booleanApplyAction)
             task.duration?.let { duration ->
                 delay(duration)
-                booleanApplyAction(!newVal, task)
+                booleanApplyAction(!newVal, task, booleanApplyAction)
             }
         } ?: task.duration.takeIf { it.isValidTime() }?.let { duration ->
-            booleanApplyAction(newVal, task)
+            booleanApplyAction(newVal, task, booleanApplyAction)
             delay(duration)
-            booleanApplyAction(!newVal, task)
+            booleanApplyAction(!newVal, task, booleanApplyAction)
         }
-        ?: booleanApplyAction(newVal, task)
+        ?: booleanApplyAction(newVal, task, booleanApplyAction)
+    }
+
+    private suspend fun booleanApplyAction(
+        actionVal: Boolean,
+        task: UnitTask,
+        booleanApplyAction: suspend HomeUnit<T>.(actionVal: Boolean, taskHomeUnitType: HomeUnitType, taskHomeUnitName: String, taskName: String, periodicallyOnlyHw: Boolean) -> Unit
+    ) {
+        val newActionVal: Boolean = (task.inverse ?: false) xor actionVal
+        task.homeUnitsList.forEach {
+            booleanApplyAction(
+                newActionVal,
+                it.type.toHomeUnitType(),
+                it.name,
+                task.name,
+                task.periodicallyOnlyHw ?: false
+            )
+        }
     }
 }
 

@@ -57,9 +57,25 @@ class Home(private val secureStorage: SecureStorage,
 
     private var alarmEnabled: Boolean = secureStorage.alarmEnabled
 
-    private val booleanApplyAction: suspend HomeUnit<Any>.(Boolean, UnitTask) -> Unit =
-        { actionVal: Boolean, task: UnitTask ->
-            this.booleanApplyAction(actionVal, task)
+    private val booleanApplyAction: suspend HomeUnit<Any>.(
+        Boolean,
+        HomeUnitType,
+        String,
+        String,
+        Boolean
+    ) -> Unit =
+        { newActionVal: Boolean,
+          taskHomeUnitType: HomeUnitType,
+          taskHomeUnitName: String,
+          taskName: String,
+          periodicallyOnlyHw: Boolean ->
+            this.booleanApplyAction(
+                newActionVal,
+                taskHomeUnitType,
+                taskHomeUnitName,
+                taskName,
+                periodicallyOnlyHw
+            )
         }
 
     @ExperimentalCoroutinesApi
@@ -494,47 +510,48 @@ class Home(private val secureStorage: SecureStorage,
 
     // region applyFunction helper methods
 
-    private suspend fun HomeUnit<Any>.booleanApplyAction(actionVal: Boolean, task: UnitTask) {
-        val newActionVal: Boolean = (task.inverse ?: false) xor actionVal
-        task.homeUnitsList.forEach {
-            homeUnitsList[it.type.toHomeUnitType() to it.name]?.let { taskHomeUnit ->
-                Timber.d("booleanApplyAction taskHomeUnit: $taskHomeUnit")
-                hwUnitsList[taskHomeUnit.hwUnitName]?.let { taskHwUnit ->
-                    Timber.d("booleanApplyAction taskHwUnit: ${taskHwUnit.hwUnit} unitValue:${taskHwUnit.unitValue} valueUpdateTime:${taskHwUnit.valueUpdateTime}")
-                    if (taskHwUnit is Actuator && taskHwUnit.unitValue is Boolean?) {
-                        if (taskHomeUnit.value != newActionVal) {
-                            taskHomeUnit.value = newActionVal
-                            Timber.i("booleanApplyAction taskHwUnit actionVal: $actionVal setValue value: $newActionVal periodicallyOnlyHw: $task.periodicallyOnlyHw")
-                            taskHwUnit.setValueWithException(
-                                newActionVal,
-                                task.periodicallyOnlyHw != true
-                            )
-                            Timber.d("booleanApplyAction after set HW Value taskHwUnit: ${taskHwUnit.hwUnit} unitValue:${taskHwUnit.unitValue} valueUpdateTime:${taskHwUnit.valueUpdateTime}")
-                            if (task.periodicallyOnlyHw != true) {
-                                taskHomeUnit.lastUpdateTime = taskHwUnit.valueUpdateTime
-                                taskHomeUnit.lastTriggerSource =
-                                    "${LAST_TRIGGER_SOURCE_BOOLEAN_APPLY}_from_${this.name}_home_unit_by_${task.name}_task"
-                                taskHomeUnit.applyFunction(scope, newActionVal, booleanApplyAction)
-                                homeInformationRepository.saveHomeUnit(taskHomeUnit)
-                                // Firebase will be notified by homeUnitsDataProcessor
+    private suspend fun HomeUnit<Any>.booleanApplyAction(
+        newActionVal: Boolean,
+        taskHomeUnitType: HomeUnitType,
+        taskHomeUnitName: String,
+        taskName: String,
+        periodicallyOnlyHw: Boolean
+    ) {
+        homeUnitsList[taskHomeUnitType to taskHomeUnitName]?.let { taskHomeUnit ->
+            Timber.d("booleanApplyAction taskHomeUnit: $taskHomeUnit")
+            hwUnitsList[taskHomeUnit.hwUnitName]?.let { taskHwUnit ->
+                Timber.d("booleanApplyAction taskHwUnit: ${taskHwUnit.hwUnit} unitValue:${taskHwUnit.unitValue} valueUpdateTime:${taskHwUnit.valueUpdateTime}")
+                if (taskHwUnit is Actuator && taskHwUnit.unitValue is Boolean?) {
+                    if (taskHomeUnit.value != newActionVal) {
+                        taskHomeUnit.value = newActionVal
+                        Timber.i("booleanApplyAction taskHwUnit setValue value: $newActionVal periodicallyOnlyHw: $periodicallyOnlyHw")
+                        taskHwUnit.setValueWithException(
+                            newActionVal,
+                            !periodicallyOnlyHw
+                        )
+                        Timber.d("booleanApplyAction after set HW Value taskHwUnit: ${taskHwUnit.hwUnit} unitValue:${taskHwUnit.unitValue} valueUpdateTime:${taskHwUnit.valueUpdateTime}")
+                        if (!periodicallyOnlyHw) {
+                            taskHomeUnit.lastUpdateTime = taskHwUnit.valueUpdateTime
+                            taskHomeUnit.lastTriggerSource =
+                                "${LAST_TRIGGER_SOURCE_BOOLEAN_APPLY}_from_${this.name}_home_unit_by_${taskName}_task"
+                            taskHomeUnit.applyFunction(scope, newActionVal, booleanApplyAction)
+                            homeInformationRepository.saveHomeUnit(taskHomeUnit)
+                            // Firebase will be notified by homeUnitsDataProcessor
 
-                                homeInformationRepository.logHwUnitEvent(
-                                    HwUnitLog(
-                                        taskHwUnit.hwUnit,
-                                        newActionVal,
-                                        "booleanApplyAction",
-                                        taskHwUnit.valueUpdateTime
-                                    )
+                            homeInformationRepository.logHwUnitEvent(
+                                HwUnitLog(
+                                    taskHwUnit.hwUnit,
+                                    newActionVal,
+                                    "booleanApplyAction",
+                                    taskHwUnit.valueUpdateTime
                                 )
-                            }
-                            Timber.d("booleanApplyAction after set HW Value taskHomeUnit: $taskHomeUnit")
+                            )
                         }
+                        Timber.d("booleanApplyAction after set HW Value taskHomeUnit: $taskHomeUnit")
                     }
                 }
-                    ?: Timber.w("booleanApplyAction taskHwUnit:${taskHomeUnit.hwUnitName}: not exist yet or anymore")
             }
-                ?: Timber.w("booleanApplyAction taskHomeUnit:${it.type}/${it.name}: not exist yet or anymore")
-
+                ?: Timber.w("booleanApplyAction taskHwUnit:${taskHomeUnit.hwUnitName}: not exist yet or anymore")
         }
     }
 
