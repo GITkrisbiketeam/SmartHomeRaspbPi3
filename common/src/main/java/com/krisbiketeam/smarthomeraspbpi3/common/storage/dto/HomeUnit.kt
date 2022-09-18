@@ -134,11 +134,25 @@ interface HomeUnit<T : Any> {
 
     fun isUnitAffected(hwUnit: HwUnit): Boolean
 
-    fun getHomeUnitValue(): T?
+    fun unitValue(): T?
 
-    fun updateHomeUnitValuesAndTimes(hwUnit: HwUnit, unitValue: Any?, updateTime: Long)
+    suspend fun updateHomeUnitValuesAndTimes(
+        hwUnit: HwUnit,
+        unitValue: Any?,
+        updateTime: Long,
+        booleanApplyAction: suspend HomeUnit<T>.(actionVal: Boolean, taskHomeUnitType: HomeUnitType, taskHomeUnitName: String, taskName: String, periodicallyOnlyHw: Boolean) -> Unit
+    )
 
     fun copy(): HomeUnit<T>
+
+    fun shouldFirebaseNotify(newVal: Any?): Boolean {
+        return firebaseNotify && (newVal !is Boolean || ((firebaseNotifyTrigger == null ||
+                firebaseNotifyTrigger == BOTH) ||
+                (firebaseNotifyTrigger == RISING_EDGE && newVal) ||
+                (firebaseNotifyTrigger == FALLING_EDGE && !newVal)))
+    }
+
+    // region applyFunction helper methods
 
     private suspend fun booleanTaskApply(
         scope: CoroutineScope,
@@ -300,6 +314,8 @@ interface HomeUnit<T : Any> {
             )
         }
     }
+
+    // endregion
 }
 
 private fun Long?.isValidTime(): Boolean {

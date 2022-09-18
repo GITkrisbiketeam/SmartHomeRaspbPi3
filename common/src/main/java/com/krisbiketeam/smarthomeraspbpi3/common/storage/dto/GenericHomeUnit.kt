@@ -105,11 +105,16 @@ data class GenericHomeUnit<T : Any>(
         return hwUnitName == hwUnit.name
     }
 
-    override fun getHomeUnitValue(): T? {
+    override fun unitValue(): T? {
         return value
     }
 
-    override fun updateHomeUnitValuesAndTimes(hwUnit: HwUnit, unitValue: Any?, updateTime: Long) {
+    override suspend fun updateHomeUnitValuesAndTimes(
+        hwUnit: HwUnit,
+        unitValue: Any?,
+        updateTime: Long,
+        booleanApplyAction: suspend HomeUnit<T>.(actionVal: Boolean, taskHomeUnitType: HomeUnitType, taskHomeUnitName: String, taskName: String, periodicallyOnlyHw: Boolean) -> Unit
+    ) {
         // We need to handle differently values of non Basic Types
         if (unitValue is PressureAndTemperature) {
             Timber.d("Received PressureAndTemperature $unitValue")

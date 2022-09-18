@@ -100,13 +100,21 @@ data class LightSwitchHomeUnit<T : Any>(
         return switchHwUnitName == hwUnit.name
     }
 
-    override fun getHomeUnitValue(): T? {
+    override fun unitValue(): T? {
         return switchValue
     }
 
-    override fun updateHomeUnitValuesAndTimes(hwUnit: HwUnit, unitValue: Any?, updateTime: Long) {
+    override suspend fun updateHomeUnitValuesAndTimes(
+        hwUnit: HwUnit,
+        unitValue: Any?,
+        updateTime: Long,
+        booleanApplyAction: suspend HomeUnit<T>.(actionVal: Boolean, taskHomeUnitType: HomeUnitType, taskHomeUnitName: String, taskName: String, periodicallyOnlyHw: Boolean) -> Unit
+    ) {
         // We set Switch and normal value as updateHomeUnitValuesAndTimes is only called by HwUnit
         switchValue = unitValue as T?
         switchLastUpdateTime = updateTime
+        if (unitValue is Boolean) {
+            booleanApplyAction(unitValue, type, name, name, false)
+        }
     }
 }
