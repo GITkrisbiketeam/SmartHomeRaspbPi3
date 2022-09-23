@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.LightSwitchHomeUnit
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.WaterCirculationHomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.LAST_TRIGGER_SOURCE_TASK_LIST
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentTaskListItemCardBinding
@@ -49,6 +50,9 @@ class TaskListAdapter(private val homeInformationRepository: FirebaseHomeInforma
                 homeUnit != null && homeUnit.type == HomeUnitType.HOME_LIGHT_SWITCHES -> TaskListFragmentDirections.actionTaskListFragmentToHomeUnitLightSwitchDetailFragment(
                     "", homeUnit.name
                 )
+                homeUnit != null && homeUnit.type == HomeUnitType.HOME_WATER_CIRCULATION -> TaskListFragmentDirections.actionTaskListFragmentToHomeUnitWaterCirculationDetailFragment(
+                    "", homeUnit.name
+                )
                 homeUnit != null -> TaskListFragmentDirections.actionTaskListFragmentToHomeUnitGenericDetailFragment(
                     "", homeUnit.name, homeUnit.type
                 )
@@ -77,6 +81,8 @@ class TaskListAdapter(private val homeInformationRepository: FirebaseHomeInforma
                             String.format("%.2f", homeUnit.value)
                         } else if (homeUnit.type == HomeUnitType.HOME_LIGHT_SWITCHES && homeUnit is LightSwitchHomeUnit) {
                             homeUnit.switchValue.toString()
+                        } else if (homeUnit.type == HomeUnitType.HOME_WATER_CIRCULATION && homeUnit is WaterCirculationHomeUnit) {
+                            homeUnit.motionValue.toString()
                         } else {
                             homeUnit.value.toString()
                         }

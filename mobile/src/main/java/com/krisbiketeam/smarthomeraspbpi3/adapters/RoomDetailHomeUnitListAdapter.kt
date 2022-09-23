@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.LightSwitchHomeUnit
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.WaterCirculationHomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.LAST_TRIGGER_SOURCE_ROOM_HOME_UNITS_LIST
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentRoomDetailListItemBinding
@@ -43,6 +44,10 @@ class RoomDetailHomeUnitListAdapter(private val homeInformationRepository: Fireb
                     item.room,
                     item.name
                 )
+                HomeUnitType.HOME_WATER_CIRCULATION -> RoomDetailFragmentDirections.actionRoomDetailFragmentToHomeUnitWaterCirculationDetailFragment(
+                    item.room,
+                    item.name
+                )
                 else -> RoomDetailFragmentDirections.actionRoomDetailFragmentToHomeUnitGenericDetailFragment(
                     item.room,
                     item.name,
@@ -68,13 +73,17 @@ class RoomDetailHomeUnitListAdapter(private val homeInformationRepository: Fireb
                 secondLastUpdateTime =
                     if (item.type == HomeUnitType.HOME_LIGHT_SWITCHES && item is LightSwitchHomeUnit) {
                         getLastUpdateTime(root.context, item.switchLastUpdateTime)
+                    } else if (item.type == HomeUnitType.HOME_WATER_CIRCULATION && item is WaterCirculationHomeUnit) {
+                        getLastUpdateTime(root.context, item.motionLastUpdateTime)
                     } else {
-                    null
-                }
+                        null
+                    }
                 value = if(item.value is Double || item.value is Float) {
                     String.format("%.2f", item.value)
                 } else if(item.type == HomeUnitType.HOME_LIGHT_SWITCHES && item is LightSwitchHomeUnit) {
                     item.switchValue.toString()
+                } else if(item.type == HomeUnitType.HOME_WATER_CIRCULATION && item is WaterCirculationHomeUnit) {
+                    item.motionValue.toString()
                 } else{
                     item.value.toString()
                 }

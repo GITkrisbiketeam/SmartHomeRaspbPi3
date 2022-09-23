@@ -116,6 +116,12 @@ class HomeActivity : AppCompatActivity() {
                         name
                     )
                 )
+                HomeUnitType.HOME_WATER_CIRCULATION -> navController.navigate(
+                    NavHomeDirections.goToHomeUnitWaterCirculationDetailFragment(
+                        "",
+                        name
+                    )
+                )
                 else -> navController.navigate(
                     NavHomeDirections.goToHomeUnitDetailFragment(
                         "",
@@ -318,7 +324,7 @@ class HomeActivity : AppCompatActivity() {
 
     private fun updateNavigationViewDrawer(roomList: List<Room>) {
         binding.navigationView.menu.removeGroup(R.id.room_list_fragment)
-        if (roomList.isNullOrEmpty()) {
+        if (roomList.isEmpty()) {
             binding.navigationView.menu.add(
                 R.id.room_list_fragment,
                 R.id.room_list_fragment,

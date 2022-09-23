@@ -115,7 +115,7 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             app:setChecked="@{homeUnit.value}"
-            android:visibility="@{HomeUnitType.HOME_LIGHT_SWITCHES.equals(homeUnit.type) || HomeUnitType.HOME_ACTUATORS.equals(homeUnit.type) || HomeUnitType.HOME_BLINDS.equals(homeUnit.type) ? View.VISIBLE : View.GONE}"
+            android:visibility="@{HomeUnitType.HOME_LIGHT_SWITCHES.equals(homeUnit.type) || HomeUnitType.HOME_WATER_CIRCULATION.equals(homeUnit.type) || HomeUnitType.HOME_ACTUATORS.equals(homeUnit.type) || HomeUnitType.HOME_BLINDS.equals(homeUnit.type) ? View.VISIBLE : View.GONE}"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent" />

@@ -6,7 +6,6 @@ import com.google.android.gms.tasks.Task
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.GenericHomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HOME_ACTION_STORAGE_UNITS
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.LAST_TRIGGER_SOURCE_HOME_UNIT_DETAILS
 import com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitGenericDetailFragment
@@ -92,7 +91,7 @@ class HomeUnitGenericDetailViewModel(
         return null
     }
 
-    override fun getHomeUnitToSave(): HomeUnit<Any> {
+    override fun getHomeUnitToSave(): GenericHomeUnit<Any> {
         return GenericHomeUnit(
             name = name.value,
             type = type.value,

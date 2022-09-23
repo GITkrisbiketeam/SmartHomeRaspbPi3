@@ -17,7 +17,7 @@
         android:layout_height="wrap_content">
 
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/sswitch_hw_unit_name_layout"
+            android:id="@+id/switch_hw_unit_name_layout"
             style="@style/LargeTitleDropDownOutlineInputLayoutStyle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

@@ -6,7 +6,6 @@ import com.google.android.gms.tasks.Task
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.LightSwitchHomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.LAST_TRIGGER_SOURCE_HOME_UNIT_DETAILS
@@ -105,7 +104,7 @@ class HomeUnitLightSwitchDetailViewModel(
         }
     }
 
-    override fun getHomeUnitToSave(): HomeUnit<Any> {
+    override fun getHomeUnitToSave(): LightSwitchHomeUnit<Any> {
         return LightSwitchHomeUnit(
             name = name.value,
             type = type.value,

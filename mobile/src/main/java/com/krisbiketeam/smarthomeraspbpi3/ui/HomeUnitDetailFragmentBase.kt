@@ -17,7 +17,6 @@ import com.google.firebase.analytics.FirebaseAnalytics
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentHomeUnitDetailBaseBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.HomeUnitDetailViewModelBase
 import kotlinx.coroutines.Dispatchers
@@ -68,7 +67,7 @@ abstract class HomeUnitDetailFragmentBase<T : HomeUnit<Any>> : Fragment() {
                 Timber.d("onCreateView unitTaskList Observer taskListMap: $taskListMap")
                 // Update UnitTask list
                 // Do not show default HOME_LIGHT_SWITCHES UnitTask (with UnitTask name same as HomeUnit name) responsible for linking two hwUnits
-                homeUnitDetailViewModel.unitTaskListAdapter.submitList(taskListMap.values.filterNot { homeUnitDetailViewModel.type.value == HomeUnitType.HOME_LIGHT_SWITCHES && it.name == homeUnitDetailViewModel.name.value })
+                homeUnitDetailViewModel.unitTaskListAdapter.submitList(taskListMap.values.toList())
             }
         }
 

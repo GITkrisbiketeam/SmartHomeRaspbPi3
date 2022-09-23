@@ -48,6 +48,11 @@ class HomeUnitTypeChooserDialogFragment : Fragment() {
                                     args.roomName
                                 )
                             )
+                            HomeUnitType.HOME_WATER_CIRCULATION -> navigate(
+                                HomeUnitTypeChooserDialogFragmentDirections.actionHomeUnitTypeChooserDialogFragmentToHomeUnitWaterCirculationDetailFragment(
+                                    args.roomName
+                                )
+                            )
                             HomeUnitType.UNKNOWN -> Unit
                             else -> navigate(
                                 HomeUnitTypeChooserDialogFragmentDirections.actionHomeUnitTypeChooserDialogFragmentToHomeUnitGenericDetailFragment(

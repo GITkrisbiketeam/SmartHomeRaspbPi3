@@ -67,10 +67,14 @@ class DeviceControlService : ControlsProviderService() {
                     job = GlobalScope.launch {
                         combine(
                             homeInformationRepository.homeUnitListFlow(HomeUnitType.HOME_LIGHT_SWITCHES),
+                            homeInformationRepository.homeUnitListFlow(HomeUnitType.HOME_WATER_CIRCULATION),
                             homeInformationRepository.homeUnitListFlow(HomeUnitType.HOME_ACTUATORS)
-                        ) { lightSwitches, actuators ->
-                            Timber.i("createPublisherForAllAvailable lightSwitches: ${lightSwitches.size} actuators: ${actuators.size}")
+                        ) { lightSwitches, waterCirculation, actuators ->
+                            Timber.i("createPublisherForAllAvailable lightSwitches: ${lightSwitches.size} waterCirculation: ${waterCirculation.size} actuators: ${actuators.size}")
                             lightSwitches.forEach { homeUnit ->
+                                flowSubscriber.onNext(getStatelessControl(homeUnit))
+                            }
+                            waterCirculation.forEach { homeUnit ->
                                 flowSubscriber.onNext(getStatelessControl(homeUnit))
                             }
                             actuators.forEach { homeUnit ->
@@ -177,6 +181,7 @@ class DeviceControlService : ControlsProviderService() {
 private fun HomeUnit<Any>.getControlType(): Int {
     return when (this.type) {
         HomeUnitType.HOME_LIGHT_SWITCHES -> DeviceTypes.TYPE_LIGHT
+        HomeUnitType.HOME_WATER_CIRCULATION -> DeviceTypes.TYPE_GENERIC_START_STOP
         else -> DeviceTypes.TYPE_GENERIC_ON_OFF
     }
 }

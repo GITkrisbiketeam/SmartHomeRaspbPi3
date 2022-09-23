@@ -94,6 +94,7 @@ class HomeUnitLightSwitchDetailFragment : HomeUnitDetailFragmentBase<LightSwitch
 
     override fun onDestroyView() {
         additionalValueFieldsBindings = null
+        additionalHwUnitBindings = null
         super.onDestroyView()
     }
 

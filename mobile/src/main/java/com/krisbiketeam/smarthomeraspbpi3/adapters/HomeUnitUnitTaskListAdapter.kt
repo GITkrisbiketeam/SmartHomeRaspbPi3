@@ -14,6 +14,8 @@ import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentHomeUnitDetailUnit
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentHomeUnitDetailUnitTaskListItemBinding
 import com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitGenericDetailFragment
 import com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitGenericDetailFragmentDirections
+import com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitLightSwitchDetailFragmentDirections
+import com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitWaterCirculationDetailFragmentDirections
 import timber.log.Timber
 
 private const val VIEW_TYPE_NORMAL = 0
@@ -61,11 +63,23 @@ class UnitTaskListAdapter(
             Timber.d("onClick taskName: $taskName")
             if (unitType != HomeUnitType.UNKNOWN && !unitName.isNullOrEmpty()) {
                 view.findNavController().navigate(
-                    HomeUnitGenericDetailFragmentDirections.actionHomeUnitGenericDetailFragmentToUnitTaskFragment(
-                        taskName,
-                        unitName,
-                        unitType
-                    )
+                    when (unitType) {
+                        HomeUnitType.HOME_LIGHT_SWITCHES -> HomeUnitLightSwitchDetailFragmentDirections.actionHomeUnitLightSwitchDetailFragmentToUnitTaskFragment(
+                            taskName,
+                            unitName,
+                            unitType
+                        )
+                        HomeUnitType.HOME_WATER_CIRCULATION -> HomeUnitWaterCirculationDetailFragmentDirections.actionHomeUnitWaterCirculationDetailFragmentToUnitTaskFragment(
+                            taskName,
+                            unitName,
+                            unitType
+                        )
+                        else -> HomeUnitGenericDetailFragmentDirections.actionHomeUnitGenericDetailFragmentToUnitTaskFragment(
+                            taskName,
+                            unitName,
+                            unitType
+                        )
+                    }
                 )
             }
         }

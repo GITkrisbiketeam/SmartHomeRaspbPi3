@@ -686,6 +686,22 @@ class FirebaseHomeInformationRepository {
     }
 
     /**
+     * get Flow of @see[GenericHomeUnit<Any>] for for given unit type and name for listening to changes
+     * in entries in DB
+     */
+    /*@ExperimentalCoroutinesApi
+    inline fun <reified T: HomeUnit<Any>> genericHomeUnitFlow1(unitType: HomeUnitType, unitName: String, closeOnEmpty: Boolean = false): Flow<T> {
+        return homePathReference?.let {
+            when(unitType){
+                HomeUnitType.HOME_LIGHT_SWITCHES ->         genericReferenceFlow(Firebase.database.getReference("$it/$HOME_UNITS_BASE/$unitType/$unitName"), closeOnEmpty)
+                else ->    genericReferenceFlow(Firebase.database.getReference("$it/$HOME_UNITS_BASE/$unitType/$unitName"), closeOnEmpty)
+
+
+            }
+        } ?: emptyFlow()
+    }*/
+
+    /**
      * get Flow of @see[LightSwitchHomeUnit<Any>] for [HomeUnitType.HOME_LIGHT_SWITCHES] type and
      * name for listening to changes in entries in DB
      */
@@ -693,6 +709,17 @@ class FirebaseHomeInformationRepository {
     fun lightSwitchHomeUnitFlow(unitName: String, closeOnEmpty: Boolean = false): Flow<LightSwitchHomeUnit<Any>> {
         return homePathReference?.let {
             genericReferenceFlow(Firebase.database.getReference("$it/$HOME_UNITS_BASE/${HomeUnitType.HOME_LIGHT_SWITCHES}/$unitName"), closeOnEmpty)
+        } ?: emptyFlow()
+    }
+
+    /**
+     * get Flow of @see[LightSwitchHomeUnit<Any>] for [HomeUnitType.HOME_WATER_CIRCULATION] type and
+     * name for listening to changes in entries in DB
+     */
+    @ExperimentalCoroutinesApi
+    fun waterCirculationHomeUnitFlow(unitName: String, closeOnEmpty: Boolean = false): Flow<WaterCirculationHomeUnit<Any>> {
+        return homePathReference?.let {
+            genericReferenceFlow(Firebase.database.getReference("$it/$HOME_UNITS_BASE/${HomeUnitType.HOME_WATER_CIRCULATION}/$unitName"), closeOnEmpty)
         } ?: emptyFlow()
     }
 

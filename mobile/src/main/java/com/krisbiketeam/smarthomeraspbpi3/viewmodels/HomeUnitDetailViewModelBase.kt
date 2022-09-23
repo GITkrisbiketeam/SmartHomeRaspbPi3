@@ -57,9 +57,11 @@ abstract class HomeUnitDetailViewModelBase<T : HomeUnit<Any>>(
     // TODO check if possible nullable
     val name: MutableStateFlow<String> = MutableStateFlow(unitName ?: "")
 
-    open val typeList = HOME_STORAGE_UNITS.filterNot { it == HomeUnitType.HOME_LIGHT_SWITCHES }
+    open val typeList =
+        HOME_STORAGE_UNITS.filterNot { it == HomeUnitType.HOME_LIGHT_SWITCHES || it == HomeUnitType.HOME_WATER_CIRCULATION }
     val type: MutableStateFlow<HomeUnitType> = MutableStateFlow(unitType)
-    val isTypeVisible: StateFlow<Boolean> = MutableStateFlow(unitType != HomeUnitType.HOME_LIGHT_SWITCHES)
+    val isTypeVisible: StateFlow<Boolean> =
+        MutableStateFlow(unitType != HomeUnitType.HOME_LIGHT_SWITCHES && unitType != HomeUnitType.HOME_WATER_CIRCULATION)
 
     val roomList: StateFlow<List<String>> =
         isEditMode.flatMapLatest { isEdit ->
@@ -92,33 +94,26 @@ abstract class HomeUnitDetailViewModelBase<T : HomeUnit<Any>>(
                         when (type) {
                             HomeUnitType.HOME_ACTUATORS,
                             HomeUnitType.HOME_LIGHT_SWITCHES,
+                            HomeUnitType.HOME_WATER_CIRCULATION,
                             HomeUnitType.HOME_BLINDS ->
                                 it.type == BoardConfig.IO_EXTENDER_MCP23017_OUTPUT
                             HomeUnitType.HOME_MOTIONS, HomeUnitType.HOME_REED_SWITCHES ->
                                 it.type == BoardConfig.IO_EXTENDER_MCP23017_INPUT
                             HomeUnitType.HOME_TEMPERATURES -> {
-                                it.type == BoardConfig.TEMP_SENSOR_TMP102 ||
-                                        it.type == BoardConfig.TEMP_SENSOR_MCP9808 ||
-                                        it.type == BoardConfig.PRESS_TEMP_SENSOR_LPS331 ||
-                                        it.type == BoardConfig.AIR_QUALITY_SENSOR_BME680 ||
-                                        it.type == BoardConfig.TEMP_RH_SENSOR_AM2320 ||
-                                        it.type == BoardConfig.TEMP_RH_SENSOR_SI7021
+                                BoardConfig.TEMPERATURE_HW_UNIT_LIST.contains(it.type)
                             }
                             HomeUnitType.HOME_HUMIDITY -> {
-                                it.type == BoardConfig.AIR_QUALITY_SENSOR_BME680 ||
-                                        it.type == BoardConfig.TEMP_RH_SENSOR_AM2320 ||
-                                        it.type == BoardConfig.TEMP_RH_SENSOR_SI7021
+                                BoardConfig.HUMIDITY_HW_UNIT_LIST.contains(it.type)
                             }
                             HomeUnitType.HOME_PRESSURES -> {
-                                it.type == BoardConfig.AIR_QUALITY_SENSOR_BME680 ||
-                                        it.type == BoardConfig.PRESS_TEMP_SENSOR_LPS331
+                                BoardConfig.PRESSURE_HW_UNIT_LIST.contains(it.type)
                             }
                             HomeUnitType.HOME_CO2,
                             HomeUnitType.HOME_GAS,
                             HomeUnitType.HOME_GAS_PERCENT,
                             HomeUnitType.HOME_IAQ,
                             HomeUnitType.HOME_STATIC_IAQ,
-                            HomeUnitType.HOME_BREATH_VOC-> it.type == BoardConfig.AIR_QUALITY_SENSOR_BME680
+                            HomeUnitType.HOME_BREATH_VOC -> it.type == BoardConfig.AIR_QUALITY_SENSOR_BME680
                             HomeUnitType.UNKNOWN -> true
                         }
                     }.map {
@@ -216,7 +211,7 @@ abstract class HomeUnitDetailViewModelBase<T : HomeUnit<Any>>(
         ?: hwUnitName.value.isNullOrEmpty() ?: true*/
     }
 
-    abstract fun additionalNoChangesMade(homeUnit:T): Boolean
+    abstract fun additionalNoChangesMade(homeUnit: T): Boolean
 
     fun actionEdit() {
         isEditMode.value = true
@@ -245,7 +240,7 @@ abstract class HomeUnitDetailViewModelBase<T : HomeUnit<Any>>(
         }
     }
 
-    abstract fun restoreAdditionalHomeUnitInitialStates(homeUnit:T)
+    abstract fun restoreAdditionalHomeUnitInitialStates(homeUnit: T)
 
     /**
      * first return param is message Res Id, second return param if present will show dialog with this resource Id as a confirm button text, if not present Snackbar will be show.
@@ -331,27 +326,8 @@ abstract class HomeUnitDetailViewModelBase<T : HomeUnit<Any>>(
         showProgress.value = true
         return homeRepository.saveHomeUnit(
             getHomeUnitToSave()
-        )?.let { task ->
-            if (type.value == HomeUnitType.HOME_LIGHT_SWITCHES) {
-                task.continueWithTask {
-                    homeRepository.saveUnitTask(
-                        type.value, name.value,
-                        UnitTask(
-                            name = name.value,
-                            homeUnitsList = listOf(
-                                UnitTaskHomeUnit(
-                                    type.value.toString(),
-                                    name.value
-                                )
-                            )
-                        )
-                    ) ?: it
-                }
-            } else {
-                task
-            }
-        }
+        )
     }
 
-    abstract fun getHomeUnitToSave(): HomeUnit<Any>
+    abstract fun getHomeUnitToSave(): T
 }
