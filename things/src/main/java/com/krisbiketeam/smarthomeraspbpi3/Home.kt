@@ -769,7 +769,7 @@ class Home(
                     )
                     if (!doNotReStartHwUnit) {
                         scope.launch {
-                            delay(500)
+                            delay(5000)
                             triple.third?.let {
                                 hwUnitStart(it)
                             }
@@ -783,7 +783,7 @@ class Home(
             )
             if (!doNotReStartHwUnit) {
                 scope.launch {
-                    delay(100)
+                    delay(1000)
                     hwUnitStart(it)
                 }
             }
