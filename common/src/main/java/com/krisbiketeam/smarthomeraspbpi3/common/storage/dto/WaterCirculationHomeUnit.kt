@@ -92,7 +92,12 @@ data class WaterCirculationHomeUnit<T : Any>(
                 temperatureLastUpdateTime = updateTime
                 temperatureThreshold?.let { threshold ->
                     temperatureValue?.let { temperature ->
-                        if (temperature > threshold) {
+                        val timeoutCondition: Boolean = actionTimeout?.let { timeout ->
+                            motionLastUpdateTime?.let { motionTime ->
+                                motionTime + timeout < updateTime
+                            } ?: false
+                        } ?: false
+                        if (temperature > threshold || timeoutCondition) {
                             // turn Off circulation
                             booleanApplyAction(false, type, name, name, false)
                         }
