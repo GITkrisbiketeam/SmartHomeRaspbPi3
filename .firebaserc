@@ -1,0 +1,6 @@
+{
+  "projects": {
+    "default": "smarthomeraspbpi3",
+    "staging": "smarthomeraspbpi3"
+  }
+}

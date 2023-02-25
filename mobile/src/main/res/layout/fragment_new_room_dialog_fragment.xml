@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <import type="android.view.View" />
+
+        <variable
+            name="viewModel"
+            type="com.krisbiketeam.smarthomeraspbpi3.viewmodels.NewRoomDialogViewModel" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="16dp">
+
+        <TextView
+            android:id="@+id/new_room_name_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/new_room_enter_title"
+            android:textSize="18sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <EditText
+            android:id="@+id/new_room_name_edit_text"
+            style="@style/EditTextStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="@string/add_edit_home_unit_text_title_hint"
+            android:text="@={viewModel.roomName}"
+            android:textSize="18sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/new_room_name_title"
+            tools:ignore="Autofill,TextFields"
+            tools:text="Note text" />
+
+        <TextView
+            android:id="@+id/new_room_name_already_used_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@{viewModel.saveMessage}"
+            android:textColor="@android:color/holo_red_light"
+            android:textSize="12sp"
+            android:visibility="@{viewModel.saveMessage != null ? View.VISIBLE : View.GONE}"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/new_room_name_edit_text" />
+
+        <Button
+            android:id="@+id/cancel_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@android:string/cancel"
+            android:layout_marginEnd="@dimen/margin_normal"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/confirm_button"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <Button
+            android:id="@+id/confirm_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@android:string/ok"
+            android:enabled="@{viewModel.saveMessage == null}"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/cancel_button" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

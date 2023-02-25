@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <group>
+        <item
+            android:id="@+id/action_clear_all"
+            android:title="@string/menu_clear_all"
+            app:showAsAction="never" />
+        <item
+            android:id="@+id/action_date_picker"
+            android:title="@string/menu_date_picker"
+            app:showAsAction="never" />
+        <item
+            android:id="@+id/action_remote_log_level"
+            android:title="@string/menu_remote_log"
+            app:showAsAction="never">
+            <menu>
+                <group android:checkableBehavior="all" />
+            </menu>
+        </item>
+    </group>
+
+</menu>

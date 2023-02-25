@@ -1,18 +1,37 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
+apply plugin: 'androidx.navigation.safeargs.kotlin'
+// Apply the Crashlytics Gradle plugin
+apply plugin: 'com.google.firebase.crashlytics'
+// Apply the Performance Monitoring plugin
+apply plugin: 'com.google.firebase.firebase-perf'
+apply plugin: 'koin'
 
 android {
-    buildToolsVersion buildToolsVersion
+    signingConfigs {
+        debug {
+            storeFile file('./../debug.keystore')
+            storePassword 'krisbiketeam'
+            keyAlias 'krisbiketeam'
+            keyPassword 'krisbiketeam'
+        }
+        test {
+            storeFile file('/Users/krzysztofplotczyk/workspace/SmartHomeRaspbPi3/Untitled')
+            storePassword 'testpassword'
+            keyAlias 'test'
+            keyPassword 'testpassword'
+        }
+    }
     compileSdkVersion compileWithSDK
     defaultConfig {
         applicationId "com.krisbiketeam.smarthomeraspbpi3"
         minSdkVersion minSdkVersionApp
         targetSdkVersion targetedSDK
-        versionCode 1
-        versionName "1.0"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        versionCode 2
+        versionName "2.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        signingConfig signingConfigs.test
     }
     buildTypes {
         release {
@@ -20,32 +39,83 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-    lintOptions {
-        disable 'UnusedResources'
+
+    kotlinOptions {
+        jvmTarget = "1.8"
     }
+
+    buildFeatures {
+        // Determines whether to generate a BuildConfig class.
+        buildConfig = true
+        // Determines whether to support View Binding.
+        // Note that the viewBinding.enabled property is now deprecated.
+        viewBinding = true
+        // Determines whether to support Data Binding.
+        // Note that the dataBinding.enabled property is now deprecated.
+        dataBinding = true
+        // Determines whether to generate binder classes for your AIDL files.
+        aidl = true
+    }
+
+    useLibrary 'android.test.mock'
 }
 
 dependencies {
     implementation project(':common')
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
+
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinxCoroutinesAndroid"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-reactive:$kotlinxCoroutinesReactive"
+
+    implementation 'org.reactivestreams:reactive-streams:1.0.3'
 
     // Google dependencies
-    implementation "com.android.support:design:$supportLibraryVersion"
-    implementation "com.android.support:support-v4:$supportLibraryVersion"
-    implementation "com.android.support:appcompat-v7:$supportLibraryVersion"
-    implementation "com.android.support.constraint:constraint-layout:$contraintLayoutVersion"
-    implementation "com.google.android.gms:play-services-base:$playServicesVersion"
-    implementation "com.google.firebase:firebase-core:$firebaseCoreVersion"
-    implementation "com.google.firebase:firebase-database:$firebaseDatabaseVersion"
-    implementation "com.google.firebase:firebase-auth:$firebaseAuthVersion"
-    implementation "android.arch.lifecycle:extensions:$androidArchComponentsVersion"
+    implementation "androidx.legacy:legacy-support-v4:$androidxLegacySupportV4"
+    implementation "androidx.appcompat:appcompat:$androidxAppcompatVersion"
+    implementation "androidx.preference:preference-ktx:$androidxPreferenceVersion"
+    implementation "androidx.constraintlayout:constraintlayout:$androidxConstraintLayoutVersion"
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycleKtxVersion"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycleKtxVersion"
+    implementation "androidx.lifecycle:lifecycle-runtime-ktx:$lifecycleKtxVersion"
 
-    implementation "com.squareup.moshi:moshi:$moshiVersion"
+
+    implementation "com.google.android.material:material:$androidMaterialVesrion"
+    implementation "com.google.android.gms:play-services-base:$playServicesVersion"
+
+    implementation platform("com.google.firebase:firebase-bom:$firebaseBom")
+    implementation 'com.google.firebase:firebase-core'
+    implementation 'com.google.firebase:firebase-database-ktx'
+    implementation 'com.google.firebase:firebase-auth-ktx'
+    implementation 'com.google.firebase:firebase-messaging'
+    // Recommended: Add the Firebase SDK for Google Analytics.
+    implementation 'com.google.firebase:firebase-analytics-ktx'
+    // Add the Firebase Crashlytics SDK.
+    implementation 'com.google.firebase:firebase-crashlytics-ktx'
+    // Add the dependency for the Performance Monitoring library
+    implementation 'com.google.firebase:firebase-perf-ktx'
+
+    implementation "androidx.navigation:navigation-fragment-ktx:$navigationVersion"
+    implementation "androidx.navigation:navigation-ui-ktx:$navigationVersion"
+
+    // Koin AndroidX Scope features
+    implementation "io.insert-koin:koin-androidx-scope:$koin_version"
+    // Koin AndroidX ViewModel features
+    implementation "io.insert-koin:koin-androidx-viewmodel:$koin_version"
+
     implementation "com.jakewharton.timber:timber:$timberVersion"
 
+    implementation "com.squareup.moshi:moshi:$moshiVersion"
+
+    implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
+
     testImplementation "junit:junit:$junitVersion"
-    androidTestImplementation "com.android.support.test:runner:$testRunnerVersion"
-    androidTestImplementation "com.android.support.test.espresso:espresso-core:$espressoVersion"
+
+    testImplementation "org.koin:koin-test:$koin_version"
+    testImplementation "org.mockito:mockito-core:$mockito_version"
+    testImplementation 'androidx.arch.core:core-testing:2.1.0'
+
+    androidTestImplementation 'androidx.test:runner:1.2.0'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 }
 
-apply plugin: "com.google.gms.google-services"
+apply plugin: 'com.google.gms.google-services'

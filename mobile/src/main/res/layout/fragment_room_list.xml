@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <variable
+            name="viewModel"
+            type="com.krisbiketeam.smarthomeraspbpi3.viewmodels.RoomListViewModel" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fitsSystemWindows="true"
+        tools:context="com.krisbiketeam.smarthomeraspbpi3.ui.RoomListFragment">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/room_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="@dimen/margin_small"
+            tools:context="com.krisbiketeam.smarthomeraspbpi3.ui.HomeActivity"
+            tools:listitem="@layout/fragment_room_list_item_with_home_unit_card" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fab"
+            style="@style/Widget.MaterialComponents.FloatingActionButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/fab_margin"
+            android:tint="@android:color/white"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:showIf="@{viewModel.isEditMode}"
+            app:srcCompat="@drawable/ic_plus" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</layout>

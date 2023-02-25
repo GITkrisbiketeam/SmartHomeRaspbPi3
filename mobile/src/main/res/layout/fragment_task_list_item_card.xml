@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <import type="android.view.View" />
+        <import type="com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType" />
+
+        <variable
+            name="clickListener"
+            type="android.view.View.OnClickListener" />
+
+        <variable
+            name="value"
+            type="String"/>
+
+        <variable
+            name="taskModel"
+            type="com.krisbiketeam.smarthomeraspbpi3.model.TaskListAdapterModel" />
+    </data>
+
+    <com.google.android.material.card.MaterialCardView
+        style="@style/MaterialCardView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/margin_small"
+        android:backgroundTint='@{taskModel.error ? @color/colorError : @color/colorOnError}'
+        >
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="?attr/selectableItemBackground"
+            android:onClick="@{clickListener}">
+            <!--app:imageFromUrl="@{roomName.imageUrl}"-->
+
+            <ImageView
+                android:id="@+id/task_item_image"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:contentDescription="@string/room_list_item_image"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_launcher_foreground"
+                app:layout_constraintDimensionRatio="1:1"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/task_item_title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/margin_normal"
+                android:text="@{taskModel.homeUnit != null ? taskModel.homeUnit.name : null}"
+                android:textAppearance="?attr/textAppearanceHeadline5"
+                android:maxLines="2"
+                android:gravity="center_horizontal"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:text="Room" />
+
+            <TextView
+                android:id="@+id/task_item_item1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/margin_normal"
+                android:layout_marginTop="@dimen/margin_normal"
+                android:layout_marginBottom="@dimen/margin_normal"
+                android:text='@{value}'
+                android:textAppearance="?attr/textAppearanceHeadline5"
+                android:gravity="center_horizontal"
+                app:layout_constraintEnd_toStartOf="@+id/task_item_value_switch"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/task_item_title"
+                app:layout_goneMarginEnd="@dimen/margin_normal"
+                tools:text="false" />
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/task_item_value_switch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/margin_small"
+                android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                app:setChecked="@{taskModel.homeUnit.value}"
+                android:visibility="@{HomeUnitType.HOME_LIGHT_SWITCHES.equals(taskModel.homeUnit.type) || HomeUnitType.HOME_WATER_CIRCULATION.equals(taskModel.homeUnit.type) || HomeUnitType.HOME_ACTUATORS.equals(taskModel.homeUnit.type) || HomeUnitType.HOME_BLINDS.equals(taskModel.homeUnit.type) ? View.VISIBLE : View.GONE}"
+                app:layout_constraintBottom_toBottomOf="@id/task_item_item1"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/task_item_item1"
+                app:layout_constraintTop_toTopOf="@id/task_item_item1"  />
+
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </com.google.android.material.card.MaterialCardView>
+</layout>

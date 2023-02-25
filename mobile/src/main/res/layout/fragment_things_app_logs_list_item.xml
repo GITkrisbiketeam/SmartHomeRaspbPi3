@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_small"
+        android:layout_marginBottom="@dimen/margin_small"
+        android:background="?attr/selectableItemBackground">
+
+        <TextView
+            android:id="@+id/remote_log_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxEms="10"
+            android:maxLines="1"
+            android:text="@{remoteLog.time}"
+            android:textAppearance="?attr/textAppearanceListItem"
+            android:textColor="@{textColor}"
+            app:layout_constraintEnd_toStartOf="@+id/remote_log_priority"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="2022-02-04 09:56:36.099" />
+
+        <TextView
+            android:id="@+id/remote_log_priority"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/margin_small"
+            android:text="@{remoteLog.priority}"
+            android:textAppearance="?attr/textAppearanceListItem"
+            android:textColor="@{textColor}"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/remote_log_time"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="DEBUG" />
+
+        <TextView
+            android:id="@+id/remote_log_tag"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@{remoteLog.tag}"
+            android:textAppearance="?attr/textAppearanceListItem"
+            android:textColor="@{textColor}"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/remote_log_time"
+            tools:text="@tools:sample/lorem" />
+
+        <TextView
+            android:id="@+id/remote_log_message_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/fragment_things_app_logs_item_message"
+            android:textAppearance="?attr/textAppearanceListItem"
+            android:textColor="@{textColor}"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/remote_log_tag" />
+
+        <TextView
+            android:id="@+id/remote_log_message"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@{remoteLog.message}"
+            android:textAppearance="?attr/textAppearanceListItem"
+            android:textColor="@{textColor}"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/remote_log_message_title"
+            tools:text="@tools:sample/lorem/random" />
+
+        <TextView
+            android:id="@+id/remote_log_throwable_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/fragment_things_app_logs_item_exception"
+            android:textAppearance="?attr/textAppearanceListItem"
+            android:textColor="@{textColor}"
+            android:visibility='@{remoteLog.throwable == null ? View.GONE : View.VISIBLE}'
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/remote_log_message" />
+
+        <TextView
+            android:id="@+id/remote_log_throwable"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@{remoteLog.throwable}"
+            android:textAppearance="?attr/textAppearanceListItem"
+            android:textColor="@{textColor}"
+            android:visibility="@{remoteLog.throwable == null ? View.GONE : View.VISIBLE}"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/remote_log_throwable_title"
+            tools:text="@tools:sample/lorem" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <data>
+
+        <import type="android.view.View" />
+
+        <variable
+            name="remoteLog"
+            type="com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.RemoteLog" />
+
+        <variable
+            name="textColor"
+            type="Integer" />
+    </data>
+</layout>

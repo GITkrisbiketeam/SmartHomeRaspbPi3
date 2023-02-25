@@ -3,35 +3,50 @@ package com.krisbiketeam.smarthomeraspbpi3
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
-import android.support.v4.app.ActivityCompat
-import android.support.v7.app.AppCompatActivity
 import android.widget.Toast
-import com.krisbiketeam.data.storage.NotSecureStorage
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import com.google.android.gms.common.ConnectionResult
+import com.google.android.gms.common.GoogleApiAvailability
+import com.krisbiketeam.smarthomeraspbpi3.ui.HomeActivity
+import timber.log.Timber
+
+private const val PERMISSION_REQUEST_ID = 999
 
 class LoadActivity : AppCompatActivity() {
 
-    companion object {
-        private const val PERMISSION_REQUEST_ID = 999
-    }
-
-    private lateinit var secureStorage: NotSecureStorage
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        secureStorage = NotSecureStorage(this)
-        requestPermissions()
+        val status = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(this)
+        Timber.d("PlayServicesAvailable status: $status")
+        if (status != ConnectionResult.SUCCESS) {
+            Timber.d("Missing or outdated Play Services Version")
+            GoogleApiAvailability.getInstance().makeGooglePlayServicesAvailable(this)
+                    .addOnCompleteListener {
+                        Timber.d("Play Services updated task: ${it.isSuccessful}")
+                        if (it.isSuccessful) {
+                            requestPermissions()
+                        } else {
+                            Toast.makeText(this, "You need to install or update Play Services!", Toast.LENGTH_SHORT)
+                                    .show()
+                        }
+                    }
+        } else {
+            requestPermissions()
+        }
     }
 
     override fun onRequestPermissionsResult(requestCode: Int,
                                             permissions: Array<String>,
                                             grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         when (requestCode) {
             PERMISSION_REQUEST_ID -> {
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    loadNextActivity()
+                    callHomeActivity()
                 } else {
                     showWarning()
                 }
@@ -40,14 +55,23 @@ class LoadActivity : AppCompatActivity() {
     }
 
     private fun requestPermissions() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-            loadNextActivity()
+        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN)
+                        == PackageManager.PERMISSION_GRANTED) || (Build.VERSION.SDK_INT < Build.VERSION_CODES.S && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                        == PackageManager.PERMISSION_GRANTED)) {
+            callHomeActivity()
         } else {
             showWarning()
-            ActivityCompat.requestPermissions(this,
-                    arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION),
-                    PERMISSION_REQUEST_ID)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                ActivityCompat.requestPermissions(this,
+                        arrayOf(Manifest.permission.BLUETOOTH_SCAN,
+                                Manifest.permission.BLUETOOTH_CONNECT,
+                                Manifest.permission.ACCESS_FINE_LOCATION),
+                        PERMISSION_REQUEST_ID)
+            } else {
+                ActivityCompat.requestPermissions(this,
+                        arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                        PERMISSION_REQUEST_ID)
+            }
         }
     }
 
@@ -55,15 +79,8 @@ class LoadActivity : AppCompatActivity() {
         Toast.makeText(this, "You need to provide permissions!", Toast.LENGTH_SHORT).show()
     }
 
-    private fun loadNextActivity() {
-        when {
-            secureStorage.isAuthenticated() -> callActivity(MobileActivity::class.java)
-            else -> callActivity(LoginActivity::class.java)
-        }
-    }
-
-    private fun callActivity(clazz: Class<*>) {
-        val intent = Intent(this, clazz)
+    private fun callHomeActivity() {
+        val intent = Intent(this, HomeActivity::class.java)
         startActivity(intent)
         finish()
     }

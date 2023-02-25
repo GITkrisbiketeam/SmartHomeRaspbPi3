@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <NumberPicker
+        android:id="@+id/dialog_number_picker_hours"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/dialog_number_picker_minutes"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/dialog_number_picker_hours_text" />
+
+    <NumberPicker
+        android:id="@+id/dialog_number_picker_minutes"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/dialog_number_picker_seconds"
+        app:layout_constraintStart_toEndOf="@id/dialog_number_picker_hours"
+        app:layout_constraintTop_toBottomOf="@id/dialog_number_picker_minutes_text" />
+
+    <NumberPicker
+        android:id="@+id/dialog_number_picker_seconds"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/dialog_number_picker_minutes"
+        app:layout_constraintTop_toBottomOf="@id/dialog_number_picker_seconds_text" />
+
+    <TextView
+        android:id="@+id/dialog_number_picker_hours_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_small"
+        android:text="@string/widget_time_duration_picker_hours"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toTopOf="@+id/dialog_number_picker_hours"
+        app:layout_constraintEnd_toEndOf="@+id/dialog_number_picker_hours"
+        app:layout_constraintStart_toStartOf="@+id/dialog_number_picker_hours"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/dialog_number_picker_seconds_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_small"
+        android:text="@string/widget_time_duration_picker_seconds"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toTopOf="@+id/dialog_number_picker_seconds"
+        app:layout_constraintEnd_toEndOf="@+id/dialog_number_picker_seconds"
+        app:layout_constraintStart_toStartOf="@+id/dialog_number_picker_seconds"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/dialog_number_picker_minutes_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_small"
+        android:text="@string/widget_time_duration_picker_minutes"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toTopOf="@+id/dialog_number_picker_minutes"
+        app:layout_constraintEnd_toEndOf="@+id/dialog_number_picker_minutes"
+        app:layout_constraintStart_toStartOf="@+id/dialog_number_picker_minutes"
+        app:layout_constraintTop_toTopOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

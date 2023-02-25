@@ -1,22 +1,216 @@
-<resources>
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">SmartHome Raspberry Pi3</string>
-    <string name="title_activity_login">Sign in</string>
 
-    <!-- Strings related to login -->
+    <!--
+            This is the name that users will see when interacting with this channel.
+            It should describe the category of notifications that will be sent through this channel
+         -->
+    <string name="default_notification_channel_name"
+            translatable="true"
+            tools:keep="@string/default_notification_channel_name">RSPi3</string>
+    <string name="default_notification_channel_id"
+            translatable="false">fcm_default_channel</string>
+
+    <!-- Strings related to email -->
     <string name="prompt_email">Email</string>
-    <string name="prompt_password">Password (optional)</string>
+    <string name="prompt_wifi">SSID Name</string>
+    <string name="prompt_password">Password</string>
     <string name="action_sign_in">Sign in or register</string>
     <string name="action_sign_in_short">Sign in</string>
+    <string name="action_next">Next</string>
     <string name="error_invalid_email">This email address is invalid</string>
     <string name="error_invalid_password">This password is too short</string>
     <string name="error_incorrect_password">This password is incorrect</string>
     <string name="error_field_required">This field is required</string>
-    <string name="permission_rationale">"Contacts permissions are needed for providing email
-        completions."
-    </string>
-    <string name="led_status_text">Led Status</string>
-    <string name="current_temperature_text">Current temperature</string>
-    <string name="current_pressure_text">Current Pressure</string>
-    <string name="message_edit_hint_text">abc</string>
-    <string name="send_button_text">Send text</string>
+
+    <string name="settings_title">Settings</string>
+    <string name="settings_wifi_fragment_key">wifi_screen_key</string>
+    <string name="settings_login_fragment_key">login_screen_key</string>
+    <string name="settings_home_fragment_key">home_screen_key</string>
+    <string name="settings_hw_unit_list_fragment_key">hw_unit_list_key</string>
+    <string name="settings_hw_unit_error_event_list_fragment_key">hw_unit_error_event_list_key</string>
+    <string name="settings_things_app_logs_fragment_key">things_app_logs_fragment_key</string>
+    <string name="settings_restart_rpi_things_app">restart_rpi_things_app</string>
+    <string name="settings_alarm_enabled_key">alarmEnabledKey</string>
+    <string name="settings_restarting">Restarting…</string>
+
+    <string name="settings_wifi_title">WiFi Connect</string>
+    <string name="settings_login_title">Firebase Login</string>
+    <string name="settings_home_title">Setup Home</string>
+    <string name="settings_login_remote_device_login_checkbox_text">Remote Device Login</string>
+
+    <string name="navigation_drawer_header_content_description">navigation_drawer_header_content_description</string>
+
+    <string name="menu_add">Add</string>
+    <string name="menu_delete">Delete</string>
+    <string name="menu_edit">Edit</string>
+    <string name="menu_save">Save</string>
+    <string name="menu_discard">Discard</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="overwrite">Overwrite</string>
+    <string name="menu_clear_all">Clear All</string>
+    <string name="menu_restart_all">Restart All</string>
+    <string name="menu_finish">Finish</string>
+    <string name="menu_filter">Filter</string>
+    <string name="menu_date_picker">Pick Date</string>
+    <string name="menu_remote_log">Things Logging</string>
+
+    <string name="menu_navigation_room_list">Room List</string>
+    <string name="menu_navigation_task_list">Task List</string>
+    <string name="menu_navigation_hw_unit_list">Hw Unit List</string>
+    <string name="menu_navigation_settings">Settings</string>
+    <string name="menu_navigation_logs">Logs</string>
+
+    <string name="add_edit_home_unit_hw_unit_title">Add/Edit HW Unit</string>
+    <string name="add_edit_home_unit_text_name">Name:</string>
+    <string name="add_edit_home_unit_text_title_hint">Name</string>
+    <string name="add_edit_home_unit_text_unit_type_spinner_prompt">Select Unit Type:</string>
+    <string name="add_edit_home_unit_text_unit_type_title">Unit Type:</string>
+    <string name="add_edit_home_unit_text_room_spinner_prompt">Select Room:</string>
+    <string name="add_edit_home_unit_text_room_title">Room:</string>
+    <string name="add_edit_home_unit_text_hw_unit_title">Hardware Unit:</string>
+    <string name="add_edit_home_unit_text_second_hw_unit_title">Switch hardware Unit:</string>
+    <string name="add_edit_home_unit_text_motion_hw_unit_title">Motion hardware Unit:</string>
+    <string name="add_edit_home_unit_text_temperature_hw_unit_title">Temperature hardware Unit:</string>
+    <string name="add_edit_home_unit_text_circulation_duration_title">Circulation duration:</string>
+    <string name="add_edit_home_unit_text_value">Value: </string>
+    <string name="add_edit_home_unit_text_second_value">Switch value: </string>
+    <string name="add_edit_home_unit_text_motion_value">Motion value: </string>
+    <string name="add_edit_home_unit_text_temperature_value">Temperature value: </string>
+    <string name="add_edit_home_unit_text_min_value">Min value: </string>
+    <string name="add_edit_home_unit_text_max_value">Max value: </string>
+    <string name="add_edit_home_unit_text_task_list_title">Unit Task List:</string>
+    <string name="add_edit_home_unit_name_already_used">This Home Unit Name is already used, please use different one.</string>
+    <string name="add_edit_home_unit_save_with_delete">Home Unit Name or Type was changed Dou you want to overwrite them?</string>
+    <string name="add_edit_home_unit_overwrite_changes">Do you want to overwrite changes?</string>
+    <string name="add_edit_home_unit_save_changes">Do you want to save new HomeUnit?</string>
+    <string name="add_edit_home_unit_empty_name">Home Unit name cannot be empty</string>
+    <string name="add_edit_home_unit_empty_unit_type">Unit Type cannot be empty</string>
+    <string name="add_edit_home_unit_empty_unit_hw_unit">Hardware Unit cannot be empty</string>
+    <string name="add_edit_home_unit_empty_unit_second_hw_unit">Switch hardware Unit cannot be empty</string>
+    <string name="add_edit_home_unit_empty_unit_temperature_hw_unit">Temperature hardware Unit cannot be empty</string>
+    <string name="add_edit_home_unit_delete_home_unit_prompt">Do you really want to delete this Home Unit?</string>
+    <string name="add_edit_home_unit_notify_firebase_switch_text">Notify remote App about this Home Unit changes?</string>
+    <string name="add_edit_home_unit_show_in_task_list_switch_text">Show in Task List</string>
+    <string name="add_edit_home_unit_discard_changes">Discard any changes?</string>
+    <string name="add_edit_home_unit_no_changes">No changes were made.</string>
+    <string name="add_edit_home_unit_task_list_add_new_task">Add New Unit Task</string>
+
+    <string name="room_list_title">Rooms List</string>
+    <string name="room_list_item_image">room_list_item_image</string>
+
+    <string name="task_list_title">Tasks List</string>
+
+    <string name="new_room_dialog_title">Add New Room</string>
+
+    <string name="room_details_title">Room details</string>
+    <string name="room_detail_list_item_image">room_detail_list_item_image</string>
+    <string name="room_detail_image_content_description">room_detail_image_content_description</string>
+
+    <string name="home_unit_detail_title">Home Unit Details</string>
+
+    <string name="logs_title">Logs</string>
+
+    <string name="things_app_logs_title">Things App Logs</string>
+
+    <string name="unit_task_title">Unit Task Details</string>
+
+    <string name="hw_unit_list_title">Hw Unit List</string>
+
+    <string name="hw_unit_error_event_list_title">Hw Unit Error Event List</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="logs_hello_blank_fragment">Hello blank fragment</string>
+
+
+    <string name="unit_task_text_name_title">Name:</string>
+    <string name="unit_task_text_name_prompt">Enter Task Name</string>
+    <string name="unit_task_text_home_unit_type_title">Home Unit Type:</string>
+    <string name="unit_task_text_home_unit_type_select_spinner_prompt">Select Home Unit Type</string>
+    <string name="unit_task_text_home_unit_name_title">Home Unit Name:</string>
+    <string name="unit_task_text_home_unit_nam_select_spinner_prompt">Select Home Unit</string>
+    <string name="unit_task_text_hw_unit_name_title"
+            tools:keep="@string/unit_task_text_hw_unit_name_title">Hw Unit Name:</string>
+    <string name="unit_task_text_hw_unit_select_spinner_prompt"
+            tools:keep="@string/unit_task_text_hw_unit_select_spinner_prompt">Select Hw Unit</string>
+    <string name="unit_task_text_inverse_switch_title">Inverse trigger logic</string>
+    <string name="unit_task_text_reset_on_inverse_trigger_switch_title">Reset state on inverse Trigger</string>
+    <string name="unit_task_text_periodically_switch_title">Periodically</string>
+    <string name="unit_task_text_periodically_only_hw_switch_title">Only change HW Unit Periodically</string>
+    <string name="unit_task_text_trigger_title">Trigger Type:</string>
+    <string name="unit_task_text_trigger_select_spinner_prompt">Select Trigger Type</string>
+    <string name="unit_task_text_delay_title">Trigger delay:</string>
+    <string name="unit_task_text_delay">Set Trigger delay</string>
+    <string name="unit_task_text_duration_title">Trigger duration:</string>
+    <string name="unit_task_text_duration">Set Trigger duration</string>
+    <string name="unit_task_text_start_time_title">Start Time:</string>
+    <string name="unit_task_text_start_time">Set Start Time</string>
+    <string name="unit_task_text_end_time_title">End Time:</string>
+    <string name="unit_task_text_end_time">Set End Time</string>
+    <string name="unit_task_text_threshold_title">Threshold:</string>
+    <string name="unit_task_text_threshold_prompt">Enter Threshold Value</string>
+    <string name="unit_task_text_hysteresis_title">Hysteresis:</string>
+    <string name="unit_task_text_hysteresis_prompt">Enter Hysteresis Value</string>
+    <string name="unit_task_text_disabled_switch_title">Disable this UnitTask</string>
+
+    <string name="unit_task_empty_name_unit_or_hw">Empty Unit Task, please fill in required fields</string>
+    <string name="unit_task_empty_home_unit_type">Empty Home Unit Type, please fill in required fields</string>
+    <string name="unit_task_empty_home_unit_name">Empty Home Unit Name, please fill in required fields</string>
+    <string name="unit_task_empty_name">Unit Task name cannot be empty</string>
+    <string name="unit_task_name_already_used">This Unit Task Name is already used, please use different one.</string>
+    <string name="unit_task_save_changes">Do you want to save new Unit Task?</string>
+    <string name="unit_task_error_empty_editing_unit_task">Could not load existing Unit Task</string>
+
+    <string name="add_edit_hw_unit_type_spinner_title">HwUnit Type</string>
+    <string name="add_edit_hw_unit_type_spinner_prompt">Select HW Unit Type:</string>
+    <string name="add_edit_hw_unit_name_title">HW Unit Name:</string>
+    <string name="add_edit_hw_unit_name_hint">Enter unique Name for this HW Unit</string>
+    <string name="add_edit_hw_unit_pin_name_title">Pin Name:</string>
+    <string name="add_edit_hw_unit_pin_name_spinner_prompt">Select Pin Name:</string>
+    <string name="add_edit_hw_unit_location_title">Location of HW Unit</string>
+    <string name="add_edit_hw_unit_location_hint">Enter Location of this HW Unit</string>
+    <string name="add_edit_hw_unit_soft_address_title">I2C Software Address:</string>
+    <string name="add_edit_hw_unit_soft_address_title_spinner_prompt">Select I2C Software Address:</string>
+    <string name="add_edit_hw_unit_pin_interrupt_title">I2C GPIO Pin Interrupt:</string>
+    <string name="add_edit_hw_unit_pit_interrupt_title_spinner_prompt">Select I2C GPIO Pin Interrupt:</string>
+    <string name="add_edit_hw_unit_pin_pull_up_title">Extended Pin PullUp Resistor?</string>
+    <string name="add_edit_hw_unit_pin_extender_io_pin_spinner_title">Extender pin Name</string>
+    <string name="add_edit_hw_unit_pin_extender_io_pin_spinner_prompt">Select I2C GPIO extender pin</string>
+    <string name="add_edit_hw_unit_pin_inverse_title">Extended Pin Inverse Logic?</string>
+    <string name="add_edit_hw_unit_empty_name">Hardware Unit Name cannot be empty</string>
+    <string name="add_edit_hw_unit_empty_location">Hardware Unit Location cannot be empty</string>
+    <string name="add_edit_hw_unit_empty_type">Hardware Unit Type cannot be empty</string>
+    <string name="add_edit_hw_unit_empty_pin_name">Hardware Unit Pin Name cannot be empty</string>
+    <string name="add_edit_hw_unit_empty_soft_address">Hardware Unit I2C Address cannot be empty</string>
+    <string name="add_edit_hw_unit_empty_io_pin">Hardware Unit Extender Pin Name cannot be empty</string>
+    <string name="add_edit_hw_unit_empty_pin_interrupt">Hardware Unit I2C GPIO Pin Interrupt cannot be empty</string>
+    <string name="add_edit_hw_unit_name_already_used">This Hw Unit Name is already used, please use different one.</string>
+    <string name="add_edit_hw_unit_save_with_delete">Hardware Unit Name was changed Dou you want to overwrite it?</string>
+    <string name="add_edit_hw_unit_refresh_rate_title">Refresh time rate:</string>
+    <string name="add_edit_hw_unit_refresh_rate">Set Refresh Rate</string>
+
+    <string name="new_room_enter_title">Enter new room title:</string>
+    <string name="new_room_name_already_used">This Room name is already used.</string>
+    <string name="new_room_empty_name">Room name cannot be empty</string>
+    <string name="home_name">Home name</string>
+    <string name="save_home_name">Save Home name</string>
+    <string name="cannot_setup_home_name">Could not setup remote Home Name</string>
+    <string name="nav_header_alarm_state_title">Alarm state:</string>
+
+    <string name="last_update_time">Updated at: %s</string>
+    <string name="widget_time_duration_picker_hours">Hours:</string>
+    <string name="widget_time_duration_picker_seconds">Seconds:</string>
+    <string name="widget_time_duration_picker_minutes">Minutes:</string>
+    <plurals name="last_update_time">
+        <item quantity="one">Updated at: %s, %d day ago</item>
+        <item quantity="other">Updated at: %s, %d days ago</item>
+    </plurals>
+
+    <string name="logs_fragment_no_data">Loading…</string>
+    <string name="fragment_things_app_logs_item_exception">Exception:</string>
+    <string name="fragment_things_app_logs_item_message">Message:</string>
+
+
 </resources>

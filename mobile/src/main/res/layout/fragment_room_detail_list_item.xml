@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+        <import type="android.view.View" />
+        <import type="com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType" />
+        <import type="com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository" />
+
+        <variable
+            name="clickListener"
+            type="android.view.View.OnClickListener"/>
+
+        <variable
+            name="homeUnit"
+            type="com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit"/>
+
+        <variable
+            name="value"
+            type="String"/>
+
+        <variable
+            name="lastUpdateTime"
+            type="String"/>
+        <variable
+            name="secondLastUpdateTime"
+            type="String"/>
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="@{clickListener}">
+
+        <ImageView
+            android:id="@+id/home_unit_item_image"
+            android:layout_width="@dimen/room_detail_list_item_image_size"
+            android:layout_height="@dimen/room_detail_list_item_image_size"
+            android:layout_marginTop="@dimen/margin_normal"
+            android:layout_marginBottom="@dimen/margin_normal"
+            android:layout_marginEnd="@dimen/margin_normal"
+            android:layout_marginStart="@dimen/margin_normal"
+            android:contentDescription="@string/room_detail_list_item_image"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_launcher_foreground"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"/>
+            <!--app:imageFromUrl="@{homeUnit.imageUrl}"-->
+
+
+        <TextView
+            android:id="@+id/home_unit_item_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/margin_normal"
+            android:layout_marginStart="@dimen/margin_small"
+            android:layout_marginTop="@dimen/margin_normal"
+            android:text="@{homeUnit.name}"
+            android:textAppearance="?attr/textAppearanceListItem"
+            app:layout_constraintEnd_toStartOf="@+id/home_unit_item_switch"
+            app:layout_constraintStart_toEndOf="@+id/home_unit_item_image"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Storage Unit"/>
+
+        <TextView
+                android:id="@+id/home_unit_item_value_update_time"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/margin_normal"
+                android:layout_marginStart="@dimen/margin_small"
+                android:layout_marginTop="@dimen/margin_small"
+                android:textAppearance="?attr/textAppearanceCaption"
+                android:text="@{lastUpdateTime}"
+                app:layout_constraintEnd_toStartOf="@+id/home_unit_item_switch"
+                app:layout_constraintStart_toEndOf="@+id/home_unit_item_image"
+                app:layout_constraintTop_toBottomOf="@+id/home_unit_item_title"
+                tools:text="Last Updated:"/>
+
+        <TextView
+                android:id="@+id/home_unit_item_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/margin_normal"
+                android:layout_marginStart="@dimen/margin_small"
+                android:layout_marginTop="@dimen/margin_small"
+                android:textAppearance="?attr/textAppearanceListItem"
+                android:text='@{value}'
+                app:layout_constraintStart_toEndOf="@+id/home_unit_item_image"
+                app:layout_constraintTop_toBottomOf="@+id/home_unit_item_value_update_time"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintHorizontal_chainStyle="packed"
+                tools:text="Value"/>
+
+        <TextView
+            android:id="@+id/home_unit_item_value_update_time_bottom"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/margin_normal"
+            android:layout_marginStart="@dimen/margin_small"
+            android:textAppearance="?attr/textAppearanceCaption"
+            android:text="@{secondLastUpdateTime}"
+            app:layout_constraintEnd_toStartOf="@+id/home_unit_item_switch"
+            app:layout_constraintStart_toEndOf="@+id/home_unit_item_value"
+            app:layout_constraintTop_toTopOf="@+id/home_unit_item_value"
+            app:layout_constraintBottom_toBottomOf="@+id/home_unit_item_value"
+            tools:text="Last Updated:"/>
+
+
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/home_unit_item_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            app:setChecked="@{homeUnit.value}"
+            android:visibility="@{HomeUnitType.HOME_LIGHT_SWITCHES.equals(homeUnit.type) || HomeUnitType.HOME_WATER_CIRCULATION.equals(homeUnit.type) || HomeUnitType.HOME_ACTUATORS.equals(homeUnit.type) || HomeUnitType.HOME_BLINDS.equals(homeUnit.type) ? View.VISIBLE : View.GONE}"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

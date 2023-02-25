@@ -1,18 +1,38 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
+// Apply the Crashlytics Gradle plugin
+apply plugin: 'com.google.firebase.crashlytics'
+// Apply the Performance Monitoring plugin
+apply plugin: 'com.google.firebase.firebase-perf'
+apply plugin: 'koin'
 
 android {
-    buildToolsVersion buildToolsVersion
+    signingConfigs {
+        debug {
+            storeFile file('./../debug.keystore')
+            storePassword 'krisbiketeam'
+            keyAlias 'krisbiketeam'
+            keyPassword 'krisbiketeam'
+        }
+    }
     compileSdkVersion compileWithSDK
     defaultConfig {
         applicationId "com.krisbiketeam.smarthomeraspbpi3"
         minSdkVersion minSdkVersionThings
         targetSdkVersion targetedSDK
-        versionCode 1
-        versionName "1.0"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        versionCode 2
+        versionName "2.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        externalNativeBuild {
+            cmake {
+                arguments "-DPROJECT_DIR=${rootProject.projectDir}"
+            }
+        }
+        ndk {
+            abiFilters 'armeabi-v7a'
+        }
+
     }
     buildTypes {
         release {
@@ -20,38 +40,75 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-    lintOptions {
-        disable 'UnusedResources'
+
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+
+    buildFeatures {
+        // Determines whether to generate a BuildConfig class.
+        buildConfig = true
+        // Determines whether to support View Binding.
+        // Note that the viewBinding.enabled property is now deprecated.
+        viewBinding = true
+        // Determines whether to support Data Binding.
+        // Note that the dataBinding.enabled property is now deprecated.
+        dataBinding = true
+        // Determines whether to generate binder classes for your AIDL files.
+        aidl = true
+    }
+    externalNativeBuild {
+        cmake {
+            path file('src/main/cpp/CMakeLists.txt')
+        }
     }
 }
 
 dependencies {
     implementation project(':common')
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:0.21"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinxCoroutinesAndroid"
     // Google dependencies
-    implementation "com.android.support:support-v4:$supportLibraryVersion"
-    implementation "com.android.support:appcompat-v7:$supportLibraryVersion"
-    implementation "com.google.android.gms:play-services-base:$playServicesVersion"
-    implementation "com.google.android.gms:play-services-nearby:$playServicesVersion"
-    implementation "com.google.firebase:firebase-core:$firebaseCoreVersion"
-    implementation "com.google.firebase:firebase-database:$firebaseDatabaseVersion"
-    implementation "com.google.firebase:firebase-auth:$firebaseAuthVersion"
-    implementation "android.arch.lifecycle:extensions:$androidArchComponentsVersion"
+    implementation "androidx.legacy:legacy-support-v4:$androidxLegacySupportV4"
+    implementation "androidx.appcompat:appcompat:$androidxAppcompatVersion"
+    implementation "androidx.constraintlayout:constraintlayout:$androidxConstraintLayoutVersion"
+    implementation "androidx.annotation:annotation:$androidxAnnotationVersion"
+    implementation "androidx.core:core-ktx:$androidxCoreKtx"
 
-    implementation "com.jakewharton.timber:timber:$timberVersion"
+    implementation "com.google.android.gms:play-services-base:$playServicesVersion"
+    implementation "com.google.android.gms:play-services-nearby:$playServicesNearbyVersion"
+
+    implementation platform("com.google.firebase:firebase-bom:$firebaseBom")
+    implementation 'com.google.firebase:firebase-core'
+    implementation 'com.google.firebase:firebase-database-ktx'
+    implementation 'com.google.firebase:firebase-auth-ktx'
+    // Add the Firebase Crashlytics SDK.
+    implementation 'com.google.firebase:firebase-crashlytics-ktx'
+    // Recommended: Add the Firebase SDK for Google Analytics.
+    implementation 'com.google.firebase:firebase-analytics-ktx'
+    // Add the dependency for the Performance Monitoring library
+    implementation 'com.google.firebase:firebase-perf-ktx'
+
+    implementation "io.insert-koin:koin-android:$koin_version"
+
     implementation "com.squareup.moshi:moshi:$moshiVersion"
+    implementation "com.jakewharton.timber:timber:$timberVersion"
+
     compileOnly "com.google.android.things:androidthings:$thingsVersion"
     implementation "com.google.android.things.contrib:driver-rainbowhat:$rainbowhatVersion"
+    implementation "com.knobtviker.android.things.contrib.community.driver:bme680:$bme680Version"
 
-    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    implementation 'com.jakewharton:process-phoenix:2.0.0'
+
     testImplementation "junit:junit:$junitVersion"
-}
 
-kotlin {
-    experimental {
-        coroutines "enable"
-    }
+    testImplementation 'com.google.android.things:androidthings:1.0'
+    testImplementation 'org.powermock:powermock-module-junit4:1.6.6'
+    testImplementation 'org.powermock:powermock-classloading-base:1.6.6'
+    testImplementation 'org.powermock:powermock-classloading-xstream:1.6.6'
+    testImplementation 'org.powermock:powermock-api-mockito:1.6.6'
+
+    androidTestImplementation 'androidx.test:runner:1.2.0'
 }
 
 apply plugin: "com.google.gms.google-services"

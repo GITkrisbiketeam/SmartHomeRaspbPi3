@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/room_list_fragment"
+        android:title="@string/menu_navigation_room_list"
+        android:enabled="true"
+        android:icon="@drawable/ic_baseline_other_houses_24"/>
+
+    <item
+        android:id="@+id/task_list_fragment"
+        android:title="@string/menu_navigation_task_list"
+        android:enabled="true"
+        android:icon="@drawable/ic_baseline_view_headline_24"/>
+</menu>

@@ -2,16 +2,20 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdkVersion 27
-
+    signingConfigs {
+        debug {
+            storeFile file('./../debug.keystore')
+            storePassword 'krisbiketeam'
+            keyAlias 'krisbiketeam'
+            keyPassword 'krisbiketeam'
+        }
+    }
+    compileSdkVersion compileWithSDK
     defaultConfig {
-        minSdkVersion 17
-        targetSdkVersion 27
-        versionCode 1
-        versionName "1.0"
+        minSdkVersion minSdkVersionApp
+        targetSdkVersion targetedSDK
 
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
@@ -21,19 +25,47 @@ android {
         }
     }
 
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
 }
 
 dependencies {
-    compileOnly "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
-    compileOnly "com.jakewharton.timber:timber:$timberVersion"
-    compileOnly "android.arch.lifecycle:extensions:$androidArchComponentsVersion"
-    implementation "com.android.support:support-v4:$supportLibraryVersion"
-    implementation "com.android.support:appcompat-v7:$supportLibraryVersion"
-    implementation "com.google.firebase:firebase-core:$firebaseCoreVersion"
-    implementation "com.google.firebase:firebase-database:$firebaseDatabaseVersion"
-    implementation "com.google.firebase:firebase-auth:$firebaseAuthVersion"
-    implementation "com.google.android.gms:play-services-base:$playServicesVersion"
-    implementation "com.google.android.gms:play-services-nearby:$playServicesVersion"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinxCoroutinesAndroid"
 
-    testImplementation 'junit:junit:4.12'
+    implementation "com.jakewharton.timber:timber:$timberVersion"
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycleKtxVersion"
+    implementation "androidx.lifecycle:lifecycle-process:$lifecycleKtxVersion"
+
+    implementation "androidx.legacy:legacy-support-v4:$androidxLegacySupportV4"
+    implementation "androidx.appcompat:appcompat:$androidxAppcompatVersion"
+    implementation "androidx.preference:preference-ktx:$androidxPreferenceVersion"
+
+    implementation "androidx.core:core-ktx:$androidxCoreKtx"
+    implementation "androidx.security:security-crypto:$androidxSecurityCrypto"
+
+    implementation "com.google.android.gms:play-services-base:$playServicesVersion"
+    implementation "com.google.android.gms:play-services-nearby:$playServicesNearbyVersion"
+
+    implementation platform("com.google.firebase:firebase-bom:$firebaseBom")
+    implementation 'com.google.firebase:firebase-core'
+    implementation 'com.google.firebase:firebase-database-ktx'
+    implementation 'com.google.firebase:firebase-auth-ktx'
+    // Recommended: Add the Firebase SDK for Google Analytics.
+    implementation 'com.google.firebase:firebase-analytics-ktx'
+
+    implementation "com.squareup.moshi:moshi:$moshiVersion"
+
+    implementation "com.google.android.things.contrib:driver-bmx280:$bmx280Version"
+    implementation "com.google.android.things:androidthings:$thingsVersion"
+
+    testImplementation "junit:junit:$junitVersion"
+    testImplementation 'com.google.android.things:androidthings:1.0'
+    testImplementation 'org.powermock:powermock-module-junit4:1.6.6'
+    testImplementation 'org.powermock:powermock-classloading-base:1.6.6'
+    testImplementation 'org.powermock:powermock-classloading-xstream:1.6.6'
+    testImplementation 'org.powermock:powermock-api-mockito:1.6.6'
+
+    androidTestImplementation 'androidx.test:runner:1.2.0'
 }
