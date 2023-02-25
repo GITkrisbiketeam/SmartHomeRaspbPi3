@@ -4,7 +4,9 @@ import androidx.annotation.StringDef
 import com.google.firebase.database.Exclude
 import kotlinx.coroutines.Job
 
-@Target(AnnotationTarget.VALUE_PARAMETER, AnnotationTarget.TYPE_PARAMETER)
+@Target(AnnotationTarget.VALUE_PARAMETER, AnnotationTarget.TYPE_PARAMETER,
+    AnnotationTarget.PROPERTY
+)
 @StringDef(BOTH, RISING_EDGE, FALLING_EDGE)
 @Retention(AnnotationRetention.SOURCE)
 annotation class TriggerType
@@ -39,4 +41,5 @@ data class UnitTask(var name: String = "",
     var taskJob: Job? = null
 }
 
+// TODO: can be changed to HomeUnitType enum??
 data class UnitTaskHomeUnit(val type:String = "", val name: String = "")

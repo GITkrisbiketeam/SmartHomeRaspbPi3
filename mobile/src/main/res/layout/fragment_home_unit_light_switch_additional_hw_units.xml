@@ -1,0 +1,45 @@
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+
+        <import type="android.view.View" />
+
+        <import type="com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType" />
+
+        <variable
+            name="viewModel"
+            type="com.krisbiketeam.smarthomeraspbpi3.viewmodels.HomeUnitLightSwitchDetailViewModel" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/switch_hw_unit_name_layout"
+            style="@style/LargeTitleDropDownOutlineInputLayoutStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/activity_horizontal_margin"
+            android:layout_marginTop="@dimen/margin_normal"
+            android:hint="@string/add_edit_home_unit_text_second_hw_unit_title"
+            app:endIconDropDownEnabled="@{viewModel.isEditMode}"
+            app:helperText="@string/add_edit_home_unit_text_room_spinner_prompt"
+            app:helperTextEnabled="@{viewModel.isEditMode}"
+            app:hintEnabled="true"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                android:id="@+id/second_hw_unit_name_spinner"
+                style="@style/EnabledColorMaterialAutoCompleteTextViewStyle"
+                android:clickable="@{viewModel.isEditMode}"
+                android:focusable="@{true}"
+                app:entriesAutoComplete="@{viewModel.switchHwUnitNameList}"
+                app:entriesUsed="@{true}"
+                app:entriesWithEmpty="@{true}"
+                app:value="@={viewModel.switchHwUnitName}" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

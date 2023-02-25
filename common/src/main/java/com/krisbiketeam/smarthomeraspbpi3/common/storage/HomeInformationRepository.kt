@@ -10,10 +10,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.getOnlyDateLocalTime
 import com.krisbiketeam.smarthomeraspbpi3.common.resetableLazy
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.*
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.*
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.flows.genericListReferenceFlow
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.flows.genericReferenceFlow
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.flows.getHomeUnitsFlow
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.flows.getHwUnitsFlow
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.flows.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import timber.log.Timber
@@ -290,7 +287,7 @@ class FirebaseHomeInformationRepository {
     /**
      *  Updates given @see[HomeUnit] value updateTime in DB
      */
-    fun updateHomeUnitValue(homeUnitType: String, homeUnitName: String, newVal: Any?): Task<Void>? {
+    fun updateHomeUnitValue(homeUnitType: HomeUnitType, homeUnitName: String, newVal: Any?): Task<Void>? {
         Timber.w("updateHomeUnitValue $homeUnitType $homeUnitName")
         return homePathReference?.let {
             Firebase.database.getReference("$it/$HOME_UNITS_BASE/$homeUnitType/$homeUnitName")
@@ -346,7 +343,7 @@ class FirebaseHomeInformationRepository {
     /**
      *  Saves/updates given @see[UnitTask] in DB
      */
-    fun saveUnitTask(homeUnitType: String, homeUnitName: String, unitTask: UnitTask): Task<Void>? {
+    fun saveUnitTask(homeUnitType: HomeUnitType, homeUnitName: String, unitTask: UnitTask): Task<Void>? {
         return homePathReference?.let {
             Firebase.database.getReference(
                     "$it/$HOME_UNITS_BASE/$homeUnitType/$homeUnitName/$HOME_UNIT_TASKS/${unitTask.name}")
@@ -357,7 +354,7 @@ class FirebaseHomeInformationRepository {
     /**
      *  Deletes given @see[UnitTask] from DB
      */
-    fun deleteUnitTask(homeUnitType: String, homeUnitName: String,
+    fun deleteUnitTask(homeUnitType: HomeUnitType, homeUnitName: String,
                        unitTask: UnitTask): Task<Void>? {
         return homePathReference?.let {
             Firebase.database.getReference(
@@ -581,9 +578,8 @@ class FirebaseHomeInformationRepository {
     fun hwUnitFlow(hwUnitName: String, closeOnEmpty: Boolean = false): Flow<HwUnit> {
         return if(hwUnitName.isEmpty()){
             emptyFlow()
-        }else {
+        } else {
             genericReferenceFlow(referenceHWUnits?.child(hwUnitName), closeOnEmpty)
-
         }
     }
 
@@ -665,26 +661,13 @@ class FirebaseHomeInformationRepository {
      * get Flow of @see[List<HomeUnit<Any>>] for listening to changes in entries in DB
      */
     @ExperimentalCoroutinesApi
-    fun homeUnitListFlow(unitType: String? = null): Flow<List<HomeUnit<Any>>> {
-        return homePathReference?.let { home ->
-            if (unitType != null) {
-                Firebase.database.getReference("$home/$HOME_UNITS_BASE/$unitType").let { reference ->
-                    genericListReferenceFlow(reference)
-                }
-            } else {
-                combine(HOME_STORAGE_UNITS.map { type ->
-                    Firebase.database.getReference("$home/$HOME_UNITS_BASE/$type").let { reference ->
-                        genericListReferenceFlow<HomeUnit<Any>>(reference)
-                    }
-                }) { types ->
-                    types.flatMap { it }
-                }
-            }
-        } ?: emptyFlow()
+    fun homeUnitListFlow(unitType: HomeUnitType = HomeUnitType.UNKNOWN): Flow<List<HomeUnit<Any>>> {
+        return getHomeUnitListFlow(homePathReference, unitType)
     }
 
     /**
      * get instance of a Flow with @see[HomeUnit] List changes for listening to changes in entries in DB
+     * this method properly maps HomeUnit impementations like [GenericHomeUnit] or [LightSwitchHomeUnit]
      */
     @ExperimentalCoroutinesApi
     fun homeUnitsFlow(): Flow<Pair<ChildEventType, HomeUnit<Any>>> {
@@ -692,13 +675,51 @@ class FirebaseHomeInformationRepository {
     }
 
     /**
-     * get Flow of @see[HomeUnit<Any>] for for given unit type and name for listening to changes
+     * get Flow of @see[GenericHomeUnit<Any>] for for given unit type and name for listening to changes
      * in entries in DB
      */
     @ExperimentalCoroutinesApi
-    fun homeUnitFlow(unitType: String, unitName: String, closeOnEmpty: Boolean = false): Flow<HomeUnit<Any>> {
+    fun genericHomeUnitFlow(unitType: HomeUnitType, unitName: String, closeOnEmpty: Boolean = false): Flow<GenericHomeUnit<Any>> {
         return homePathReference?.let {
             genericReferenceFlow(Firebase.database.getReference("$it/$HOME_UNITS_BASE/$unitType/$unitName"), closeOnEmpty)
+        } ?: emptyFlow()
+    }
+
+    /**
+     * get Flow of @see[GenericHomeUnit<Any>] for for given unit type and name for listening to changes
+     * in entries in DB
+     */
+    /*@ExperimentalCoroutinesApi
+    inline fun <reified T: HomeUnit<Any>> genericHomeUnitFlow1(unitType: HomeUnitType, unitName: String, closeOnEmpty: Boolean = false): Flow<T> {
+        return homePathReference?.let {
+            when(unitType){
+                HomeUnitType.HOME_LIGHT_SWITCHES ->         genericReferenceFlow(Firebase.database.getReference("$it/$HOME_UNITS_BASE/$unitType/$unitName"), closeOnEmpty)
+                else ->    genericReferenceFlow(Firebase.database.getReference("$it/$HOME_UNITS_BASE/$unitType/$unitName"), closeOnEmpty)
+
+
+            }
+        } ?: emptyFlow()
+    }*/
+
+    /**
+     * get Flow of @see[LightSwitchHomeUnit<Any>] for [HomeUnitType.HOME_LIGHT_SWITCHES] type and
+     * name for listening to changes in entries in DB
+     */
+    @ExperimentalCoroutinesApi
+    fun lightSwitchHomeUnitFlow(unitName: String, closeOnEmpty: Boolean = false): Flow<LightSwitchHomeUnit<Any>> {
+        return homePathReference?.let {
+            genericReferenceFlow(Firebase.database.getReference("$it/$HOME_UNITS_BASE/${HomeUnitType.HOME_LIGHT_SWITCHES}/$unitName"), closeOnEmpty)
+        } ?: emptyFlow()
+    }
+
+    /**
+     * get Flow of @see[LightSwitchHomeUnit<Any>] for [HomeUnitType.HOME_WATER_CIRCULATION] type and
+     * name for listening to changes in entries in DB
+     */
+    @ExperimentalCoroutinesApi
+    fun waterCirculationHomeUnitFlow(unitName: String, closeOnEmpty: Boolean = false): Flow<WaterCirculationHomeUnit<Any>> {
+        return homePathReference?.let {
+            genericReferenceFlow(Firebase.database.getReference("$it/$HOME_UNITS_BASE/${HomeUnitType.HOME_WATER_CIRCULATION}/$unitName"), closeOnEmpty)
         } ?: emptyFlow()
     }
 
@@ -708,7 +729,7 @@ class FirebaseHomeInformationRepository {
     /**
      * get Flow of Map<String, UnitTask> for listening to changes in specific HomeUnit UnitTask List entry in DB
      */
-    fun unitTaskListFlow(unitType: String, unitName: String): Flow<Map<String, UnitTask>> {
+    fun unitTaskListFlow(unitType: HomeUnitType, unitName: String): Flow<Map<String, UnitTask>> {
         return homePathReference?.let { home ->
             Firebase.database.getReference("$home/$HOME_UNITS_BASE/$unitType/$unitName/$HOME_UNIT_TASKS").let { reference ->
                 genericListReferenceFlow<UnitTask>(reference)

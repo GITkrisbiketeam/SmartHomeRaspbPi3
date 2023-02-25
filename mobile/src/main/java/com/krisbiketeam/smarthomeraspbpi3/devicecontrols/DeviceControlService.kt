@@ -17,8 +17,8 @@ import com.google.firebase.ktx.Firebase
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_ACTUATORS
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_LIGHT_SWITCHES
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.toHomeUnitType
 import com.krisbiketeam.smarthomeraspbpi3.ui.HomeActivity
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.GlobalScope
@@ -65,9 +65,16 @@ class DeviceControlService : ControlsProviderService() {
                 override fun request(count: Long) {
                     Timber.d("createPublisherForAllAvailable request $count")
                     job = GlobalScope.launch {
-                        combine(homeInformationRepository.homeUnitListFlow(HOME_LIGHT_SWITCHES), homeInformationRepository.homeUnitListFlow(HOME_ACTUATORS)) { lightSwitches, actuators ->
-                            Timber.i("createPublisherForAllAvailable lightSwitches: ${lightSwitches.size} actuators: ${actuators.size}")
+                        combine(
+                            homeInformationRepository.homeUnitListFlow(HomeUnitType.HOME_LIGHT_SWITCHES),
+                            homeInformationRepository.homeUnitListFlow(HomeUnitType.HOME_WATER_CIRCULATION),
+                            homeInformationRepository.homeUnitListFlow(HomeUnitType.HOME_ACTUATORS)
+                        ) { lightSwitches, waterCirculation, actuators ->
+                            Timber.i("createPublisherForAllAvailable lightSwitches: ${lightSwitches.size} waterCirculation: ${waterCirculation.size} actuators: ${actuators.size}")
                             lightSwitches.forEach { homeUnit ->
+                                flowSubscriber.onNext(getStatelessControl(homeUnit))
+                            }
+                            waterCirculation.forEach { homeUnit ->
                                 flowSubscriber.onNext(getStatelessControl(homeUnit))
                             }
                             actuators.forEach { homeUnit ->
@@ -85,7 +92,7 @@ class DeviceControlService : ControlsProviderService() {
         val controlsFlowList: List<kotlinx.coroutines.flow.Flow<Control>> = controlIds.map { controlId ->
             Timber.e("createPublisherFor controlId: $controlId")
             val (type, name) = controlId.getHomeUnitTypeAndName()
-            homeInformationRepository.homeUnitFlow(type, name, true).distinctUntilChanged { old, new -> old.value == new.value }.map { homeUnit ->
+            homeInformationRepository.genericHomeUnitFlow(type, name, true).distinctUntilChanged { old, new -> old.value == new.value }.map { homeUnit ->
                 Timber.e("createPublisherFor homeUnitFlow homeUnit: $homeUnit")
                 getStatefulControl(homeUnit)
             }.catch {
@@ -159,7 +166,7 @@ class DeviceControlService : ControlsProviderService() {
                 .build()
     }
 
-    private fun getErrorStatefulControl(controlId: String, type: String, name: String): Control {
+    private fun getErrorStatefulControl(controlId: String, type: HomeUnitType, name: String): Control {
         Timber.d(
                 "getErrorStatefulControl create Error Control for type: $type name: $name")
         return Control.StatefulBuilder(controlId, getAppPendingIntent())
@@ -173,18 +180,19 @@ class DeviceControlService : ControlsProviderService() {
 @RequiresApi(Build.VERSION_CODES.R)
 private fun HomeUnit<Any>.getControlType(): Int {
     return when (this.type) {
-        HOME_LIGHT_SWITCHES -> DeviceTypes.TYPE_LIGHT
+        HomeUnitType.HOME_LIGHT_SWITCHES -> DeviceTypes.TYPE_LIGHT
+        HomeUnitType.HOME_WATER_CIRCULATION -> DeviceTypes.TYPE_GENERIC_START_STOP
         else -> DeviceTypes.TYPE_GENERIC_ON_OFF
     }
 }
 
 fun HomeUnit<Any>.getControlId(): String {
-    return this.type + '.' + this.name
+    return this.type.toString() + '.' + this.name
 }
 
-fun String.getHomeUnitTypeAndName(): Pair<String, String> {
+fun String.getHomeUnitTypeAndName(): Pair<HomeUnitType, String> {
     val delimiterIdx = this.indexOfFirst { it == '.' }
-    val type = this.substring(0, delimiterIdx)
+    val type = this.substring(0, delimiterIdx).toHomeUnitType()
     val name = this.substring(delimiterIdx + 1)
     return type to name
 }

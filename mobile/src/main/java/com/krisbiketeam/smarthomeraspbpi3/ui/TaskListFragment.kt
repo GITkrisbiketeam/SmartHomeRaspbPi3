@@ -21,7 +21,6 @@ import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentTaskListBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.TaskListViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
@@ -66,7 +65,7 @@ class TaskListFragment : Fragment() {
             viewModel = taskListViewModel
             lifecycleOwner = viewLifecycleOwner
             fab.setOnClickListener {
-                val direction = TaskListFragmentDirections.actionTaskListFragmentToHomeUnitDetailFragment("","","")
+                val direction = TaskListFragmentDirections.actionTaskListFragmentToHomeUnitTypeChooserDialogFragment()
                 findNavController().navigate(direction)
             }
             val adapter: TaskListAdapter by inject()

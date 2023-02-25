@@ -17,7 +17,6 @@ import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentHwUnitListBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.HwUnitListViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
@@ -30,6 +29,8 @@ class HwUnitListFragment : Fragment() {
     private val hwUnitListViewModel by viewModel<HwUnitListViewModel>()
 
     private val analytics: Analytics by inject()
+
+    private val repository: FirebaseHomeInformationRepository by inject()
 
     override fun onCreateView(
             inflater: LayoutInflater,
@@ -45,6 +46,23 @@ class HwUnitListFragment : Fragment() {
         hwUnitListViewModel.apply {
             lifecycleScope.launch {
                 hwUnitList.flowWithLifecycle(lifecycle, Lifecycle.State.RESUMED).flowOn(Dispatchers.IO).collect { hwUnitList ->
+                    /*val startTime = 1624665600000
+                    val endTime = 1641945600000
+                    withContext(Dispatchers.IO){
+                        hwUnitList.forEach { hwUnit ->
+                            for(time in startTime .. endTime step FULL_DAY_IN_MILLIS){
+                                Timber.d("clear logs:${hwUnit.name} time:$time ")
+                                repository.clearHwUnitLogs(hwUnit.name, time.toString())?.addOnCanceledListener {
+                                    Timber.e("addOnCanceledListener clear logs:${hwUnit.name} time:$time ")
+                                }?.addOnFailureListener {
+                                    Timber.e("addOnFailureListener clear logs:${hwUnit.name} time:$time ")
+                                }?.addOnSuccessListener {
+                                    Timber.e("addOnSuccessListener clear logs:${hwUnit.name} time:$time ")
+                                }
+                            }
+                        }
+                    }*/
+
                     hwUnitListAdapter.submitList(hwUnitList)
                 }
             }

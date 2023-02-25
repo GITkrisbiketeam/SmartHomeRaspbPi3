@@ -25,7 +25,8 @@ inline fun <reified T> genericListReferenceFlow(databaseReference: DatabaseRefer
                 return
             }
             // A new value has been added, add it to the displayed list
-            val list = dataSnapshot.children.mapNotNull { it.getValue<T>()
+            val list = dataSnapshot.children.mapNotNull {
+                it.getValue<T>()
             }
             //Timber.e("genericListReferenceFlow onDataChange (key=${dataSnapshot.key})(homeUnits=$list)")
             this@callbackFlow.trySendBlocking(list)
