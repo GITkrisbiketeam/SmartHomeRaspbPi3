@@ -16,6 +16,8 @@ const val NOTIFICATION_INFORMATION_BASE = "notification"
 // region "home"
 const val HOME_INFORMATION_BASE = "home"
 
+const val HOME_LIST = "homes_list"
+
 // region HW Units
 const val HOME_HW_UNITS_BASE = "hw_units"
 
@@ -47,6 +49,12 @@ const val HOME_LIGHT_SWITCHES = "light_switches"
 const val HOME_TEMPERATURES = "temperatures"
 const val HOME_PRESSURES = "pressures"
 const val HOME_HUMIDITY = "humidity"
+const val HOME_GAS = "gas"
+const val HOME_GAS_PERCENT = "gas_percent"
+const val HOME_IAQ = "iaq"
+const val HOME_STATIC_IAQ = "static_iaq"
+const val HOME_CO2 = "co2"
+const val HOME_BREATH_VOC = "breathVoc"
 
 const val HOME_VAL = "value"
 const val HOME_VAL_LAST_UPDATE = "lastUpdateTime"
@@ -54,6 +62,15 @@ const val HOME_MIN_VAL = "min"
 const val HOME_MIN_VAL_LAST_UPDATE = "minLastUpdateTime"
 const val HOME_MAX_VAL = "max"
 const val HOME_MAX_VAL_LAST_UPDATE = "maxLastUpdateTime"
+const val HOME_LAST_TRIGGER_SOURCE = "lastTriggerSource"
+
+const val LAST_TRIGGER_SOURCE_DEVICE_CONTROL = "device_control"
+const val LAST_TRIGGER_SOURCE_ROOM_HOME_UNITS_LIST = "room_home_units_list"
+const val LAST_TRIGGER_SOURCE_TASK_LIST = "task_list"
+const val LAST_TRIGGER_SOURCE_HOME_UNIT_DETAILS = "home_unit_details"
+const val LAST_TRIGGER_SOURCE_BOOLEAN_APPLY = "boolean_apply"
+const val LAST_TRIGGER_SOURCE_HW_UNIT = "hw_unit"
+const val LAST_TRIGGER_SOURCE_HOME_UNIT_ADDED = "home_unit_added"
 
 // region unitTasks
 const val HOME_UNIT_TASKS = "unitsTasks"
@@ -72,6 +89,9 @@ const val HOME_LAST_ONLINE_TIME = "lastOnline"
 
 // region Logs
 const val LOG_INFORMATION_BASE = "log"
+const val LOG_HW_UNIT_ERRORS = "error"
+const val LOG_HW_UNIT = "hw_units"
+const val LOG_THINGS_LOGS = "things_logs"
 // endregion
 
 // region "home"

@@ -34,6 +34,7 @@
                 android:paddingRight="@dimen/activity_horizontal_margin"
                 android:paddingBottom="@dimen/activity_vertical_margin">
 
+                <!-- Task Name -->
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/unit_task_name_layout"
                     style="@style/LargeTitleOutlineTextInputLayoutStyle"
@@ -55,6 +56,7 @@
 
                 </com.google.android.material.textfield.TextInputLayout>
 
+                <!-- Task Home Unit Type/Name List -->
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/unit_task_home_unit_type_name_list_layout"
                     style="@style/LargeTitleDropDownOutlineInputLayoutStyle"
@@ -125,6 +127,7 @@
 
                 </com.google.android.material.textfield.TextInputLayout>-->
 
+                <!-- Task Disabled Switch -->
                 <androidx.appcompat.widget.SwitchCompat
                     android:id="@+id/unit_task_disabled_switch"
                     android:layout_width="match_parent"
@@ -133,6 +136,7 @@
                     android:text="@string/unit_task_text_disabled_switch_title"
                     app:layout_constraintTop_toBottomOf="@id/unit_task_home_unit_type_name_list_layout" />
 
+                <!-- Task Inverse Switch -->
                 <androidx.appcompat.widget.SwitchCompat
                     android:id="@+id/unit_task_inverse_switch"
                     android:layout_width="match_parent"
@@ -142,13 +146,15 @@
                     android:text="@string/unit_task_text_inverse_switch_title"
                     app:layout_constraintTop_toBottomOf="@id/unit_task_disabled_switch" />
 
+                <!-- Task Boolean Apply Sensor (Trigger, reset on inverse, delay,  -->
                 <androidx.constraintlayout.widget.Group
                     android:layout_width="0dp"
                     android:layout_height="0dp"
-                    app:constraint_referenced_ids="unit_task_trigger_layout,unit_task_reset_on_inverse_trigger_switch,unit_task_delay_title,unit_task_delay,unit_task_delay_group,unit_task_duration_title,unit_task_duration,unit_task_duration_group,unit_task_periodically_switch, unit_task_periodically_only_hw_switch"
+                    app:constraint_referenced_ids="unit_task_reset_on_inverse_trigger_switch,unit_task_periodically_switch, unit_task_periodically_only_hw_switch"
                     android:visibility="@{viewModel.isBooleanApplySensor ? View.VISIBLE : View.GONE}"
                     />
 
+                <!-- Task Trigger -->
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/unit_task_trigger_layout"
                     style="@style/LargeTitleDropDownOutlineInputLayoutStyle"
@@ -172,6 +178,7 @@
 
                 </com.google.android.material.textfield.TextInputLayout>
 
+                <!-- Task Reset on Inverse Switch -->
                 <androidx.appcompat.widget.SwitchCompat
                     android:id="@+id/unit_task_reset_on_inverse_trigger_switch"
                     android:layout_width="match_parent"
@@ -181,6 +188,7 @@
                     android:text="@string/unit_task_text_reset_on_inverse_trigger_switch_title"
                     app:layout_constraintTop_toBottomOf="@id/unit_task_trigger_layout" />
 
+                <!-- Task Start Time -->
                 <androidx.constraintlayout.widget.Group
                     android:id="@+id/unit_task_start_time_group"
                     android:layout_width="match_parent"
@@ -192,6 +200,7 @@
                     android:visibility="@{viewModel.startTimeVisible  ? View.VISIBLE : View.GONE}"
                     />
 
+                <!-- Task Start Time title-->
                 <TextView
                     android:id="@+id/unit_task_start_time_title"
                     android:layout_width="wrap_content"
@@ -202,6 +211,7 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/unit_task_reset_on_inverse_trigger_switch" />
 
+                <!-- Task Start Time value-->
                 <TextView
                     android:id="@+id/unit_task_start_time"
                     android:layout_width="wrap_content"
@@ -214,6 +224,7 @@
                     app:layout_constraintStart_toEndOf="@+id/unit_task_start_time_title"
                     app:layout_constraintTop_toTopOf="@+id/unit_task_start_time_title" />
 
+                <!-- Task End Time -->
                 <androidx.constraintlayout.widget.Group
                     android:id="@+id/unit_task_end_time_group"
                     android:layout_width="match_parent"
@@ -224,6 +235,7 @@
                     app:layout_constraintBottom_toBottomOf="@+id/unit_task_end_time_title"
                     app:layout_constraintTop_toTopOf="@+id/unit_task_end_time_title"/>
 
+                <!-- Task End Time title -->
                 <TextView
                     android:id="@+id/unit_task_end_time_title"
                     android:layout_width="wrap_content"
@@ -234,6 +246,7 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/unit_task_start_time_title" />
 
+                <!-- Task End Time value -->
                 <TextView
                     android:id="@+id/unit_task_end_time"
                     android:layout_width="wrap_content"
@@ -246,6 +259,7 @@
                     app:layout_constraintStart_toEndOf="@+id/unit_task_end_time_title"
                     app:layout_constraintTop_toTopOf="@+id/unit_task_end_time_title" />
 
+                <!-- Task Delay -->
                 <androidx.constraintlayout.widget.Group
                     android:id="@+id/unit_task_delay_group"
                     android:layout_width="match_parent"
@@ -256,6 +270,7 @@
                     app:layout_constraintBottom_toBottomOf="@+id/unit_task_delay_title"
                     app:layout_constraintTop_toTopOf="@+id/unit_task_delay_title" />
 
+                <!-- Task Delay title -->
                 <TextView
                     android:id="@+id/unit_task_delay_title"
                     android:layout_width="wrap_content"
@@ -266,6 +281,7 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/unit_task_end_time_title" />
 
+                <!-- Task Delay value -->
                 <TextView
                     android:id="@+id/unit_task_delay"
                     android:layout_width="wrap_content"
@@ -278,6 +294,7 @@
                     app:layout_constraintStart_toEndOf="@+id/unit_task_delay_title"
                     app:layout_constraintTop_toTopOf="@+id/unit_task_delay_title" />
 
+                <!-- Task Duration -->
                 <androidx.constraintlayout.widget.Group
                     android:id="@+id/unit_task_duration_group"
                     android:layout_width="match_parent"
@@ -289,6 +306,7 @@
                     app:layout_constraintTop_toTopOf="@+id/unit_task_duration_title"
                     />
 
+                <!-- Task Duration title-->
                 <TextView
                     android:id="@+id/unit_task_duration_title"
                     android:layout_width="wrap_content"
@@ -299,6 +317,7 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/unit_task_delay_title" />
 
+                <!-- Task Duration value -->
                 <TextView
                     android:id="@+id/unit_task_duration"
                     android:layout_width="wrap_content"
@@ -311,6 +330,7 @@
                     app:layout_constraintStart_toEndOf="@+id/unit_task_duration_title"
                     app:layout_constraintTop_toTopOf="@+id/unit_task_duration_title" />
 
+                <!-- Task Periodically Switch -->
                 <androidx.appcompat.widget.SwitchCompat
                     android:id="@+id/unit_task_periodically_switch"
                     android:layout_width="match_parent"
@@ -320,6 +340,7 @@
                     android:text="@string/unit_task_text_periodically_switch_title"
                     app:layout_constraintTop_toBottomOf="@id/unit_task_duration" />
 
+                <!-- Task Periodically only HW Switch -->
                 <androidx.appcompat.widget.SwitchCompat
                     android:id="@+id/unit_task_periodically_only_hw_switch"
                     android:layout_width="match_parent"
@@ -330,12 +351,14 @@
                     android:text="@string/unit_task_text_periodically_only_hw_switch_title"
                     app:layout_constraintTop_toBottomOf="@id/unit_task_periodically_switch" />
 
+                <!-- Task NOT Boolean Apply Sensor -->
                 <androidx.constraintlayout.widget.Group
                     android:layout_width="0dp"
                     android:layout_height="0dp"
                     android:visibility="@{viewModel.isBooleanApplySensor ? View.GONE : View.VISIBLE}"
                     app:constraint_referenced_ids="unit_task_threshold_layout,unit_task_hysteresis_layout" />
 
+                <!-- Task Threshold -->
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/unit_task_threshold_layout"
                     style="@style/LargeTitleOutlineTextInputLayoutStyle"
@@ -348,7 +371,7 @@
                     app:helperText="@string/unit_task_text_threshold_prompt"
                     app:helperTextEnabled="@{viewModel.isEditMode}"
                     app:hintEnabled="true"
-                    app:layout_constraintTop_toBottomOf="@id/unit_task_inverse_switch">
+                    app:layout_constraintTop_toBottomOf="@id/unit_task_trigger_layout">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/unit_task_threshold_edit_text"
@@ -358,6 +381,7 @@
 
                 </com.google.android.material.textfield.TextInputLayout>
 
+                <!-- Task Hysteresis -->
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/unit_task_hysteresis_layout"
                     style="@style/LargeTitleOutlineTextInputLayoutStyle"

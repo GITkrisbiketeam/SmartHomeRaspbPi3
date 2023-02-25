@@ -30,13 +30,12 @@ class HwUnitI2CTempMCP9808Sensor(name: String, location: String, private val pin
         // and then immediately closed to release resources
     }
 
-    @Throws(Exception::class)
     // TODO use Flow here
-    override suspend fun registerListener(listener: Sensor.HwUnitListener<Float>,
+    override suspend fun registerListener(scope: CoroutineScope, listener: Sensor.HwUnitListener<Float>,
                                           exceptionHandler: CoroutineExceptionHandler) {
         Timber.d("registerListener")
         job?.cancel()
-        job = GlobalScope.plus(exceptionHandler).launch(Dispatchers.IO) {
+        job = scope.launch(Dispatchers.IO + exceptionHandler) {
             // We could also check for true as suspending delay() method is cancellable
             while (isActive) {
                 delay(refreshRate ?: REFRESH_RATE)
@@ -52,7 +51,6 @@ class HwUnitI2CTempMCP9808Sensor(name: String, location: String, private val pin
         job?.cancel()
     }
 
-    @Throws(Exception::class)
     override suspend fun close() {
         Timber.d("close")
         job?.cancel()

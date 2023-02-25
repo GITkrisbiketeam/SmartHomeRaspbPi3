@@ -183,6 +183,7 @@ class HomeUnitDetailViewModel(application: Application,
             homeUnit?.value?.copy()?.let { unit ->
                 unit.value = isChecked
                 unit.lastUpdateTime = System.currentTimeMillis()
+                unit.lastTriggerSource = LAST_TRIGGER_SOURCE_HOME_UNIT_DETAILS
                 homeRepository.updateHomeUnitValue(unit)
             }
         } else {
@@ -323,6 +324,7 @@ class HomeUnitDetailViewModel(application: Application,
                         showInTaskList = showInTaskList.value,
                         value = homeUnit?.value?.value,
                         lastUpdateTime = homeUnit?.value?.lastUpdateTime,
+                        lastTriggerSource = homeUnit?.value?.lastTriggerSource,
                         unitsTasks = unitTaskList.value.toMutableMap().also {
                             it.remove("")
                         }))?.let { task ->

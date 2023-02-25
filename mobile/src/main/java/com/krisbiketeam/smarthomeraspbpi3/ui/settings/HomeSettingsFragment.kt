@@ -11,6 +11,9 @@ import androidx.databinding.DataBindingUtil
 import androidx.databinding.OnRebindCallback
 import androidx.databinding.ViewDataBinding
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.flowWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.transition.TransitionManager
 import com.google.firebase.analytics.FirebaseAnalytics
@@ -19,6 +22,10 @@ import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
 import com.krisbiketeam.smarthomeraspbpi3.common.MyLiveDataState
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentSettingsHomeBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.settings.HomeSettingsViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import timber.log.Timber
@@ -45,9 +52,11 @@ class HomeSettingsFragment : Fragment() {
                 }
                 false
             })
-            homeSettingsViewModel.homeName.observe(viewLifecycleOwner, {
-                binding.homeNameLayout.error = null
-            })
+            lifecycleScope.launch {
+                homeSettingsViewModel.homeName.flowWithLifecycle(lifecycle, Lifecycle.State.RESUMED).flowOn(Dispatchers.IO).collect {
+                    binding.homeNameLayout.error = null
+                }
+            }
 
             loginConnectButton.setOnClickListener { setupHomeName() }
 
@@ -61,7 +70,7 @@ class HomeSettingsFragment : Fragment() {
                 }
             })
 
-            lifecycleOwner = this@HomeSettingsFragment
+            lifecycleOwner = viewLifecycleOwner
         }
 
         homeSettingsViewModel.nearByState.observe(viewLifecycleOwner, { pair ->

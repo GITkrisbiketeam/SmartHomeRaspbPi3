@@ -40,3 +40,18 @@ fun Long.getOnlyTodayLocalTime(): Long {
     today.timeZone = TimeZone.getTimeZone("UTC")
     return today.timeInMillis
 }
+
+@ExperimentalUnsignedTypes
+fun ByteArray.toHex(): String = asUByteArray().joinToString("") { it.toString(radix = 16).padStart(2, '0') }
+
+fun String?.decodeHex(): ByteArray {
+    return if(this == null || length % 2 != 0) {
+        ByteArray(0)
+    } else {
+        val byteIterator = chunkedSequence(2)
+                .map { it.toInt(16).toByte() }
+                .iterator()
+
+        ByteArray(length / 2) { byteIterator.next() }
+    }
+}

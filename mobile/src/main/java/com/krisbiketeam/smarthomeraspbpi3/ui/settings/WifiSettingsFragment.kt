@@ -69,7 +69,7 @@ class WifiSettingsFragment : Fragment() {
                 }
             })
 
-            lifecycleOwner = this@WifiSettingsFragment
+            lifecycleOwner = viewLifecycleOwner
         }
 
         wifiSettingsViewModel.nearByState.observe(viewLifecycleOwner, { pair ->

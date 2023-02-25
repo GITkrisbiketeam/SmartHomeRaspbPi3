@@ -30,6 +30,7 @@
     <string name="settings_home_fragment_key">home_screen_key</string>
     <string name="settings_hw_unit_list_fragment_key">hw_unit_list_key</string>
     <string name="settings_hw_unit_error_event_list_fragment_key">hw_unit_error_event_list_key</string>
+    <string name="settings_things_app_logs_fragment_key">things_app_logs_fragment_key</string>
     <string name="settings_restart_rpi_things_app">restart_rpi_things_app</string>
     <string name="settings_alarm_enabled_key">alarmEnabledKey</string>
     <string name="settings_restarting">Restarting…</string>
@@ -54,6 +55,7 @@
     <string name="menu_finish">Finish</string>
     <string name="menu_filter">Filter</string>
     <string name="menu_date_picker">Pick Date</string>
+    <string name="menu_remote_log">Things Logging</string>
 
     <string name="menu_navigation_room_list">Room List</string>
     <string name="menu_navigation_task_list">Task List</string>
@@ -104,6 +106,8 @@
     <string name="home_unit_detail_title">Home Unit Details</string>
 
     <string name="logs_title">Logs</string>
+
+    <string name="things_app_logs_title">Things App Logs</string>
 
     <string name="unit_task_title">Unit Task Details</string>
 
@@ -199,6 +203,8 @@
     </plurals>
 
     <string name="logs_fragment_no_data">Loading…</string>
+    <string name="fragment_things_app_logs_item_exception">Exception:</string>
+    <string name="fragment_things_app_logs_item_message">Message:</string>
 
 
 </resources>

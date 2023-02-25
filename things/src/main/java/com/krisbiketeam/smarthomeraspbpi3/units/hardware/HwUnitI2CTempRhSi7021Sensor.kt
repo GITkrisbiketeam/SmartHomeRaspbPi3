@@ -7,12 +7,11 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.ConnectionType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
 import com.krisbiketeam.smarthomeraspbpi3.units.HwUnitI2C
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.TemperatureAndHumidity
 import kotlinx.coroutines.*
 import timber.log.Timber
 
 private const val REFRESH_RATE = 300000L // 5 min
-
-data class TemperatureAndHumidity(val temperature: Float?, val humidity: Float?)
 
 class HwUnitI2CTempRhSi7021Sensor(name: String, location: String, private val pinName: String,
                                   softAddress: Int, private val refreshRate: Long? = REFRESH_RATE,
@@ -37,11 +36,11 @@ class HwUnitI2CTempRhSi7021Sensor(name: String, location: String, private val pi
 
     @Throws(Exception::class)
     // TODO use Flow here
-    override suspend fun registerListener(listener: Sensor.HwUnitListener<TemperatureAndHumidity>,
+    override suspend fun registerListener(scope: CoroutineScope, listener: Sensor.HwUnitListener<TemperatureAndHumidity>,
                                           exceptionHandler: CoroutineExceptionHandler) {
         Timber.d("registerListener")
         job?.cancel()
-        job = GlobalScope.plus(exceptionHandler).launch(Dispatchers.IO) {
+        job = scope.launch(Dispatchers.IO + exceptionHandler) {
             // We could also check for true as suspending delay() method is cancellable
             while (isActive) {
                 delay(refreshRate ?: REFRESH_RATE)

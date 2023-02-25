@@ -54,7 +54,7 @@ class HomeUnitDetailFragment : Fragment() {
         val binding = DataBindingUtil.inflate<FragmentHomeUnitDetailBinding>(
                 inflater, R.layout.fragment_home_unit_detail, container, false).apply {
             viewModel = homeUnitDetailViewModel
-            lifecycleOwner = this@HomeUnitDetailFragment
+            lifecycleOwner = viewLifecycleOwner
 
             setHasOptionsMenu(true)
 

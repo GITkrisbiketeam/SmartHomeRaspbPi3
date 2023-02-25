@@ -5,8 +5,8 @@ import android.view.*
 import androidx.core.os.bundleOf
 import androidx.core.util.Pair
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import com.github.mikephil.charting.charts.Chart
 import com.github.mikephil.charting.components.AxisBase
 import com.github.mikephil.charting.formatter.ValueFormatter
@@ -15,11 +15,16 @@ import com.google.android.material.datepicker.MaterialDatePicker
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
+import com.krisbiketeam.smarthomeraspbpi3.common.FULL_DAY_IN_MILLIS
+import com.krisbiketeam.smarthomeraspbpi3.common.getOnlyDateLocalTime
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentLogsBinding
+import com.krisbiketeam.smarthomeraspbpi3.utils.toLogsFloat
 import com.krisbiketeam.smarthomeraspbpi3.utils.toLogsLong
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.LogsViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -28,6 +33,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 
+@ExperimentalCoroutinesApi
 class LogsFragment : androidx.fragment.app.Fragment() {
 
     private val analytics: Analytics by inject()
@@ -61,17 +67,9 @@ class LogsFragment : androidx.fragment.app.Fragment() {
             invalidate()
         }
 
-        lifecycleScope.launch {
-            lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                launch {
-                    subscribeLogsData(binding.fragmentLogsLineChart)
-                }
+        subscribeLogsData(binding.fragmentLogsLineChart)
 
-                launch {
-                    subscribeFilterMenuItems()
-                }
-            }
-        }
+        subscribeFilterMenuItems()
 
         setHasOptionsMenu(true)
 
@@ -87,13 +85,19 @@ class LogsFragment : androidx.fragment.app.Fragment() {
         inflater.inflate(R.menu.menu_logs, menu)
         menu.findItem(R.id.action_filter).subMenu.apply {
             clear()
-            logsViewModel.menuItemHwUnitListFlow.value.forEach { (hwUnit, itemId, checked) ->
-                val menuItem = add(Menu.NONE, itemId, Menu.NONE, hwUnit.name)
+            var type: String? = null
+            logsViewModel.menuItemHwUnitListFlow.value.forEach { (hwUnitPair, itemId, checked) ->
+                if (type != hwUnitPair.first.type) {
+                    add("\t${hwUnitPair.first.type}")
+                    type = hwUnitPair.first.type
+                }
+                val menuItem = add(hwUnitPair.first.type.hashCode(), itemId, Menu.NONE, hwUnitPair.first.name.plus(hwUnitPair.second?.let { "_$it" }
+                        ?: ""))
                 menuItem.isCheckable = true
                 menuItem.isChecked = checked
+
             }
         }
-
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -106,24 +110,37 @@ class LogsFragment : androidx.fragment.app.Fragment() {
                 openDateRangePicker()
                 true
             }
-            else -> if (logsViewModel.addFilter(item.itemId)) true else super.onOptionsItemSelected(item)
+            else -> when {
+                logsViewModel.addFilter(item.itemId) -> {
+                    true
+                }
+                else -> {
+                    super.onOptionsItemSelected(item)
+                }
+            }
         }
     }
 
     @ExperimentalCoroutinesApi
-    private suspend fun subscribeFilterMenuItems() {
-        logsViewModel.menuItemHwUnitListFlow.collect {
-            Timber.d("subscribeFilterMenuItems  size:${it.size}")
-            activity?.invalidateOptionsMenu()
+    private fun subscribeFilterMenuItems() {
+        lifecycleScope.launch {
+            logsViewModel.menuItemHwUnitListFlow.flowWithLifecycle(lifecycle, Lifecycle.State.RESUMED).flowOn(Dispatchers.IO).collect {
+                Timber.d("subscribeFilterMenuItems  size:${it.size}")
+                activity?.invalidateOptionsMenu()
+            }
         }
     }
 
     @ExperimentalCoroutinesApi
-    private suspend fun subscribeLogsData(combinedChart: Chart<*>) {
-        logsViewModel.logsData.collect { lineData ->
-            Timber.d("subscribeLogsData lineData: $lineData")
-            combinedChart.data = lineData
-            combinedChart.invalidate() // refresh
+    private fun subscribeLogsData(combinedChart: Chart<*>) {
+        lifecycleScope.launch {
+            logsViewModel.logsData.flowWithLifecycle(lifecycle, Lifecycle.State.RESUMED).flowOn(Dispatchers.IO).collect { lineData ->
+                Timber.d("subscribeLogsData lineData: $lineData")
+                combinedChart.data = lineData
+                combinedChart.xAxis.axisMinimum = lineData.xMin.toLogsLong().getOnlyDateLocalTime().toLogsFloat()
+                combinedChart.xAxis.axisMaximum = (lineData.xMax.toLogsLong().getOnlyDateLocalTime() + FULL_DAY_IN_MILLIS).toLogsFloat()
+                combinedChart.invalidate() // refresh
+            }
         }
     }
 

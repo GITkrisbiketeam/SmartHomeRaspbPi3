@@ -59,7 +59,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
         }
     }
 
-    override fun onPreferenceTreeClick(preference: Preference?): Boolean {
+    override fun onPreferenceTreeClick(preference: Preference): Boolean {
         Timber.d("onPreferenceTreeClick preference: $preference")
         when (preference?.key) {
             getString(R.string.settings_wifi_fragment_key) -> {
@@ -94,6 +94,13 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 Timber.d("onPreferenceTreeClick go to HwUnitErrorEventList")
                 val direction =
                         SettingsFragmentDirections.actionSettingsFragmentToHwUnitErrorEventListFragment()
+                findNavController().navigate(direction)
+                return true
+            }
+            getString(R.string.settings_things_app_logs_fragment_key) -> {
+                Timber.d("onPreferenceTreeClick go to ThingsAppLogsFragment")
+                val direction =
+                        SettingsFragmentDirections.actionSettingsFragmentToThingsAppLogsFragment()
                 findNavController().navigate(direction)
                 return true
             }

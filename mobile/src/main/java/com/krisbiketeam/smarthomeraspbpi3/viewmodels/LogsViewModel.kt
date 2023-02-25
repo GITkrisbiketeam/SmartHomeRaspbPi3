@@ -1,10 +1,8 @@
 package com.krisbiketeam.smarthomeraspbpi3.viewmodels
 
-import android.app.Application
 import androidx.core.graphics.ColorUtils
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.github.mikephil.charting.charts.ScatterChart
 import com.github.mikephil.charting.data.*
 import com.krisbiketeam.smarthomeraspbpi3.common.FULL_DAY_IN_MILLIS
 import com.krisbiketeam.smarthomeraspbpi3.common.getOnlyDateLocalTime
@@ -21,7 +19,7 @@ import timber.log.Timber
 /**
  * The ViewModel for [RoomListFragment].
  */
-class LogsViewModel(application: Application, private val homeRepository: FirebaseHomeInformationRepository) : ViewModel() {
+class LogsViewModel(private val homeRepository: FirebaseHomeInformationRepository) : ViewModel() {
 
     private val colorFloatArray = FloatArray(3) { idx ->
         when (idx) {
@@ -31,20 +29,52 @@ class LogsViewModel(application: Application, private val homeRepository: Fireba
         }
     }
 
+    // List of HwUnits with their value name ex. temperature or humidity
     @ExperimentalCoroutinesApi
-    private val filteredHwUnitListFlow: MutableStateFlow<List<HwUnit>> = MutableStateFlow(emptyList())
+    private val filteredHwUnitListFlow: MutableStateFlow<List<Pair<HwUnit, String?>>> = MutableStateFlow(emptyList())
 
     @ExperimentalCoroutinesApi
     val startRangeFlow: MutableStateFlow<Long> = MutableStateFlow(System.currentTimeMillis().getOnlyDateLocalTime())
+
     @ExperimentalCoroutinesApi
     val endRangeFlow: MutableStateFlow<Long> = MutableStateFlow(System.currentTimeMillis().getOnlyDateLocalTime())
 
 
     @ExperimentalCoroutinesApi
-    val menuItemHwUnitListFlow: StateFlow<List<Triple<HwUnit, Int, Boolean>>> =
+    val menuItemHwUnitListFlow: StateFlow<List<Triple<Pair<HwUnit, String?>, Int, Boolean>>> =
             combine(filteredHwUnitListFlow, homeRepository.hwUnitListFlow()) { filteredHwUnitList, hwUnitList ->
-                hwUnitList.map {
-                    Triple(it, it.hashCode(), filteredHwUnitList.contains(it))
+                mutableListOf<Triple<Pair<HwUnit, String?>, Int, Boolean>>().apply {
+                    hwUnitList.forEach { hwUnit ->
+                        when (hwUnit.type) {
+                            BoardConfig.TEMP_RH_SENSOR_SI7021,
+                            BoardConfig.TEMP_RH_SENSOR_AM2320 -> {
+                                listOf("temperature", "humidity").forEach {
+                                    val pair = hwUnit to it
+                                    add(Triple(pair, pair.hashCode(), filteredHwUnitList.contains(pair)))
+                                }
+                            }
+                            BoardConfig.PRESS_TEMP_SENSOR_LPS331 -> {
+                                listOf("pressure", "temperature").forEach {
+                                    val pair = hwUnit to it
+                                    add(Triple(pair, pair.hashCode(), filteredHwUnitList.contains(pair)))
+                                }
+                            }
+                            BoardConfig.AIR_QUALITY_SENSOR_BME680 -> {
+                                listOf("temperature", "humidity", "pressure", "iaq", "gas", "staticIaq",
+                                        "co2Equivalent", "breathVocEquivalent", "compGasValue",
+                                        "gasPercentage").forEach {
+                                    val pair = hwUnit to it
+                                    add(Triple(pair, pair.hashCode(), filteredHwUnitList.contains(pair)))
+                                }
+                            }
+                            else -> {
+                                val pair = hwUnit to null
+                                add(Triple(pair, pair.hashCode(), filteredHwUnitList.contains(pair)))
+                            }
+                        }
+                    }
+                }.sortedByDescending {
+                    it.first.first.type
                 }
             }.stateIn(
                     viewModelScope,
@@ -53,48 +83,6 @@ class LogsViewModel(application: Application, private val homeRepository: Fireba
             )
 
     @ExperimentalCoroutinesApi
-    val logsData1: Flow<ChartData<*>> =
-            filteredHwUnitListFlow.flatMapLatest { filteredHwUnitList ->
-                if (filteredHwUnitList.isNullOrEmpty()) {
-                    flowOf(CombinedData())
-                } else {
-                    combine(filteredHwUnitList.map { homeRepository.logsFlow(it.name) }) { allFilteredHwUnitLogsData ->
-                        Timber.e("logsFlow")
-                        val lineDataSetList = mutableListOf<LineDataSet>()
-                        val scatterDataSetList = mutableListOf<ScatterDataSet>()
-                        allFilteredHwUnitLogsData.forEach { hwUnitLogsData ->
-                            hwUnitLogsData.values.flatMap(Map<String, HwUnitLog<Any?>>::values).let { hwUnitLogList ->
-                                val hwUnit = hwUnitLogList.firstOrNull()
-                                when (hwUnit?.type) {
-                                    BoardConfig.TEMP_SENSOR_MCP9808 -> {
-                                        lineDataSetList.add(getNumberSensorData(hwUnit.name, hwUnitLogList))
-                                    }
-                                    BoardConfig.TEMP_RH_SENSOR_SI7021 -> {
-                                        lineDataSetList.addAll(getMapNumberSensorData(hwUnit.name, listOf("temperature", "humidity"), hwUnitLogList))
-                                    }
-                                    BoardConfig.IO_EXTENDER_MCP23017_OUTPUT,
-                                    BoardConfig.IO_EXTENDER_MCP23017_INPUT -> {
-                                        scatterDataSetList.add(getBooleanSensorData(hwUnit.name, hwUnitLogList))
-                                    }
-                                }
-                            }
-                        }
-                        CombinedData().apply {
-                            val lineDataSetColorFraction = 360f / lineDataSetList.size
-                            lineDataSetList.forEachIndexed { index, lineDataSet ->
-                                lineDataSet.applyStyle(lineDataSetColorFraction * index)
-                            }
-                            val scatterDataSetColorFraction = 360f / scatterDataSetList.size
-                            scatterDataSetList.forEachIndexed { index, lineDataSet ->
-                                lineDataSet.applyStyle(scatterDataSetColorFraction * index)
-                            }
-                            setData(LineData(lineDataSetList.toList()))
-                            setData(ScatterData(scatterDataSetList.toList()))
-                        }
-                    }
-                }
-            }
-    @ExperimentalCoroutinesApi
     val logsData: Flow<ChartData<*>> =
             combine(startRangeFlow, endRangeFlow, filteredHwUnitListFlow) { startRange, endRange, filteredHwUnitList ->
                 Triple(startRange, endRange, filteredHwUnitList)
@@ -102,11 +90,26 @@ class LogsViewModel(application: Application, private val homeRepository: Fireba
                 if (filteredHwUnitList.isNullOrEmpty()) {
                     flowOf(CombinedData())
                 } else {
-                    val listOfFlows: List<Flow<Map<String,HwUnitLog<Any?>>>> = filteredHwUnitList.map { hwUnit ->
-                        val flowList = mutableListOf<Flow<Map<String,HwUnitLog<Any?>>>>().also { list ->
+                    val filteredHwUnitListMapped: MutableMap<HwUnit, List<String>?> = mutableMapOf()
+                    filteredHwUnitList.forEach { (hwUnit: HwUnit, subType: String?) ->
+                        when {
+                            subType == null -> {
+                                filteredHwUnitListMapped[hwUnit] = null
+                            }
+                            filteredHwUnitListMapped.containsKey(hwUnit) -> {
+                                filteredHwUnitListMapped[hwUnit] = filteredHwUnitListMapped[hwUnit]?.plus(subType)
+                            }
+                            else -> {
+                                filteredHwUnitListMapped[hwUnit] = listOf(subType)
+                            }
+                        }
+                    }
+
+                    val listOfFlows: List<Flow<Pair<List<HwUnitLog<Any?>>, List<String>?>>> = filteredHwUnitListMapped.map { hwUnitMapEntry ->
+                        val flowList = mutableListOf<Flow<Map<String, HwUnitLog<Any?>>>>().also { list ->
                             // calculate days from unit time to now 1000 milliseconds * 60 seconds * 60 minutes * 24 hours = 86400000L
                             for (date in startRange..endRange step FULL_DAY_IN_MILLIS) {
-                                list.add(homeRepository.logsFlow(hwUnit.name, date).onCompletion {
+                                list.add(homeRepository.logsFlow(hwUnitMapEntry.key.name, date).onCompletion {
                                     Timber.e("onCompletion")
                                     emit(mapOf())
                                 }.onStart {
@@ -116,30 +119,35 @@ class LogsViewModel(application: Application, private val homeRepository: Fireba
                             }
                         }
                         combine(flowList) { dailyMapArray ->
-                            val combinedMap = mutableMapOf<String,HwUnitLog<Any?>>()
+                            val combinedMap = Pair(mutableListOf<HwUnitLog<Any?>>(), hwUnitMapEntry.value)
                             dailyMapArray.forEach {
-                                combinedMap.putAll(it)
+                                combinedMap.first.addAll(it.values)
                             }
                             combinedMap
                         }
                     }
+
                     combine(listOfFlows) { allFilteredHwUnitLogsData ->
                         Timber.e("logsFlow")
                         val lineDataSetList = mutableListOf<LineDataSet>()
-                        val scatterDataSetList = mutableListOf<ScatterDataSet>()
-                        allFilteredHwUnitLogsData.forEach { hwUnitLogsData ->
-                            hwUnitLogsData.values.let { hwUnitLogList ->
-                                val hwUnit = hwUnitLogList.firstOrNull()
-                                when (hwUnit?.type) {
-                                    BoardConfig.TEMP_SENSOR_MCP9808 -> {
-                                        lineDataSetList.add(getNumberSensorData(hwUnit.name, hwUnitLogList))
-                                    }
-                                    BoardConfig.TEMP_RH_SENSOR_SI7021 -> {
-                                        lineDataSetList.addAll(getMapNumberSensorData(hwUnit.name, listOf("temperature", "humidity"), hwUnitLogList))
-                                    }
-                                    BoardConfig.IO_EXTENDER_MCP23017_OUTPUT,
-                                    BoardConfig.IO_EXTENDER_MCP23017_INPUT -> {
-                                        scatterDataSetList.add(getBooleanSensorData(hwUnit.name, hwUnitLogList))
+                        val lineGradDataSetList = mutableListOf<LineDataSet>()
+                        allFilteredHwUnitLogsData.forEach { (hwUnitLogsData, subTypesList) ->
+                            hwUnitLogsData.let { hwUnitLogList ->
+                                val hwUnitLog = hwUnitLogList.firstOrNull()
+                                if (hwUnitLog != null) {
+                                    when (hwUnitLog.type) {
+                                        BoardConfig.IO_EXTENDER_MCP23017_OUTPUT,
+                                        BoardConfig.IO_EXTENDER_MCP23017_INPUT -> {
+                                            lineGradDataSetList.add(getBooleanGradSensorData(hwUnitLog.name, hwUnitLogList))
+                                        }
+                                        else -> {
+                                            if (subTypesList == null) {
+                                                lineDataSetList.add(getNumberSensorData(hwUnitLog.name, hwUnitLogList))
+                                            } else {
+                                                lineDataSetList.addAll(getMapNumberSensorData(hwUnitLog.name, subTypesList, hwUnitLogList))
+
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -149,24 +157,24 @@ class LogsViewModel(application: Application, private val homeRepository: Fireba
                             lineDataSetList.forEachIndexed { index, lineDataSet ->
                                 lineDataSet.applyStyle(lineDataSetColorFraction * index)
                             }
-                            val scatterDataSetColorFraction = 360f / scatterDataSetList.size
-                            scatterDataSetList.forEachIndexed { index, lineDataSet ->
-                                lineDataSet.applyStyle(scatterDataSetColorFraction * index)
+                            val lineGradDataSetColorFraction = 360f / lineGradDataSetList.size
+                            lineGradDataSetList.forEachIndexed { index, lineDataSet ->
+                                lineDataSet.applyGradStyle(lineGradDataSetColorFraction * index)
                             }
-                            setData(LineData(lineDataSetList.toList()))
-                            setData(ScatterData(scatterDataSetList.toList()))
+
+                            setData(LineData(lineDataSetList + lineGradDataSetList))
                         }
                     }
                 }
             }
 
-    fun clearLogs() = homeRepository.clearLog()
+    fun clearLogs() = homeRepository.clearAllThingsLog()
 
     @ExperimentalCoroutinesApi
     fun addFilter(hwUnitHash: Int): Boolean {
-        return menuItemHwUnitListFlow.value.firstOrNull { it.second == hwUnitHash }?.let { (hwUnit, _, _) ->
+        return menuItemHwUnitListFlow.value.firstOrNull { it.second == hwUnitHash }?.let { (hwUnit, _, checked) ->
             val newList = filteredHwUnitListFlow.value.toMutableList()
-            if (newList.contains(hwUnit)) {
+            if (checked) {
                 newList.remove(hwUnit)
             } else {
                 newList.add(hwUnit)
@@ -220,27 +228,33 @@ class LogsViewModel(application: Application, private val homeRepository: Fireba
         setCircleColor(color)
     }
 
-    private fun getBooleanSensorData(hwUnitName: String, logsList: Collection<HwUnitLog<Any?>>): ScatterDataSet {
-        val entries = logsList.sortedBy { it.servertime as Long }.mapNotNull { hwUnitLog ->
+    private fun getBooleanGradSensorData(hwUnitName: String, logsList: Collection<HwUnitLog<Any?>>): LineDataSet {
+        val entries: MutableList<Entry> = mutableListOf()
+        logsList.sortedBy { it.servertime as Long }.forEach { hwUnitLog ->
             hwUnitLog.value?.let { hwValue ->
                 when (hwValue) {
                     is Boolean -> {
                         val xValue: Float = (hwUnitLog.servertime as Number).toLogsFloat()
-                        val yValue: Float = if (hwValue) 40f else 0f
-                        Entry(xValue, yValue, hwValue)
+                        if (hwValue) {
+                            entries.add(Entry(xValue - Float.MIN_VALUE, 0f, hwValue))
+                            entries.add(Entry(xValue, 40f, hwValue))
+                        } else {
+                            entries.add(Entry(xValue, 40f, hwValue))
+                            entries.add(Entry(xValue + Float.MIN_VALUE, 0f, hwValue))
+                        }
                     }
-                    else -> null
                 }
             }
         }
-        return ScatterDataSet(entries, hwUnitName)
+        return LineDataSet(entries, hwUnitName)
     }
 
-    fun ScatterDataSet.applyStyle(fractionColor: Float) {
+    private fun LineDataSet.applyGradStyle(fractionColor: Float) {
         val color = ColorUtils.HSLToColor(colorFloatArray.apply { set(0, fractionColor) })
         setColor(color)
-        setScatterShape(ScatterChart.ScatterShape.CIRCLE)
-        scatterShapeSize = 40f
+        fillColor = color
+        setCircleColor(color)
+        setDrawFilled(true)
         valueTextSize = 16f
         setDrawValues(true)
     }

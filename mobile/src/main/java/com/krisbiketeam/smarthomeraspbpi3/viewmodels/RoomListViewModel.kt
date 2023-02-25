@@ -1,16 +1,13 @@
 package com.krisbiketeam.smarthomeraspbpi3.viewmodels
 
-import androidx.lifecycle.*
+import androidx.lifecycle.ViewModel
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_TEMPERATURES
 import com.krisbiketeam.smarthomeraspbpi3.model.RoomListAdapterModel
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomListFragment
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.*
 import timber.log.Timber
 
 /**
@@ -18,13 +15,13 @@ import timber.log.Timber
  */
 class RoomListViewModel(private val homeRepository: FirebaseHomeInformationRepository, secureStorage: SecureStorage) : ViewModel() {
 
-    val isEditMode: MutableLiveData<Boolean> = MutableLiveData(false)
+    val isEditMode: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     private var localItemsOrder: List<String> = listOf()
 
     @ExperimentalCoroutinesApi
-    val roomWithHomeUnitsListFromFlow: LiveData<List<RoomListAdapterModel>> = secureStorage.homeNameFlow.flatMapLatest {
-        Timber.e("secureStorage.homeNameLiveData")
+    val roomWithHomeUnitsListFromFlow: Flow<List<RoomListAdapterModel>> = secureStorage.homeNameFlow.flatMapLatest {
+        Timber.e("secureStorage.homeNameFlow")
         combine(homeRepository.roomListFlow(), homeRepository.homeUnitListFlow().debounce(100), homeRepository.hwUnitErrorEventListFlow(), homeRepository.roomListOrderFlow()) { roomList, homeUnitsList, hwUnitErrorEventList, itemsOrder ->
             Timber.e("roomListAdapterModelMap")
             val roomListAdapterModelMap: MutableMap<String, RoomListAdapterModel> = roomList.associate {
@@ -55,7 +52,7 @@ class RoomListViewModel(private val homeRepository: FirebaseHomeInformationRepos
                 // save new updated order
                 apply {
                     val newItemsOrder = this.mapNotNull { model ->
-                        model.room?.name?:model.homeUnit?.let{it.type +'.'+ it.name}
+                        model.room?.name ?: model.homeUnit?.let { it.type + '.' + it.name }
                     }
                     if (newItemsOrder != localItemsOrder) {
                         localItemsOrder = newItemsOrder
@@ -64,7 +61,7 @@ class RoomListViewModel(private val homeRepository: FirebaseHomeInformationRepos
                 }
             }
         }
-    }.asLiveData(Dispatchers.Default)
+    }
 
     fun moveItem(from: Int, to: Int) {
         val itemsOrderCopy = localItemsOrder.toMutableList()

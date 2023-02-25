@@ -53,6 +53,7 @@ class HwUnitI2CMCP23017Actuator(name: String, location: String, private val pinN
             unitValue = value
             (device as MCP23017?)?.setState(ioPin, if (inverse xor value) PinState.HIGH else PinState.LOW)
             valueUpdateTime = System.currentTimeMillis()
+            Timber.v("setValue finished")
         }
     }
 }

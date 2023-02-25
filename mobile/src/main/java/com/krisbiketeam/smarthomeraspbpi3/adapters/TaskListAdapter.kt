@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_LIGHT_SWITCHES
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.LAST_TRIGGER_SOURCE_TASK_LIST
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentTaskListItemCardBinding
 import com.krisbiketeam.smarthomeraspbpi3.model.TaskListAdapterModel
 import com.krisbiketeam.smarthomeraspbpi3.ui.TaskListFragment
@@ -74,6 +75,7 @@ class TaskListAdapter(private val homeInformationRepository: FirebaseHomeInforma
                             item.homeUnit?.copy()?.also { unit ->
                                 unit.value = isChecked
                                 unit.lastUpdateTime = System.currentTimeMillis()
+                                unit.lastTriggerSource = LAST_TRIGGER_SOURCE_TASK_LIST
                                 homeInformationRepository.updateHomeUnitValue(unit)
                             }
                         }

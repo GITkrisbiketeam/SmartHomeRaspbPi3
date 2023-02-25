@@ -5,16 +5,26 @@ import android.view.*
 import androidx.core.os.bundleOf
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.flowWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentHwUnitListBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.HwUnitListViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 
+@ExperimentalCoroutinesApi
 class HwUnitListFragment : Fragment() {
 
     private val hwUnitListViewModel by viewModel<HwUnitListViewModel>()
@@ -29,13 +39,15 @@ class HwUnitListFragment : Fragment() {
         val binding = DataBindingUtil.inflate<FragmentHwUnitListBinding>(
                 inflater, R.layout.fragment_hw_unit_list, container, false).apply {
             viewModel = hwUnitListViewModel
-            lifecycleOwner = this@HwUnitListFragment
+            lifecycleOwner = viewLifecycleOwner
         }
 
         hwUnitListViewModel.apply {
-            hwUnitList.observe(viewLifecycleOwner, { hwUnitList ->
-                hwUnitListAdapter.submitList(hwUnitList)
-            })
+            lifecycleScope.launch {
+                hwUnitList.flowWithLifecycle(lifecycle, Lifecycle.State.RESUMED).flowOn(Dispatchers.IO).collect { hwUnitList ->
+                    hwUnitListAdapter.submitList(hwUnitList)
+                }
+            }
         }
 
         setHasOptionsMenu(true)

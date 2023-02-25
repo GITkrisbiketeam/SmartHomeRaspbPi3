@@ -8,7 +8,7 @@ import android.content.Intent
 import android.media.RingtoneManager
 import android.os.Build
 import androidx.core.app.NotificationCompat
-import com.google.firebase.iid.FirebaseInstanceId
+import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.krisbiketeam.smarthomeraspbpi3.LoadActivity
@@ -20,14 +20,14 @@ import timber.log.Timber
 
 fun getFirebaseAppToken(tokenReceived: (String?) -> Unit) {
     // Get token
-    FirebaseInstanceId.getInstance().instanceId.addOnCompleteListener { task ->
+    FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
         if (!task.isSuccessful) {
             Timber.w(task.exception, "getInstanceId failed")
             tokenReceived(null)
         }
 
         // Get new Instance ID token
-        val token = task.result?.token
+        val token = task.result
         Timber.d("getInstanceId token: $token")
         tokenReceived(token)
     }
@@ -155,7 +155,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         val intent = Intent(this, LoadActivity::class.java)
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
         val pendingIntent = PendingIntent.getActivity(this, 0 /* Request code */, intent,
-                PendingIntent.FLAG_ONE_SHOT)
+                PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE)
 
         val channelId = getString(R.string.default_notification_channel_id)
         val defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)

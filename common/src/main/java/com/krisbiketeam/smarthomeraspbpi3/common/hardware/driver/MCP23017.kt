@@ -122,7 +122,7 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
     private val mIntCallback = object : GpioCallback {
         override fun onGpioEdge(gpio: Gpio): Boolean {
             if (debounceDelay != NO_DEBOUNCE_DELAY) {
-                Timber.d("mIntCallback onGpioEdge ${gpio.value}")
+                Timber.d("mIntCallback addr:$address onGpioEdge ${gpio.value}")
                 debounceIntCallbackJob?.cancel()
                 debounceIntCallbackJob = GlobalScope.launch(Dispatchers.IO) {
                     delay(debounceDelay.toLong())
@@ -151,7 +151,7 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
             recheckIntCallbackJob = GlobalScope.launch(Dispatchers.IO) {
                 delay(RECHECK_INT_DELAY)
                 try {
-                    Timber.e("mIntCallback recheckIntCallbackJob mGpioInt: ${mGpioInt?.value}")
+                    Timber.e("mIntCallback addr:$address recheckIntCallbackJob mGpioInt: ${mGpioInt?.value}")
                     if (this.isActive) {
                         checkInterrupt()
                     }
@@ -168,7 +168,7 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
         override fun onGpioError(gpio: Gpio?, error: Int) {
             GlobalScope.launch(Dispatchers.IO) {
                 mListeners.flatMap { it.value }.forEach {
-                    Timber.e("mIntCallback ${gpio.toString()} : Error event $error on: $this")
+                    Timber.e("mIntCallback addr:$address ${gpio.toString()} : Error event $error on: $this")
                     it.onError("\"mIntCallback ${gpio.toString()} : Error event $error on: $this\"")
                 }
             }
@@ -186,11 +186,11 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
                     val initCurrentConf = readRegister(it, REGISTER_IOCON) ?: -1
 
                     Timber.d(
-                            "connect initCurrentStatesA: $initCurrentStatesA initCurrentStatesB: $initCurrentStatesB initCurrentConf: $initCurrentConf")
+                            "connect addr:$address initCurrentStatesA: $initCurrentStatesA initCurrentStatesB: $initCurrentStatesB initCurrentConf: $initCurrentConf")
                     resetToDefaults(it)
                 }
             } catch (e: Exception) {
-                Timber.e(e, "init error connecting I2C")
+                Timber.e(e, "init error connecting I2C addr:$address")
                 close()
                 throw (Exception("Error init MCP23017", e))
             }
@@ -231,6 +231,7 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
     @Throws(Exception::class)
     @MainThread
     private fun resetToDefaults(i2cDevice: I2cDevice?) {
+        Timber.e("resetToDefaults addr:$address")
         // set all default pins directions
         writeRegister(i2cDevice, REGISTER_IODIR_A, 0)
         writeRegister(i2cDevice, REGISTER_IODIR_B, 0)
@@ -270,9 +271,9 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
             lockedI2cOperation {
                 writeRegister(it, REGISTER_IOCON, currentConf)
             }
-            Timber.d("connectGpio currentConf: $currentConf")
+            Timber.d("connectGpio addr:$address currentConf: $currentConf")
 
-            Timber.d("connectGpio intGpio openGpio $intGpio")
+            Timber.d("connectGpio addr:$address intGpio openGpio $intGpio")
             // Step 1. Create GPIO connection.
             mGpioInt = manager.openGpio(intGpio)
             // Step 2. Configure as an input.
@@ -618,7 +619,7 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
 
     @Throws(Exception::class)
     private suspend fun checkInterrupt() {
-        Timber.v("checkInterrupt")
+        Timber.v("checkInterrupt addr:$address")
 
         var pinInterruptRegStateA: Int? = null
         var pinInterruptRegStateB: Int? = null
@@ -628,13 +629,13 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
                 // input pin
                 if (currentDirectionA > 0) {
                     pinInterruptRegStateA = readRegister(it, REGISTER_GPIO_A)
-                    Timber.v("checkInterrupt pinInterruptRegStateA:$pinInterruptRegStateA")
+                    Timber.v("checkInterrupt addr:$address pinInterruptRegStateA:$pinInterruptRegStateA")
                 }
                 // only process for interrupts if a pin on port B is configured as an
                 // input pin
                 if (currentDirectionB > 0) {
                     pinInterruptRegStateB = readRegister(it, REGISTER_GPIO_B)
-                    Timber.v("checkInterrupt pinInterruptRegStateB:$pinInterruptRegStateB")
+                    Timber.v("checkInterrupt addr:$address pinInterruptRegStateB:$pinInterruptRegStateB")
                 }
             }
         }
@@ -643,6 +644,7 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
     }
 
     private suspend fun evaluatePinForChangeA(state: Int) {
+        Timber.v("evaluatePinForChangeA addr:$address currentStatesA:$currentStatesA")
         var xor = state.xor(currentStatesA)
         for (element in MCP23017Pin.ALL_A_PINS) {
             if (xor.and(1) > 0) {
@@ -656,6 +658,7 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
     }
 
     private suspend fun evaluatePinForChangeB(state: Int) {
+        Timber.v("evaluatePinForChangeA addr:$address currentStatesA:$currentStatesA")
         var xor = state.xor(currentStatesB)
         for (element in MCP23017Pin.ALL_B_PINS) {
             if (xor.and(1) > 0) {
@@ -670,7 +673,7 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
 
     private suspend fun dispatchPinChangeEvent(pin: Pin, state: PinState) {
         mListeners[pin]?.forEach {
-            Timber.d("dispatchPinChangeEvent pin: ${pin.name} pinState: $state")
+            Timber.d("dispatchPinChangeEvent addr:$address pin: ${pin.name} pinState: $state")
             it.onPinStateChanged(pin, state)
         }
     }

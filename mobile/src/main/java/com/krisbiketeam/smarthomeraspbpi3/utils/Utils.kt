@@ -1,9 +1,11 @@
 package com.krisbiketeam.smarthomeraspbpi3.utils
 
 import android.content.Context
+import androidx.annotation.ColorInt
 import androidx.lifecycle.MutableLiveData
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.FULL_DAY_IN_MILLIS
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.RemoteLog
 import kotlinx.coroutines.flow.MutableStateFlow
 import java.text.SimpleDateFormat
 import java.util.*
@@ -78,4 +80,15 @@ fun Number.toLogsFloat():Float {
 
 fun Float.toLogsLong(): Long {
     return toLong() * 1000 + LOGS_CHART_TIME_PREFIX
+}
+
+@ColorInt
+fun RemoteLog.getTextColor(context: Context): Int {
+    return context.getColor(when (priority) {
+        "DEBUG" -> R.color.thingsAppLogsColorDebug
+        "INFO" -> R.color.thingsAppLogsColorInfo
+        "WARN" -> R.color.thingsAppLogsColorWarn
+        "ERROR" -> R.color.thingsAppLogsColorError
+        else -> R.color.thingsAppLogsColorVerbose
+    })
 }

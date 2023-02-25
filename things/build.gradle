@@ -8,14 +8,31 @@ apply plugin: 'com.google.firebase.firebase-perf'
 apply plugin: 'koin'
 
 android {
+    signingConfigs {
+        debug {
+            storeFile file('./../debug.keystore')
+            storePassword 'krisbiketeam'
+            keyAlias 'krisbiketeam'
+            keyPassword 'krisbiketeam'
+        }
+    }
     compileSdkVersion compileWithSDK
     defaultConfig {
         applicationId "com.krisbiketeam.smarthomeraspbpi3"
         minSdkVersion minSdkVersionThings
         targetSdkVersion targetedSDK
-        versionCode 1
-        versionName "1.1"
+        versionCode 2
+        versionName "2.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        externalNativeBuild {
+            cmake {
+                arguments "-DPROJECT_DIR=${rootProject.projectDir}"
+            }
+        }
+        ndk {
+            abiFilters 'armeabi-v7a'
+        }
+
     }
     buildTypes {
         release {
@@ -39,6 +56,11 @@ android {
         dataBinding = true
         // Determines whether to generate binder classes for your AIDL files.
         aidl = true
+    }
+    externalNativeBuild {
+        cmake {
+            path file('src/main/cpp/CMakeLists.txt')
+        }
     }
 }
 
@@ -74,6 +96,7 @@ dependencies {
 
     compileOnly "com.google.android.things:androidthings:$thingsVersion"
     implementation "com.google.android.things.contrib:driver-rainbowhat:$rainbowhatVersion"
+    implementation "com.knobtviker.android.things.contrib.community.driver:bme680:$bme680Version"
 
     implementation 'com.jakewharton:process-phoenix:2.0.0'
 

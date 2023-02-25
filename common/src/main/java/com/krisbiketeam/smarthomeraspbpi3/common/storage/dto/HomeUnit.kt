@@ -21,8 +21,18 @@ typealias HumidityType = Float
 typealias Humidity = HomeUnit<HumidityType>
 typealias BlindType = Int
 typealias Blind = HomeUnit<BlindType>
+typealias GasType = Float
+typealias Gas = HomeUnit<GasType>
+typealias GasPercentType = Float
+typealias GasPercent = HomeUnit<GasPercentType>
+typealias IaqType = Float
+typealias Iaq = HomeUnit<IaqType>
+typealias Co2Type = Float
+typealias Co2 = HomeUnit<Co2Type>
+typealias BreathVocType = Float
+typealias BreathVoc = HomeUnit<BreathVocType>
 
-val homeUnitTypeIndicatorMap: HashMap<String, Class<out Any?>> = hashMapOf(
+val homeUnitTypeIndicatorMap: Map<String, Class<out Any?>> = mapOf(
         HOME_ACTUATORS to ActuatorType::class.java,
         HOME_LIGHT_SWITCHES to LightSwitchType::class.java,
         HOME_REED_SWITCHES to ReedSwitchType::class.java,
@@ -30,7 +40,13 @@ val homeUnitTypeIndicatorMap: HashMap<String, Class<out Any?>> = hashMapOf(
         HOME_TEMPERATURES to TemperatureType::class.java,
         HOME_PRESSURES to PressureType::class.java,
         HOME_HUMIDITY to HumidityType::class.java,
-        HOME_BLINDS to BlindType::class.java
+        HOME_BLINDS to BlindType::class.java,
+        HOME_GAS to GasType::class.java,
+        HOME_GAS_PERCENT to GasPercentType::class.java,
+        HOME_IAQ to IaqType::class.java,
+        HOME_STATIC_IAQ to IaqType::class.java,
+        HOME_CO2 to Co2Type::class.java,
+        HOME_BREATH_VOC to BreathVocType::class.java
 )
 
 val HOME_STORAGE_UNITS: List<String> = homeUnitTypeIndicatorMap.keys.toList()
@@ -50,6 +66,7 @@ data class HomeUnit<T:Any>(var name: String = "", // Name should be unique for a
                        var minLastUpdateTime: Long? = null,
                        var max: T? = null,
                        var maxLastUpdateTime: Long? = null,
+                       var lastTriggerSource: String? = null,
                        var firebaseNotify: Boolean = false,
                        @TriggerType var firebaseNotifyTrigger: String? = null,
                        var showInTaskList: Boolean = false,
@@ -68,6 +85,7 @@ data class HomeUnit<T:Any>(var name: String = "", // Name should be unique for a
             homeUnit.minLastUpdateTime,
             homeUnit.max,
             homeUnit.maxLastUpdateTime,
+            homeUnit.lastTriggerSource,
             homeUnit.firebaseNotify,
             homeUnit.firebaseNotifyTrigger,
             homeUnit.showInTaskList,
@@ -93,6 +111,7 @@ data class HomeUnit<T:Any>(var name: String = "", // Name should be unique for a
                 minLastUpdateTime,
                 max,
                 maxLastUpdateTime,
+                lastTriggerSource,
                 firebaseNotify,
                 firebaseNotifyTrigger,
                 showInTaskList,
@@ -112,7 +131,8 @@ data class HomeUnit<T:Any>(var name: String = "", // Name should be unique for a
                 min,
                 minLastUpdateTime,
                 max,
-                maxLastUpdateTime)
+                maxLastUpdateTime,
+                lastTriggerSource)
     }
 
     override fun equals(other: Any?): Boolean {
@@ -134,6 +154,7 @@ data class HomeUnit<T:Any>(var name: String = "", // Name should be unique for a
         if (minLastUpdateTime != other.minLastUpdateTime) return false
         if (max != other.max) return false
         if (maxLastUpdateTime != other.maxLastUpdateTime) return false
+        if (lastTriggerSource != other.lastTriggerSource) return false
         if (firebaseNotify != other.firebaseNotify) return false
         if (firebaseNotifyTrigger != other.firebaseNotifyTrigger) return false
         if (showInTaskList != other.showInTaskList) return false
@@ -156,6 +177,7 @@ data class HomeUnit<T:Any>(var name: String = "", // Name should be unique for a
         result = 31 * result + (minLastUpdateTime?.hashCode() ?: 0)
         result = 31 * result + (max?.hashCode() ?: 0)
         result = 31 * result + (maxLastUpdateTime?.hashCode() ?: 0)
+        result = 31 * result + (lastTriggerSource?.hashCode() ?: 0)
         result = 31 * result + firebaseNotify.hashCode()
         result = 31 * result + (firebaseNotifyTrigger?.hashCode() ?: 0)
         result = 31 * result + showInTaskList.hashCode()

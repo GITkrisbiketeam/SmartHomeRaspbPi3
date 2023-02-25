@@ -4,7 +4,8 @@ import android.app.Application
 import com.google.android.things.device.TimeManager
 import com.google.firebase.FirebaseApp
 import com.krisbiketeam.smarthomeraspbpi3.di.myModule
-import com.krisbiketeam.smarthomeraspbpi3.utils.ConsoleLoggerTree
+import com.krisbiketeam.smarthomeraspbpi3.utils.ConsoleAndCrashliticsLoggerTree
+import com.krisbiketeam.smarthomeraspbpi3.utils.FirebaseDBLoggerTree
 import kotlinx.coroutines.IO_PARALLELISM_PROPERTY_NAME
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
@@ -16,6 +17,8 @@ import timber.log.Timber
 class ThingsApplication : Application() {
     override fun onCreate() {
         super.onCreate()
+        System.loadLibrary("native-bsec")
+
 
         // Set to ulimited number of corutines to run on new threads not limiter do default 64
         System.setProperty(IO_PARALLELISM_PROPERTY_NAME, Int.MAX_VALUE.toString())
@@ -25,7 +28,8 @@ class ThingsApplication : Application() {
 
         FirebaseApp.initializeApp(this)
 
-        Timber.plant(ConsoleLoggerTree)
+        Timber.plant(ConsoleAndCrashliticsLoggerTree)
+        Timber.plant(FirebaseDBLoggerTree)
 
         startKoin {
             androidContext(this@ThingsApplication)

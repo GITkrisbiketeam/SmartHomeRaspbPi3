@@ -6,9 +6,12 @@ import com.google.android.gms.tasks.Tasks
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.Room
 import com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitDetailFragment
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomDetailFragment
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
 import timber.log.Timber
 
@@ -16,23 +19,24 @@ import timber.log.Timber
 /**
  * The ViewModel used in [RoomDetailFragment].
  */
+@ExperimentalCoroutinesApi
+@FlowPreview
 class RoomDetailViewModel(
         private val homeRepository: FirebaseHomeInformationRepository,
-        roomName: String
+        private val inputRoomName: String
 ) : ViewModel() {
 
-    private val roomList = homeRepository.roomListFlow().stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
-    private val roomFlow = homeRepository.roomUnitFlow(roomName)
+    private val roomList = homeRepository.roomListFlow().flowOn(Dispatchers.IO).stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
 
     private val homeUnitsOrderStateFlow = MutableStateFlow<List<String>>(emptyList())
 
-    val isEditMode: MutableLiveData<Boolean> = MutableLiveData(false)
-    val room = roomFlow.asLiveData(Dispatchers.Default)
-    val roomName = MutableLiveData(roomName)
-    val showProgress = MutableLiveData(false)
+    val isEditMode: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val room: StateFlow<Room?> = homeRepository.roomUnitFlow(inputRoomName).flowOn(Dispatchers.IO).stateIn(viewModelScope, SharingStarted.WhileSubscribed(), null)
+    val roomName:MutableStateFlow<String> = MutableStateFlow(inputRoomName)
+    val showProgress:MutableStateFlow<Boolean> = MutableStateFlow(false)
 
-    val homeUnitsList: LiveData<List<HomeUnit<Any>>> by lazy {
-        combine(homeRepository.homeUnitListFlow().debounce(100), homeUnitsOrderStateFlow, roomFlow.map { it.unitsOrder }) { homeUnitList, newOrderList, existingOrderList ->
+    val homeUnitsList: StateFlow<List<HomeUnit<Any>>> by lazy {
+        combine(homeRepository.homeUnitListFlow().debounce(100), homeUnitsOrderStateFlow, room.map { it?.unitsOrder?: emptyList() }) { homeUnitList, newOrderList, existingOrderList ->
             Timber.e("homeUnitsMap Flow")
             val orderList = if (newOrderList.isNullOrEmpty()) existingOrderList else newOrderList
             val map: MutableMap<String, HomeUnit<Any>?> = orderList.associateWithTo(LinkedHashMap(orderList.size), { null })
@@ -48,11 +52,11 @@ class RoomDetailViewModel(
                     homeUnitsOrderStateFlow.value = newOrder
                 }
             }
-        }.asLiveData(Dispatchers.Default)
+        }.flowOn(Dispatchers.IO).stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
     }
 
     fun noChangesMade(): Boolean {
-        return room.value?.name == roomName.value?.trim() && room.value?.unitsOrder == homeUnitsOrderStateFlow.value
+        return room.value?.name == roomName.value.trim() && room.value?.unitsOrder == homeUnitsOrderStateFlow.value
     }
 
     /**
@@ -62,9 +66,9 @@ class RoomDetailViewModel(
         Timber.d("actionSave room.name: ${room.value?.name} roomName.value: ${roomName.value}")
 
         return when {
-            roomName.value?.trim().isNullOrEmpty() -> Pair(R.string.new_room_empty_name, null)
+            roomName.value.trim().isEmpty() -> Pair(R.string.new_room_empty_name, null)
             noChangesMade() -> Pair(R.string.add_edit_home_unit_no_changes, null)
-            roomList.value.find { room -> room.name == roomName.value?.trim() } != null -> Pair(R.string.new_room_name_already_used, null)
+            roomList.value.find { room -> room.name == roomName.value.trim() } != null -> Pair(R.string.new_room_name_already_used, null)
             else -> Pair(R.string.add_edit_home_unit_overwrite_changes, R.string.overwrite)
         }
     }
@@ -74,14 +78,14 @@ class RoomDetailViewModel(
      */
     fun actionDiscard() {
         isEditMode.value = false
-        roomName.value = room.value?.name
+        roomName.value = room.value?.name?: inputRoomName
         homeUnitsOrderStateFlow.value = room.value?.unitsOrder ?: emptyList()
     }
 
-    fun actionDeleteHomeUnit(): Task<Void> {
+    fun actionDeleteRoom(): Task<Void> {
         Timber.d("deleteHomeUnit room.name: ${room.value?.name} ")
         showProgress.value = true
-        return homeUnitsList.value?.let { homeUnitList ->
+        return homeUnitsList.value.let { homeUnitList ->
             Tasks.whenAll(homeUnitList.map { homeUnit ->
                 homeUnit.run {
                     room = ""
@@ -95,13 +99,13 @@ class RoomDetailViewModel(
                 Timber.d("Task completed")
                 showProgress.value = false
             }
-        } ?: Tasks.call { showProgress.value = false } as Task<Void>
+        }
     }
 
     fun saveChanges(): Task<Void> {
         showProgress.value = true
-        return roomName.value?.let { newRoomName ->
-            homeUnitsList.value?.let { homeUnitList ->
+        return roomName.value.let { newRoomName ->
+            homeUnitsList.value.let { homeUnitList ->
                 Tasks.whenAll(if (newRoomName != room.value?.name) {
                     homeUnitList.map { homeUnit ->
                         homeUnit.run {
@@ -115,20 +119,20 @@ class RoomDetailViewModel(
                         homeRepository.saveRoom(room.apply {
                             name = newRoomName
                             unitsOrder = homeUnitsOrderStateFlow.value
-                        })?.continueWithTask {
+                        })?.continueWithTask { saveRoomTask ->
                             if (newRoomName != oldRoomName) {
-                                homeRepository.deleteRoom(oldRoomName)
+                                homeRepository.deleteRoom(oldRoomName)?: saveRoomTask
                             } else {
                                 Tasks.forResult(null)
                             }
-                        }
+                        }?: it
                     } ?: it
                 }.addOnCompleteListener {
                     Timber.d("Task completed")
                     showProgress.value = false
                 }
             }
-        } ?: Tasks.call { showProgress.value = false } as Task<Void>
+        }
     }
 
     fun moveItem(from: Int, to: Int) {

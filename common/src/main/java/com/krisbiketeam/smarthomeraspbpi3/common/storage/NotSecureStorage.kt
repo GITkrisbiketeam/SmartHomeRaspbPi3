@@ -2,14 +2,12 @@ package com.krisbiketeam.smarthomeraspbpi3.common.storage
 
 import android.content.Context
 import android.content.SharedPreferences
-import androidx.lifecycle.LiveData
+import androidx.core.content.edit
 import androidx.preference.PreferenceManager
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.ValueEventListener
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.FirebaseCredentials
+import com.krisbiketeam.smarthomeraspbpi3.common.decodeHex
+import com.krisbiketeam.smarthomeraspbpi3.common.toHex
 import kotlinx.coroutines.flow.Flow
-import timber.log.Timber
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
@@ -26,86 +24,21 @@ class NotSecureStorage(context: Context, homeInformationRepository: FirebaseHome
 
     override var alarmEnabled: Boolean by prefs.alarmEnabled()
 
-    override val firebaseCredentialsLiveData: LiveData<FirebaseCredentials> =
-            object : LiveData<FirebaseCredentials>() {
-                private val preferenceChangeListener =
-                        SharedPreferences.OnSharedPreferenceChangeListener { _, _ ->
-                            value = firebaseCredentials
-                        }
+    override var remoteLoggingLevel: Int by prefs.remoteLoggingLevel()
 
-                override fun onActive() {
-                    super.onActive()
-                    value = firebaseCredentials
-                    sharedPrefs.registerOnSharedPreferenceChangeListener(preferenceChangeListener)
-                }
-
-                override fun onInactive() {
-                    sharedPrefs.unregisterOnSharedPreferenceChangeListener(preferenceChangeListener)
-                    super.onInactive()
-                }
-            }
-
-    override val homeNameLiveData: LiveData<String> =
-            object : LiveData<String>() {
-                private val preferenceChangeListener =
-                        SharedPreferences.OnSharedPreferenceChangeListener { _, _ ->
-                            value = homeName
-                        }
-
-                override fun onActive() {
-                    super.onActive()
-                    value = homeName
-                    sharedPrefs.registerOnSharedPreferenceChangeListener(preferenceChangeListener)
-                }
-
-                override fun onInactive() {
-                    sharedPrefs.unregisterOnSharedPreferenceChangeListener(preferenceChangeListener)
-                    super.onInactive()
-                }
-            }
-
-    override val alarmEnabledLiveData: LiveData<Boolean> =
-            object  : LiveData<Boolean>() {
-                private val preferenceChangeListener =
-                        SharedPreferences.OnSharedPreferenceChangeListener { _, _ ->
-                            homeInformationRepository.setHomePreference(ALARM_ENABLED_KEY, alarmEnabled)
-                        }
-
-                private val alarmListener: ValueEventListener = object : ValueEventListener {
-                    override fun onDataChange(dataSnapshot: DataSnapshot) {
-                        // A new value has been added, add it to the displayed list
-                        val key = dataSnapshot.key
-                        val enabled = dataSnapshot.getValue(Boolean::class.java)
-                        Timber.d("onDataChange (key=$key)(alarmEnabled=$enabled)")
-                        enabled?.let {
-                            value = enabled
-                            alarmEnabled = enabled
-                        }
-                    }
-
-                    override fun onCancelled(databaseError: DatabaseError) {
-                        Timber.e("onCancelled: $databaseError")
-                    }
-                }
-                override fun onActive() {
-                    super.onActive()
-                    value = alarmEnabled
-                    homeInformationRepository.getHomePreference(ALARM_ENABLED_KEY)?.addValueEventListener(alarmListener)
-                    prefs.registerOnSharedPreferenceChangeListener(preferenceChangeListener)
-                }
-
-                override fun onInactive() {
-                    prefs.unregisterOnSharedPreferenceChangeListener(preferenceChangeListener)
-                    homeInformationRepository.getHomePreference(ALARM_ENABLED_KEY)?.removeEventListener(alarmListener)
-                    super.onInactive()
-                }
-            }
+    override var bme680State: ByteArray by prefs.bme680State()
 
     override fun isAuthenticated(): Boolean {
         return firebaseCredentials.email.isNotEmpty() && firebaseCredentials.password.isNotEmpty() && !firebaseCredentials.uid.isNullOrEmpty()
     }
 
     override val homeNameFlow: Flow<String> get() = TODO("Not yet implemented")
+
+    override val firebaseCredentialsFlow: Flow<FirebaseCredentials> get() = TODO("Not yet implemented")
+
+    override val alarmEnabledFlow: Flow<Boolean> get() = TODO("Not yet implemented")
+
+    override val remoteLoggingLevelFlow: Flow<Int> get() = TODO("Not yet implemented")
 
     private fun SharedPreferences.firebaseCredentials():
             ReadWriteProperty<Any, FirebaseCredentials> {
@@ -144,6 +77,30 @@ class NotSecureStorage(context: Context, homeInformationRepository: FirebaseHome
 
             override fun setValue(thisRef: Any, property: KProperty<*>, value: Boolean) {
                 edit().putBoolean(ALARM_ENABLED_KEY, value).apply()
+            }
+        }
+    }
+
+    private fun SharedPreferences.remoteLoggingLevel():
+            ReadWriteProperty<Any, Int> {
+        return object : ReadWriteProperty<Any, Int> {
+            override fun getValue(thisRef: Any, property: KProperty<*>) =
+                    getInt(REMOTE_LOGGING_LEVEL_KEY, Int.MAX_VALUE)
+
+            override fun setValue(thisRef: Any, property: KProperty<*>, value: Int) {
+                edit().putInt(REMOTE_LOGGING_LEVEL_KEY, value).apply()
+            }
+        }
+    }
+
+    private fun SharedPreferences.bme680State():
+            ReadWriteProperty<Any, ByteArray> {
+        return object : ReadWriteProperty<Any, ByteArray> {
+            override fun getValue(thisRef: Any, property: KProperty<*>) =
+                    getString(BME680_STATE_KEY, "").decodeHex()
+
+            override fun setValue(thisRef: Any, property: KProperty<*>, value: ByteArray) {
+                edit { putString(BME680_STATE_KEY, value.toHex()) }
             }
         }
     }

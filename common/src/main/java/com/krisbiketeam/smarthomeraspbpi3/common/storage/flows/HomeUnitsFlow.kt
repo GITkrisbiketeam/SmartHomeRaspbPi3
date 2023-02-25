@@ -64,7 +64,7 @@ class MyChildEventListener(homePath: String, private val storageUnit: String, pr
             val unit = try {
                 dataSnapshot.getValue(this)
             } catch (e: DatabaseException) {
-                Timber.e("getHomeUnitsFlow onChildAdded (key=$key)(storageUnit=$storageUnit) could not get HomeUnit")
+                Timber.e(e,"getHomeUnitsFlow onChildAdded (key=$key)(storageUnit=$storageUnit) could not get HomeUnit")
                 null
             }
             Timber.d("getHomeUnitsFlow onChildAdded (key=$key)(unit=${unit?.name})")
@@ -81,7 +81,12 @@ class MyChildEventListener(homePath: String, private val storageUnit: String, pr
         // value and if so displayed the changed value.
         val key = dataSnapshot.key
         typeIndicatorMap[storageUnit]?.run {
-            val unit = dataSnapshot.getValue(this)
+            val unit = try {
+                dataSnapshot.getValue(this)
+            } catch (e: DatabaseException) {
+                Timber.e(e,"getHomeUnitsFlow onChildChanged (key=$key)(storageUnit=$storageUnit) could not get HomeUnit")
+                null
+            }
             Timber.d("getHomeUnitsFlow onChildChanged (key=$key)(unit=$unit)")
             unit?.let {
                 Timber.d("getHomeUnitsFlow onChildChanged (unit.room=${it.room})")

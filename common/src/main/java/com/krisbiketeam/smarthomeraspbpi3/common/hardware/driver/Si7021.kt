@@ -377,7 +377,7 @@ class Si7021(bus: String? = null) : AutoCloseable {
     @Throws(Exception::class)
     @MainThread
     fun readOneShotTempAndRh(): Pair<Float?, Float?> {
-        Timber.d("readOneShotTempAndRh start")
+        Timber.i("readOneShotTempAndRh start")
         val rh = readRH()
         val temperature = readTemperature()
         Timber.d("readOneShotTempAndRh conversion finished rh? $rh temperature? $temperature")
@@ -498,16 +498,16 @@ class Si7021(bus: String? = null) : AutoCloseable {
 
 @ExperimentalUnsignedTypes
 private fun si7021Crc8(data: UByteArray/*, check:UByte*/): UByte {
-    var crc:UShort = 0u;
+    var crc:UShort = 0u
     for (i in 0 until 2)
     {
-        crc = crc xor data[i].toUShort();
+        crc = crc xor data[i].toUShort()
         for (j in 8 downTo 1)
         {
             if ((crc and 0x80u) > 0u){
-                crc = (crc shl 1) xor 0x131u;
+                crc = (crc shl 1) xor 0x131u
             } else {
-                crc = (crc shl 1);
+                crc = (crc shl 1)
             }
         }
     }

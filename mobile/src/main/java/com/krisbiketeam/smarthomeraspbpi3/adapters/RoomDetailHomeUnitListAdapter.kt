@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_LIGHT_SWITCHES
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.LAST_TRIGGER_SOURCE_ROOM_HOME_UNITS_LIST
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentRoomDetailListItemBinding
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomDetailFragmentDirections
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomListFragment
@@ -70,6 +71,7 @@ class RoomDetailHomeUnitListAdapter(private val homeInformationRepository: Fireb
                         item.copy().also { unit ->
                             unit.value = isChecked
                             unit.lastUpdateTime = System.currentTimeMillis()
+                            unit.lastTriggerSource = LAST_TRIGGER_SOURCE_ROOM_HOME_UNITS_LIST
                             homeInformationRepository.updateHomeUnitValue(unit)
                         }
                     }

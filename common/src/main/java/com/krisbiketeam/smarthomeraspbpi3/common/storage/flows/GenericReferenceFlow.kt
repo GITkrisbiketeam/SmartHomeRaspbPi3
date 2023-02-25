@@ -12,7 +12,7 @@ import java.util.concurrent.CancellationException
 
 @ExperimentalCoroutinesApi
 inline fun <reified T> genericListReferenceFlow(databaseReference: DatabaseReference?, closeOnEmpty: Boolean = false) = callbackFlow<List<T>> {
-    Timber.e("genericListReferenceFlow init on ${databaseReference?.toString()}")
+    Timber.d("genericListReferenceFlow init on ${databaseReference?.toString()}")
     val eventListener = databaseReference?.addValueEventListener(object : ValueEventListener {
         override fun onCancelled(databaseError: DatabaseError) {
             Timber.e("genericListReferenceFlow  onCancelled $databaseError")
@@ -41,7 +41,7 @@ inline fun <reified T> genericListReferenceFlow(databaseReference: DatabaseRefer
 
 @ExperimentalCoroutinesApi
 inline fun <reified T> genericMapReferenceFlow(databaseReference: DatabaseReference?, closeOnEmpty: Boolean = false) = callbackFlow<Map<String, T>> {
-    Timber.e("genericMapReferenceFlow init on ${databaseReference?.toString()}")
+    Timber.d("genericMapReferenceFlow init on ${databaseReference?.toString()}")
     val eventListener = databaseReference?.addValueEventListener(object : ValueEventListener {
         override fun onCancelled(databaseError: DatabaseError) {
             Timber.e("genericMapReferenceFlow onCancelled $databaseError")
@@ -76,7 +76,7 @@ inline fun <reified T> genericMapReferenceFlow(databaseReference: DatabaseRefere
 
 @ExperimentalCoroutinesApi
 inline fun <reified T> genericReferenceFlow(databaseReference: DatabaseReference?, closeOnEmpty: Boolean = false) = callbackFlow<T> {
-    Timber.e("genericReferenceFlow init on ${databaseReference?.toString()}")
+    Timber.d("genericReferenceFlow init on ${databaseReference?.toString()}")
     val eventListener = databaseReference?.addValueEventListener(object : ValueEventListener {
         override fun onCancelled(databaseError: DatabaseError) {
             Timber.e("genericReferenceFlow  onCancelled $databaseError")
@@ -90,7 +90,7 @@ inline fun <reified T> genericReferenceFlow(databaseReference: DatabaseReference
             }
             // A new value has been added, add it to the displayed list
             val value: T? = dataSnapshot.getValue<T>()
-            //Timber.e("genericReferenceFlow onDataChange (key=${dataSnapshot.key})(value=$value)")
+            Timber.e("genericReferenceFlow onDataChange (key=${dataSnapshot.key})(value=$value) exists: ${dataSnapshot.exists()}")
             if (value != null) {
                 this@callbackFlow.trySendBlocking(value)
             }
