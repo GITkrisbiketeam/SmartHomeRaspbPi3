@@ -62,6 +62,7 @@ android {
             path file('src/main/cpp/CMakeLists.txt')
         }
     }
+    namespace 'com.krisbiketeam.smarthomeraspbpi3'
 }
 
 dependencies {

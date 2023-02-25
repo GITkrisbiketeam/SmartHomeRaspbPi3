@@ -14,6 +14,7 @@ import com.krisbiketeam.smarthomeraspbpi3.ui.RoomListFragment
 import com.krisbiketeam.smarthomeraspbpi3.utils.toLogsFloat
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 /**
@@ -109,7 +110,7 @@ class LogsViewModel(private val homeRepository: FirebaseHomeInformationRepositor
                         val flowList = mutableListOf<Flow<Map<String, HwUnitLog<Any?>>>>().also { list ->
                             // calculate days from unit time to now 1000 milliseconds * 60 seconds * 60 minutes * 24 hours = 86400000L
                             for (date in startRange..endRange step FULL_DAY_IN_MILLIS) {
-                                list.add(homeRepository.logsFlow(hwUnitMapEntry.key.name, date).onCompletion {
+                                list.add(homeRepository.logsFlow(`hwUnitMapEntry`.key.name, date).onCompletion {
                                     Timber.e("onCompletion")
                                     emit(mapOf())
                                 }.onStart {
@@ -168,7 +169,22 @@ class LogsViewModel(private val homeRepository: FirebaseHomeInformationRepositor
                 }
             }
 
-    fun clearLogs() = homeRepository.clearAllThingsLog()
+    fun clearLogs() {
+        viewModelScope.launch {
+            homeRepository.hwUnitListFlow().collect { hwUnitList ->
+                for (date in startRangeFlow.value..endRangeFlow.value step FULL_DAY_IN_MILLIS) {
+                    hwUnitList.forEach { hwUnit ->
+                        Timber.e("clear logs for ${hwUnit.name} on $date")
+                        homeRepository.clearHwUnitLogs(hwUnit.name, date.toString())?.addOnSuccessListener {
+                            Timber.e("FINISHED clear logs for ${hwUnit.name} on $date")
+                        }
+                    }
+
+                }
+            }
+        }
+        homeRepository.clearAllThingsLog()
+    }
 
     @ExperimentalCoroutinesApi
     fun addFilter(hwUnitHash: Int): Boolean {
