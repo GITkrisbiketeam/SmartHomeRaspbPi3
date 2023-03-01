@@ -34,26 +34,28 @@ class HwUnitI2CAirQualityBme680Sensor(private val secureStorage: SecureStorage, 
 
     @Throws(Exception::class)
     // TODO use Flow here
-    override suspend fun registerListener(scope: CoroutineScope, listener: Sensor.HwUnitListener<Bme680Data>,
+    override suspend fun registerListener(listener: Sensor.HwUnitListener<Bme680Data>,
                                           exceptionHandler: CoroutineExceptionHandler) {
         Timber.d("registerListener")
         job?.cancel()
-        job = scope.launch(Dispatchers.IO + exceptionHandler) {
-            val bme680BsecJNI =  Bme680BsecJNI(this, secureStorage, pinName, softAddress) {
-                unitValue = it
-                valueUpdateTime = System.currentTimeMillis()
-                Timber.d("Bme680Data:$unitValue")
-                listener.onHwUnitChanged(hwUnit, unitValue, valueUpdateTime)
-            }
-            try {
-                bme680BsecJNI.initBme680JNI(refreshRate ?: REFRESH_RATE < REFRESH_RATE)
-            } catch (e: Exception) {
-                Timber.i("Bme680 Job Canceled $e")
-                //TODO: should we call that
-                //throw e
-            } finally {
-                Timber.i("Bme680 finally close")
-                bme680BsecJNI.close()
+        job = supervisorScope {
+            launch(Dispatchers.IO + exceptionHandler) {
+                val bme680BsecJNI = Bme680BsecJNI(this, secureStorage, pinName, softAddress) {
+                    unitValue = it
+                    valueUpdateTime = System.currentTimeMillis()
+                    Timber.d("Bme680Data:$unitValue")
+                    listener.onHwUnitChanged(hwUnit, unitValue, valueUpdateTime)
+                }
+                try {
+                    bme680BsecJNI.initBme680JNI(refreshRate ?: REFRESH_RATE < REFRESH_RATE)
+                } catch (e: Exception) {
+                    Timber.i("Bme680 Job Canceled $e")
+                    //TODO: should we call that
+                    //throw e
+                } finally {
+                    Timber.i("Bme680 finally close")
+                    bme680BsecJNI.close()
+                }
             }
         }
         Timber.i("registerListener FINSHED")

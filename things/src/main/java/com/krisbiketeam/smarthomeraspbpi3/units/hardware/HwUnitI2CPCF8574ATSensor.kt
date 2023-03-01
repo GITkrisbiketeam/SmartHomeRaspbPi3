@@ -62,7 +62,7 @@ open class HwUnitI2CPCF8574ATSensor(name: String, location: String, private val 
         }
     }
 
-    override suspend fun registerListener(scope: CoroutineScope, listener: Sensor.HwUnitListener<Boolean>,
+    override suspend fun registerListener(listener: Sensor.HwUnitListener<Boolean>,
                                           exceptionHandler: CoroutineExceptionHandler) {
         Timber.d("registerListener")
         hwUnitListener = listener

@@ -96,7 +96,6 @@ interface HomeUnit<T : Any> {
     var unitsTasks: Map<String, UnitTask>
 
     suspend fun applyFunction(
-        scope: CoroutineScope,
         newVal: T,
         booleanApplyAction: suspend HomeUnit<T>.(actionVal: Boolean, taskHomeUnitType: HomeUnitType, taskHomeUnitName: String, taskName: String, periodicallyOnlyHw: Boolean) -> Unit
     ) {
@@ -109,7 +108,7 @@ interface HomeUnit<T : Any> {
                 HomeUnitType.HOME_MOTIONS,
                 HomeUnitType.HOME_BLINDS -> {
                     if (newVal is Boolean) {
-                        booleanTaskApply(scope, newVal, task, booleanApplyAction)
+                        booleanTaskApply(newVal, task, booleanApplyAction)
                     } else {
                         Timber.e("applyFunction new value is not Boolean or is null")
                     }
@@ -124,7 +123,7 @@ interface HomeUnit<T : Any> {
                 HomeUnitType.HOME_CO2,
                 HomeUnitType.HOME_BREATH_VOC -> {
                     if (newVal is Float) {
-                        sensorTaskApply(scope, newVal, task, booleanApplyAction)
+                        sensorTaskApply(newVal, task, booleanApplyAction)
                     } else {
                         Timber.e("applyFunction new value is not Float or is null")
                     }
@@ -159,34 +158,35 @@ interface HomeUnit<T : Any> {
     // region applyFunction helper methods
 
     private suspend fun booleanTaskApply(
-        scope: CoroutineScope,
         newVal: Boolean,
         task: UnitTask,
         booleanApplyAction: suspend HomeUnit<T>.(actionVal: Boolean, taskHomeUnitType: HomeUnitType, taskHomeUnitName: String, taskName: String, periodicallyOnlyHw: Boolean) -> Unit
     ) {
-        scope.launch {
-            Timber.v("booleanTaskApply before cancel task.taskJob:${task.taskJob} isActive:${task.taskJob?.isActive} isCancelled:${task.taskJob?.isCancelled} isCompleted:${task.taskJob?.isCompleted}")
-            task.taskJob?.cancel()
-            Timber.v("booleanTaskApply after cancel task.taskJob:${task.taskJob} isActive:${task.taskJob?.isActive} isCancelled:${task.taskJob?.isCancelled} isCompleted:${task.taskJob?.isCompleted}")
+        supervisorScope {
+            launch {
+                Timber.v("booleanTaskApply before cancel task.taskJob:${task.taskJob} isActive:${task.taskJob?.isActive} isCancelled:${task.taskJob?.isCancelled} isCompleted:${task.taskJob?.isCompleted}")
+                task.taskJob?.cancel()
+                Timber.v("booleanTaskApply after cancel task.taskJob:${task.taskJob} isActive:${task.taskJob?.isActive} isCancelled:${task.taskJob?.isCancelled} isCompleted:${task.taskJob?.isCompleted}")
 
-            if (task.disabled == true) {
-                Timber.d("booleanTaskApply task not enabled $task")
-            } else {
-                if ((task.trigger == null || task.trigger == BOTH)
-                    || (task.trigger == RISING_EDGE && newVal)
-                    || (task.trigger == FALLING_EDGE && !newVal)
-                ) {
-                    task.taskJob = scope.launch(Dispatchers.IO) {
-                        do {
-                            booleanTaskTimed(newVal, task, booleanApplyAction)
-                        } while (this.isActive && task.periodically == true && ((task.delay.isValidTime() && task.duration.isValidTime())
-                                    || (task.startTime.isValidTime() && task.endTime.isValidTime())
-                                    || (task.startTime.isValidTime() && task.duration.isValidTime()))
-                        )
+                if (task.disabled == true) {
+                    Timber.d("booleanTaskApply task not enabled $task")
+                } else {
+                    if ((task.trigger == null || task.trigger == BOTH)
+                        || (task.trigger == RISING_EDGE && newVal)
+                        || (task.trigger == FALLING_EDGE && !newVal)
+                    ) {
+                        task.taskJob = launch(Dispatchers.IO) {
+                            do {
+                                booleanTaskTimed(newVal, task, booleanApplyAction)
+                            } while (this.isActive && task.periodically == true && ((task.delay.isValidTime() && task.duration.isValidTime())
+                                        || (task.startTime.isValidTime() && task.endTime.isValidTime())
+                                        || (task.startTime.isValidTime() && task.duration.isValidTime()))
+                            )
+                        }
+                        Timber.v("booleanTaskApply after booleanTaskTimed task.taskJob:${task.taskJob} isActive:${task.taskJob?.isActive} isCancelled:${task.taskJob?.isCancelled} isCompleted:${task.taskJob?.isCompleted}")
+                    } else if (task.resetOnInverseTrigger == true) {
+                        booleanApplyAction(newVal, task, booleanApplyAction)
                     }
-                    Timber.v("booleanTaskApply after booleanTaskTimed task.taskJob:${task.taskJob} isActive:${task.taskJob?.isActive} isCancelled:${task.taskJob?.isCancelled} isCompleted:${task.taskJob?.isCompleted}")
-                } else if (task.resetOnInverseTrigger == true) {
-                    booleanApplyAction(newVal, task, booleanApplyAction)
                 }
             }
         }
@@ -194,32 +194,33 @@ interface HomeUnit<T : Any> {
     }
 
     private suspend fun sensorTaskApply(
-        scope: CoroutineScope,
         newVal: Float,
         task: UnitTask,
         booleanApplyAction: suspend HomeUnit<T>.(actionVal: Boolean, taskHomeUnitType: HomeUnitType, taskHomeUnitName: String, taskName: String, periodicallyOnlyHw: Boolean) -> Unit
     ) {
-        scope.launch {
-            if (task.disabled == true) {
-                Timber.d("sensorTaskApply task not enabled $task")
-                task.taskJob?.cancel()
-            } else {
-                task.threshold?.let { threshold ->
-                    if ((task.trigger == null || task.trigger == BOTH
-                                || task.trigger == RISING_EDGE) && newVal >= threshold + (task.hysteresis
-                            ?: 0f)
-                    ) {
-                        task.taskJob?.cancel()
-                        task.taskJob = scope.launch(Dispatchers.IO) {
-                            booleanTaskTimed(true, task, booleanApplyAction)
-                        }
-                    } else if ((task.trigger == null || task.trigger == BOTH
-                                || task.trigger == FALLING_EDGE) && newVal <= threshold - (task.hysteresis
-                            ?: 0f)
-                    ) {
-                        task.taskJob?.cancel()
-                        task.taskJob = scope.launch(Dispatchers.IO) {
-                            booleanTaskTimed(false, task, booleanApplyAction)
+        supervisorScope {
+            launch {
+                if (task.disabled == true) {
+                    Timber.d("sensorTaskApply task not enabled $task")
+                    task.taskJob?.cancel()
+                } else {
+                    task.threshold?.let { threshold ->
+                        if ((task.trigger == null || task.trigger == BOTH
+                                    || task.trigger == RISING_EDGE) && newVal >= threshold + (task.hysteresis
+                                ?: 0f)
+                        ) {
+                            task.taskJob?.cancel()
+                            task.taskJob = launch(Dispatchers.IO) {
+                                booleanTaskTimed(true, task, booleanApplyAction)
+                            }
+                        } else if ((task.trigger == null || task.trigger == BOTH
+                                    || task.trigger == FALLING_EDGE) && newVal <= threshold - (task.hysteresis
+                                ?: 0f)
+                        ) {
+                            task.taskJob?.cancel()
+                            task.taskJob = launch(Dispatchers.IO) {
+                                booleanTaskTimed(false, task, booleanApplyAction)
+                            }
                         }
                     }
                 }

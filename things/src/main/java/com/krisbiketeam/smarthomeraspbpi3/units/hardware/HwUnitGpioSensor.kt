@@ -61,7 +61,7 @@ open class HwUnitGpioSensor(name: String, location: String, pinName: String,
     }
 
     @Throws(Exception::class)
-    override suspend fun registerListener(scope: CoroutineScope, listener: Sensor.HwUnitListener<Boolean>,
+    override suspend fun registerListener(listener: Sensor.HwUnitListener<Boolean>,
                                           exceptionHandler: CoroutineExceptionHandler) {
         Timber.d("registerListener")
         hwUnitListener = listener

@@ -31,17 +31,19 @@ class HwUnitI2CTempMCP9808Sensor(name: String, location: String, private val pin
     }
 
     // TODO use Flow here
-    override suspend fun registerListener(scope: CoroutineScope, listener: Sensor.HwUnitListener<Float>,
+    override suspend fun registerListener(listener: Sensor.HwUnitListener<Float>,
                                           exceptionHandler: CoroutineExceptionHandler) {
         Timber.d("registerListener")
         job?.cancel()
-        job = scope.launch(Dispatchers.IO + exceptionHandler) {
-            // We could also check for true as suspending delay() method is cancellable
-            while (isActive) {
-                delay(refreshRate ?: REFRESH_RATE)
-                oneShotReadValue()
-                // all data should be updated by suspending oneShotReadValue() method
-                listener.onHwUnitChanged(hwUnit, unitValue, valueUpdateTime)
+        job = supervisorScope {
+            launch(Dispatchers.IO + exceptionHandler) {
+                // We could also check for true as suspending delay() method is cancellable
+                while (isActive) {
+                    delay(refreshRate ?: REFRESH_RATE)
+                    oneShotReadValue()
+                    // all data should be updated by suspending oneShotReadValue() method
+                    listener.onHwUnitChanged(hwUnit, unitValue, valueUpdateTime)
+                }
             }
         }
     }

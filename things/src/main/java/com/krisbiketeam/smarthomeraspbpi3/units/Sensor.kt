@@ -6,7 +6,7 @@ import kotlinx.coroutines.CoroutineScope
 
 interface Sensor<T> : BaseHwUnit<T> {
 
-    suspend fun registerListener(scope: CoroutineScope, listener: HwUnitListener<T>, exceptionHandler: CoroutineExceptionHandler = CoroutineExceptionHandler { _, _ -> })
+    suspend fun registerListener(listener: HwUnitListener<T>, exceptionHandler: CoroutineExceptionHandler = CoroutineExceptionHandler { _, _ -> })
 
     suspend fun unregisterListener()
 

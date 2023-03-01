@@ -32,19 +32,21 @@ class HwUnitI2CPressTempLps331Sensor(name: String, location: String, private val
 
     @Throws(Exception::class)
     // TODO use Flow here
-    override suspend fun registerListener(scope: CoroutineScope, listener: Sensor.HwUnitListener<PressureAndTemperature>,
+    override suspend fun registerListener(listener: Sensor.HwUnitListener<PressureAndTemperature>,
                                           exceptionHandler: CoroutineExceptionHandler) {
         Timber.d("registerListener")
         job?.cancel()
-        job = scope.launch(Dispatchers.IO + exceptionHandler) {
-            // We could also check for true as suspending delay() method is cancellable
-            while (isActive) {
-                delay(refreshRate ?: REFRESH_RATE)
-                // Cancel will not stop non suspending oneShotReadValue function
-                readValue()
-                // all data should be updated by suspending oneShotReadValue() method
-                listener.onHwUnitChanged(hwUnit, unitValue, valueUpdateTime)
+        job = supervisorScope {
+            launch(Dispatchers.IO + exceptionHandler) {
+                // We could also check for true as suspending delay() method is cancellable
+                while (isActive) {
+                    delay(refreshRate ?: REFRESH_RATE)
+                    // Cancel will not stop non suspending oneShotReadValue function
+                    readValue()
+                    // all data should be updated by suspending oneShotReadValue() method
+                    listener.onHwUnitChanged(hwUnit, unitValue, valueUpdateTime)
 
+                }
             }
         }
     }

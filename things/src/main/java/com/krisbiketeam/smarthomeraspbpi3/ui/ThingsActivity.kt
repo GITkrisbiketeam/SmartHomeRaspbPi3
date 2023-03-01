@@ -767,7 +767,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
     }
     private suspend fun <T : Any>Sensor<T>.registerListenerWithException(listener: Sensor.HwUnitListener<T>){
         supervisorScope {
-            registerListener(this, listener, CoroutineExceptionHandler { _, error ->
+            registerListener(listener, CoroutineExceptionHandler { _, error ->
                 lifecycleScope.launch {
                     addHwUnitErrorEvent(error,
                             "Error registerListener CoroutineExceptionHandler hwUnit on $hwUnit")

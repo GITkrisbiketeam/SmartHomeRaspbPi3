@@ -44,7 +44,7 @@ class Home(
     private val analytics: Analytics
 ) :
     Sensor.HwUnitListener<Any> {
-    private val scope = CoroutineScope(Dispatchers.IO)
+    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     private var lifecycleStartStopJob: Job? = null
 
@@ -104,41 +104,41 @@ class Home(
                 homeUnitsList[homeUnit.type to homeUnit.name] = homeUnit
             }
 
-            launch(Dispatchers.IO) {
+            launch {
                 Timber.i("start: start listen to homeUnitsFlow")
                 homeInformationRepository.homeUnitsFlow().distinctUntilChanged().collect {
                     // why I need to launch new coroutine? why hwUnitStart blocks completely
-                    launch { homeUnitsDataProcessor(it) }
+                    launch(Dispatchers.IO) { homeUnitsDataProcessor(it) }
                 }
             }
-            launch(Dispatchers.IO) {
+            launch {
                 Timber.i("start: start listen to hwUnitsFlow")
                 homeInformationRepository.hwUnitsFlow().distinctUntilChanged().collect {
                     // why I need to launch new coroutine? comment above
-                    launch { hwUnitsDataProcessor(it) }
+                    launch(Dispatchers.IO) { hwUnitsDataProcessor(it) }
                 }
             }
-            launch(Dispatchers.IO) {
+            launch {
                 Timber.i("start: start listen to hwUnitErrorEventListFlow")
                 homeInformationRepository.hwUnitErrorEventListFlow().distinctUntilChanged()
                     .collect {
                         hwUnitErrorEventListDataProcessor(it)
                     }
             }
-            launch(Dispatchers.IO) {
+            launch {
                 Timber.i("start: start listen to hwUnitRestartListFlow")
                 homeInformationRepository.hwUnitRestartListFlow().distinctUntilChanged().collect {
                     hwUnitRestartListProcessor(it)
                 }
             }
-            launch(Dispatchers.IO) {
+            launch {
                 Timber.i("start: start listen to alarmEnabledFlow")
                 secureStorage.alarmEnabledFlow.distinctUntilChanged().collect {
                     Timber.i("alarmEnabledFlow changed $it")
                     alarmEnabled = it
                 }
             }
-            launch(Dispatchers.IO) {
+            launch {
                 Timber.i("start: start listen to remoteLoggingLevelFlow")
                 secureStorage.remoteLoggingLevelFlow.distinctUntilChanged().collect { level ->
                     Timber.i("remoteLoggingLevel changed:$level")
@@ -198,7 +198,7 @@ class Home(
                                         )
                                     }
                                 }
-                                homeUnit.applyFunction(scope, newValue, booleanApplyAction)
+                                homeUnit.applyFunction(newValue, booleanApplyAction)
 
                                 if (alarmEnabled && homeUnit.shouldFirebaseNotify(newValue)) {
                                     Timber.d(
@@ -241,7 +241,7 @@ class Home(
                         }
                     }
                     homeUnit.value?.let { value ->
-                        homeUnit.applyFunction(scope, value, booleanApplyAction)
+                        homeUnit.applyFunction(value, booleanApplyAction)
                     }
                     homeUnitsList[homeUnit.type to homeUnit.name] = homeUnit
                 }
@@ -416,7 +416,7 @@ class Home(
 
             val newValue = homeUnit.unitValue()
             if (newValue != null) {
-                homeUnit.applyFunction(scope, newValue, booleanApplyAction)
+                homeUnit.applyFunction(newValue, booleanApplyAction)
             }
             homeUnit.lastTriggerSource = "${LAST_TRIGGER_SOURCE_HW_UNIT}_from_${hwUnit.name}"
             homeInformationRepository.saveHomeUnit(homeUnit)
@@ -598,7 +598,7 @@ class Home(
                             taskHomeUnit.lastUpdateTime = taskHwUnit.valueUpdateTime
                             taskHomeUnit.lastTriggerSource =
                                 "${LAST_TRIGGER_SOURCE_BOOLEAN_APPLY}_from_${this.name}_home_unit_by_${taskName}_task"
-                            taskHomeUnit.applyFunction(scope, newActionVal, booleanApplyAction)
+                            taskHomeUnit.applyFunction(newActionVal, booleanApplyAction)
                             homeInformationRepository.saveHomeUnit(taskHomeUnit)
                             // Firebase will be notified by homeUnitsDataProcessor
 
@@ -631,9 +631,7 @@ class Home(
             }
         }
 
-        scope.launch {
-            supervisorScope {
-                launch(Dispatchers.IO + handler) {
+        scope.launch(Dispatchers.IO + handler) {
                     setValue(value)
                     /*if (logEvent) {
                         analytics.logEvent(EVENT_SENSOR_SET_VALUE) {
@@ -642,8 +640,6 @@ class Home(
                         }
                     }*/
                 }.join()
-            }
-        }.join()
     }
 
     private suspend fun Sensor<Any>.readValueWithException(): Any? {
@@ -679,14 +675,11 @@ class Home(
             }
         }
         scope.launch {
-            supervisorScope {
-                registerListener(this, listener, handler)
+                registerListener(listener, handler)
                 /*analytics.logEvent(EVENT_REGISTER_LISTENER) {
                 param(SENSOR_NAME, this@registerListenerWithException.toString())
             }*/
                 Timber.e("registerListenerWithException; supervisorScope END hwUnit on $hwUnit")
-
-            }
         }
         Timber.e("registerListenerWithException; END hwUnit on $hwUnit")
     }
@@ -707,17 +700,13 @@ class Home(
             }
         }
 
-        scope.launch {
-            supervisorScope {
-                launch(Dispatchers.IO + handler) {
+        scope.launch(Dispatchers.IO + handler) {
                     withContext(NonCancellable) {
                         close()
                         /*analytics.logEvent(EVENT_SENSOR_CLOSE) {
                         param(SENSOR_NAME, this@closeValueWithException.hwUnit.name)
                     }*/
                     }
-                }
-            }
         }
     }
 

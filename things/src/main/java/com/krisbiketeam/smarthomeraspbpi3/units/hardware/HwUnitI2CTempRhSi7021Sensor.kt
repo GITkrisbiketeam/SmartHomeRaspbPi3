@@ -36,28 +36,30 @@ class HwUnitI2CTempRhSi7021Sensor(name: String, location: String, private val pi
 
     @Throws(Exception::class)
     // TODO use Flow here
-    override suspend fun registerListener(scope: CoroutineScope, listener: Sensor.HwUnitListener<TemperatureAndHumidity>,
+    override suspend fun registerListener(listener: Sensor.HwUnitListener<TemperatureAndHumidity>,
                                           exceptionHandler: CoroutineExceptionHandler) {
         Timber.d("registerListener")
         job?.cancel()
-        job = scope.launch(Dispatchers.IO + exceptionHandler) {
-            // We could also check for true as suspending delay() method is cancellable
-            while (isActive) {
-                delay(refreshRate ?: REFRESH_RATE)
-                // Cancel will not stop non suspending oneShotReadValue function
-                oneShotReadValue()
-                // all data should be updated by suspending oneShotReadValue() method
-                listener.onHwUnitChanged(hwUnit, unitValue, valueUpdateTime)
-                if (heatOnCounter++ >= heatOnTrigger) {
-                    // wait for OneShotReadValue to close Si7021
-                    delay(5000)
-                    heatOnOff(true)
-                    heatOnCounter = 0
-                    // heat up for 60 sec
-                    delay(60000)
-                    heatOnOff(false)
-                }
+        job = supervisorScope {
+            launch(Dispatchers.IO + exceptionHandler) {
+                // We could also check for true as suspending delay() method is cancellable
+                while (isActive) {
+                    delay(refreshRate ?: REFRESH_RATE)
+                    // Cancel will not stop non suspending oneShotReadValue function
+                    oneShotReadValue()
+                    // all data should be updated by suspending oneShotReadValue() method
+                    listener.onHwUnitChanged(hwUnit, unitValue, valueUpdateTime)
+                    if (heatOnCounter++ >= heatOnTrigger) {
+                        // wait for OneShotReadValue to close Si7021
+                        delay(5000)
+                        heatOnOff(true)
+                        heatOnCounter = 0
+                        // heat up for 60 sec
+                        delay(60000)
+                        heatOnOff(false)
+                    }
 
+                }
             }
         }
     }
