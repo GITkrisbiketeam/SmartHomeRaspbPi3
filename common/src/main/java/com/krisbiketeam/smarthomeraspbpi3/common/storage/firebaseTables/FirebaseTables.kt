@@ -49,6 +49,7 @@ enum class HomeUnitType(private val firebaseTableName: String) {
     // combined actuator/sensor
     HOME_LIGHT_SWITCHES("light_switches"),
     HOME_WATER_CIRCULATION("water_circulation"),
+    HOME_MCP23017_WATCH_DOG("mcp23017_watch_dog"),
     // float sensors
     HOME_TEMPERATURES("temperatures"),
     HOME_PRESSURES("pressures"),

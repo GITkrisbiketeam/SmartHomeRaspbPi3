@@ -7,12 +7,13 @@ import androidx.navigation.findNavController
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.LightSwitchHomeUnit
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.MCP23017WatchDogHomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.WaterCirculationHomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.LAST_TRIGGER_SOURCE_ROOM_HOME_UNITS_LIST
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentRoomDetailListItemBinding
+import com.krisbiketeam.smarthomeraspbpi3.model.RoomDetailListAdapterModel
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomDetailFragmentDirections
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomListFragment
 import com.krisbiketeam.smarthomeraspbpi3.utils.getLastUpdateTime
@@ -22,7 +23,10 @@ import timber.log.Timber
  * Adapter for the [RecyclerView] in [RoomListFragment].
  */
 
-class RoomDetailHomeUnitListAdapter(private val homeInformationRepository: FirebaseHomeInformationRepository) : ListAdapter<HomeUnit<Any>, RoomDetailHomeUnitListAdapter.ViewHolder>(RoomDetailHomeUnitListAdapterDiffCallback()) {
+class RoomDetailHomeUnitListAdapter(private val homeInformationRepository: FirebaseHomeInformationRepository) :
+    ListAdapter<RoomDetailListAdapterModel, RoomDetailHomeUnitListAdapter.ViewHolder>(
+        RoomDetailHomeUnitListAdapterDiffCallback()
+    ) {
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val homeUnit = getItem(position)
         holder.apply {
@@ -36,22 +40,26 @@ class RoomDetailHomeUnitListAdapter(private val homeInformationRepository: Fireb
                 LayoutInflater.from(parent.context), parent, false), homeInformationRepository)
     }
 
-    private fun createOnClickListener(item: HomeUnit<Any>): View.OnClickListener {
+    private fun createOnClickListener(item: RoomDetailListAdapterModel): View.OnClickListener {
         return View.OnClickListener { view ->
             Timber.d("onClick item: $item")
-            val direction = when (item.type) {
+            val direction = when (item.homeUnit.type) {
                 HomeUnitType.HOME_LIGHT_SWITCHES -> RoomDetailFragmentDirections.actionRoomDetailFragmentToHomeUnitLightSwitchDetailFragment(
-                    item.room,
-                    item.name
+                    item.homeUnit.room,
+                    item.homeUnit.name
                 )
                 HomeUnitType.HOME_WATER_CIRCULATION -> RoomDetailFragmentDirections.actionRoomDetailFragmentToHomeUnitWaterCirculationDetailFragment(
-                    item.room,
-                    item.name
+                    item.homeUnit.room,
+                    item.homeUnit.name
+                )
+                HomeUnitType.HOME_MCP23017_WATCH_DOG -> RoomDetailFragmentDirections.actionRoomDetailFragmentToHomeUnitMcp23017WatchDogDetailFragment(
+                    item.homeUnit.room,
+                    item.homeUnit.name
                 )
                 else -> RoomDetailFragmentDirections.actionRoomDetailFragmentToHomeUnitGenericDetailFragment(
-                    item.room,
-                    item.name,
-                    item.type
+                    item.homeUnit.room,
+                    item.homeUnit.name,
+                    item.homeUnit.type
                 )
             }
             view.findNavController().navigate(direction)
@@ -63,35 +71,41 @@ class RoomDetailHomeUnitListAdapter(private val homeInformationRepository: Fireb
             private val homeInformationRepository: FirebaseHomeInformationRepository
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(listener: View.OnClickListener, item: HomeUnit<Any>) {
+        fun bind(listener: View.OnClickListener, item: RoomDetailListAdapterModel) {
             binding.apply {
                 clickListener = listener
-                homeUnit = item
-                lastUpdateTime = getLastUpdateTime(root.context, item.lastUpdateTime)
+                homeUnit = item.homeUnit
+                error = item.error
+                val homeUnitItem = item.homeUnit
+                lastUpdateTime = getLastUpdateTime(root.context, homeUnitItem.lastUpdateTime)
                 // TODO Add handling of other type of HomeUnits (LightSwitchhomeUnit etc...
                 //  add some other types of ViewHolder for them)
                 secondLastUpdateTime =
-                    if (item.type == HomeUnitType.HOME_LIGHT_SWITCHES && item is LightSwitchHomeUnit) {
-                        getLastUpdateTime(root.context, item.switchLastUpdateTime)
-                    } else if (item.type == HomeUnitType.HOME_WATER_CIRCULATION && item is WaterCirculationHomeUnit) {
-                        getLastUpdateTime(root.context, item.motionLastUpdateTime)
+                    if (homeUnitItem.type == HomeUnitType.HOME_LIGHT_SWITCHES && homeUnitItem is LightSwitchHomeUnit) {
+                        getLastUpdateTime(root.context, homeUnitItem.switchLastUpdateTime)
+                    } else if (homeUnitItem.type == HomeUnitType.HOME_WATER_CIRCULATION && homeUnitItem is WaterCirculationHomeUnit) {
+                        getLastUpdateTime(root.context, homeUnitItem.motionLastUpdateTime)
+                    } else if (homeUnitItem.type == HomeUnitType.HOME_MCP23017_WATCH_DOG && homeUnitItem is MCP23017WatchDogHomeUnit) {
+                        getLastUpdateTime(root.context, homeUnitItem.inputLastUpdateTime)
                     } else {
                         null
                     }
-                value = if(item.value is Double || item.value is Float) {
-                    String.format("%.2f", item.value)
-                } else if(item.type == HomeUnitType.HOME_LIGHT_SWITCHES && item is LightSwitchHomeUnit) {
-                    item.switchValue.toString()
-                } else if(item.type == HomeUnitType.HOME_WATER_CIRCULATION && item is WaterCirculationHomeUnit) {
-                    item.motionValue.toString()
+                value = if(homeUnitItem.value is Double || homeUnitItem.value is Float) {
+                    String.format("%.2f", homeUnitItem.value)
+                } else if(homeUnitItem.type == HomeUnitType.HOME_LIGHT_SWITCHES && homeUnitItem is LightSwitchHomeUnit) {
+                    homeUnitItem.switchValue.toString()
+                } else if(homeUnitItem.type == HomeUnitType.HOME_WATER_CIRCULATION && homeUnitItem is WaterCirculationHomeUnit) {
+                    homeUnitItem.motionValue.toString()
+                } else if(homeUnitItem.type == HomeUnitType.HOME_MCP23017_WATCH_DOG && homeUnitItem is MCP23017WatchDogHomeUnit) {
+                    homeUnitItem.inputValue.toString()
                 } else{
-                    item.value.toString()
+                    homeUnitItem.value.toString()
                 }
 
                 homeUnitItemSwitch.setOnCheckedChangeListener { _, isChecked ->
-                    Timber.d("OnCheckedChangeListener isChecked: $isChecked item: $item")
-                    if (item.value != isChecked) {
-                        item.copy().also { unit ->
+                    Timber.d("OnCheckedChangeListener isChecked: $isChecked homeUnitItem: $homeUnitItem")
+                    if (homeUnitItem.value != isChecked) {
+                        homeUnitItem.copy().also { unit ->
                             unit.value = isChecked
                             unit.lastUpdateTime = System.currentTimeMillis()
                             unit.lastTriggerSource = LAST_TRIGGER_SOURCE_ROOM_HOME_UNITS_LIST

@@ -713,13 +713,24 @@ class FirebaseHomeInformationRepository {
     }
 
     /**
-     * get Flow of @see[LightSwitchHomeUnit<Any>] for [HomeUnitType.HOME_WATER_CIRCULATION] type and
+     * get Flow of @see[WaterCirculationHomeUnit<Any>] for [HomeUnitType.HOME_WATER_CIRCULATION] type and
      * name for listening to changes in entries in DB
      */
     @ExperimentalCoroutinesApi
     fun waterCirculationHomeUnitFlow(unitName: String, closeOnEmpty: Boolean = false): Flow<WaterCirculationHomeUnit<Any>> {
         return homePathReference?.let {
             genericReferenceFlow(Firebase.database.getReference("$it/$HOME_UNITS_BASE/${HomeUnitType.HOME_WATER_CIRCULATION}/$unitName"), closeOnEmpty)
+        } ?: emptyFlow()
+    }
+
+    /**
+     * get Flow of @see[WaterCirculationHomeUnit<Any>] for [HomeUnitType.HOME_MCP23017_WATCH_DOG] type and
+     * name for listening to changes in entries in DB
+     */
+    @ExperimentalCoroutinesApi
+    fun mcp23017WatchDogHomeUnitFlow(unitName: String, closeOnEmpty: Boolean = false): Flow<MCP23017WatchDogHomeUnit<Any>> {
+        return homePathReference?.let {
+            genericReferenceFlow(Firebase.database.getReference("$it/$HOME_UNITS_BASE/${HomeUnitType.HOME_MCP23017_WATCH_DOG}/$unitName"), closeOnEmpty)
         } ?: emptyFlow()
     }
 

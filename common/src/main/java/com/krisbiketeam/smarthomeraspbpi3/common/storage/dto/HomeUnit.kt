@@ -14,6 +14,8 @@ typealias LightSwitchType = Boolean
 typealias LightSwitch = LightSwitchHomeUnit<LightSwitchType>
 typealias WaterCirculationType = Boolean
 typealias WaterCirculation = WaterCirculationHomeUnit<WaterCirculationType>
+typealias MCP23017WatchDogType = Boolean
+typealias MCP23017WatchDog = MCP23017WatchDogHomeUnit<MCP23017WatchDogType>
 typealias ReedSwitchType = Boolean
 typealias ReedSwitch = GenericHomeUnit<ReedSwitchType>
 typealias MotionType = Boolean
@@ -43,6 +45,7 @@ fun getHomeUnitTypeIndicatorMap(type: HomeUnitType): GenericTypeIndicator<HomeUn
         HomeUnitType.HOME_ACTUATORS -> object : GenericTypeIndicator<Actuator>() {}
         HomeUnitType.HOME_LIGHT_SWITCHES -> object : GenericTypeIndicator<LightSwitch>() {}
         HomeUnitType.HOME_WATER_CIRCULATION -> object : GenericTypeIndicator<WaterCirculation>() {}
+        HomeUnitType.HOME_MCP23017_WATCH_DOG -> object : GenericTypeIndicator<MCP23017WatchDog>() {}
         HomeUnitType.HOME_REED_SWITCHES -> object : GenericTypeIndicator<ReedSwitch>() {}
         HomeUnitType.HOME_MOTIONS -> object : GenericTypeIndicator<Motion>() {}
         HomeUnitType.HOME_TEMPERATURES -> object : GenericTypeIndicator<Temperature>() {}
@@ -66,6 +69,7 @@ val HOME_ACTION_STORAGE_UNITS: List<HomeUnitType> =
     listOf(
         HomeUnitType.HOME_LIGHT_SWITCHES,
         HomeUnitType.HOME_WATER_CIRCULATION,
+        HomeUnitType.HOME_MCP23017_WATCH_DOG,
         HomeUnitType.HOME_BLINDS,
         HomeUnitType.HOME_ACTUATORS,
     )
@@ -94,6 +98,7 @@ interface HomeUnit<T : Any> {
     var firebaseNotifyTrigger: String?
     var showInTaskList: Boolean
     var unitsTasks: Map<String, UnitTask>
+    var unitJobs: MutableMap<String, Job>
 
     suspend fun applyFunction(
         newVal: T,
@@ -104,6 +109,7 @@ interface HomeUnit<T : Any> {
                 HomeUnitType.HOME_ACTUATORS,
                 HomeUnitType.HOME_LIGHT_SWITCHES,
                 HomeUnitType.HOME_WATER_CIRCULATION,
+                HomeUnitType.HOME_MCP23017_WATCH_DOG,
                 HomeUnitType.HOME_REED_SWITCHES,
                 HomeUnitType.HOME_MOTIONS,
                 HomeUnitType.HOME_BLINDS -> {

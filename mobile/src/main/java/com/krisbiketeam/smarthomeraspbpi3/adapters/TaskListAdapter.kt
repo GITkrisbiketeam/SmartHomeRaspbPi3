@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.LightSwitchHomeUnit
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.MCP23017WatchDogHomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.WaterCirculationHomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.LAST_TRIGGER_SOURCE_TASK_LIST
@@ -53,6 +54,9 @@ class TaskListAdapter(private val homeInformationRepository: FirebaseHomeInforma
                 homeUnit != null && homeUnit.type == HomeUnitType.HOME_WATER_CIRCULATION -> TaskListFragmentDirections.actionTaskListFragmentToHomeUnitWaterCirculationDetailFragment(
                     "", homeUnit.name
                 )
+                homeUnit != null && homeUnit.type == HomeUnitType.HOME_MCP23017_WATCH_DOG -> TaskListFragmentDirections.actionTaskListFragmentToHomeUnitMcp23017WatchDogDetailFragment(
+                    "", homeUnit.name
+                )
                 homeUnit != null -> TaskListFragmentDirections.actionTaskListFragmentToHomeUnitGenericDetailFragment(
                     "", homeUnit.name, homeUnit.type
                 )
@@ -83,6 +87,8 @@ class TaskListAdapter(private val homeInformationRepository: FirebaseHomeInforma
                             homeUnit.switchValue.toString()
                         } else if (homeUnit.type == HomeUnitType.HOME_WATER_CIRCULATION && homeUnit is WaterCirculationHomeUnit) {
                             homeUnit.motionValue.toString()
+                        } else if (homeUnit.type == HomeUnitType.HOME_MCP23017_WATCH_DOG && homeUnit is MCP23017WatchDogHomeUnit) {
+                            homeUnit.inputValue.toString()
                         } else {
                             homeUnit.value.toString()
                         }

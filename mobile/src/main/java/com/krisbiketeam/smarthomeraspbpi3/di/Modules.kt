@@ -41,6 +41,9 @@ val myModule: Module = module {
     viewModel { (roomName: String?, homeUnitName: String?) ->
         HomeUnitWaterCirculationDetailViewModel(androidApplication(), get(), roomName, homeUnitName)
     }
+    viewModel { (roomName: String?, homeUnitName: String?) ->
+        HomeUnitMCP23017WatchDogDetailViewModel(androidApplication(), get(), roomName, homeUnitName)
+    }
     viewModel { (taskName: String?, homeUnitName: String, homeUnitType: HomeUnitType) ->
         UnitTaskViewModel(get(), taskName, homeUnitName, homeUnitType)
     }

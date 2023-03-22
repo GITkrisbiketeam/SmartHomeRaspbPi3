@@ -154,6 +154,7 @@ class Home(
         hwUnitsList.values.forEach { hwUnitStop(it) }
         homeUnitsList.values.forEach { homeUnit ->
             homeUnit.unitsTasks.values.forEach { it.taskJob?.cancel() }
+            homeUnit.unitJobs.values.forEach { it.cancel() }
         }
     }
 
@@ -173,6 +174,9 @@ class Home(
                                 value.taskJob?.cancel()
                             }
                         }
+                        // set previous unitJobs to new homeUnit
+                        homeUnit.unitJobs.putAll(unitJobs)
+
                         homeUnit.value?.let { newValue ->
                             if (newValue != value) {
                                 hwUnitsList[homeUnit.hwUnitName]?.let { hwUnit ->
@@ -412,7 +416,14 @@ class Home(
 // TODO: IS THIS NEEDED TO RUN NEW SCOPE
 //        scope.launch {
         homeUnitsList.values.filter { it.isUnitAffected(hwUnit) }.forEach { homeUnit ->
-            homeUnit.updateHomeUnitValuesAndTimes(hwUnit, unitValue, updateTime, booleanApplyAction)
+            val handler = CoroutineExceptionHandler { _, error ->
+                scope.launch {
+                    hwUnitsList[hwUnit.name]?.addHwUnitErrorEvent(error, "Error registerListener hwUnit on $hwUnit")
+                }
+            }
+            scope.launch(Dispatchers.IO + handler) {
+                homeUnit.updateHomeUnitValuesAndTimes(hwUnit, unitValue, updateTime, booleanApplyAction)
+            }.join()
 
             val newValue = homeUnit.unitValue()
             if (newValue != null) {

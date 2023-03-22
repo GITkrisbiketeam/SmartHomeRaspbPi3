@@ -58,10 +58,10 @@ abstract class HomeUnitDetailViewModelBase<T : HomeUnit<Any>>(
     val name: MutableStateFlow<String> = MutableStateFlow(unitName ?: "")
 
     open val typeList =
-        HOME_STORAGE_UNITS.filterNot { it == HomeUnitType.HOME_LIGHT_SWITCHES || it == HomeUnitType.HOME_WATER_CIRCULATION }
+        HOME_STORAGE_UNITS.filterNot { it == HomeUnitType.HOME_LIGHT_SWITCHES || it == HomeUnitType.HOME_WATER_CIRCULATION || it == HomeUnitType.HOME_MCP23017_WATCH_DOG }
     val type: MutableStateFlow<HomeUnitType> = MutableStateFlow(unitType)
     val isTypeVisible: StateFlow<Boolean> =
-        MutableStateFlow(unitType != HomeUnitType.HOME_LIGHT_SWITCHES && unitType != HomeUnitType.HOME_WATER_CIRCULATION)
+        MutableStateFlow(unitType != HomeUnitType.HOME_LIGHT_SWITCHES && unitType != HomeUnitType.HOME_WATER_CIRCULATION && unitType != HomeUnitType.HOME_MCP23017_WATCH_DOG)
 
     val roomList: StateFlow<List<String>> =
         isEditMode.flatMapLatest { isEdit ->
@@ -95,6 +95,7 @@ abstract class HomeUnitDetailViewModelBase<T : HomeUnit<Any>>(
                             HomeUnitType.HOME_ACTUATORS,
                             HomeUnitType.HOME_LIGHT_SWITCHES,
                             HomeUnitType.HOME_WATER_CIRCULATION,
+                            HomeUnitType.HOME_MCP23017_WATCH_DOG,
                             HomeUnitType.HOME_BLINDS ->
                                 it.type == BoardConfig.IO_EXTENDER_MCP23017_OUTPUT
                             HomeUnitType.HOME_MOTIONS, HomeUnitType.HOME_REED_SWITCHES ->

@@ -114,6 +114,32 @@
                       </LayoutPositions>
                     </value>
                   </entry>
+                  <entry key="home_unit_mcp23017_watch_dog_detail_fragment">
+                    <value>
+                      <LayoutPositions>
+                        <option name="myPosition">
+                          <Point>
+                            <option name="x" value="12" />
+                            <option name="y" value="12" />
+                          </Point>
+                        </option>
+                        <option name="myPositions">
+                          <map>
+                            <entry key="action_home_unit_mcp23017_watch_dog_detail_fragment_to_add_edit_hw_unit_fragment">
+                              <value>
+                                <LayoutPositions />
+                              </value>
+                            </entry>
+                            <entry key="action_home_unit_mcp23017_watch_dog_detail_fragment_to_unit_task_fragment">
+                              <value>
+                                <LayoutPositions />
+                              </value>
+                            </entry>
+                          </map>
+                        </option>
+                      </LayoutPositions>
+                    </value>
+                  </entry>
                   <entry key="home_unit_type_chooser_dialog_fragment">
                     <value>
                       <LayoutPositions>
@@ -131,6 +157,11 @@
                               </value>
                             </entry>
                             <entry key="action_home_unit_type_chooser_dialog_fragment_to_home_unit_light_switch_detail_fragment">
+                              <value>
+                                <LayoutPositions />
+                              </value>
+                            </entry>
+                            <entry key="action_home_unit_type_chooser_dialog_fragment_to_home_unit_water_circulation_detail_fragment">
                               <value>
                                 <LayoutPositions />
                               </value>
@@ -279,6 +310,11 @@
                                 <LayoutPositions />
                               </value>
                             </entry>
+                            <entry key="action_room_detail_fragment_to_home_unit_water_circulation_detail_fragment">
+                              <value>
+                                <LayoutPositions />
+                              </value>
+                            </entry>
                           </map>
                         </option>
                       </LayoutPositions>
@@ -301,6 +337,11 @@
                               </value>
                             </entry>
                             <entry key="action_room_list_fragment_to_home_unit_light_switch_detail_fragment">
+                              <value>
+                                <LayoutPositions />
+                              </value>
+                            </entry>
+                            <entry key="action_room_list_fragment_to_home_unit_water_circulation_detail_fragment">
                               <value>
                                 <LayoutPositions />
                               </value>
@@ -388,6 +429,11 @@
                               </value>
                             </entry>
                             <entry key="action_task_list_fragment_to_home_unit_type_chooser_dialog_fragment">
+                              <value>
+                                <LayoutPositions />
+                              </value>
+                            </entry>
+                            <entry key="action_task_list_fragment_to_home_unit_water_circulation_detail_fragment">
                               <value>
                                 <LayoutPositions />
                               </value>

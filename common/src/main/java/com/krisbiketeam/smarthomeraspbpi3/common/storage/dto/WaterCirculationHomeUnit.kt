@@ -1,6 +1,7 @@
 package com.krisbiketeam.smarthomeraspbpi3.common.storage.dto
 
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
+import kotlinx.coroutines.Job
 
 data class WaterCirculationHomeUnit<T : Any>(
     override var name: String = "", // Name should be unique for all units
@@ -23,6 +24,7 @@ data class WaterCirculationHomeUnit<T : Any>(
     @TriggerType override var firebaseNotifyTrigger: String? = null,
     override var showInTaskList: Boolean = false,
     override var unitsTasks: Map<String, UnitTask> = HashMap(),
+    override var unitJobs: MutableMap<String, Job> = mutableMapOf(),
 ) : HomeUnit<T> {
 
     override fun makeNotification(): WaterCirculationHomeUnit<T> {

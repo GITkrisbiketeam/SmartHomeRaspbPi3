@@ -1,6 +1,7 @@
 package com.krisbiketeam.smarthomeraspbpi3.common.storage.dto
 
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
+import kotlinx.coroutines.Job
 import timber.log.Timber
 
 data class GenericHomeUnit<T : Any>(
@@ -18,7 +19,8 @@ data class GenericHomeUnit<T : Any>(
     override var firebaseNotify: Boolean = false,
     @TriggerType override var firebaseNotifyTrigger: String? = null,
     override var showInTaskList: Boolean = false,
-    override var unitsTasks: Map<String, UnitTask> = HashMap()
+    override var unitsTasks: Map<String, UnitTask> = HashMap(),
+    override var unitJobs: MutableMap<String, Job> = mutableMapOf(),
 ) : HomeUnit<T> {
 
     override fun makeNotification(): GenericHomeUnit<T> {

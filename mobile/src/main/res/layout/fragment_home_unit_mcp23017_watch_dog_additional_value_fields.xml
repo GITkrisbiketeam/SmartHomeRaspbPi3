@@ -1,0 +1,123 @@
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <import type="android.view.View" />
+
+        <import type="com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType" />
+
+        <variable
+            name="viewModel"
+            type="com.krisbiketeam.smarthomeraspbpi3.viewmodels.HomeUnitMCP23017WatchDogDetailViewModel" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <androidx.constraintlayout.widget.Group
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:visibility="@{safeUnbox(viewModel.isEditMode) ? View.GONE : View.VISIBLE}"
+            app:constraint_referenced_ids="home_unit_value_title,home_unit_value, home_unit_value_switch, home_unit_value_last_update_time,
+                    home_unit_values_separator, home_unit_second_value_title, home_unit_second_value, home_unit_second_value_last_update_time" />
+
+        <TextView
+            android:id="@+id/home_unit_value_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/activity_horizontal_margin"
+            android:text="@string/add_edit_home_unit_text_value"
+            android:textAppearance="@style/TextAppearance.AppCompat.Title"
+            app:layout_constraintEnd_toStartOf="@id/home_unit_value"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/home_unit_value"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/margin_small"
+            android:layout_marginEnd="@dimen/margin_small"
+            android:text="@{viewModel.value}"
+            android:textAppearance="@style/TextAppearance.AppCompat.Title"
+            app:layout_constraintBottom_toBottomOf="@id/home_unit_value_title"
+            app:layout_constraintEnd_toStartOf="@+id/home_unit_value_switch"
+            app:layout_constraintStart_toEndOf="@+id/home_unit_value_title"
+            app:layout_constraintTop_toTopOf="@id/home_unit_value_title"
+            tools:text="false" />
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/home_unit_value_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/margin_small"
+            android:layout_marginEnd="@dimen/activity_horizontal_margin"
+            app:layout_constraintBottom_toBottomOf="@id/home_unit_value_title"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/home_unit_value"
+            app:layout_constraintTop_toTopOf="@id/home_unit_value_title"
+            app:setChecked="@{viewModel.value}" />
+
+        <TextView
+            android:id="@+id/home_unit_value_last_update_time"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/activity_horizontal_margin"
+            android:paddingStart="@dimen/margin_small"
+            android:text="@{viewModel.lastUpdateTime}"
+            android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/home_unit_value_title" />
+
+        <TextView
+            android:id="@+id/home_unit_second_value_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/activity_horizontal_margin"
+            android:text="@string/add_edit_home_unit_text_input_value"
+            android:textAppearance="@style/TextAppearance.AppCompat.Title"
+            app:layout_constraintEnd_toStartOf="@id/home_unit_second_value"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/home_unit_value_last_update_time" />
+
+        <TextView
+            android:id="@+id/home_unit_second_value"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/margin_small"
+            android:layout_marginEnd="@dimen/activity_horizontal_margin"
+            android:text="@{viewModel.inputValue}"
+            android:textAppearance="@style/TextAppearance.AppCompat.Title"
+            app:layout_constraintBottom_toBottomOf="@id/home_unit_second_value_title"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/home_unit_second_value_title"
+            app:layout_constraintTop_toTopOf="@id/home_unit_second_value_title" />
+
+        <TextView
+            android:id="@+id/home_unit_second_value_last_update_time"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/activity_horizontal_margin"
+            android:paddingStart="@dimen/margin_small"
+            android:text="@{viewModel.inputLastUpdateTime}"
+            android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/home_unit_second_value_title" />
+
+        <View
+            android:id="@+id/home_unit_values_separator"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginHorizontal="@dimen/margin_small"
+            android:layout_marginTop="@dimen/margin_normal"
+            android:background="@color/colorPrimaryDark"
+            app:layout_constraintTop_toBottomOf="@+id/home_unit_second_value_last_update_time" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</layout>

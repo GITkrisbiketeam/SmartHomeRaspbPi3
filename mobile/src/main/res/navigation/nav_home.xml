@@ -44,6 +44,14 @@
             app:popExitAnim="@anim/slide_out_right" />
 
         <action
+            android:id="@+id/action_room_list_fragment_to_home_unit_mcp23017_watch_dog_detail_fragment"
+            app:destination="@id/home_unit_mcp23017_watch_dog_detail_fragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+
+        <action
             android:id="@+id/action_room_list_fragment_to_new_room_dialog_fragment"
             app:destination="@id/new_room_dialog_fragment"
             app:enterAnim="@anim/slide_in_right"
@@ -77,6 +85,14 @@
         <action
             android:id="@+id/action_task_list_fragment_to_home_unit_water_circulation_detail_fragment"
             app:destination="@id/home_unit_water_circulation_detail_fragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+
+        <action
+            android:id="@+id/action_task_list_fragment_to_home_unit_mcp23017_watch_dog_detail_fragment"
+            app:destination="@id/home_unit_mcp23017_watch_dog_detail_fragment"
             app:enterAnim="@anim/slide_in_right"
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
@@ -134,6 +150,15 @@
             app:popExitAnim="@anim/slide_out_right"
             app:popUpToInclusive="true" />
 
+        <action
+            android:id="@+id/action_home_unit_type_chooser_dialog_fragment_to_home_unit_mcp23017_watch_dog_detail_fragment"
+            app:destination="@id/home_unit_mcp23017_watch_dog_detail_fragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right"
+            app:popUpToInclusive="true" />
+
     </fragment>
 
     <fragment
@@ -161,6 +186,13 @@
         <action
             android:id="@+id/action_room_detail_fragment_to_home_unit_water_circulation_detail_fragment"
             app:destination="@id/home_unit_water_circulation_detail_fragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+        <action
+            android:id="@+id/action_room_detail_fragment_to_home_unit_mcp23017_watch_dog_detail_fragment"
+            app:destination="@id/home_unit_mcp23017_watch_dog_detail_fragment"
             app:enterAnim="@anim/slide_in_right"
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
@@ -265,6 +297,37 @@
             app:popExitAnim="@anim/slide_out_right" />
         <action
             android:id="@+id/action_home_unit_water_circulation_detail_fragment_to_add_edit_hw_unit_fragment"
+            app:destination="@id/add_edit_hw_unit_fragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/home_unit_mcp23017_watch_dog_detail_fragment"
+        android:name="com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitMCP23017WatchDogDetailFragment"
+        android:label="@string/home_unit_detail_title"
+        tools:layout="@layout/fragment_home_unit_detail_base">
+        <argument
+            android:name="roomName"
+            android:defaultValue="@null"
+            app:argType="string"
+            app:nullable="true" />
+        <argument
+            android:name="homeUnitName"
+            android:defaultValue="@null"
+            app:argType="string"
+            app:nullable="true" />
+        <action
+            android:id="@+id/action_home_unit_mcp23017_watch_dog_detail_fragment_to_unit_task_fragment"
+            app:destination="@id/unit_task_fragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+        <action
+            android:id="@+id/action_home_unit_mcp23017_watch_dog_detail_fragment_to_add_edit_hw_unit_fragment"
             app:destination="@id/add_edit_hw_unit_fragment"
             app:enterAnim="@anim/slide_in_right"
             app:exitAnim="@anim/slide_out_left"

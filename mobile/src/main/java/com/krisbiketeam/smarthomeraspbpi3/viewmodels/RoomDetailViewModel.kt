@@ -1,12 +1,13 @@
 package com.krisbiketeam.smarthomeraspbpi3.viewmodels
 
-import androidx.lifecycle.*
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.Tasks
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.Room
+import com.krisbiketeam.smarthomeraspbpi3.model.RoomDetailListAdapterModel
 import com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitGenericDetailFragment
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomDetailFragment
 import kotlinx.coroutines.Dispatchers
@@ -14,6 +15,18 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
 import timber.log.Timber
+import kotlin.collections.LinkedHashMap
+import kotlin.collections.List
+import kotlin.collections.MutableMap
+import kotlin.collections.associateWithTo
+import kotlin.collections.emptyList
+import kotlin.collections.filterNotNull
+import kotlin.collections.find
+import kotlin.collections.firstOrNull
+import kotlin.collections.forEach
+import kotlin.collections.map
+import kotlin.collections.set
+import kotlin.collections.toMutableList
 
 
 /**
@@ -35,24 +48,35 @@ class RoomDetailViewModel(
     val roomName:MutableStateFlow<String> = MutableStateFlow(inputRoomName)
     val showProgress:MutableStateFlow<Boolean> = MutableStateFlow(false)
 
-    val homeUnitsList: StateFlow<List<HomeUnit<Any>>> by lazy {
-        combine(homeRepository.homeUnitListFlow().debounce(100), homeUnitsOrderStateFlow, room.map { it?.unitsOrder?: emptyList() }) { homeUnitList, newOrderList, existingOrderList ->
+    val homeUnitsList: StateFlow<List<RoomDetailListAdapterModel>> by lazy {
+        combine(
+            homeRepository.homeUnitListFlow().debounce(100),
+            homeRepository.hwUnitErrorEventListFlow(),
+            homeUnitsOrderStateFlow,
+            room.map {
+                it?.unitsOrder ?: emptyList()
+            }) { homeUnitList, hwUnitErrorEventList, newOrderList, existingOrderList ->
             Timber.e("homeUnitsMap Flow")
-            val orderList = if (newOrderList.isNullOrEmpty()) existingOrderList else newOrderList
-            val map: MutableMap<String, HomeUnit<Any>?> = orderList.associateWithTo(LinkedHashMap(orderList.size)) { null }
+            val orderList = newOrderList.ifEmpty { existingOrderList }
+            val map: MutableMap<String, RoomDetailListAdapterModel?> =
+                orderList.associateWithTo(LinkedHashMap(orderList.size)) { null }
             homeUnitList.forEach {
                 if (it.room == room.value?.name) {
                     //Timber.e("homeUnitsMap Flow filter")
-                    map[it.type.toString() + '.' + it.name] = it
+                    map[it.type.toString() + '.' + it.name] = RoomDetailListAdapterModel(
+                        it,
+                        hwUnitErrorEventList.firstOrNull { hwUnitLog -> hwUnitLog.name == it.hwUnitName } != null)
                 }
             }
             map.values.filterNotNull().also { unitsList ->
-                val newOrder = unitsList.map { it.type.toString() + '.' + it.name }
-                if (newOrder != orderList || newOrderList.isNullOrEmpty()) {
+                val newOrder =
+                    unitsList.map { it.homeUnit.let { homeUnit -> homeUnit.type.toString() + '.' + homeUnit.name } }
+                if (newOrder != orderList || newOrderList.isEmpty()) {
                     homeUnitsOrderStateFlow.value = newOrder
                 }
             }
-        }.flowOn(Dispatchers.IO).stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
+        }.flowOn(Dispatchers.IO)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
     }
 
     fun noChangesMade(): Boolean {
@@ -87,7 +111,7 @@ class RoomDetailViewModel(
         showProgress.value = true
         return homeUnitsList.value.let { homeUnitList ->
             Tasks.whenAll(homeUnitList.map { homeUnit ->
-                homeUnit.run {
+                homeUnit.homeUnit.run {
                     room = ""
                     homeRepository.saveHomeUnit(this)
                 }
@@ -108,7 +132,7 @@ class RoomDetailViewModel(
             homeUnitsList.value.let { homeUnitList ->
                 Tasks.whenAll(if (newRoomName != room.value?.name) {
                     homeUnitList.map { homeUnit ->
-                        homeUnit.run {
+                        homeUnit.homeUnit.run {
                             room = newRoomName
                             homeRepository.saveHomeUnit(this)
                         }

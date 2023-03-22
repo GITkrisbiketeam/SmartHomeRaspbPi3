@@ -24,15 +24,21 @@
         <variable
             name="lastUpdateTime"
             type="String"/>
+
         <variable
             name="secondLastUpdateTime"
             type="String"/>
+
+        <variable
+            name="error"
+            type="Boolean"/>
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="@{clickListener}">
+        android:onClick="@{clickListener}"
+        android:background='@{error ? @color/colorError : @color/colorOnError}'>
 
         <ImageView
             android:id="@+id/home_unit_item_image"
@@ -115,7 +121,7 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             app:setChecked="@{homeUnit.value}"
-            android:visibility="@{HomeUnitType.HOME_LIGHT_SWITCHES.equals(homeUnit.type) || HomeUnitType.HOME_WATER_CIRCULATION.equals(homeUnit.type) || HomeUnitType.HOME_ACTUATORS.equals(homeUnit.type) || HomeUnitType.HOME_BLINDS.equals(homeUnit.type) ? View.VISIBLE : View.GONE}"
+            android:visibility="@{HomeUnitType.HOME_LIGHT_SWITCHES.equals(homeUnit.type) || HomeUnitType.HOME_WATER_CIRCULATION.equals(homeUnit.type) || HomeUnitType.HOME_MCP23017_WATCH_DOG.equals(homeUnit.type) || HomeUnitType.HOME_ACTUATORS.equals(homeUnit.type) || HomeUnitType.HOME_BLINDS.equals(homeUnit.type) ? View.VISIBLE : View.GONE}"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent" />
