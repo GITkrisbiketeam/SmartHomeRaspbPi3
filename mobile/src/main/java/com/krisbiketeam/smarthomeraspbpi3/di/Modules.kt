@@ -58,6 +58,7 @@ val myModule: Module = module {
     viewModel { HwUnitErrorEventListViewModel(get()) }
     viewModel { LogsViewModel(get()) }
     viewModel { ThingsAppLogsViewModel(get(), get()) }
+    viewModel { HwUnitErrorLogsViewModel(get()) }
 
     single { FirebaseHomeInformationRepository() }
     single<SecureStorage> { SecureStorageImpl(androidApplication(), get()) }

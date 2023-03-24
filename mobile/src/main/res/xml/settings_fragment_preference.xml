@@ -39,11 +39,18 @@
             />
 
     <Preference
-            android:fragment="com.krisbiketeam.smarthomeraspbpi3.ui.ThingsAppLogsFragment"
-            android:key="@string/settings_things_app_logs_fragment_key"
-            android:persistent="false"
-            android:title="@string/things_app_logs_title"
-            />
+        android:fragment="com.krisbiketeam.smarthomeraspbpi3.ui.ThingsAppLogsFragment"
+        android:key="@string/settings_things_app_logs_fragment_key"
+        android:persistent="false"
+        android:title="@string/things_app_logs_title"
+        />
+
+    <Preference
+        android:fragment="com.krisbiketeam.smarthomeraspbpi3.ui.HwUnitErrorLogsFragment"
+        android:key="@string/settings_hw_unit_error_logs_fragment_key"
+        android:persistent="false"
+        android:title="@string/hw_unit_error_logs_title"
+        />
 
     <SwitchPreferenceCompat
             app:key="@string/settings_alarm_enabled_key"

@@ -793,6 +793,12 @@ class FirebaseHomeInformationRepository {
         }?: emptyFlow()
     }
 
+    fun hwUnitErrorLogsFlow(hwUnitName:String): Flow<List<HwUnitLog<Any>>> {
+        return homePathReference?.let {
+            genericListReferenceFlow(Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$LOG_HW_UNIT_ERRORS/$hwUnitName"))
+        }?: emptyFlow()
+    }
+
 
     fun thingsAppLogsFlow(date: Long): Flow<Map<String,RemoteLog>> {
         return homePathReference?.let {
