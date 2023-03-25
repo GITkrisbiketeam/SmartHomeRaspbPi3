@@ -162,6 +162,9 @@ data class GenericHomeUnit<T : Any>(
                 HomeUnitType.HOME_BREATH_VOC -> {
                     updateValueMinMax(unitValue.breathVocEquivalent, updateTime)
                 }
+                else -> {
+                    // do nothing, no supported sensor
+                }
             }
         } else {
             updateValueMinMax(unitValue, updateTime)

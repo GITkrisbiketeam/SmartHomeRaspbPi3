@@ -9,7 +9,7 @@ buildscript {
     }
     dependencies {
         classpath "com.android.tools.build:gradle:$gradlePluginVersion"
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinGradlVersion"
         classpath "com.google.gms:google-services:$googleServicesClassVersion"
         classpath "androidx.navigation:navigation-safe-args-gradle-plugin:$navigationVersion"
 
@@ -22,9 +22,9 @@ buildscript {
 
         // Add the Crashlytics Gradle plugin (be sure to add version
         // 2.0.0 or later if you built your app with Android Studio 4.1).
-        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.9.0'
+        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.9.4'
         // Add the dependency for the Performance Monitoring plugin
-        classpath 'com.google.firebase:perf-plugin:1.4.1'  // Performance Monitoring plugin
+        classpath 'com.google.firebase:perf-plugin:1.4.2'  // Performance Monitoring plugin
 
         classpath "io.insert-koin:koin-gradle-plugin:$koin_version"
     }

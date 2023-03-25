@@ -1,11 +1,12 @@
 ext {
-    targetedSDK = 31
-    compileWithSDK = 31
+    targetedSDK = 33
+    compileWithSDK = 33
     minSdkVersionApp = 23
     minSdkVersionThings = 27
 
     // Languages
-    kotlinVersion = '1.6.21'
+    kotlinVersion = '1.8.10'
+    kotlinGradlVersion = '1.8.0'
 
     kotlinxCoroutinesAndroid = '1.6.3'
     kotlinxCoroutinesReactive = '1.6.3'
@@ -15,19 +16,19 @@ ext {
     googleServicesClassVersion = '4.3.10'
 
     // Google
-    playServicesVersion = '17.6.0'
-    playServicesNearbyVersion = '18.2.0'
+    playServicesVersion = '18.2.0'
+    playServicesNearbyVersion = '18.5.0'
 
-    firebaseBom = '30.1.0'
+    firebaseBom = '31.2.3'
 
-    androidxAppcompatVersion = '1.4.2'
+    androidxAppcompatVersion = '1.6.1'
     androidxConstraintLayoutVersion = '2.1.4'
     androidxPreferenceVersion = '1.2.0'
-    androidxCoreKtx = '1.8.0'
+    androidxCoreKtx = '1.9.0'
     androidxSecurityCrypto = '1.1.0-alpha03'
     androidxLegacySupportV4 = '1.0.0'
-    androidxAnnotationVersion = '1.4.0'
-    lifecycleKtxVersion = '2.4.1'
+    androidxAnnotationVersion = '1.6.0'
+    lifecycleKtxVersion = '2.6.1'
 
     androidMaterialVesrion = '1.6.1'
     supportLibraryVersion = '28.0.0'
