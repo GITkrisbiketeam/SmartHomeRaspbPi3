@@ -8,7 +8,6 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
 import com.krisbiketeam.smarthomeraspbpi3.units.HwUnitI2C
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
 import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber

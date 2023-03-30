@@ -1,6 +1,9 @@
 package com.krisbiketeam.smarthomeraspbpi3.ui
 
+import android.app.AlarmManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.net.wifi.WifiConfiguration
 import android.net.wifi.WifiManager
 import android.os.Bundle
@@ -18,6 +21,8 @@ import com.google.firebase.ktx.Firebase
 import com.jakewharton.processphoenix.ProcessPhoenix
 import com.krisbiketeam.smarthomeraspbpi3.Home
 import com.krisbiketeam.smarthomeraspbpi3.R
+import com.krisbiketeam.smarthomeraspbpi3.WATCH_DOG_RESTART_ACTION
+import com.krisbiketeam.smarthomeraspbpi3.WatchDogRestartReceiver
 import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.Authentication
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.FirebaseCredentials
@@ -29,6 +34,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformation
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnitLog
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.RemoteLog
 import com.krisbiketeam.smarthomeraspbpi3.units.Actuator
 import com.krisbiketeam.smarthomeraspbpi3.units.BaseHwUnit
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
@@ -36,14 +42,15 @@ import com.krisbiketeam.smarthomeraspbpi3.units.hardware.HwUnitI2CPCF8574ATActua
 import com.krisbiketeam.smarthomeraspbpi3.units.hardware.HwUnitI2CPCF8574ATSensor
 import com.krisbiketeam.smarthomeraspbpi3.utils.ConsoleAndCrashliticsLoggerTree
 import com.krisbiketeam.smarthomeraspbpi3.utils.FirebaseDBLoggerTree
+import com.krisbiketeam.smarthomeraspbpi3.utils.NetworkConnectionListener
+import com.krisbiketeam.smarthomeraspbpi3.utils.NetworkConnectionMonitor
 import com.squareup.moshi.Moshi
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.distinctUntilChanged
 import org.koin.android.ext.android.inject
 import timber.log.Timber
 import java.io.IOException
+import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -52,6 +59,7 @@ import kotlin.coroutines.resumeWithException
 private const val DRIVER_NAME = "PCF8574AT Button Driver"
 private const val NEARBY_TIMEOUT = 60000L        // 60 sec
 private const val NEARBY_BLINK_DELAY = 1000L        // 1 sec
+private const val WATCH_DOG_RESTART_TIME = 60000L        // 60 sec
 
 class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
     private val authentication: Authentication by inject()
@@ -59,6 +67,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
     private val homeInformationRepository: FirebaseHomeInformationRepository by inject()
     private lateinit var networkConnectionMonitor: NetworkConnectionMonitor
     private lateinit var wifiManager: WifiManager
+    private lateinit var alarmManager: AlarmManager
 
     private val analytics: Analytics by inject()
 
@@ -194,6 +203,8 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
         networkConnectionMonitor = NetworkConnectionMonitor(this)
 
         wifiManager = getSystemService(Context.WIFI_SERVICE) as WifiManager
+
+        alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
         Timber.e("onCreate isNetworkConnected: ${networkConnectionMonitor.isNetworkConnected}")
 
@@ -472,6 +483,27 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
                 }
             }
         }
+
+        lifecycleScope.launch(Dispatchers.Main) {
+            val pendingIntent = getWatchDogRestartPendingIntent()
+
+            scheduleWatchDogRestartAlarm(pendingIntent)
+            Timber.i("shedule WatchDogRestart Alarm")
+            val resetWatchDogDelay:Long =
+                if (WATCH_DOG_RESTART_TIME > 1000) {
+                    WATCH_DOG_RESTART_TIME - 1000
+                } else {
+                    (WATCH_DOG_RESTART_TIME * 0.5).toLong()
+                }
+            while (true) {
+                delay(resetWatchDogDelay)
+                if (pendingIntent != null) {
+                    Timber.d("cancel WatchDogRestart Alarm")
+                    alarmManager.cancel(pendingIntent)
+                }
+                scheduleWatchDogRestartAlarm(pendingIntent)
+            }
+        }
     }
 
     override fun onStop() {
@@ -700,7 +732,29 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
     private suspend fun restartApp() {
         home.stop()
         Timber.e("restartApp after Home stop")
+        val threadedTag = "[${Thread.currentThread().name}] ThingsActivity"
+        val timeStamp = System.currentTimeMillis()
+        val time = SimpleDateFormat("dd MMM HH:mm:ss.SSS", Locale.getDefault()).format(Date(timeStamp))
+        val remoteLog = RemoteLog("ERROR", threadedTag, "restartApp", null, time)
+        homeInformationRepository.logThingsLog(remoteLog, timeStamp)
         ProcessPhoenix.triggerRebirth(application)
+    }
+
+    private fun getWatchDogRestartPendingIntent(): PendingIntent? {
+        // Intent part
+        val watchDogIntent = Intent(this, WatchDogRestartReceiver::class.java)
+        watchDogIntent.action = WATCH_DOG_RESTART_ACTION
+
+        return PendingIntent.getBroadcast(this, 0, watchDogIntent, PendingIntent.FLAG_IMMUTABLE)
+    }
+
+    private fun scheduleWatchDogRestartAlarm(pendingIntent: PendingIntent?) {
+        if (pendingIntent != null) {
+            // Alarm time
+            val alarmTimeAtUTC = System.currentTimeMillis() + WATCH_DOG_RESTART_TIME
+            alarmManager.setExact(AlarmManager.RTC_WAKEUP, alarmTimeAtUTC, pendingIntent)
+            Timber.d("Shedule WatchDogRestart Alarm")
+        }
     }
 
     private fun addWiFi(wifiManager: WifiManager, wifiCredentials: WifiCredentials) {

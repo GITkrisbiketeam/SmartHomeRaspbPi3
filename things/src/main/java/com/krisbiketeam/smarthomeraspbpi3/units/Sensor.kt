@@ -2,7 +2,6 @@ package com.krisbiketeam.smarthomeraspbpi3.units
 
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
 import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.CoroutineScope
 
 interface Sensor<T> : BaseHwUnit<T> {
 

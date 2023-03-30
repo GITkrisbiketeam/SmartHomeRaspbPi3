@@ -1,4 +1,4 @@
-package com.krisbiketeam.smarthomeraspbpi3.ui
+package com.krisbiketeam.smarthomeraspbpi3.utils
 
 import android.app.Activity
 import android.content.Context
