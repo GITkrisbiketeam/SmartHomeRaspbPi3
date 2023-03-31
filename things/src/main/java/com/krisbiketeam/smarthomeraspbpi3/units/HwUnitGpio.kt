@@ -9,33 +9,40 @@ import timber.log.Timber
 interface HwUnitGpio<T> : BaseHwUnit<T> {
     var gpio: Gpio?
 
-    override suspend fun connect() {
+    override suspend fun connect():Result<Unit> {
         Timber.e("connect on: $hwUnit")
-        if (gpio == null) {
+        return if (gpio == null) {
             withContext(Dispatchers.Main) {
-                try {
-                    gpio = PeripheralManager.getInstance()?.openGpio(hwUnit.pinName)
-                } catch (e: Exception) {
-                    Timber.e(e, "Error connecting device")
+                kotlin.runCatching {
                     try {
-                        close()
+                        gpio = PeripheralManager.getInstance()?.openGpio(hwUnit.pinName)
                     } catch (e: Exception) {
-                        Timber.e(e, "Error closing device")
+                        Timber.e(e, "Error connecting device")
+                        close().onFailure {
+                            Timber.e(e, "Error closing device")
+                            throw (Exception("Error close HwUnitGpio", e))
+                        }
+                        Unit
                     }
                 }
             }
+        } else {
+            Result.success(Unit)
         }
     }
 
-    override suspend fun close() {
+    override suspend fun close():Result<Unit> {
         Timber.e("close on: $hwUnit")
-        withContext(Dispatchers.Main) {
-            try {
-                gpio?.close()
-            } catch (e: Exception) {
-                Timber.e(e, "Error closing PeripheralIO API on: $hwUnit")
-            } finally {
-                gpio = null
+        return withContext(Dispatchers.Main) {
+            kotlin.runCatching {
+                try {
+                    gpio?.close()
+                    gpio = null
+                } catch (e: Exception) {
+                    gpio = null
+                    Timber.e(e, "Error closing PeripheralIO API on: $hwUnit")
+                    throw (Exception("Error close HwUnitGpio", e))
+                }
             }
         }
     }

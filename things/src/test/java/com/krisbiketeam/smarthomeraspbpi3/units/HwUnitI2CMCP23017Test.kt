@@ -5,12 +5,13 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 
 class HwUnitI2CMCP23017Test {
 
     @Before
     fun setUp(){
-        HwUnitI2CMCP23017.mcpUseCountMap = HashMap()
+        HwUnitI2CMCP23017.mcpUseCountMap = ConcurrentHashMap()
     }
 
     @Test

@@ -8,10 +8,16 @@ import com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver.MCP23017Pin
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.ChildEventType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.*
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.*
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnitLog
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.LAST_TRIGGER_SOURCE_BOOLEAN_APPLY
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.LAST_TRIGGER_SOURCE_HOME_UNIT_ADDED
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.LAST_TRIGGER_SOURCE_HW_UNIT
 import com.krisbiketeam.smarthomeraspbpi3.units.Actuator
 import com.krisbiketeam.smarthomeraspbpi3.units.BaseHwUnit
+import com.krisbiketeam.smarthomeraspbpi3.units.HwUnitValue
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
 import com.krisbiketeam.smarthomeraspbpi3.units.hardware.*
 import com.krisbiketeam.smarthomeraspbpi3.utils.FirebaseDBLoggerTree
@@ -21,7 +27,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import timber.log.Timber
-import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.random.Random
 
@@ -190,14 +195,14 @@ class Home(
                                         )
 
                                         hwUnit.setValueWithException(newValue)
-                                        homeUnit.lastUpdateTime = hwUnit.valueUpdateTime
+                                        homeUnit.lastUpdateTime = hwUnit.hwUnitValue.valueUpdateTime
 
                                         homeInformationRepository.logHwUnitEvent(
                                             HwUnitLog(
                                                 hwUnit.hwUnit,
                                                 newValue,
                                                 "homeUnitsDataProcessor",
-                                                hwUnit.valueUpdateTime
+                                                hwUnit.hwUnitValue.valueUpdateTime
                                             )
                                         )
                                     }
@@ -223,20 +228,20 @@ class Home(
                     // Set/Update HhUnit States according to HomeUnit state and vice versa
                     hwUnitsList[homeUnit.hwUnitName]?.let { hwUnit ->
                         Timber.d("homeUnitsDataProcessor NODE_ACTION_ADDED hwUnit: $hwUnit")
-                        if (homeUnit.value != hwUnit.unitValue) {
+                        if (homeUnit.value != hwUnit.hwUnitValue.unitValue) {
                             if (hwUnit is Actuator) {
                                 Timber.d(
                                     "homeUnitsDataProcessor NODE_ACTION_ADDED baseUnit setValue value: ${homeUnit.value}"
                                 )
                                 homeUnit.value?.let { value ->
                                     hwUnit.setValueWithException(value)
-                                    homeUnit.lastUpdateTime = hwUnit.valueUpdateTime
+                                    homeUnit.lastUpdateTime = hwUnit.hwUnitValue.valueUpdateTime
                                 }
                             } else if (hwUnit is Sensor) {
                                 homeUnit.updateHomeUnitValuesAndTimes(
                                     hwUnit.hwUnit,
-                                    hwUnit.unitValue,
-                                    hwUnit.valueUpdateTime,
+                                    hwUnit.hwUnitValue.unitValue,
+                                    hwUnit.hwUnitValue.valueUpdateTime,
                                     booleanApplyAction
                                 )
                                 homeUnit.lastTriggerSource = LAST_TRIGGER_SOURCE_HOME_UNIT_ADDED
@@ -398,62 +403,54 @@ class Home(
         }
     }
 
-    override suspend fun onHwUnitChanged(hwUnit: HwUnit, unitValue: Any?, updateTime: Long) {
+    override fun onHwUnitChanged(hwUnit: HwUnit, result: Result<HwUnitValue<Any?>>) {
+        // TODO check which Thread this is maybe swith to background
         Timber.d(
-            "onHwUnitChanged unit: $hwUnit; unitValue: $unitValue; updateTime: ${
-                Date(updateTime)
-            }"
+            "onHwUnitChanged unit: $hwUnit; result: $result"
         )
-        homeInformationRepository.logHwUnitEvent(
-            HwUnitLog(
-                hwUnit,
-                unitValue,
-                "onHwUnitChanged",
-                updateTime
-            )
-        )
+        scope.launch(Dispatchers.IO) {
+            result.onSuccess { hwUnitValue ->
+                homeInformationRepository.logHwUnitEvent(
+                    HwUnitLog(
+                        hwUnit,
+                        hwUnitValue.unitValue,
+                        "onHwUnitChanged",
+                        hwUnitValue.valueUpdateTime
+                    )
+                )
 
-// TODO: IS THIS NEEDED TO RUN NEW SCOPE
-//        scope.launch {
-        homeUnitsList.values.filter { it.isUnitAffected(hwUnit) }.forEach { homeUnit ->
-            val handler = CoroutineExceptionHandler { _, error ->
-                scope.launch {
-                    hwUnitsList[hwUnit.name]?.addHwUnitErrorEvent(error, "Error registerListener hwUnit on $hwUnit")
+                homeUnitsList.values.filter { it.isUnitAffected(hwUnit) }.forEach { homeUnit ->
+                    homeUnit.updateHomeUnitValuesAndTimes(
+                        hwUnit,
+                        hwUnitValue.unitValue,
+                        hwUnitValue.valueUpdateTime,
+                        booleanApplyAction
+                    )
+
+                    val newValue = homeUnit.unitValue()
+                    if (newValue != null) {
+                        homeUnit.applyFunction(newValue, booleanApplyAction)
+                    }
+                    homeUnit.lastTriggerSource =
+                        "${LAST_TRIGGER_SOURCE_HW_UNIT}_from_${hwUnit.name}"
+                    homeInformationRepository.saveHomeUnit(homeUnit)
+                    if (alarmEnabled && homeUnit.shouldFirebaseNotify(newValue)) {
+                        Timber.d("onHwUnitChanged notify with FCM Message")
+                        homeInformationRepository.notifyHomeUnitEvent(homeUnit)
+                    }
                 }
-            }
-            scope.launch(Dispatchers.IO + handler) {
-                homeUnit.updateHomeUnitValuesAndTimes(hwUnit, unitValue, updateTime, booleanApplyAction)
-            }.join()
-
-            val newValue = homeUnit.unitValue()
-            if (newValue != null) {
-                homeUnit.applyFunction(newValue, booleanApplyAction)
-            }
-            homeUnit.lastTriggerSource = "${LAST_TRIGGER_SOURCE_HW_UNIT}_from_${hwUnit.name}"
-            homeInformationRepository.saveHomeUnit(homeUnit)
-            if (alarmEnabled && homeUnit.shouldFirebaseNotify(newValue)) {
-                Timber.d("onHwUnitChanged notify with FCM Message")
-                homeInformationRepository.notifyHomeUnitEvent(homeUnit)
+                // TODO: SHOULD THIS BE HERE?
+                // remove possible error from hwUnitErrorEventList for successful read of hwUnit
+                if (hwUnitValue.unitValue != null) {
+                    hwUnitErrorEventList.remove(hwUnit.name)
+                }
+            }.onFailure {
+                hwUnitsList[hwUnit.name]?.addHwUnitErrorEvent(
+                    Throwable(),
+                    "Error on $hwUnit : error"
+                )
             }
         }
-        // remove possible error from hwUnitErrorEventList for successful read of hwUnit
-// TODO: SHOULD THIS BE HERE?
-        if (unitValue != null) {
-            hwUnitErrorEventList.remove(hwUnit.name)
-        }
-//        }
-    }
-
-    override suspend fun onHwUnitError(hwUnit: HwUnit, error: String, updateTime: Long) {
-        Timber.d(
-            "onHwUnitError unit: $hwUnit; error: $error; updateTime: ${
-                Date(updateTime)
-            }"
-        )
-// TODO: IS THIS NEEDED TO RUN NEW SCOPE
-        //scope.launch {
-        hwUnitsList[hwUnit.name]?.addHwUnitErrorEvent(Throwable(), "Error on $hwUnit : error")
-        //}
     }
 
     private fun createHwUnit(hwUnit: HwUnit): BaseHwUnit<Any>? {
@@ -547,14 +544,19 @@ class Home(
         if (unit.connectValueWithException()) {
             when (unit) {
                 is Sensor -> {
-                    val readVal = unit.readValueWithException()
-                    Timber.w("hwUnitStart readVal:$readVal unit.unitValue:${unit.unitValue}")
-                    hwUnitsList[unit.hwUnit.name] = unit
-                    unit.registerListenerWithException(this@Home)
-                    Timber.v("hwUnitStart Sensor after registerListenerWithException unit: ${unit.hwUnit}")
-                    if (readVal != null) {
-                        onHwUnitChanged(unit.hwUnit, readVal, unit.valueUpdateTime)
+                    unit.readValue().onSuccess { hwUnitValue ->
+                        Timber.w("hwUnitStart hwUnitValue:$hwUnitValue")
+                        unit.registerListener(this@Home).onSuccess {
+                            onHwUnitChanged(unit.hwUnit, Result.success(hwUnitValue))
+                        }.onFailure {
+                            Timber.e("hwUnitStart; Error registering hwUnit listener on $unit $it")
+                            unit.addHwUnitErrorEvent(it, "hwUnitStart; Error registering hwUnit listener on $unit")
+                        }
+                    }.onFailure {
+                        Timber.e("hwUnitStart; Error reading hwUnit value on $unit $it")
+                        unit.addHwUnitErrorEvent(it, "hwUnitStart; Error reading hwUnit value on $unit")
                     }
+                    hwUnitsList[unit.hwUnit.name] = unit
                 }
                 is Actuator -> {
                     homeUnitsList.values.filter {
@@ -595,8 +597,8 @@ class Home(
         homeUnitsList[taskHomeUnitType to taskHomeUnitName]?.let { taskHomeUnit ->
             Timber.d("booleanApplyAction taskHomeUnit: $taskHomeUnit")
             hwUnitsList[taskHomeUnit.hwUnitName]?.let { taskHwUnit ->
-                Timber.d("booleanApplyAction taskHwUnit: ${taskHwUnit.hwUnit} unitValue:${taskHwUnit.unitValue} valueUpdateTime:${taskHwUnit.valueUpdateTime}")
-                if (taskHwUnit is Actuator && taskHwUnit.unitValue is Boolean?) {
+                Timber.d("booleanApplyAction taskHwUnit: ${taskHwUnit.hwUnit} unitValue:${taskHwUnit.hwUnitValue}")
+                if (taskHwUnit is Actuator && taskHwUnit.hwUnitValue.unitValue is Boolean?) {
                     if (taskHomeUnit.value != newActionVal) {
                         taskHomeUnit.value = newActionVal
                         Timber.i("booleanApplyAction taskHwUnit setValue value: $newActionVal periodicallyOnlyHw: $periodicallyOnlyHw")
@@ -604,9 +606,9 @@ class Home(
                             newActionVal,
                             !periodicallyOnlyHw
                         )
-                        Timber.d("booleanApplyAction after set HW Value taskHwUnit: ${taskHwUnit.hwUnit} unitValue:${taskHwUnit.unitValue} valueUpdateTime:${taskHwUnit.valueUpdateTime}")
+                        Timber.d("booleanApplyAction after set HW Value taskHwUnit: ${taskHwUnit.hwUnit} unitValue:${taskHwUnit.hwUnitValue}")
                         if (!periodicallyOnlyHw) {
-                            taskHomeUnit.lastUpdateTime = taskHwUnit.valueUpdateTime
+                            taskHomeUnit.lastUpdateTime = taskHwUnit.hwUnitValue.valueUpdateTime
                             taskHomeUnit.lastTriggerSource =
                                 "${LAST_TRIGGER_SOURCE_BOOLEAN_APPLY}_from_${this.name}_home_unit_by_${taskName}_task"
                             taskHomeUnit.applyFunction(newActionVal, booleanApplyAction)
@@ -618,7 +620,7 @@ class Home(
                                     taskHwUnit.hwUnit,
                                     newActionVal,
                                     "booleanApplyAction",
-                                    taskHwUnit.valueUpdateTime
+                                    taskHwUnit.hwUnitValue.valueUpdateTime
                                 )
                             )
                         }
@@ -635,109 +637,54 @@ class Home(
     // region HwUnit helperFunctions handling HwUnit Exceptions
 
     private suspend fun Actuator<Any>.setValueWithException(value: Any, logEvent: Boolean = true) {
-        val handler = CoroutineExceptionHandler { _, exception ->
-            Timber.e("setValueWithException; Error updating hwUnit value on $hwUnit $exception")
-            scope.launch {
-                addHwUnitErrorEvent(exception, "Error updating hwUnit value on $hwUnit")
-            }
-        }
-
-        scope.launch(Dispatchers.IO + handler) {
-                    setValue(value)
-                    /*if (logEvent) {
-                        analytics.logEvent(EVENT_SENSOR_SET_VALUE) {
-                            param(SENSOR_NAME, this@setValueWithException.hwUnit.name)
-                            param(SENSOR_VALUE, value.toString())
-                        }
-                    }*/
-                }.join()
-    }
-
-    private suspend fun Sensor<Any>.readValueWithException(): Any? {
-        return supervisorScope {
-            val deferred: Deferred<Any?> = async {
-                readValue()
-                /*.also {
-                    analytics.logEvent(EVENT_SENSOR_READ_VALUE) {
-                        param(SENSOR_NAME, this@readValueWithException.hwUnit.name)
-                        param(SENSOR_VALUE, it.toString())
+        scope.launch(Dispatchers.IO) {
+            setValue(value).onFailure {
+                addHwUnitErrorEvent(it, "Error updating hwUnit value on $hwUnit")
+            }.onSuccess {
+                /*if (logEvent) {
+                    analytics.logEvent(EVENT_SENSOR_SET_VALUE) {
+                        param(SENSOR_NAME, this@setValueWithException.hwUnit.name)
+                        param(SENSOR_VALUE, value.toString())
                     }
                 }*/
             }
-            try {
-                Timber.e("readValueWithException readValue")
-                deferred.await()
-            } catch (e: Exception) {
-                Timber.e("readValueWithException; Error reading hwUnit value on $hwUnit $e")
-                addHwUnitErrorEvent(e, "Error reading hwUnit value on $hwUnit")
-                null
-            }
         }
-    }
-
-    private suspend fun Sensor<Any>.registerListenerWithException(
-        listener: Sensor.HwUnitListener<Any>
-    ) {
-        val handler = CoroutineExceptionHandler { _, error ->
-            Timber.e("registerListenerWithException; Error registerListener hwUnit on $hwUnit ${error.stackTraceToString()}")
-            // TODO: is this needed???
-            scope.launch {
-                addHwUnitErrorEvent(error, "Error registerListener hwUnit on $hwUnit")
-            }
-        }
-        scope.launch {
-                registerListener(listener, handler)
-                /*analytics.logEvent(EVENT_REGISTER_LISTENER) {
-                param(SENSOR_NAME, this@registerListenerWithException.toString())
-            }*/
-                Timber.e("registerListenerWithException; supervisorScope END hwUnit on $hwUnit")
-        }
-        Timber.e("registerListenerWithException; END hwUnit on $hwUnit")
     }
 
     private suspend fun BaseHwUnit<Any>.closeValueWithException(doNotAddToHwUnitErrorList: Boolean) {
-        val handler = CoroutineExceptionHandler { _, exception ->
-            if (doNotAddToHwUnitErrorList) {
-                Timber.e("closeValueWithException; IGNORED Error closing hwUnit on $hwUnit $exception")
-            } else {
-                Timber.e("closeValueWithException; Error closing hwUnit on $hwUnit $exception")
-                scope.launch {
-                    addHwUnitErrorEvent(
-                        exception,
-                        "Error closing hwUnit on $hwUnit",
-                        doNotReStartHwUnit = true
-                    )
+        scope.launch(Dispatchers.IO) {
+            withContext(NonCancellable) {
+                close().onFailure { exception ->
+                    if (doNotAddToHwUnitErrorList) {
+                        Timber.e("closeValueWithException; IGNORED Error closing hwUnit on $hwUnit $exception")
+                    } else {
+                        Timber.e("closeValueWithException; Error closing hwUnit on $hwUnit $exception")
+                        addHwUnitErrorEvent(
+                            exception,
+                            "Error closing hwUnit on $hwUnit",
+                            doNotReStartHwUnit = true
+                        )
+                    }
+                }.onSuccess {
+                    /*analytics.logEvent(EVENT_SENSOR_CLOSE) {
+                      param(SENSOR_NAME, this@closeValueWithException.hwUnit.name)
+                  }*/
                 }
             }
-        }
-
-        scope.launch(Dispatchers.IO + handler) {
-                    withContext(NonCancellable) {
-                        close()
-                        /*analytics.logEvent(EVENT_SENSOR_CLOSE) {
-                        param(SENSOR_NAME, this@closeValueWithException.hwUnit.name)
-                    }*/
-                    }
         }
     }
 
     private suspend fun BaseHwUnit<Any>.connectValueWithException(): Boolean {
-        return supervisorScope {
-            val deferred: Deferred<Boolean> = async {
-                connect()
-                /*analytics.logEvent(EVENT_SENSOR_CONNECT) {
+        return connect().onFailure {e ->
+            Timber.e("connectValueWithException; Error connecting hwUnit on $hwUnit $e")
+            scope.launch(Dispatchers.IO) {
+                addHwUnitErrorEvent(e, "Error connecting hwUnit on $hwUnit")
+            }
+        }.onSuccess {
+            /*analytics.logEvent(EVENT_SENSOR_CONNECT) {
                     param(SENSOR_NAME, this@connectValueWithException.hwUnit.name)
                 }*/
-                true
-            }
-            try {
-                deferred.await()
-            } catch (e: Exception) {
-                Timber.e("connectValueWithException; Error connecting hwUnit on $hwUnit $e")
-                addHwUnitErrorEvent(e, "Error connecting hwUnit on $hwUnit")
-                false
-            }
-        }
+        }.isSuccess
     }
 
     private suspend fun BaseHwUnit<Any>.addHwUnitErrorEvent(
@@ -747,7 +694,7 @@ class Home(
     ) {
         hwUnitStop(this@addHwUnitErrorEvent, doNotAddToHwUnitErrorList = true)
 
-        val hwUnitLog = HwUnitLog(hwUnit, unitValue, "$logMessage \n ${e.message}")
+        val hwUnitLog = HwUnitLog(hwUnit, this.hwUnitValue, "$logMessage \n ${e.message}")
 
         homeInformationRepository.logHwUnitError(hwUnitLog)
 

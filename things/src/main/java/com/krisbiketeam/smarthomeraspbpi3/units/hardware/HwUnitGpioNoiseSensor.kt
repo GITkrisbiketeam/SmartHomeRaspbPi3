@@ -4,12 +4,17 @@ import android.view.ViewConfiguration
 import androidx.annotation.VisibleForTesting
 import com.google.android.things.pio.Gpio
 import com.google.android.things.pio.GpioCallback
+import com.krisbiketeam.smarthomeraspbpi3.units.HwUnitValue
 import kotlinx.coroutines.*
 import timber.log.Timber
 
-class HwUnitGpioNoiseSensor(name: String, location: String, pinName: String, activeType: Int,
-                            gpio: Gpio? = null) :
-        HwUnitGpioSensor(name, location, pinName, activeType, gpio) {
+class HwUnitGpioNoiseSensor(
+    name: String,
+    location: String,
+    pinName: String,
+    activeType: Int,
+    gpio: Gpio? = null,
+) : HwUnitGpioSensor(name, location, pinName, activeType, gpio) {
 
     private var mPendingCheckDebounce: Job? = null
 
@@ -46,7 +51,7 @@ class HwUnitGpioNoiseSensor(name: String, location: String, pinName: String, act
                     mPendingCheckDebounce = launch {
                         delay(debounceDelay)
                         try {
-                            if (readValue() == value) {
+                            if (readValue().getOrNull()?.unitValue == value.getOrNull()?.unitValue) {
                                 performSensorEvent(value)
                             }
                         } catch (e: Exception) {
@@ -65,21 +70,20 @@ class HwUnitGpioNoiseSensor(name: String, location: String, pinName: String, act
     }
 
     @Throws(Exception::class)
-    override suspend fun close() {
+    override suspend fun close(): Result<Unit> {
         removeDebounceCallback()
-        super.close()
+        return super.close()
     }
 
     /**
      * Invoke button event callback
      */
     @VisibleForTesting
-    internal suspend fun performSensorEvent(event: Boolean?) {
-        unitValue = event
-        valueUpdateTime = System.currentTimeMillis()
-        Timber.d("performSensorEvent event: $event on: $hwUnit")
-        hwUnitListener?.onHwUnitChanged(hwUnit, unitValue, valueUpdateTime) ?: Timber.w(
-                "listener not registered on: $hwUnit")
+    internal fun performSensorEvent(hwUnitValue: Result<HwUnitValue<Boolean?>>) {
+        Timber.d("performSensorEvent event: $hwUnitValue on: $hwUnit")
+        hwUnitListener?.onHwUnitChanged(hwUnit, hwUnitValue) ?: Timber.w(
+            "listener not registered on: $hwUnit"
+        )
 
     }
 

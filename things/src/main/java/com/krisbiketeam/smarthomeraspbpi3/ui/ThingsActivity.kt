@@ -37,6 +37,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnitLog
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.RemoteLog
 import com.krisbiketeam.smarthomeraspbpi3.units.Actuator
 import com.krisbiketeam.smarthomeraspbpi3.units.BaseHwUnit
+import com.krisbiketeam.smarthomeraspbpi3.units.HwUnitValue
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
 import com.krisbiketeam.smarthomeraspbpi3.units.hardware.HwUnitI2CPCF8574ATActuator
 import com.krisbiketeam.smarthomeraspbpi3.units.hardware.HwUnitI2CPCF8574ATSensor
@@ -61,6 +62,7 @@ private const val NEARBY_TIMEOUT = 60000L        // 60 sec
 private const val NEARBY_BLINK_DELAY = 1000L        // 1 sec
 private const val WATCH_DOG_RESTART_TIME = 60000L        // 60 sec
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
     private val authentication: Authentication by inject()
     private val secureStorage: SecureStorage by inject()
@@ -96,47 +98,63 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
 
         Timber.d("init")
 
-        ledA = HwUnitI2CPCF8574ATActuator(BoardConfig.IO_EXTENDER_PCF8574AT_LED_1, "Raspberry Pi",
-                                          BoardConfig.IO_EXTENDER_PCF8574AT_PIN,
-                                          BoardConfig.IO_EXTENDER_PCF8574AT_ADDR,
-                                          BoardConfig.IO_EXTENDER_PCF8574AT_LED_1_PIN)
+        ledA = HwUnitI2CPCF8574ATActuator(
+            BoardConfig.IO_EXTENDER_PCF8574AT_LED_1, "Raspberry Pi",
+            BoardConfig.IO_EXTENDER_PCF8574AT_PIN,
+            BoardConfig.IO_EXTENDER_PCF8574AT_ADDR,
+            BoardConfig.IO_EXTENDER_PCF8574AT_LED_1_PIN
+        )
 
-        ledB = HwUnitI2CPCF8574ATActuator(BoardConfig.IO_EXTENDER_PCF8574AT_LED_2, "Raspberry Pi",
-                                          BoardConfig.IO_EXTENDER_PCF8574AT_PIN,
-                                          BoardConfig.IO_EXTENDER_PCF8574AT_ADDR,
-                                          BoardConfig.IO_EXTENDER_PCF8574AT_LED_2_PIN)
-        ledC = HwUnitI2CPCF8574ATActuator(BoardConfig.IO_EXTENDER_PCF8574AT_LED_3, "Raspberry Pi",
-                                          BoardConfig.IO_EXTENDER_PCF8574AT_PIN,
-                                          BoardConfig.IO_EXTENDER_PCF8574AT_ADDR,
-                                          BoardConfig.IO_EXTENDER_PCF8574AT_LED_3_PIN)
-        led1 = HwUnitI2CPCF8574ATActuator(BoardConfig.IO_EXTENDER_PCF8574AT_LED_4, "Raspberry Pi",
-                                          BoardConfig.IO_EXTENDER_PCF8574AT_PIN,
-                                          BoardConfig.IO_EXTENDER_PCF8574AT_ADDR,
-                                          BoardConfig.IO_EXTENDER_PCF8574AT_LED_4_PIN)
-        led2 = HwUnitI2CPCF8574ATActuator(BoardConfig.IO_EXTENDER_PCF8574AT_LED_5, "Raspberry Pi",
-                                          BoardConfig.IO_EXTENDER_PCF8574AT_PIN,
-                                          BoardConfig.IO_EXTENDER_PCF8574AT_ADDR,
-                                          BoardConfig.IO_EXTENDER_PCF8574AT_LED_5_PIN)
+        ledB = HwUnitI2CPCF8574ATActuator(
+            BoardConfig.IO_EXTENDER_PCF8574AT_LED_2, "Raspberry Pi",
+            BoardConfig.IO_EXTENDER_PCF8574AT_PIN,
+            BoardConfig.IO_EXTENDER_PCF8574AT_ADDR,
+            BoardConfig.IO_EXTENDER_PCF8574AT_LED_2_PIN
+        )
+        ledC = HwUnitI2CPCF8574ATActuator(
+            BoardConfig.IO_EXTENDER_PCF8574AT_LED_3, "Raspberry Pi",
+            BoardConfig.IO_EXTENDER_PCF8574AT_PIN,
+            BoardConfig.IO_EXTENDER_PCF8574AT_ADDR,
+            BoardConfig.IO_EXTENDER_PCF8574AT_LED_3_PIN
+        )
+        led1 = HwUnitI2CPCF8574ATActuator(
+            BoardConfig.IO_EXTENDER_PCF8574AT_LED_4, "Raspberry Pi",
+            BoardConfig.IO_EXTENDER_PCF8574AT_PIN,
+            BoardConfig.IO_EXTENDER_PCF8574AT_ADDR,
+            BoardConfig.IO_EXTENDER_PCF8574AT_LED_4_PIN
+        )
+        led2 = HwUnitI2CPCF8574ATActuator(
+            BoardConfig.IO_EXTENDER_PCF8574AT_LED_5, "Raspberry Pi",
+            BoardConfig.IO_EXTENDER_PCF8574AT_PIN,
+            BoardConfig.IO_EXTENDER_PCF8574AT_ADDR,
+            BoardConfig.IO_EXTENDER_PCF8574AT_LED_5_PIN
+        )
 
         buttonAInputDriver =
-                HwUnitI2CPCF8574ATSensor(BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_1, "Raspberry Pi",
-                                         BoardConfig.IO_EXTENDER_PCF8574AT_PIN,
-                                         BoardConfig.IO_EXTENDER_PCF8574AT_ADDR,
-                                         BoardConfig.IO_EXTENDER_PCF8574AT_INT_PIN,
-                                         BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_1_PIN)
+            HwUnitI2CPCF8574ATSensor(
+                BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_1, "Raspberry Pi",
+                BoardConfig.IO_EXTENDER_PCF8574AT_PIN,
+                BoardConfig.IO_EXTENDER_PCF8574AT_ADDR,
+                BoardConfig.IO_EXTENDER_PCF8574AT_INT_PIN,
+                BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_1_PIN
+            )
 
         buttonBInputDriver =
-                HwUnitI2CPCF8574ATSensor(BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_2, "Raspberry Pi",
-                                         BoardConfig.IO_EXTENDER_PCF8574AT_PIN,
-                                         BoardConfig.IO_EXTENDER_PCF8574AT_ADDR,
-                                         BoardConfig.IO_EXTENDER_PCF8574AT_INT_PIN,
-                                         BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_2_PIN)
+            HwUnitI2CPCF8574ATSensor(
+                BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_2, "Raspberry Pi",
+                BoardConfig.IO_EXTENDER_PCF8574AT_PIN,
+                BoardConfig.IO_EXTENDER_PCF8574AT_ADDR,
+                BoardConfig.IO_EXTENDER_PCF8574AT_INT_PIN,
+                BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_2_PIN
+            )
         buttonCInputDriver =
-                HwUnitI2CPCF8574ATSensor(BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_3, "Raspberry Pi",
-                                         BoardConfig.IO_EXTENDER_PCF8574AT_PIN,
-                                         BoardConfig.IO_EXTENDER_PCF8574AT_ADDR,
-                                         BoardConfig.IO_EXTENDER_PCF8574AT_INT_PIN,
-                                         BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_3_PIN)
+            HwUnitI2CPCF8574ATSensor(
+                BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_3, "Raspberry Pi",
+                BoardConfig.IO_EXTENDER_PCF8574AT_PIN,
+                BoardConfig.IO_EXTENDER_PCF8574AT_ADDR,
+                BoardConfig.IO_EXTENDER_PCF8574AT_INT_PIN,
+                BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_3_PIN
+            )
 
     }
 
@@ -195,7 +213,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
         }
         // Create a new driver instance
         mDriver = InputDriver.Builder().setName(DRIVER_NAME)
-                .setSupportedKeys(intArrayOf(KEYCODE_A, KEYCODE_B, KEYCODE_C)).build()
+            .setSupportedKeys(intArrayOf(KEYCODE_A, KEYCODE_B, KEYCODE_C)).build()
 
         // Register with the framework
         UserDriverManager.getInstance().registerInputDriver(mDriver)
@@ -311,82 +329,87 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
         }
     }
 
-    private suspend fun waitForWifiCredentials(): WifiCredentials? = suspendCancellableCoroutine { cont ->
-        val moshi: Moshi by inject()
-        val nearbyService: NearbyService by inject()
-        if (!nearbyService.isActive()) {
-            nearbyService.dataReceivedListener(object : NearbyService.DataReceiverListener {
-                override fun onDataReceived(data: ByteArray?) {
-                    Timber.d("waitForWifiCredentials Received data: $data")
-                    data?.run {
-                        val jsonString = String(data)
-                        Timber.d("waitForWifiCredentials Data as String $jsonString")
-                        val adapter = moshi.adapter(WifiCredentials::class.java)
-                        val wifiCredentials: WifiCredentials?
-                        try {
-                            wifiCredentials = adapter.fromJson(jsonString)
-                            Timber.d(
-                                    "waitForWifiCredentials Data as wifiCredentials $wifiCredentials")
-                            wifiCredentials?.run {
-                                cont.resume(wifiCredentials)
+    private suspend fun waitForWifiCredentials(): WifiCredentials? =
+        suspendCancellableCoroutine { cont ->
+            val moshi: Moshi by inject()
+            val nearbyService: NearbyService by inject()
+            if (!nearbyService.isActive()) {
+                nearbyService.dataReceivedListener(object : NearbyService.DataReceiverListener {
+                    override fun onDataReceived(data: ByteArray?) {
+                        Timber.d("waitForWifiCredentials Received data: $data")
+                        data?.run {
+                            val jsonString = String(data)
+                            Timber.d("waitForWifiCredentials Data as String $jsonString")
+                            val adapter = moshi.adapter(WifiCredentials::class.java)
+                            val wifiCredentials: WifiCredentials?
+                            try {
+                                wifiCredentials = adapter.fromJson(jsonString)
+                                Timber.d(
+                                    "waitForWifiCredentials Data as wifiCredentials $wifiCredentials"
+                                )
+                                wifiCredentials?.run {
+                                    cont.resume(wifiCredentials)
+                                }
+                            } catch (e: IOException) {
+                                cont.resumeWithException(e)
+                                Timber.d(
+                                    "waitForWifiCredentials Received Data could not be cast to WifiCredentials"
+                                )
+                            } finally {
+                                nearbyService.stop()
                             }
-                        } catch (e: IOException) {
-                            cont.resumeWithException(e)
-                            Timber.d(
-                                    "waitForWifiCredentials Received Data could not be cast to WifiCredentials")
-                        } finally {
-                            nearbyService.stop()
                         }
                     }
-                }
-            })
-        } else {
-            Timber.d("waitForWifiCredentials start we are already listening for credentials")
-            cont.resume(null)
+                })
+            } else {
+                Timber.d("waitForWifiCredentials start we are already listening for credentials")
+                cont.resume(null)
+            }
+            cont.invokeOnCancellation {
+                Timber.d("waitForWifiCredentials canceled")
+                nearbyService.stop()
+            }
         }
-        cont.invokeOnCancellation {
-            Timber.d("waitForWifiCredentials canceled")
-            nearbyService.stop()
-        }
-    }
 
-    private suspend fun waitForFirebaseCredentials(): FirebaseCredentials? = suspendCancellableCoroutine { cont ->
-        val moshi: Moshi by inject()
-        val nearbyService: NearbyService by inject()
-        if (!nearbyService.isActive()) {
-            nearbyService.dataReceivedListener(object : NearbyService.DataReceiverListener {
-                override fun onDataReceived(data: ByteArray?) {
-                    Timber.d("waitForFirebaseCredentials Received data: $data")
-                    data?.run {
-                        val jsonString = String(data)
-                        Timber.d("waitForFirebaseCredentials Data as String $jsonString")
-                        val adapter = moshi.adapter(FirebaseCredentials::class.java)
-                        val credentials: FirebaseCredentials?
-                        try {
-                            credentials = adapter.fromJson(jsonString)
-                            Timber.d("waitForFirebaseCredentials Data as credentials $credentials")
-                            credentials?.run {
-                                cont.resume(credentials)
+    private suspend fun waitForFirebaseCredentials(): FirebaseCredentials? =
+        suspendCancellableCoroutine { cont ->
+            val moshi: Moshi by inject()
+            val nearbyService: NearbyService by inject()
+            if (!nearbyService.isActive()) {
+                nearbyService.dataReceivedListener(object : NearbyService.DataReceiverListener {
+                    override fun onDataReceived(data: ByteArray?) {
+                        Timber.d("waitForFirebaseCredentials Received data: $data")
+                        data?.run {
+                            val jsonString = String(data)
+                            Timber.d("waitForFirebaseCredentials Data as String $jsonString")
+                            val adapter = moshi.adapter(FirebaseCredentials::class.java)
+                            val credentials: FirebaseCredentials?
+                            try {
+                                credentials = adapter.fromJson(jsonString)
+                                Timber.d("waitForFirebaseCredentials Data as credentials $credentials")
+                                credentials?.run {
+                                    cont.resume(credentials)
+                                }
+                            } catch (e: IOException) {
+                                cont.resumeWithException(e)
+                                Timber.d(
+                                    "waitForFirebaseCredentials Received Data could not be cast to FirebaseCredentials"
+                                )
+                            } finally {
+                                nearbyService.stop()
                             }
-                        } catch (e: IOException) {
-                            cont.resumeWithException(e)
-                            Timber.d(
-                                    "waitForFirebaseCredentials Received Data could not be cast to FirebaseCredentials")
-                        } finally {
-                            nearbyService.stop()
                         }
                     }
-                }
-            })
-        } else {
-            Timber.d("waitForFirebaseCredentials start we are already listening for credentials")
-            cont.resume(null)
+                })
+            } else {
+                Timber.d("waitForFirebaseCredentials start we are already listening for credentials")
+                cont.resume(null)
+            }
+            cont.invokeOnCancellation {
+                Timber.d("waitForFirebaseCredentials canceled")
+                nearbyService.stop()
+            }
         }
-        cont.invokeOnCancellation {
-            Timber.d("waitForFirebaseCredentials canceled")
-            nearbyService.stop()
-        }
-    }
 
     private suspend fun waitForHomeName(): String? = suspendCancellableCoroutine { cont ->
         val moshi: Moshi by inject()
@@ -409,7 +432,8 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
                         } catch (e: IOException) {
                             cont.resumeWithException(e)
                             Timber.d(
-                                    "waitForHomeName Received Data could not be cast to FirebaseCredentials")
+                                "waitForHomeName Received Data could not be cast to FirebaseCredentials"
+                            )
                         } finally {
                             nearbyService.stop()
                         }
@@ -426,20 +450,21 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
         }
     }
 
-    private suspend fun waitForNetworkAvailable(): Boolean = suspendCancellableCoroutine { connected ->
-        val netMonitor = NetworkConnectionMonitor(this)
-        netMonitor.startListen(object : NetworkConnectionListener {
-            override fun onNetworkAvailable(available: Boolean) {
-                Timber.w("waitForNetworkAvailable onNetworkAvailable $available")
+    private suspend fun waitForNetworkAvailable(): Boolean =
+        suspendCancellableCoroutine { connected ->
+            val netMonitor = NetworkConnectionMonitor(this)
+            netMonitor.startListen(object : NetworkConnectionListener {
+                override fun onNetworkAvailable(available: Boolean) {
+                    Timber.w("waitForNetworkAvailable onNetworkAvailable $available")
+                    netMonitor.stopListen()
+                    connected.resume(available)
+                }
+            })
+            connected.invokeOnCancellation {
+                Timber.w("waitForNetworkAvailable canceled")
                 netMonitor.stopListen()
-                connected.resume(available)
             }
-        })
-        connected.invokeOnCancellation {
-            Timber.w("waitForNetworkAvailable canceled")
-            netMonitor.stopListen()
         }
-    }
 
     override fun onStart() {
         Timber.d("onStart")
@@ -447,7 +472,10 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
 
         analytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW) {
             param(FirebaseAnalytics.Param.SCREEN_NAME, "Home")
-            param(FirebaseAnalytics.Param.SCREEN_CLASS, this@ThingsActivity::class.simpleName?: "ThingsActivity")
+            param(
+                FirebaseAnalytics.Param.SCREEN_CLASS,
+                this@ThingsActivity::class.simpleName ?: "ThingsActivity"
+            )
         }
 
         networkConnectionMonitor.startListen(networkConnectionListener)
@@ -489,7 +517,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
 
             scheduleWatchDogRestartAlarm(pendingIntent)
             Timber.i("shedule WatchDogRestart Alarm")
-            val resetWatchDogDelay:Long =
+            val resetWatchDogDelay: Long =
                 if (WATCH_DOG_RESTART_TIME > 1000) {
                     WATCH_DOG_RESTART_TIME - 1000
                 } else {
@@ -540,22 +568,26 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
         super.onDestroy()
     }
 
-    override suspend fun onHwUnitChanged(hwUnit: HwUnit, unitValue: Boolean?, updateTime: Long) {
-        Timber.d(
-                "onHwUnitChanged hwUnit: $hwUnit ; unitValue: $unitValue ; updateTime: ${Date(updateTime)}")
-        unitValue?.let {
-
-            val keyCode = when (hwUnit.ioPin) {
-                BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_1_PIN.name -> KEYCODE_A
-                BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_2_PIN.name -> KEYCODE_B
-                BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_3_PIN.name -> KEYCODE_C
-                else                                                -> null
+    override fun onHwUnitChanged(hwUnit: HwUnit, result: Result<HwUnitValue<Boolean?>>) {
+        Timber.d("onHwUnitChanged hwUnit: $hwUnit ; result: $result")
+        result.onSuccess {
+            it.unitValue?.let { value ->
+                val keyCode = when (hwUnit.ioPin) {
+                    BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_1_PIN.name -> KEYCODE_A
+                    BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_2_PIN.name -> KEYCODE_B
+                    BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_3_PIN.name -> KEYCODE_C
+                    else -> null
+                }
+                keyCode?.let {
+                    mDriver.emit(InputDriverEvent().apply {
+                        setKeyPressed(keyCode, !value)
+                    })
+                }
             }
-            keyCode?.let {
-                mDriver.emit(InputDriverEvent().apply {
-                    setKeyPressed(keyCode, !unitValue)
-                })
-            }
+        }.onFailure {
+            homeInformationRepository.addHwUnitErrorEvent(HwUnitLog(hwUnit, null, it.message))
+            Firebase.crashlytics.recordException(it)
+            Timber.e(it, "Error from onHwUnitChanged")
         }
     }
 
@@ -587,20 +619,23 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
         when (keyCode) {
             KEYCODE_A -> {
                 when (event?.repeatCount) {
-                    0  -> {
+                    0 -> {
                         Timber.d("onKeyDown keyCode: $keyCode ; keEvent: $event")
                         lifecycleScope.launch {
                             homeInformationRepository.logHwUnitEvent(
-                                    HwUnitLog(BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_1,
-                                            "Raspberry Pi", BoardConfig.IO_EXTENDER_PCF8474AT_INPUT,
-                                            BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_1_PIN.name,
-                                            ConnectionType.GPIO, value = true))
+                                HwUnitLog(
+                                    BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_1,
+                                    "Raspberry Pi", BoardConfig.IO_EXTENDER_PCF8474AT_INPUT,
+                                    BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_1_PIN.name,
+                                    ConnectionType.GPIO, value = true
+                                )
+                            )
                             ledA.setValueWithException(true)
                         }
                         // start listen for LongKeyPress event
                         event.startTracking()
 
-                        if (ledB.unitValue == true) {
+                        if (ledB.hwUnitValue.unitValue == true) {
                             lifecycleScope.launch(Dispatchers.Main) {
                                 restartApp()
                             }
@@ -621,22 +656,25 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
             }
             KEYCODE_B -> {
                 when (event?.repeatCount) {
-                    0  -> {
+                    0 -> {
                         Timber.d("onKeyDown keyCode: $keyCode ; keEvent: $event")
                         lifecycleScope.launch {
                             homeInformationRepository.logHwUnitEvent(
-                                    HwUnitLog(BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_2,
-                                            "Raspberry Pi", BoardConfig.IO_EXTENDER_PCF8474AT_INPUT,
-                                            BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_2_PIN.name,
-                                            ConnectionType.GPIO, value = true))
+                                HwUnitLog(
+                                    BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_2,
+                                    "Raspberry Pi", BoardConfig.IO_EXTENDER_PCF8474AT_INPUT,
+                                    BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_2_PIN.name,
+                                    ConnectionType.GPIO, value = true
+                                )
+                            )
                             ledB.setValueWithException(true)
                         }
                         // start listen for LongKeyPress event
                         event.startTracking()
 
-                        if (ledA.unitValue == true) {
+                        if (ledA.hwUnitValue.unitValue == true) {
                             lifecycleScope.launch(Dispatchers.Main) {
-                            restartApp()
+                                restartApp()
                             }
                         }
                         return true
@@ -655,14 +693,17 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
             }
             KEYCODE_C -> {
                 when (event?.repeatCount) {
-                    0  -> {
+                    0 -> {
                         Timber.d("onKeyDown keyCode: $keyCode ; keEvent: $event")
                         lifecycleScope.launch {
                             homeInformationRepository.logHwUnitEvent(
-                                    HwUnitLog(BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_3,
-                                            "Raspberry Pi", BoardConfig.IO_EXTENDER_PCF8474AT_INPUT,
-                                            BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_3_PIN.name,
-                                            ConnectionType.GPIO, value = true))
+                                HwUnitLog(
+                                    BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_3,
+                                    "Raspberry Pi", BoardConfig.IO_EXTENDER_PCF8474AT_INPUT,
+                                    BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_3_PIN.name,
+                                    ConnectionType.GPIO, value = true
+                                )
+                            )
                             ledC.setValueWithException(true)
                         }
                         // start listen for LongKeyPress event
@@ -693,30 +734,39 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
             KEYCODE_A -> {
                 lifecycleScope.launch {
                     homeInformationRepository.logHwUnitEvent(
-                            HwUnitLog(BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_1, "Raspberry Pi",
-                                    BoardConfig.IO_EXTENDER_PCF8474AT_INPUT,
-                                    BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_1_PIN.name,
-                                    ConnectionType.GPIO, value = false))
+                        HwUnitLog(
+                            BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_1, "Raspberry Pi",
+                            BoardConfig.IO_EXTENDER_PCF8474AT_INPUT,
+                            BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_1_PIN.name,
+                            ConnectionType.GPIO, value = false
+                        )
+                    )
                     ledA.setValueWithException(false)
                 }
             }
             KEYCODE_B -> {
                 lifecycleScope.launch {
                     homeInformationRepository.logHwUnitEvent(
-                            HwUnitLog(BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_2, "Raspberry Pi",
-                                    BoardConfig.IO_EXTENDER_PCF8474AT_INPUT,
-                                    BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_2_PIN.name,
-                                    ConnectionType.GPIO, value = false))
+                        HwUnitLog(
+                            BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_2, "Raspberry Pi",
+                            BoardConfig.IO_EXTENDER_PCF8474AT_INPUT,
+                            BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_2_PIN.name,
+                            ConnectionType.GPIO, value = false
+                        )
+                    )
                     ledB.setValueWithException(false)
                 }
             }
             KEYCODE_C -> {
                 lifecycleScope.launch {
                     homeInformationRepository.logHwUnitEvent(
-                            HwUnitLog(BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_3, "Raspberry Pi",
-                                    BoardConfig.IO_EXTENDER_PCF8474AT_INPUT,
-                                    BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_3_PIN.name,
-                                    ConnectionType.GPIO, value = false))
+                        HwUnitLog(
+                            BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_3, "Raspberry Pi",
+                            BoardConfig.IO_EXTENDER_PCF8474AT_INPUT,
+                            BoardConfig.IO_EXTENDER_PCF8574AT_BUTTON_3_PIN.name,
+                            ConnectionType.GPIO, value = false
+                        )
+                    )
                     ledC.setValueWithException(false)
                 }
             }
@@ -734,7 +784,8 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
         Timber.e("restartApp after Home stop")
         val threadedTag = "[${Thread.currentThread().name}] ThingsActivity"
         val timeStamp = System.currentTimeMillis()
-        val time = SimpleDateFormat("dd MMM HH:mm:ss.SSS", Locale.getDefault()).format(Date(timeStamp))
+        val time =
+            SimpleDateFormat("dd MMM HH:mm:ss.SSS", Locale.getDefault()).format(Date(timeStamp))
         val remoteLog = RemoteLog("ERROR", threadedTag, "restartApp", null, time)
         homeInformationRepository.logThingsLog(remoteLog, timeStamp)
         ProcessPhoenix.triggerRebirth(application)
@@ -765,10 +816,11 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
         wifiConfiguration.preSharedKey = String.format("\"%s\"", wifiCredentials.password)
 
         val existingConfig =
-                wifiManager.configuredNetworks?.firstOrNull { wifiConfiguration.SSID == it.SSID }
+            wifiManager.configuredNetworks?.firstOrNull { wifiConfiguration.SSID == it.SSID }
         if (existingConfig != null) {
             Timber.d(
-                    "This WiFi was already added update it. Existing: $existingConfig new one: $wifiConfiguration")
+                "This WiFi was already added update it. Existing: $existingConfig new one: $wifiConfiguration"
+            )
             existingConfig.preSharedKey = wifiConfiguration.preSharedKey
             val networkId = wifiManager.updateNetwork(existingConfig)
             if (networkId != -1) {
@@ -793,8 +845,8 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
         return lifecycleScope.launch(Dispatchers.IO) {
             try {
                 repeat((NEARBY_TIMEOUT / NEARBY_BLINK_DELAY).toInt()) {
-                    Timber.d("blinkLed ${led.unitValue}")
-                    led.setValueWithException(led.unitValue?.not() ?: false)
+                    Timber.d("blinkLed ${led.hwUnitValue.unitValue}")
+                    led.setValueWithException(led.hwUnitValue.unitValue?.not() ?: false)
                     delay(NEARBY_BLINK_DELAY)
                 }
             } finally {
@@ -804,49 +856,34 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
         }
     }
 
-    private suspend fun <T : Any>Actuator<T>.setValueWithException(value: T){
-        try {
-            setValue(value)
-        } catch (e: Exception) {
+    private suspend fun <T : Any> Actuator<T>.setValueWithException(value: T) {
+        setValue(value).onFailure {e ->
             addHwUnitErrorEvent(e, "Error updating hwUnit value on $hwUnit")
         }
     }
-    private suspend fun <T : Any>Sensor<T>.readValueWithException(): T?{
-        return try {
-            readValue()
-        } catch (e: Exception) {
-            addHwUnitErrorEvent(e, "Error reading hwUnit value on $hwUnit")
-            null
+
+    private suspend fun <T : Any> Sensor<T>.registerListenerWithException(listener: Sensor.HwUnitListener<T>) {
+        registerListener(listener).onFailure {
+            addHwUnitErrorEvent(it, "Error registerListener")
         }
     }
-    private suspend fun <T : Any>Sensor<T>.registerListenerWithException(listener: Sensor.HwUnitListener<T>){
-        supervisorScope {
-            registerListener(listener, CoroutineExceptionHandler { _, error ->
-                lifecycleScope.launch {
-                    addHwUnitErrorEvent(error,
-                            "Error registerListener CoroutineExceptionHandler hwUnit on $hwUnit")
-                }
-            })
+
+    private suspend fun <T : Any> BaseHwUnit<T>.closeValueWithException() {
+        close().onFailure {
+            addHwUnitErrorEvent(it, "Error closing hwUnit on $hwUnit")
         }
     }
-    private suspend fun <T : Any> BaseHwUnit<T>.closeValueWithException(){
-        try {
-            close()
-        } catch (e: Exception) {
-            addHwUnitErrorEvent(e, "Error closing hwUnit on $hwUnit")
-        }
-    }
-    private suspend fun <T : Any> BaseHwUnit<T>.connectValueWithException(){
-        try {
-            connect()
-        } catch (e: Exception) {
-            addHwUnitErrorEvent(e, "Error connecting hwUnit on $hwUnit")
+
+    private suspend fun <T : Any> BaseHwUnit<T>.connectValueWithException() {
+        connect().onFailure {
+            addHwUnitErrorEvent(it, "Error connecting hwUnit on $hwUnit")
         }
     }
 
     private fun <T : Any> BaseHwUnit<T>.addHwUnitErrorEvent(e: Throwable, logMessage: String) {
         homeInformationRepository.addHwUnitErrorEvent(
-                HwUnitLog(hwUnit, unitValue, e.message))
+            HwUnitLog(hwUnit, hwUnitValue.unitValue, e.message)
+        )
         Firebase.crashlytics.recordException(e)
         Timber.e(e, logMessage)
     }

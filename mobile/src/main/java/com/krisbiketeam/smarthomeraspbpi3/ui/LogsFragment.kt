@@ -23,7 +23,6 @@ import com.krisbiketeam.smarthomeraspbpi3.utils.toLogsLong
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.LogsViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
@@ -83,7 +82,7 @@ class LogsFragment : androidx.fragment.app.Fragment() {
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.menu_logs, menu)
-        menu.findItem(R.id.action_filter).subMenu.apply {
+        menu.findItem(R.id.action_filter).subMenu?.apply {
             clear()
             var type: String? = null
             logsViewModel.menuItemHwUnitListFlow.value.forEach { (hwUnitPair, itemId, checked) ->

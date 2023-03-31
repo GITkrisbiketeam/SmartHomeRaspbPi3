@@ -303,21 +303,16 @@ class PCF8574AT(private val bus: String? = null,
     // endregion
 
     // Suppress NewApi for computeIfAbsent this is only used on Things that are Android 8.0+
+    @Throws(Exception::class)
     @SuppressLint("NewApi")
-    suspend fun registerPinListener(pin: Pin, listener: PCF8574ATPinStateChangeListener): Boolean {
-        return if (getMode(pin) == PinMode.DIGITAL_INPUT) {
+    suspend fun registerPinListener(pin: Pin, listener: PCF8574ATPinStateChangeListener) {
+        if (getMode(pin) == PinMode.DIGITAL_INPUT) {
             val pinListeners = mListeners.computeIfAbsent(pin) { ArrayList(1)}
             pinListeners.add(listener)
-            try {
-                checkInterrupt()
-                true
-            } catch (e: Exception) {
-                Timber.e(e, "registerPinListener Error")
-                false
-            }
+            checkInterrupt()
         } else {
             // Given pin not set for input
-            false
+            throw Exception("Given pin not set for input")
         }
     }
 

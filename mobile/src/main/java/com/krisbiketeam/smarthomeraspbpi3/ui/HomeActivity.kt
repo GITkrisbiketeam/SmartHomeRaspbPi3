@@ -313,7 +313,7 @@ class HomeActivity : AppCompatActivity() {
         navController.addOnDestinationChangedListener { _, destination, arguments ->
             if (destination.id == R.id.room_detail_fragment) {
                 for (menuItem in binding.navigationView.menu.iterator()) {
-                    if (menuItem.title.contains(arguments?.get("roomName").toString())) {
+                    if (menuItem.title?.contains(arguments?.get("roomName").toString()) == true) {
                         menuItem.setChecked(true)
                         break
                     }

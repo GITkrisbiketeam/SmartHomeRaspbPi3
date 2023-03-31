@@ -7,82 +7,89 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.ConnectionType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.PressureAndTemperature
 import com.krisbiketeam.smarthomeraspbpi3.units.HwUnitI2C
+import com.krisbiketeam.smarthomeraspbpi3.units.HwUnitValue
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
 import kotlinx.coroutines.*
 import timber.log.Timber
 
 private const val REFRESH_RATE = 300000L // 5 min
 
-class HwUnitI2CTempPressBMP280Sensor(name: String, location: String, pinName: String,
-                                     softAddress: Int,
-                                     private val refreshRate: Long? = REFRESH_RATE,
-                                     override var device: AutoCloseable? = null) :
-        HwUnitI2C<PressureAndTemperature>, Sensor<PressureAndTemperature> {
+class HwUnitI2CTempPressBMP280Sensor(
+    name: String,
+    location: String,
+    pinName: String,
+    softAddress: Int,
+    private val refreshRate: Long? = REFRESH_RATE,
+    override var device: AutoCloseable? = null
+) : HwUnitI2C<PressureAndTemperature>, Sensor<PressureAndTemperature> {
 
-    override val hwUnit: HwUnit =
-            HwUnit(name, location, BoardConfig.TEMP_PRESS_SENSOR_BMP280, pinName,
-                   ConnectionType.I2C, softAddress, refreshRate = refreshRate)
-    override var unitValue: PressureAndTemperature? = null
-    override var valueUpdateTime: Long = System.currentTimeMillis()
+    override val hwUnit: HwUnit = HwUnit(
+        name,
+        location,
+        BoardConfig.TEMP_PRESS_SENSOR_BMP280,
+        pinName,
+        ConnectionType.I2C,
+        softAddress,
+        refreshRate = refreshRate
+    )
+    override var hwUnitValue: HwUnitValue<PressureAndTemperature?> =
+        HwUnitValue(null, System.currentTimeMillis())
 
     private var job: Job? = null
-    private var hwUnitListener: Sensor.HwUnitListener<PressureAndTemperature>? = null
 
-    override suspend fun connect() {
+    override suspend fun connect(): Result<Unit> {
         // Do noting we o not want to block I2C device so it will be opened while setting the value
         // and then immediately closed to release resources
+        return Result.success(Unit)
     }
 
-    @Throws(Exception::class)
     // TODO use Flow here
-    override suspend fun registerListener(listener: Sensor.HwUnitListener<PressureAndTemperature>,
-                                          exceptionHandler: CoroutineExceptionHandler) {
+    override suspend fun registerListener(listener: Sensor.HwUnitListener<PressureAndTemperature>): Result<Unit> {
         Timber.d("registerListener")
-        hwUnitListener = listener
         job?.cancel()
         job = supervisorScope {
-            launch(Dispatchers.IO + exceptionHandler) {
+            launch(Dispatchers.IO) {
                 // We could also check for true as suspending delay() method is cancellable
                 while (isActive) {
                     try {
                         delay(refreshRate ?: REFRESH_RATE)
-                        readValue()
-                        hwUnitListener?.onHwUnitChanged(hwUnit, unitValue, valueUpdateTime)
+                        val result = readValue()
+                        listener.onHwUnitChanged(hwUnit, result)
                     } catch (e: Exception) {
                         Timber.e(e, "Error readValue on $hwUnit")
                     }
                 }
             }
         }
+        return Result.success(Unit)
     }
 
-    override suspend fun unregisterListener() {
+    override suspend fun unregisterListener(): Result<Unit> {
         Timber.d("unregisterListener")
         job?.cancel()
-        hwUnitListener = null
+        return Result.success(Unit)
     }
 
-    @Throws(Exception::class)
-    override suspend fun close() {
+    override suspend fun close(): Result<Unit> {
         job?.cancel()
-        super.close()
+        return super.close()
     }
 
-    @Throws(Exception::class)
-    override suspend fun readValue(): PressureAndTemperature? {
+    override suspend fun readValue(): Result<HwUnitValue<PressureAndTemperature?>> {
+        // We do not want to block I2C buss so open device to only display some data and then immediately close it.
+        // use block automatically closes resources referenced to tmp102
+        // We do not want to block I2C buss so open device to only get some data and then immediately close it.
         return withContext(Dispatchers.Main) {
-            // We do not want to block I2C buss so open device to only display some data and then immediately close it.
-            // use block automatically closes resources referenced to tmp102
-            // We do not want to block I2C buss so open device to only get some data and then immediately close it.
-            RainbowHat.openSensor().use {
-                it.temperatureOversampling = Bmx280.OVERSAMPLING_1X
-                it.pressureOversampling = Bmx280.OVERSAMPLING_1X
-                it.setMode(Bmx280.MODE_NORMAL)
-                unitValue = PressureAndTemperature(it.readPressure(), it.readTemperature())
-                valueUpdateTime = System.currentTimeMillis()
-                Timber.d("temperature:$unitValue")
+            runCatching {
+                hwUnitValue = HwUnitValue(RainbowHat.openSensor().use {
+                    it.temperatureOversampling = Bmx280.OVERSAMPLING_1X
+                    it.pressureOversampling = Bmx280.OVERSAMPLING_1X
+                    it.setMode(Bmx280.MODE_NORMAL)
+                    PressureAndTemperature(it.readPressure(), it.readTemperature())
+                }, System.currentTimeMillis())
+                Timber.d("temperature:$hwUnitValue")
+                hwUnitValue
             }
-            unitValue
         }
     }
 }

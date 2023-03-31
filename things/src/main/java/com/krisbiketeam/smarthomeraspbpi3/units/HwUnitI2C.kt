@@ -8,15 +8,18 @@ interface HwUnitI2C <T> : BaseHwUnit<T> {
     var device: AutoCloseable?
 
     @Throws(Exception::class)
-    override suspend fun close() {
-        withContext(Dispatchers.Main) {
-            try {
-                device?.close()
-            } catch (e: Exception) {
-                Timber.e(e, "Error closing PeripheralIO API on: $hwUnit")
-                throw (Exception("Error close HwUnitI2C", e))
-            } finally {
-                device = null
+    override suspend fun close():Result<Unit> {
+        Timber.i("close on: $hwUnit")
+        return withContext(Dispatchers.Main) {
+            kotlin.runCatching {
+                try {
+                    device?.close()
+                    device = null
+                } catch (e: Exception) {
+                    device = null
+                    Timber.e(e, "Error closing PeripheralIO API on: $hwUnit")
+                    throw (Exception("Error close HwUnitI2C", e))
+                }
             }
         }
     }

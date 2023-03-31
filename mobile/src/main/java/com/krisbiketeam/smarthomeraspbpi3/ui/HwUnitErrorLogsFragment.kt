@@ -63,7 +63,7 @@ class HwUnitErrorLogsFragment : androidx.fragment.app.Fragment() {
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.menu_hw_unit_error_logs, menu)
 
-        menu.findItem(R.id.action_filter).subMenu.apply {
+        menu.findItem(R.id.action_filter).subMenu?.apply {
             clear()
             logsViewModel.menuItemHwUnitListFlow.value.forEach { (hwUnitPair, itemId, checked) ->
                 add(hwUnitPair.type.hashCode(), itemId, Menu.NONE, hwUnitPair.name).apply {

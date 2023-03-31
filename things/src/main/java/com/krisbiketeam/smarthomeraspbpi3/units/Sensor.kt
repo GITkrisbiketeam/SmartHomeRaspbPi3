@@ -1,27 +1,24 @@
 package com.krisbiketeam.smarthomeraspbpi3.units
 
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
-import kotlinx.coroutines.CoroutineExceptionHandler
 
 interface Sensor<T> : BaseHwUnit<T> {
 
-    suspend fun registerListener(listener: HwUnitListener<T>, exceptionHandler: CoroutineExceptionHandler = CoroutineExceptionHandler { _, _ -> })
+    suspend fun registerListener(listener: HwUnitListener<T>): Result<Unit>
 
-    suspend fun unregisterListener()
+    suspend fun unregisterListener(): Result<Unit>
 
-    suspend fun readValue(): T?
+    suspend fun readValue(): Result<HwUnitValue<T?>>
 
     /**
      * Interface definition for a callback to be invoked when a Sensor event occurs.
      */
-    interface HwUnitListener<in T> {
+    interface HwUnitListener<T> {
         /**
          * Called when a HwUnitLog event occurs
          *
          * @param hwUnit the HwUnitLog for which the event occurred
          */
-        suspend fun onHwUnitChanged(hwUnit: HwUnit, unitValue: T?, updateTime: Long)
-
-        suspend fun onHwUnitError(hwUnit: HwUnit, errorMsg: String, updateTime: Long) {}
+        fun onHwUnitChanged(hwUnit: HwUnit, result: Result<HwUnitValue<T?>>)
     }
 }
