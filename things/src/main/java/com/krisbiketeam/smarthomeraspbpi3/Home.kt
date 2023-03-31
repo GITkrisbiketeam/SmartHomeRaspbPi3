@@ -222,11 +222,11 @@ class Home(
                     )
                     // Set/Update HhUnit States according to HomeUnit state and vice versa
                     hwUnitsList[homeUnit.hwUnitName]?.let { hwUnit ->
-                        Timber.d("homeUnitsDataProcessor NODE_ACTION_ADDED hwUnit: $hwUnit")
+                        Timber.d("homeUnitsDataProcessor NODE_ACTION_ADDED hwUnit: ${hwUnit.hwUnit.name} hwUnit value:${hwUnit.unitValue}")
                         if (homeUnit.value != hwUnit.unitValue) {
                             if (hwUnit is Actuator) {
                                 Timber.d(
-                                    "homeUnitsDataProcessor NODE_ACTION_ADDED baseUnit setValue value: ${homeUnit.value}"
+                                    "homeUnitsDataProcessor NODE_ACTION_ADDED baseUnit ${homeUnit.name} setValue value: ${homeUnit.value}"
                                 )
                                 homeUnit.value?.let { value ->
                                     hwUnit.setValueWithException(value)
@@ -285,8 +285,7 @@ class Home(
                 ChildEventType.NODE_ACTION_ADDED -> {
                     // consider this unit is already present in hwUnitsList
                     hwUnitsList[hwUnit.name]?.let {
-                        Timber.w("hwUnitsDataObserver NODE_ACTION_ADDED HwUnit already exist stop old one:")
-                        //hwUnitStop(it)
+                        Timber.w("hwUnitsDataObserver NODE_ACTION_ADDED HwUnit already exist, return")
                         return@hwUnitsDataProcessor
                     }
                     if (hwUnitErrorEventList.contains(hwUnit.name)) {
@@ -334,7 +333,7 @@ class Home(
 
     private suspend fun hwUnitErrorEventListDataProcessor(errorEventList: List<HwUnitLog<Any>>) {
         Timber.e(
-            "hwUnitErrorEventListDataProcessor errorEventList: $errorEventList; errorEventList.size: ${errorEventList.size}"
+            "hwUnitErrorEventListDataProcessor errorEventList.size: ${errorEventList.size}; errorEventList: $errorEventList"
         )
         if (errorEventList.isNotEmpty()) {
             errorEventList.forEach { hwUnitErrorEvent ->
@@ -356,6 +355,9 @@ class Home(
                 hwUnitErrorEventList.clear()
                 list
             }
+            Timber.e(
+                "hwUnitErrorEventListDataProcessor unitToStart.size: ${unitToStart.size}; unitToStart: $unitToStart"
+            )
             unitToStart.forEach { hwUnit ->
                 delay(Random.nextLong(10, 100))
                 hwUnitStart(hwUnit)

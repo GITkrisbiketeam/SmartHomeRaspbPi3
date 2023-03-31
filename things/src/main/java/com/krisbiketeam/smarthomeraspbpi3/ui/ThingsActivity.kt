@@ -18,7 +18,6 @@ import com.google.android.things.userdriver.input.InputDriverEvent
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
-import com.jakewharton.processphoenix.ProcessPhoenix
 import com.krisbiketeam.smarthomeraspbpi3.Home
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.WATCH_DOG_RESTART_ACTION
@@ -488,7 +487,6 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
             val pendingIntent = getWatchDogRestartPendingIntent()
 
             scheduleWatchDogRestartAlarm(pendingIntent)
-            Timber.i("shedule WatchDogRestart Alarm")
             val resetWatchDogDelay:Long =
                 if (WATCH_DOG_RESTART_TIME > 1000) {
                     WATCH_DOG_RESTART_TIME - 1000
@@ -737,7 +735,9 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
         val time = SimpleDateFormat("dd MMM HH:mm:ss.SSS", Locale.getDefault()).format(Date(timeStamp))
         val remoteLog = RemoteLog("ERROR", threadedTag, "restartApp", null, time)
         homeInformationRepository.logThingsLog(remoteLog, timeStamp)
-        ProcessPhoenix.triggerRebirth(application)
+        finish()
+        Runtime.getRuntime().exit(0)
+        //ProcessPhoenix.triggerRebirth(application)
     }
 
     private fun getWatchDogRestartPendingIntent(): PendingIntent? {
