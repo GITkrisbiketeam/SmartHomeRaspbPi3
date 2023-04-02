@@ -164,7 +164,7 @@ class SecureStorageImpl(private val context: Context, homeInformationRepository:
 
         this@callbackFlow.trySendBlocking(remoteLoggingLevel)
         homeInformationRepository.getHomePreference(REMOTE_LOGGING_LEVEL_KEY)?.addValueEventListener(remoteLoggingLevelListener)
-        Timber.e("remoteLoggingLevelFlow  register")
+        Timber.i("remoteLoggingLevelFlow  register")
         encryptedSharedPreferences.registerOnSharedPreferenceChangeListener(preferenceChangeListener)
         awaitClose {
             Timber.w("remoteLoggingLevelFlow  awaitClose")

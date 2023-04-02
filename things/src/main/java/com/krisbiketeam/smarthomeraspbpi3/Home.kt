@@ -338,7 +338,11 @@ class Home(
 
     private suspend fun hwUnitErrorEventListDataProcessor(errorEventList: List<HwUnitLog<Any>>) {
         Timber.e(
-            "hwUnitErrorEventListDataProcessor errorEventList.size: ${errorEventList.size}; errorEventList: $errorEventList"
+            "hwUnitErrorEventListDataProcessor errorEventList.size: ${errorEventList.size}; errorEventList: ${
+                errorEventList.joinToString {
+                    it.name
+                }
+            }"
         )
         if (errorEventList.isNotEmpty()) {
             errorEventList.forEach { hwUnitErrorEvent ->
