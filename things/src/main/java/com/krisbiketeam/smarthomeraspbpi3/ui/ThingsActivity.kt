@@ -223,7 +223,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
 
         alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-        Timber.e("onCreate isNetworkConnected: ${networkConnectionMonitor.isNetworkConnected}")
+        Timber.i("onCreate isNetworkConnected: ${networkConnectionMonitor.isNetworkConnected}")
 
         lifecycleScope.launch {
             ledA.setValueWithException(false)
@@ -247,7 +247,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
                     Timber.d("Wifi enabled? $enabled")
                 }
                 waitForNetworkAvailable().let { connected ->
-                    Timber.e("WiFi is finally connected?: $connected")
+                    Timber.i("WiFi is finally connected?: $connected")
                     if (!connected) {
                         Timber.d("Not connected to WiFi, starting WiFiCredentialsReceiver")
                         startWiFiCredentialsReceiver()
@@ -281,12 +281,12 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
         try {
             withTimeout(NEARBY_TIMEOUT) {
                 waitForWifiCredentials()?.let { wifiCredentials ->
-                    Timber.e("waitForWifiCredentials returned:$wifiCredentials")
+                    Timber.i("waitForWifiCredentials returned:$wifiCredentials")
                     addWiFi(wifiManager, wifiCredentials)
                 } ?: Timber.e("Could not get WifiCredentials")
             }
         } finally {
-            Timber.e("waitForWifiCredentials timeout or finished")
+            Timber.w("waitForWifiCredentials timeout or finished")
             blinkJob.cancelAndJoin()
         }
     }
@@ -296,10 +296,10 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
         try {
             withTimeout(NEARBY_TIMEOUT) {
                 waitForFirebaseCredentials()?.let { credentials ->
-                    Timber.e("waitForFirebaseCredentials returned:$credentials")
+                    Timber.i("waitForFirebaseCredentials returned:$credentials")
                     secureStorage.firebaseCredentials = credentials
                     waitForNetworkAvailable().let { connected ->
-                        Timber.e("waitForFirebaseCredentials connected:$connected")
+                        Timber.i("waitForFirebaseCredentials connected:$connected")
                         if (connected) {
                             loginFirebase()
                         }
@@ -307,7 +307,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
                 } ?: Timber.e("Could not get FirebaseCredentials")
             }
         } finally {
-            Timber.e("waitForFirebaseCredentials timeout or finished")
+            Timber.w("waitForFirebaseCredentials timeout or finished")
             blinkJob.cancelAndJoin()
         }
     }
@@ -317,13 +317,13 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
         try {
             withTimeout(NEARBY_TIMEOUT) {
                 waitForHomeName()?.let { homeName ->
-                    Timber.e("waitForHomeName returned:$homeName")
+                    Timber.i("waitForHomeName returned:$homeName")
                     secureStorage.homeName = homeName
                     homeInformationRepository.setHomeReference(secureStorage.homeName)
                 } ?: Timber.e("Could not get HomeName")
             }
         } finally {
-            Timber.e("waitForHomeName timeout or finished")
+            Timber.w("waitForHomeName timeout or finished")
             blinkJob.cancelAndJoin()
         }
     }
@@ -646,7 +646,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
                         connectAndSetupJob = lifecycleScope.launch {
                             ledA.setValueWithException(false)
                             startWiFiCredentialsReceiver()
-                            Timber.e("startWiFiCredentialsReceiver finished")
+                            Timber.i("startWiFiCredentialsReceiver finished")
                         }
                         return true
                     }
@@ -683,7 +683,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
                         connectAndSetupJob = lifecycleScope.launch {
                             ledB.setValueWithException(false)
                             startFirebaseCredentialsReceiver()
-                            Timber.e("startFirebaseCredentialsReceiver finished")
+                            Timber.i("startFirebaseCredentialsReceiver finished")
                         }
                         return true
                     }
@@ -716,7 +716,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
                             home.stop()
                             startHomeNameReceiver()
                             home.start()
-                            Timber.e("startHomeNameReceiver finished")
+                            Timber.i("startHomeNameReceiver finished")
                         }
                         return true
                     }

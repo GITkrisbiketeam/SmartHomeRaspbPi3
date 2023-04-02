@@ -122,7 +122,7 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
     private val mIntCallback = object : GpioCallback {
         override fun onGpioEdge(gpio: Gpio): Boolean {
             if (debounceDelay != NO_DEBOUNCE_DELAY) {
-                Timber.d("mIntCallback addr:$address onGpioEdge ${gpio.value}")
+                Timber.i("mIntCallback addr:$address onGpioEdge ${gpio.value}")
                 debounceIntCallbackJob?.cancel()
                 debounceIntCallbackJob = GlobalScope.launch(Dispatchers.IO) {
                     delay(debounceDelay.toLong())
@@ -151,7 +151,7 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
             recheckIntCallbackJob = GlobalScope.launch(Dispatchers.IO) {
                 delay(RECHECK_INT_DELAY)
                 try {
-                    Timber.e("mIntCallback addr:$address recheckIntCallbackJob mGpioInt: ${mGpioInt?.value}")
+                    Timber.i("mIntCallback addr:$address recheckIntCallbackJob mGpioInt: ${mGpioInt?.value}")
                     if (this.isActive) {
                         checkInterrupt()
                     }
@@ -231,7 +231,7 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
     @Throws(Exception::class)
     @MainThread
     private fun resetToDefaults(i2cDevice: I2cDevice?) {
-        Timber.e("resetToDefaults addr:$address")
+        Timber.d("resetToDefaults addr:$address")
         // set all default pins directions
         writeRegister(i2cDevice, REGISTER_IODIR_A, 0)
         writeRegister(i2cDevice, REGISTER_IODIR_B, 0)

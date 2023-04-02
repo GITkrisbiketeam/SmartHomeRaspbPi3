@@ -10,7 +10,7 @@ interface HwUnitGpio<T> : BaseHwUnit<T> {
     var gpio: Gpio?
 
     override suspend fun connect():Result<Unit> {
-        Timber.e("connect on: $hwUnit")
+        Timber.i("connect on: $hwUnit")
         return if (gpio == null) {
             withContext(Dispatchers.Main) {
                 kotlin.runCatching {
@@ -32,7 +32,7 @@ interface HwUnitGpio<T> : BaseHwUnit<T> {
     }
 
     override suspend fun close():Result<Unit> {
-        Timber.e("close on: $hwUnit")
+        Timber.i("close on: $hwUnit")
         return withContext(Dispatchers.Main) {
             kotlin.runCatching {
                 try {

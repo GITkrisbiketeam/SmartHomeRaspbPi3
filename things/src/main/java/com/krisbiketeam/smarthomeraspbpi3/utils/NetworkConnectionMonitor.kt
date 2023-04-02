@@ -47,12 +47,12 @@ class NetworkConnectionMonitor(activity: Activity) : ConnectivityManager.Network
     }
 
     override fun onLost(network: Network) {
-        Timber.e("onLost network: $network")
+        Timber.w("onLost network: $network")
         networkConnectionListener?.onNetworkAvailable(false)
     }
 
     override fun onUnavailable() {
-        Timber.e("onUnavailable")
+        Timber.w("onUnavailable")
         networkConnectionListener?.onNetworkAvailable(false)
     }
 

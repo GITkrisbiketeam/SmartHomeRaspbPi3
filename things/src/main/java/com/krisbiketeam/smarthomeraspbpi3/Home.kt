@@ -360,7 +360,7 @@ class Home(
                 hwUnitErrorEventList.clear()
                 list
             }
-            Timber.e(
+            Timber.w(
                 "hwUnitErrorEventListDataProcessor unitToStart.size: ${unitToStart.size}; unitToStart: $unitToStart"
             )
             unitToStart.forEach { hwUnit ->
@@ -371,8 +371,8 @@ class Home(
     }
 
     private suspend fun hwUnitRestartListProcessor(restartEventList: List<HwUnitLog<Any>>) {
-        Timber.e("hwUnitRestartListProcessor $restartEventList")
-        if (!restartEventList.isNullOrEmpty()) {
+        Timber.d("hwUnitRestartListProcessor $restartEventList")
+        if (restartEventList.isNotEmpty()) {
             homeInformationRepository.clearHwRestarts()
             val removedHwUnitList = restartEventList.mapNotNull { hwUnitLog ->
                 hwUnitsList.remove(hwUnitLog.name)?.also { hwUnit ->
@@ -448,8 +448,8 @@ class Home(
                 }
             }.onFailure {
                 hwUnitsList[hwUnit.name]?.addHwUnitErrorEvent(
-                    Throwable(),
-                    "Error on $hwUnit : error"
+                    it,
+                    "Error on $hwUnit"
                 )
             }
         }
@@ -546,17 +546,25 @@ class Home(
         if (unit.connectValueWithException()) {
             when (unit) {
                 is Sensor -> {
-                    unit.readValue().onSuccess { hwUnitValue ->
-                        Timber.w("hwUnitStart hwUnitValue:$hwUnitValue")
-                        unit.registerListener(this@Home).onSuccess {
-                            onHwUnitChanged(unit.hwUnit, Result.success(hwUnitValue))
+                    scope.launch(Dispatchers.IO) {
+                        unit.readValue().onSuccess { hwUnitValue ->
+                            Timber.w("hwUnitStart hwUnitValue:$hwUnitValue")
+                            unit.registerListener(this@Home).onSuccess {
+                                onHwUnitChanged(unit.hwUnit, Result.success(hwUnitValue))
+                            }.onFailure {
+                                Timber.e("hwUnitStart; Error registering hwUnit listener on $unit $it")
+                                unit.addHwUnitErrorEvent(
+                                    it,
+                                    "hwUnitStart; Error registering hwUnit listener on $unit"
+                                )
+                            }
                         }.onFailure {
-                            Timber.e("hwUnitStart; Error registering hwUnit listener on $unit $it")
-                            unit.addHwUnitErrorEvent(it, "hwUnitStart; Error registering hwUnit listener on $unit")
+                            Timber.e("hwUnitStart; Error reading hwUnit value on $unit $it")
+                            unit.addHwUnitErrorEvent(
+                                it,
+                                "hwUnitStart; Error reading hwUnit value on $unit"
+                            )
                         }
-                    }.onFailure {
-                        Timber.e("hwUnitStart; Error reading hwUnit value on $unit $it")
-                        unit.addHwUnitErrorEvent(it, "hwUnitStart; Error reading hwUnit value on $unit")
                     }
                     hwUnitsList[unit.hwUnit.name] = unit
                 }
@@ -696,7 +704,10 @@ class Home(
     ) {
         hwUnitStop(this@addHwUnitErrorEvent, doNotAddToHwUnitErrorList = true)
 
-        val hwUnitLog = HwUnitLog(hwUnit, this.hwUnitValue, "$logMessage \n ${e.message}")
+        val hwUnitLog = HwUnitLog(hwUnit, this.hwUnitValue, "$logMessage; \n" +
+                " message: ${e.message}; \n" +
+                " cause: ${e.cause}; \n" +
+                " stacktrace: ${e.stackTraceToString()}")
 
         homeInformationRepository.logHwUnitError(hwUnitLog)
 
@@ -745,7 +756,7 @@ class Home(
             param(SENSOR_ERROR, e.toString())
         }
         Firebase.crashlytics.recordException(e)
-        Timber.e(e, "addHwUnitErrorEvent finished : $logMessage")
+        Timber.i(e, "addHwUnitErrorEvent finished : $logMessage")
     }
 
     // endregion

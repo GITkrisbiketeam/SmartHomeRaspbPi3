@@ -401,7 +401,7 @@ uint32_t config_load(uint8_t *config_buffer, uint32_t n_buffer) {
  *     the pairing function JNI_OnUnload() never gets called at all.
  */
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
-    LOGE("JNI_OnLoad");
+    LOGI("JNI_OnLoad");
 
     JNIEnv *env;
     memset(&g_ctx, 0, sizeof(g_ctx));

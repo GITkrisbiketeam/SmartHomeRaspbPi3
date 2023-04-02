@@ -742,12 +742,12 @@ class Lps331(bus: String? = null) : AutoCloseable {
             val shortMsb:Short = mBuffer[0].toShort().and(0xff)
             val msbByte:Byte = mBuffer[0]
 
-            Timber.e("msbByte:$msbByte lsbByte:$lsbByte")
-            Timber.e("shortMsb:$shortMsb shortLsb:$shortLsb")
-            Timber.e("msb:$msb lsb:$lsb  all: ${msb shl 8 or lsb}")
+            Timber.v("msbByte:$msbByte lsbByte:$lsbByte")
+            Timber.v("shortMsb:$shortMsb shortLsb:$shortLsb")
+            Timber.v("msb:$msb lsb:$lsb  all: ${msb shl 8 or lsb}")
             val shortMsbShift:Short = shortMsb shl 8
             val shortAll: Short = shortMsbShift.plus(shortLsb).toShort()
-            Timber.e("shortMsbShift:$shortMsbShift shortAll:$shortAll")
+            Timber.i("shortMsbShift:$shortMsbShift shortAll:$shortAll")
             return shortAll.toInt()
         }
     }
@@ -771,7 +771,7 @@ class Lps331(bus: String? = null) : AutoCloseable {
             mDevice?.readRegBuffer(PRESS_OUT_H, mBuffer, 1) ?: return null
             val msb = mBuffer[0].toInt().and(0xff)
 
-            Timber.e("msb:$msb data:$data lsb:$lsb  all: ${(msb shl 16) or (data shl 8) or lsb}")
+            Timber.i("msb:$msb data:$data lsb:$lsb  all: ${(msb shl 16) or (data shl 8) or lsb}")
             return (msb shl 16) or (data shl 8) or lsb
         }
     }

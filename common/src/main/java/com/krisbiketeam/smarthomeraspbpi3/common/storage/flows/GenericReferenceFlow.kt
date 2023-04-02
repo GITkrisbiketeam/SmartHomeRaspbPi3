@@ -33,7 +33,7 @@ inline fun <reified T> genericListReferenceFlow(databaseReference: DatabaseRefer
         }
     })
     awaitClose {
-        Timber.e("genericListReferenceFlow  awaitClose on ${databaseReference?.toString()}")
+        Timber.w("genericListReferenceFlow  awaitClose on ${databaseReference?.toString()}")
         eventListener?.let { eventListener ->
             databaseReference.removeEventListener(eventListener)
         }
@@ -68,7 +68,7 @@ inline fun <reified T> genericMapReferenceFlow(databaseReference: DatabaseRefere
         }
     })
     awaitClose {
-        Timber.e("genericMapReferenceFlow  awaitClose on ${databaseReference?.toString()}")
+        Timber.w("genericMapReferenceFlow  awaitClose on ${databaseReference?.toString()}")
         eventListener?.let { eventListener ->
             databaseReference.removeEventListener(eventListener)
         }
@@ -91,14 +91,14 @@ inline fun <reified T> genericReferenceFlow(databaseReference: DatabaseReference
             }
             // A new value has been added, add it to the displayed list
             val value: T? = dataSnapshot.getValue<T>()
-            Timber.e("genericReferenceFlow onDataChange (key=${dataSnapshot.key})(value=$value) exists: ${dataSnapshot.exists()}")
+            Timber.d("genericReferenceFlow onDataChange (key=${dataSnapshot.key})(value=$value) exists: ${dataSnapshot.exists()}")
             if (value != null) {
                 this@callbackFlow.trySendBlocking(value)
             }
         }
     })
     awaitClose {
-        Timber.e("genericReferenceFlow  awaitClose on ${databaseReference?.toString()}")
+        Timber.w("genericReferenceFlow  awaitClose on ${databaseReference?.toString()}")
         eventListener?.let { eventListener ->
             databaseReference.removeEventListener(eventListener)
         }

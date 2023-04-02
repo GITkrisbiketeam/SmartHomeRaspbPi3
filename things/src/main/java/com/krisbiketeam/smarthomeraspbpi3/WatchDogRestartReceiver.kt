@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import com.google.android.things.device.DeviceManager
+import com.jakewharton.processphoenix.ProcessPhoenix
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.RemoteLog
 import org.koin.core.component.KoinApiExtension
@@ -29,9 +30,9 @@ class WatchDogRestartReceiver  : BroadcastReceiver(), KoinComponent {
             val time = SimpleDateFormat("dd MMM HH:mm:ss.SSS", Locale.getDefault()).format(Date(timeStamp))
             val remoteLog = RemoteLog("ERROR", threadedTag, "restartApp", null, time)
             homeInformationRepository.logThingsLog(remoteLog, timeStamp)
-            //ProcessPhoenix.triggerRebirth(context)
-            Timber.e("Reboot Things")
-            DeviceManager.getInstance().reboot();
+            ProcessPhoenix.triggerRebirth(context)
+            //Timber.e("Reboot Things")
+            //DeviceManager.getInstance().reboot();
         }
     }
 }
