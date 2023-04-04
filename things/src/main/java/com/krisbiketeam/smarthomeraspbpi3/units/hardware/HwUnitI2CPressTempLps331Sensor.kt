@@ -46,8 +46,8 @@ class HwUnitI2CPressTempLps331Sensor(
     override suspend fun registerListener(listener: Sensor.HwUnitListener<PressureAndTemperature>): Result<Unit> {
         Timber.d("registerListener")
         job?.cancel()
-        job = supervisorScope {
-            launch(Dispatchers.IO) {
+        supervisorScope {
+            job = launch(Dispatchers.IO) {
                 // We could also check for true as suspending delay() method is cancellable
                 while (isActive) {
                     delay(refreshRate ?: REFRESH_RATE)

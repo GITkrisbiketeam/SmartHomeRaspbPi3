@@ -50,8 +50,8 @@ class HwUnitI2CAirQualityBme680Sensor(
         Timber.d("registerListener")
         job?.cancel()
         // TODO check this more
-        job = supervisorScope {
-            launch(Dispatchers.IO) {
+        supervisorScope {
+            job = launch(Dispatchers.IO) {
                 runCatching {
                     Bme680BsecJNI(this, secureStorage, pinName, softAddress) {
                         hwUnitValue = HwUnitValue(it, System.currentTimeMillis())
