@@ -45,6 +45,7 @@ class HwUnitI2CTempRhSi7021Sensor(
     override suspend fun connect(): Result<Unit> {
         // Do noting we do not want to block I2C device so it will be opened while setting the value
         // and then immediately closed to release resources
+        heatOnOff(false)
         return Result.success(Unit)
     }
 
