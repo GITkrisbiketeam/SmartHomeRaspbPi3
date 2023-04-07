@@ -70,11 +70,13 @@ class HomeUnitLightSwitchDetailViewModel(
     fun setValueFromSwitch(isChecked: Boolean): Task<Void>? {
         Timber.d("OnCheckedChangeListener isChecked: $isChecked")
         return if (homeUnit?.value?.value != isChecked) {
-            homeUnit?.value?.copy()?.let { unit ->
-                unit.value = isChecked
-                unit.lastUpdateTime = System.currentTimeMillis()
-                unit.lastTriggerSource = LAST_TRIGGER_SOURCE_HOME_UNIT_DETAILS
-                homeRepository.updateHomeUnitValue(unit)
+            homeUnit?.value?.let { unit ->
+                homeRepository.updateHomeUnitValue(
+                    unit.type, unit.name,
+                    isChecked,
+                    System.currentTimeMillis(),
+                    LAST_TRIGGER_SOURCE_HOME_UNIT_DETAILS
+                )
             }
         } else {
             null

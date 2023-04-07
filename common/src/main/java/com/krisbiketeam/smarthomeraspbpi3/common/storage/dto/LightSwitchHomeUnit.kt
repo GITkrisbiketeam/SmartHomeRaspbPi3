@@ -1,25 +1,29 @@
 package com.krisbiketeam.smarthomeraspbpi3.common.storage.dto
 
+import com.google.firebase.database.Exclude
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
 import kotlinx.coroutines.Job
 
 data class LightSwitchHomeUnit<T : Any>(
-    override var name: String = "", // Name should be unique for all units
-    override var type: HomeUnitType = HomeUnitType.HOME_LIGHT_SWITCHES,
-    override var room: String = "",
-    override var hwUnitName: String? = "",
-    override var value: T? = null,
-    override var lastUpdateTime: Long? = null,
-    var switchHwUnitName: String? = null,
-    var switchValue: T? = null,
-    var switchLastUpdateTime: Long? = null,
+    override val name: String = "", // Name should be unique for all units
+    override val type: HomeUnitType = HomeUnitType.HOME_LIGHT_SWITCHES,
+    override val room: String = "",
+    override val hwUnitName: String? = "",
+    override val value: T? = null,
+    override val lastUpdateTime: Long? = null,
+    val switchHwUnitName: String? = null,
+    val switchValue: T? = null,
+    val switchLastUpdateTime: Long? = null,
 
-    override var lastTriggerSource: String? = null,
-    override var firebaseNotify: Boolean = false,
-    @TriggerType override var firebaseNotifyTrigger: String? = null,
-    override var showInTaskList: Boolean = false,
-    override var unitsTasks: Map<String, UnitTask> = HashMap(),
-    override var unitJobs: MutableMap<String, Job> = mutableMapOf(),
+    override val lastTriggerSource: String? = null,
+    override val firebaseNotify: Boolean = false,
+    @TriggerType override val firebaseNotifyTrigger: String? = null,
+    override val showInTaskList: Boolean = false,
+    override val unitsTasks: Map<String, UnitTask> = HashMap(),
+    // should it also be in equals/hashCode
+    @Exclude
+    @get:Exclude
+    override val unitJobs: MutableMap<String, Job> = mutableMapOf(),
 ) : HomeUnit<T> {
 
     override fun makeNotification(): LightSwitchHomeUnit<T> {
@@ -79,22 +83,16 @@ data class LightSwitchHomeUnit<T : Any>(
         return result
     }
 
-    override fun copy(): HomeUnit<T> {
-        return LightSwitchHomeUnit(
-            name,
-            type,
-            room,
-            hwUnitName,
-            value,
-            lastUpdateTime,
-            switchHwUnitName,
-            switchValue,
-            switchLastUpdateTime,
-            lastTriggerSource,
-            firebaseNotify,
-            firebaseNotifyTrigger,
-            showInTaskList,
-            unitsTasks
+    override fun copyWithValues(
+        value: T?,
+        lastUpdateTime: Long?,
+        lastTriggerSource: String?,
+    ): HomeUnit<T> {
+        // previus copy was not copying unitJobs
+        return copy(
+            value = value,
+            lastUpdateTime = lastUpdateTime,
+            lastTriggerSource = lastTriggerSource,
         )
     }
 
@@ -110,13 +108,14 @@ data class LightSwitchHomeUnit<T : Any>(
         hwUnit: HwUnit,
         unitValue: Any?,
         updateTime: Long,
-        booleanApplyAction: suspend HomeUnit<T>.(actionVal: Boolean, taskHomeUnitType: HomeUnitType, taskHomeUnitName: String, taskName: String, periodicallyOnlyHw: Boolean) -> Unit
-    ) {
+        lastTriggerSource: String,
+        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> Unit
+    ): HomeUnit<T> {
         // We set Switch and normal value as updateHomeUnitValuesAndTimes is only called by HwUnit
-        switchValue = unitValue as T?
-        switchLastUpdateTime = updateTime
-        if (unitValue is Boolean) {
-            booleanApplyAction(unitValue, type, name, name, false)
+        return copy(switchValue= unitValue as T?, switchLastUpdateTime = updateTime).also {
+            if (unitValue is Boolean) {
+                booleanApplyAction(BooleanApplyActionData(unitValue, type, name, name, name, false))
+            }
         }
     }
 }

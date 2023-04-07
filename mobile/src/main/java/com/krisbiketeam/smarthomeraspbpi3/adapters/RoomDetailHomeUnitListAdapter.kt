@@ -105,12 +105,12 @@ class RoomDetailHomeUnitListAdapter(private val homeInformationRepository: Fireb
                 homeUnitItemSwitch.setOnCheckedChangeListener { _, isChecked ->
                     Timber.d("OnCheckedChangeListener isChecked: $isChecked homeUnitItem: $homeUnitItem")
                     if (homeUnitItem.value != isChecked) {
-                        homeUnitItem.copy().also { unit ->
-                            unit.value = isChecked
-                            unit.lastUpdateTime = System.currentTimeMillis()
-                            unit.lastTriggerSource = LAST_TRIGGER_SOURCE_ROOM_HOME_UNITS_LIST
-                            homeInformationRepository.updateHomeUnitValue(unit)
-                        }
+                        homeInformationRepository.updateHomeUnitValue(
+                            homeUnitItem.type, homeUnitItem.name,
+                            isChecked,
+                            System.currentTimeMillis(),
+                            LAST_TRIGGER_SOURCE_ROOM_HOME_UNITS_LIST
+                        )
                     }
                 }
 

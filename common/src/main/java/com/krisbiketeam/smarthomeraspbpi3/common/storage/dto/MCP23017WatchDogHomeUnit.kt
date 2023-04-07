@@ -10,24 +10,24 @@ private const val WATCH_DOG_DELAY_TASK_KEY = "watch_dog_delay_task_key"
 private const val WATCH_DOG_TIMEOUT_TASK_KEY = "watch_dog_timeout_task_key"
 
 data class MCP23017WatchDogHomeUnit<T : Any>(
-    override var name: String = "", // Name should be unique for all units
-    override var type: HomeUnitType = HomeUnitType.HOME_MCP23017_WATCH_DOG,
-    override var room: String = "",
-    override var hwUnitName: String? = "",
-    override var value: T? = null,
-    override var lastUpdateTime: Long? = null,
-    var inputHwUnitName: String? = null,
-    var inputValue: T? = null,
-    var inputLastUpdateTime: Long? = null,
-    var watchDogTimeout: Long = DEFAULT_WATCH_DOG_TIMEOUT,
-    var watchDogDelay: Long = DEFAULT_WATCH_DOG_DELAY,
+    override val name: String = "", // Name should be unique for all units
+    override val type: HomeUnitType = HomeUnitType.HOME_MCP23017_WATCH_DOG,
+    override val room: String = "",
+    override val hwUnitName: String? = "",
+    override val value: T? = null,
+    override val lastUpdateTime: Long? = null,
+    val inputHwUnitName: String? = null,
+    val inputValue: T? = null,
+    val inputLastUpdateTime: Long? = null,
+    val watchDogTimeout: Long = DEFAULT_WATCH_DOG_TIMEOUT,
+    val watchDogDelay: Long = DEFAULT_WATCH_DOG_DELAY,
 
-    override var lastTriggerSource: String? = null,
-    override var firebaseNotify: Boolean = false,
-    @TriggerType override var firebaseNotifyTrigger: String? = null,
-    override var showInTaskList: Boolean = false,
-    override var unitsTasks: Map<String, UnitTask> = HashMap(),
-    override var unitJobs: MutableMap<String, Job> = mutableMapOf(),
+    override val lastTriggerSource: String? = null,
+    override val firebaseNotify: Boolean = false,
+    @TriggerType override val firebaseNotifyTrigger: String? = null,
+    override val showInTaskList: Boolean = false,
+    override val unitsTasks: Map<String, UnitTask> = HashMap(),
+    override val unitJobs: MutableMap<String, Job> = mutableMapOf(),
 ) : HomeUnit<T> {
 
     override fun makeNotification(): MCP23017WatchDogHomeUnit<T> {
@@ -93,24 +93,16 @@ data class MCP23017WatchDogHomeUnit<T : Any>(
         return result
     }
 
-    override fun copy(): HomeUnit<T> {
-        return MCP23017WatchDogHomeUnit(
-            name,
-            type,
-            room,
-            hwUnitName,
-            value,
-            lastUpdateTime,
-            inputHwUnitName,
-            inputValue,
-            inputLastUpdateTime,
-            watchDogTimeout,
-            watchDogDelay,
-            lastTriggerSource,
-            firebaseNotify,
-            firebaseNotifyTrigger,
-            showInTaskList,
-            unitsTasks
+    override fun copyWithValues(
+        value: T?,
+        lastUpdateTime: Long?,
+        lastTriggerSource: String?,
+    ): HomeUnit<T> {
+        // previus copy was not copying unitJobs
+        return copy(
+            value = value,
+            lastUpdateTime = lastUpdateTime,
+            lastTriggerSource = lastTriggerSource,
         )
     }
 
@@ -126,11 +118,10 @@ data class MCP23017WatchDogHomeUnit<T : Any>(
         hwUnit: HwUnit,
         unitValue: Any?,
         updateTime: Long,
-        booleanApplyAction: suspend HomeUnit<T>.(actionVal: Boolean, taskHomeUnitType: HomeUnitType, taskHomeUnitName: String, taskName: String, periodicallyOnlyHw: Boolean) -> Unit
-    ) {
+        lastTriggerSource: String,
+        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> Unit
+    ): HomeUnit<T> {
         // We set Switch and normal value as updateHomeUnitValuesAndTimes is only called by HwUnit
-        inputValue = unitValue as T?
-        inputLastUpdateTime = updateTime
         supervisorScope {
             unitJobs[WATCH_DOG_TIMEOUT_TASK_KEY]?.cancel()
             unitJobs[WATCH_DOG_TIMEOUT_TASK_KEY] = launch(Dispatchers.IO) {
@@ -144,9 +135,10 @@ data class MCP23017WatchDogHomeUnit<T : Any>(
             unitJobs[WATCH_DOG_DELAY_TASK_KEY] = launch(Dispatchers.IO) {
                 delay(watchDogDelay)
                 if (unitValue is Boolean) {
-                    booleanApplyAction(!unitValue, type, name, name, false)
+                    booleanApplyAction(BooleanApplyActionData(!unitValue, type, name, name, name, false))
                 }
             }
         }
+        return copy(inputValue = unitValue as T?, inputLastUpdateTime = updateTime)
     }
 }

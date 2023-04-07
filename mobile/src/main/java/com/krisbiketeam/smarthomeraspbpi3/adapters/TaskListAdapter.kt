@@ -98,12 +98,12 @@ class TaskListAdapter(private val homeInformationRepository: FirebaseHomeInforma
                         Timber.d("OnCheckedChangeListener isChecked: $isChecked item: $item")
                         item.homeUnit?.let { homeUnit ->
                             if (homeUnit.value != isChecked) {
-                                homeUnit.copy().also { unit ->
-                                    unit.value = isChecked
-                                    unit.lastUpdateTime = System.currentTimeMillis()
-                                    unit.lastTriggerSource = LAST_TRIGGER_SOURCE_TASK_LIST
-                                    homeInformationRepository.updateHomeUnitValue(unit)
-                                }
+                                homeInformationRepository.updateHomeUnitValue(
+                                    homeUnit.type, homeUnit.name,
+                                    isChecked,
+                                    System.currentTimeMillis(),
+                                    LAST_TRIGGER_SOURCE_TASK_LIST
+                                )
                             }
                         }
 

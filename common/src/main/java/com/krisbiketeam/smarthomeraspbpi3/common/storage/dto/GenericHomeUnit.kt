@@ -5,22 +5,22 @@ import kotlinx.coroutines.Job
 import timber.log.Timber
 
 data class GenericHomeUnit<T : Any>(
-    override var name: String = "", // Name should be unique for all units
-    override var type: HomeUnitType = HomeUnitType.HOME_TEMPERATURES,
-    override var room: String = "",
-    override var hwUnitName: String? = "",
-    override var value: T? = null,
-    override var lastUpdateTime: Long? = null,
-    var min: T? = null,
-    var minLastUpdateTime: Long? = null,
-    var max: T? = null,
-    var maxLastUpdateTime: Long? = null,
-    override var lastTriggerSource: String? = null,
-    override var firebaseNotify: Boolean = false,
-    @TriggerType override var firebaseNotifyTrigger: String? = null,
-    override var showInTaskList: Boolean = false,
-    override var unitsTasks: Map<String, UnitTask> = HashMap(),
-    override var unitJobs: MutableMap<String, Job> = mutableMapOf(),
+    override val name: String = "", // Name should be unique for all units
+    override val type: HomeUnitType = HomeUnitType.HOME_TEMPERATURES,
+    override val room: String = "",
+    override val hwUnitName: String? = "",
+    override val value: T? = null,
+    override val lastUpdateTime: Long? = null,
+    val min: T? = null,
+    val minLastUpdateTime: Long? = null,
+    val max: T? = null,
+    val maxLastUpdateTime: Long? = null,
+    override val lastTriggerSource: String? = null,
+    override val firebaseNotify: Boolean = false,
+    @TriggerType override val firebaseNotifyTrigger: String? = null,
+    override val showInTaskList: Boolean = false,
+    override val unitsTasks: Map<String, UnitTask> = HashMap(),
+    override val unitJobs: MutableMap<String, Job> = mutableMapOf(),
 ) : HomeUnit<T> {
 
     override fun makeNotification(): GenericHomeUnit<T> {
@@ -83,23 +83,16 @@ data class GenericHomeUnit<T : Any>(
         return result
     }
 
-    override fun copy(): HomeUnit<T> {
-        return GenericHomeUnit(
-            name,
-            type,
-            room,
-            hwUnitName,
-            value,
-            lastUpdateTime,
-            min,
-            minLastUpdateTime,
-            max,
-            maxLastUpdateTime,
-            lastTriggerSource,
-            firebaseNotify,
-            firebaseNotifyTrigger,
-            showInTaskList,
-            unitsTasks
+    override fun copyWithValues(
+        value: T?,
+        lastUpdateTime: Long?,
+        lastTriggerSource: String?,
+    ): HomeUnit<T> {
+        // previus copy was not copying unitJobs
+        return copy(
+            value = value,
+            lastUpdateTime = lastUpdateTime,
+            lastTriggerSource = lastTriggerSource,
         )
     }
 
@@ -115,79 +108,111 @@ data class GenericHomeUnit<T : Any>(
         hwUnit: HwUnit,
         unitValue: Any?,
         updateTime: Long,
-        booleanApplyAction: suspend HomeUnit<T>.(actionVal: Boolean, taskHomeUnitType: HomeUnitType, taskHomeUnitName: String, taskName: String, periodicallyOnlyHw: Boolean) -> Unit
-    ) {
+        lastTriggerSource: String,
+        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> Unit
+    ): HomeUnit<T> {
         // We need to handle differently values of non Basic Types
-        if (unitValue is PressureAndTemperature) {
-            Timber.d("Received PressureAndTemperature $unitValue")
-            if (type == HomeUnitType.HOME_TEMPERATURES) {
-                updateValueMinMax(unitValue.temperature, updateTime)
-            } else if (type == HomeUnitType.HOME_PRESSURES) {
-                updateValueMinMax(unitValue.pressure, updateTime)
-            }
-        } else if (unitValue is TemperatureAndHumidity) {
-            Timber.d("Received TemperatureAndHumidity $unitValue")
-            if (type == HomeUnitType.HOME_TEMPERATURES) {
-                updateValueMinMax(unitValue.temperature, updateTime)
-            } else if (type == HomeUnitType.HOME_HUMIDITY) {
-                updateValueMinMax(unitValue.humidity, updateTime)
-            }
-        } else if (unitValue is Bme680Data) {
-            Timber.d("Received TemperatureAndHumidity $unitValue")
-            when (type) {
-                HomeUnitType.HOME_TEMPERATURES -> {
-                    updateValueMinMax(unitValue.temperature, updateTime)
-                }
-                HomeUnitType.HOME_HUMIDITY -> {
-                    updateValueMinMax(unitValue.humidity, updateTime)
-                }
-                HomeUnitType.HOME_PRESSURES -> {
-                    updateValueMinMax(unitValue.pressure, updateTime)
-                }
-                HomeUnitType.HOME_GAS -> {
-                    updateValueMinMax(unitValue.gas, updateTime)
-                }
-                HomeUnitType.HOME_GAS_PERCENT -> {
-                    updateValueMinMax(unitValue.gasPercentage, updateTime)
-                }
-                HomeUnitType.HOME_IAQ -> {
-                    updateValueMinMax(unitValue.iaq, updateTime)
-                }
-                HomeUnitType.HOME_STATIC_IAQ -> {
-                    updateValueMinMax(unitValue.staticIaq, updateTime)
-                }
-                HomeUnitType.HOME_CO2 -> {
-                    updateValueMinMax(unitValue.co2Equivalent, updateTime)
-                }
-                HomeUnitType.HOME_BREATH_VOC -> {
-                    updateValueMinMax(unitValue.breathVocEquivalent, updateTime)
-                }
-                else -> {
-                    // do nothing, no supported sensor
+        return when (unitValue) {
+            is PressureAndTemperature -> {
+                Timber.d("Received PressureAndTemperature $unitValue")
+                when (type) {
+                    HomeUnitType.HOME_TEMPERATURES -> {
+                        updateValueMinMax(unitValue.temperature, updateTime, lastTriggerSource)
+                    }
+                    HomeUnitType.HOME_PRESSURES -> {
+                        updateValueMinMax(unitValue.pressure, updateTime, lastTriggerSource)
+                    }
+                    else -> {
+                        this
+                    }
                 }
             }
-        } else {
-            updateValueMinMax(unitValue, updateTime)
+            is TemperatureAndHumidity -> {
+                Timber.d("Received TemperatureAndHumidity $unitValue")
+                when (type) {
+                    HomeUnitType.HOME_TEMPERATURES -> {
+                        updateValueMinMax(unitValue.temperature, updateTime, lastTriggerSource)
+                    }
+                    HomeUnitType.HOME_HUMIDITY -> {
+                        updateValueMinMax(unitValue.humidity, updateTime, lastTriggerSource)
+                    }
+                    else -> {
+                        this
+                    }
+                }
+            }
+            is Bme680Data -> {
+                Timber.d("Received TemperatureAndHumidity $unitValue")
+                when (type) {
+                    HomeUnitType.HOME_TEMPERATURES -> {
+                        updateValueMinMax(unitValue.temperature, updateTime, lastTriggerSource)
+                    }
+                    HomeUnitType.HOME_HUMIDITY -> {
+                        updateValueMinMax(unitValue.humidity, updateTime, lastTriggerSource)
+                    }
+                    HomeUnitType.HOME_PRESSURES -> {
+                        updateValueMinMax(unitValue.pressure, updateTime, lastTriggerSource)
+                    }
+                    HomeUnitType.HOME_GAS -> {
+                        updateValueMinMax(unitValue.gas, updateTime, lastTriggerSource)
+                    }
+                    HomeUnitType.HOME_GAS_PERCENT -> {
+                        updateValueMinMax(unitValue.gasPercentage, updateTime, lastTriggerSource)
+                    }
+                    HomeUnitType.HOME_IAQ -> {
+                        updateValueMinMax(unitValue.iaq, updateTime, lastTriggerSource)
+                    }
+                    HomeUnitType.HOME_STATIC_IAQ -> {
+                        updateValueMinMax(unitValue.staticIaq, updateTime, lastTriggerSource)
+                    }
+                    HomeUnitType.HOME_CO2 -> {
+                        updateValueMinMax(unitValue.co2Equivalent, updateTime, lastTriggerSource)
+                    }
+                    HomeUnitType.HOME_BREATH_VOC -> {
+                        updateValueMinMax(unitValue.breathVocEquivalent, updateTime, lastTriggerSource)
+                    }
+                    else -> {
+                        // do nothing, no supported sensor
+                        this
+                    }
+                }
+            }
+            else -> {
+                updateValueMinMax(unitValue, updateTime, lastTriggerSource)
+            }
         }
     }
 
 
-    private fun updateValueMinMax(unitValue: Any?, updateTime: Long) {
-        value = unitValue as T?
-        lastUpdateTime = updateTime
+    private fun updateValueMinMax(
+        unitValue: Any?,
+        updateTime: Long,
+        lastTriggerSource: String,
+    ): HomeUnit<T> {
         when (unitValue) {
             is Float -> {
                 if (unitValue <= ((min.takeIf { it is Number? } as Number?)?.toFloat()
                         ?: Float.MAX_VALUE)) {
-                    min = unitValue
-                    minLastUpdateTime = updateTime
+                    return copy(
+                        value = unitValue as T?,
+                        lastUpdateTime = updateTime,
+                        min = unitValue,
+                        minLastUpdateTime = updateTime,
+                        lastTriggerSource = lastTriggerSource
+                    )
                 }
                 if (unitValue >= ((max.takeIf { it is Number? } as Number?)?.toFloat()
                         ?: Float.MIN_VALUE)) {
-                    max = unitValue
-                    maxLastUpdateTime = updateTime
+                    return copy(
+                        value = unitValue as T?,
+                        lastUpdateTime = updateTime,
+                        max = unitValue,
+                        maxLastUpdateTime = updateTime,
+                        lastTriggerSource = lastTriggerSource
+                    )
                 }
             }
         }
+        return this
     }
 }

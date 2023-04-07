@@ -18,6 +18,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformation
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.LAST_TRIGGER_SOURCE_DEVICE_CONTROL
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.toHomeUnitType
 import com.krisbiketeam.smarthomeraspbpi3.ui.HomeActivity
 import kotlinx.coroutines.*
@@ -116,7 +117,11 @@ class DeviceControlService : ControlsProviderService() {
             // Inform SystemUI that the action has been received and is being processed
             consumer.accept(ControlAction.RESPONSE_OK)
             Timber.e("performControlAction action.newState: ${action.newState}")
-            homeInformationRepository.updateHomeUnitValue(type, name, action.newState)
+            homeInformationRepository.updateHomeUnitValue(
+                type, name, action.newState,
+                System.currentTimeMillis(),
+                LAST_TRIGGER_SOURCE_DEVICE_CONTROL
+            )
         }
     }
 

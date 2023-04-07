@@ -77,6 +77,7 @@ const val HOME_MIN_VAL_LAST_UPDATE = "minLastUpdateTime"
 const val HOME_MAX_VAL = "max"
 const val HOME_MAX_VAL_LAST_UPDATE = "maxLastUpdateTime"
 const val HOME_LAST_TRIGGER_SOURCE = "lastTriggerSource"
+const val HOME_ROOM = "room"
 
 const val LAST_TRIGGER_SOURCE_DEVICE_CONTROL = "device_control"
 const val LAST_TRIGGER_SOURCE_ROOM_HOME_UNITS_LIST = "room_home_units_list"

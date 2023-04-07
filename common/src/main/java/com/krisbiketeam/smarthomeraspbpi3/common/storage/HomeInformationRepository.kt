@@ -270,14 +270,14 @@ class FirebaseHomeInformationRepository {
     /**
      *  Updates given @see[HomeUnit] value updateTime in DB
      */
-    fun updateHomeUnitValue(homeUnit: HomeUnit<Any>): Task<Void>? {
-        Timber.w("updateHomeUnitValue $homeUnit")
+    fun updateHomeUnitValue(type: HomeUnitType, name:String, value: Any?, lastUpdateTime:Long, lastTriggerSource: String?): Task<Void>? {
+        Timber.w("updateHomeUnitValue $type $name value:$value")
         return homePathReference?.let {
-            Firebase.database.getReference("$it/$HOME_UNITS_BASE/${homeUnit.type}/${homeUnit.name}")
+            Firebase.database.getReference("$it/$HOME_UNITS_BASE/$type/$name")
                     .let { reference ->
-                        reference.child(HOME_VAL).setValue(homeUnit.value).continueWithTask {
-                            reference.child(HOME_VAL_LAST_UPDATE).setValue(homeUnit.lastUpdateTime).continueWithTask {
-                                reference.child(HOME_LAST_TRIGGER_SOURCE).setValue(homeUnit.lastTriggerSource)
+                        reference.child(HOME_VAL).setValue(value).continueWithTask {
+                            reference.child(HOME_VAL_LAST_UPDATE).setValue(lastUpdateTime).continueWithTask {
+                                reference.child(HOME_LAST_TRIGGER_SOURCE).setValue(lastTriggerSource)
                             }
                         }
                     }
@@ -287,17 +287,11 @@ class FirebaseHomeInformationRepository {
     /**
      *  Updates given @see[HomeUnit] value updateTime in DB
      */
-    fun updateHomeUnitValue(homeUnitType: HomeUnitType, homeUnitName: String, newVal: Any?): Task<Void>? {
-        Timber.w("updateHomeUnitValue $homeUnitType $homeUnitName")
+    fun updateHomeUnitRoomName(homeUnitType: HomeUnitType, homeUnitName: String, room: String): Task<Void>? {
+        Timber.w("updateHomeUnitRoomName $homeUnitType $homeUnitName")
         return homePathReference?.let {
-            Firebase.database.getReference("$it/$HOME_UNITS_BASE/$homeUnitType/$homeUnitName")
-                    .let { reference ->
-                        reference.child(HOME_VAL).setValue(newVal).continueWithTask {
-                            reference.child(HOME_VAL_LAST_UPDATE).setValue(System.currentTimeMillis()).continueWithTask {
-                                reference.child(HOME_LAST_TRIGGER_SOURCE).setValue(LAST_TRIGGER_SOURCE_DEVICE_CONTROL)
-                            }
-                        }
-                    }
+            Firebase.database.getReference("$it/$HOME_UNITS_BASE/$homeUnitType/$homeUnitName").child(HOME_ROOM)
+                .setValue(room)
         }
     }
 

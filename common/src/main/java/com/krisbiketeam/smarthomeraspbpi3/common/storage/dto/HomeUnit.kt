@@ -83,26 +83,26 @@ val HOME_FIREBASE_NOTIFY_STORAGE_UNITS: List<HomeUnitType> =
         HomeUnitType.HOME_WATER_CIRCULATION,
     )
 
-interface HomeUnit<T : Any> {
-    var name: String // Name should be unique for all units
-    var type: HomeUnitType
-    var room: String
-    var hwUnitName: String?
-    var value: T?
-    var lastUpdateTime: Long?
+sealed interface HomeUnit<T : Any>  {
+    val name: String // Name should be unique for all units
+    val type: HomeUnitType
+    val room: String
+    val hwUnitName: String?
+    val value: T?
+    val lastUpdateTime: Long?
 
-    var lastTriggerSource: String?
-    var firebaseNotify: Boolean
+    val lastTriggerSource: String?
+    val firebaseNotify: Boolean
 
     @TriggerType
-    var firebaseNotifyTrigger: String?
-    var showInTaskList: Boolean
-    var unitsTasks: Map<String, UnitTask>
-    var unitJobs: MutableMap<String, Job>
+    val firebaseNotifyTrigger: String?
+    val showInTaskList: Boolean
+    val unitsTasks: Map<String, UnitTask>
+    val unitJobs: MutableMap<String, Job>
 
     suspend fun applyFunction(
         newVal: T,
-        booleanApplyAction: suspend HomeUnit<T>.(actionVal: Boolean, taskHomeUnitType: HomeUnitType, taskHomeUnitName: String, taskName: String, periodicallyOnlyHw: Boolean) -> Unit
+        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> Unit
     ) {
         unitsTasks.values.forEach { task ->
             when (type) {
@@ -149,10 +149,15 @@ interface HomeUnit<T : Any> {
         hwUnit: HwUnit,
         unitValue: Any?,
         updateTime: Long,
-        booleanApplyAction: suspend HomeUnit<T>.(actionVal: Boolean, taskHomeUnitType: HomeUnitType, taskHomeUnitName: String, taskName: String, periodicallyOnlyHw: Boolean) -> Unit
-    )
+        lastTriggerSource: String,
+        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> Unit
+    ): HomeUnit<T>
 
-    fun copy(): HomeUnit<T>
+    fun copyWithValues(
+        value: T? = this.value,
+        lastUpdateTime: Long? = this.lastUpdateTime,
+        lastTriggerSource: String? = this.lastTriggerSource,
+    ): HomeUnit<T>
 
     fun shouldFirebaseNotify(newVal: Any?): Boolean {
         return firebaseNotify && (newVal !is Boolean || ((firebaseNotifyTrigger == null ||
@@ -166,7 +171,7 @@ interface HomeUnit<T : Any> {
     private suspend fun booleanTaskApply(
         newVal: Boolean,
         task: UnitTask,
-        booleanApplyAction: suspend HomeUnit<T>.(actionVal: Boolean, taskHomeUnitType: HomeUnitType, taskHomeUnitName: String, taskName: String, periodicallyOnlyHw: Boolean) -> Unit
+        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> Unit
     ) {
         supervisorScope {
             launch {
@@ -202,7 +207,7 @@ interface HomeUnit<T : Any> {
     private suspend fun sensorTaskApply(
         newVal: Float,
         task: UnitTask,
-        booleanApplyAction: suspend HomeUnit<T>.(actionVal: Boolean, taskHomeUnitType: HomeUnitType, taskHomeUnitName: String, taskName: String, periodicallyOnlyHw: Boolean) -> Unit
+        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> Unit
     ) {
         supervisorScope {
             launch {
@@ -237,7 +242,7 @@ interface HomeUnit<T : Any> {
     private suspend fun booleanTaskTimed(
         newVal: Boolean,
         task: UnitTask,
-        booleanApplyAction: suspend HomeUnit<T>.(actionVal: Boolean, taskHomeUnitType: HomeUnitType, taskHomeUnitName: String, taskName: String, periodicallyOnlyHw: Boolean) -> Unit
+        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> Unit
     ) {
         task.startTime.takeIf { it.isValidTime() }?.let { startTime ->
             val currTime = System.currentTimeMillis().getOnlyTodayLocalTime()
@@ -312,22 +317,32 @@ interface HomeUnit<T : Any> {
     private suspend fun booleanApplyAction(
         actionVal: Boolean,
         task: UnitTask,
-        booleanApplyAction: suspend HomeUnit<T>.(actionVal: Boolean, taskHomeUnitType: HomeUnitType, taskHomeUnitName: String, taskName: String, periodicallyOnlyHw: Boolean) -> Unit
+        booleanApplyAction: suspend (applyData:BooleanApplyActionData) -> Unit
     ) {
         val newActionVal: Boolean = (task.inverse ?: false) xor actionVal
         task.homeUnitsList.forEach {
-            booleanApplyAction(
+            booleanApplyAction(BooleanApplyActionData(
                 newActionVal,
                 it.type.toHomeUnitType(),
                 it.name,
                 task.name,
-                task.periodicallyOnlyHw ?: false
+                name,
+                task.periodicallyOnlyHw ?: false)
             )
         }
     }
 
     // endregion
 }
+
+data class BooleanApplyActionData(
+    val newActionVal: Boolean,
+    val taskHomeUnitType: HomeUnitType,
+    val taskHomeUnitName: String,
+    val taskName: String,
+    val sourceHomeUnitName: String,
+    val periodicallyOnlyHw: Boolean,
+)
 
 private fun Long?.isValidTime(): Boolean {
     return this != null && this > 0

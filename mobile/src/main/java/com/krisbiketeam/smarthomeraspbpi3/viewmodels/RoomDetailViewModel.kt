@@ -110,11 +110,12 @@ class RoomDetailViewModel(
         Timber.d("deleteHomeUnit room.name: ${room.value?.name} ")
         showProgress.value = true
         return homeUnitsList.value.let { homeUnitList ->
-            Tasks.whenAll(homeUnitList.map { homeUnit ->
-                homeUnit.homeUnit.run {
-                    room = ""
-                    homeRepository.saveHomeUnit(this)
-                }
+            Tasks.whenAll(homeUnitList.map { homeUnitModel ->
+                homeRepository.updateHomeUnitRoomName(
+                    homeUnitModel.homeUnit.type,
+                    homeUnitModel.homeUnit.name,
+                    ""
+                )
             }).continueWithTask {
                 room.value?.let { room ->
                     homeRepository.deleteRoom(room.name)
@@ -131,11 +132,12 @@ class RoomDetailViewModel(
         return roomName.value.let { newRoomName ->
             homeUnitsList.value.let { homeUnitList ->
                 Tasks.whenAll(if (newRoomName != room.value?.name) {
-                    homeUnitList.map { homeUnit ->
-                        homeUnit.homeUnit.run {
-                            room = newRoomName
-                            homeRepository.saveHomeUnit(this)
-                        }
+                    homeUnitList.map { homeUnitModel ->
+                        homeRepository.updateHomeUnitRoomName(
+                            homeUnitModel.homeUnit.type,
+                            homeUnitModel.homeUnit.name,
+                            newRoomName
+                        )
                     }
                 } else null).continueWithTask {
                     room.value?.let { room ->
