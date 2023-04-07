@@ -219,15 +219,24 @@ class Home(
                     // Set/Update HhUnit States according to HomeUnit state and vice versa
                     hwUnitsList[homeUnit.hwUnitName]?.let { hwUnit ->
                         Timber.d("homeUnitsDataProcessor NODE_ACTION_ADDED hwUnit: ${hwUnit.hwUnit.name} hwUnit value:${hwUnit.hwUnitValue.unitValue}")
-                        if (homeUnit.value != hwUnit.hwUnitValue.unitValue) {
-                            if (hwUnit is Actuator) {
+                        // set previous apply function to new homeUnit
+                        existingUnit?.unitsTasks?.forEach { (key, value) ->
+                            if (homeUnit.unitsTasks.contains(key)) {
+                                homeUnit.unitsTasks[key]?.taskJob = value.taskJob
+                            } else {
+                                value.taskJob?.cancel()
+                            }
+                        }
+                        // set previous unitJobs to new homeUnit
+                        homeUnit.unitJobs.putAll(existingUnit?.unitJobs?: emptyMap())
+
+                        if (homeUnit.value != existingUnit?.value && homeUnit.value != hwUnit.hwUnitValue.unitValue) {
+                            if (hwUnit is Actuator && homeUnit.value != null) {
                                 Timber.d(
                                     "homeUnitsDataProcessor NODE_ACTION_ADDED baseUnit ${homeUnit.name} setValue value: ${homeUnit.value}"
                                 )
                                 homeUnit.value?.let { value ->
                                     hwUnit.setValueWithException(value)
-                                    // TODO should we trigger this HomeUnit update loop?
-                                    //homeUnit.lastUpdateTime = hwUnit.hwUnitValue.valueUpdateTime
                                     homeInformationRepository.updateHomeUnitValue(
                                         homeUnit.type,
                                         homeUnit.name,
@@ -236,7 +245,7 @@ class Home(
                                         homeUnit.lastTriggerSource
                                     )
                                 }
-                            } else if (hwUnit is Sensor) {
+                            } else if (hwUnit is Sensor && hwUnit.hwUnitValue.unitValue != null) {
                                 homeInformationRepository.saveHomeUnit(
                                     homeUnit.updateHomeUnitValuesAndTimes(
                                         hwUnit.hwUnit,
@@ -410,7 +419,6 @@ class Home(
     }
 
     override fun onHwUnitChanged(hwUnit: HwUnit, result: Result<HwUnitValue<Any?>>) {
-        // TODO check which Thread this is maybe swith to background
         Timber.d(
             "onHwUnitChanged unit: $hwUnit; result: $result"
         )
