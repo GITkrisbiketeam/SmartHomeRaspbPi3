@@ -322,12 +322,13 @@ sealed interface HomeUnit<T : Any>  {
         val newActionVal: Boolean = (task.inverse ?: false) xor actionVal
         task.homeUnitsList.forEach {
             booleanApplyAction(BooleanApplyActionData(
-                newActionVal,
-                it.type.toHomeUnitType(),
-                it.name,
-                task.name,
-                name,
-                task.periodicallyOnlyHw ?: false)
+                newActionVal = newActionVal,
+                taskHomeUnitType = it.type.toHomeUnitType(),
+                taskHomeUnitName = it.name,
+                taskName = task.name,
+                sourceHomeUnitName = name,
+                periodicallyOnlyHw = task.periodicallyOnlyHw ?: false
+            )
             )
         }
     }

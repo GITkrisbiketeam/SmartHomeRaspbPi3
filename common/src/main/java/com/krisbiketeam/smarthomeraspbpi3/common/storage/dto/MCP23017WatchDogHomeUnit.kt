@@ -135,7 +135,14 @@ data class MCP23017WatchDogHomeUnit<T : Any>(
             unitJobs[WATCH_DOG_DELAY_TASK_KEY] = launch(Dispatchers.IO) {
                 delay(watchDogDelay)
                 if (unitValue is Boolean) {
-                    booleanApplyAction(BooleanApplyActionData(!unitValue, type, name, name, name, false))
+                    booleanApplyAction(BooleanApplyActionData(
+                        newActionVal = !unitValue,
+                        taskHomeUnitType = type,
+                        taskHomeUnitName = name,
+                        taskName = name,
+                        sourceHomeUnitName = name,
+                        periodicallyOnlyHw = false
+                    ))
                 }
             }
         }

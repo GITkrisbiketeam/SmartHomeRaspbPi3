@@ -94,12 +94,12 @@ data class WaterCirculationHomeUnit<T : Any>(
                                 // turn Off circulation
                                 booleanApplyAction(
                                     BooleanApplyActionData(
-                                        false,
-                                        type,
-                                        name,
-                                        name,
-                                        name,
-                                        false
+                                        newActionVal = false,
+                                        taskHomeUnitType = type,
+                                        taskHomeUnitName = name,
+                                        taskName = name,
+                                        sourceHomeUnitName = name,
+                                        periodicallyOnlyHw = false
                                     )
                                 )
                             }
@@ -121,12 +121,12 @@ data class WaterCirculationHomeUnit<T : Any>(
                     ) {
                         booleanApplyAction(
                             BooleanApplyActionData(
-                                true,
-                                type,
-                                name,
-                                name,
-                                name,
-                                false
+                                newActionVal = true,
+                                taskHomeUnitType = type,
+                                taskHomeUnitName = name,
+                                taskName = name,
+                                sourceHomeUnitName = name,
+                                periodicallyOnlyHw = false
                             )
                         )
                     }

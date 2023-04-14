@@ -213,6 +213,10 @@ data class GenericHomeUnit<T : Any>(
                 }
             }
         }
-        return this
+        return copy(
+            value = unitValue as T?,
+            lastUpdateTime = updateTime,
+            lastTriggerSource = lastTriggerSource
+        )
     }
 }

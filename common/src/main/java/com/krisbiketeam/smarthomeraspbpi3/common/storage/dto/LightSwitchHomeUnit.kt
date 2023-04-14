@@ -112,9 +112,16 @@ data class LightSwitchHomeUnit<T : Any>(
         booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> Unit
     ): HomeUnit<T> {
         // We set Switch and normal value as updateHomeUnitValuesAndTimes is only called by HwUnit
-        return copy(switchValue= unitValue as T?, switchLastUpdateTime = updateTime).also {
+        return copy(switchValue = unitValue as T?, switchLastUpdateTime = updateTime).also {
             if (unitValue is Boolean) {
-                booleanApplyAction(BooleanApplyActionData(unitValue, type, name, name, name, false))
+                booleanApplyAction(BooleanApplyActionData(
+                    newActionVal = unitValue,
+                    taskHomeUnitType = type,
+                    taskHomeUnitName = name,
+                    taskName = name,
+                    sourceHomeUnitName = name,
+                    periodicallyOnlyHw = false
+                ))
             }
         }
     }
