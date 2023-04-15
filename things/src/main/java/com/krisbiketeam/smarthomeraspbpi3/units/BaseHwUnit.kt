@@ -5,7 +5,7 @@ import java.util.*
 
 data class HwUnitValue<T>(val unitValue: T?, val valueUpdateTime: Long){
     override fun toString(): String {
-        return "[unitValue:$unitValue, valueUpdateTime:${Date(valueUpdateTime)}]"
+        return "[unitValue:$unitValue, valueUpdateTime$valueUpdateTime(${Date(valueUpdateTime)})]"
     }
 }
 

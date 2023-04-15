@@ -78,7 +78,7 @@ class MyChildEventListener(
             } catch (e: DatabaseException) {
                 Timber.e(
                     e,
-                    "getHomeUnitsFlow onChildChanged (key=$key)(storageUnit=$storageUnitType) could not get HomeUnit"
+                    "getHomeUnitsFlow onChildChanged (key=$key)(storageUnit=$storageUnitType) could not get HomeUnit; dataSnapshot:$dataSnapshot"
                 )
                 null
             }

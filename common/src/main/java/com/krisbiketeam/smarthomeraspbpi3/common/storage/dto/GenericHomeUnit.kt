@@ -169,7 +169,11 @@ data class GenericHomeUnit<T : Any>(
                         updateValueMinMax(unitValue.co2Equivalent, updateTime, lastTriggerSource)
                     }
                     HomeUnitType.HOME_BREATH_VOC -> {
-                        updateValueMinMax(unitValue.breathVocEquivalent, updateTime, lastTriggerSource)
+                        updateValueMinMax(
+                            unitValue.breathVocEquivalent,
+                            updateTime,
+                            lastTriggerSource
+                        )
                     }
                     else -> {
                         // do nothing, no supported sensor
@@ -191,23 +195,28 @@ data class GenericHomeUnit<T : Any>(
     ): HomeUnit<T> {
         when (unitValue) {
             is Float -> {
-                if (unitValue <= ((min.takeIf { it is Number? } as Number?)?.toFloat()
+                return if (unitValue <= ((min.takeIf { it is Number? } as Number?)?.toFloat()
                         ?: Float.MAX_VALUE)) {
-                    return copy(
+                    copy(
                         value = unitValue as T?,
                         lastUpdateTime = updateTime,
                         min = unitValue,
                         minLastUpdateTime = updateTime,
                         lastTriggerSource = lastTriggerSource
                     )
-                }
-                if (unitValue >= ((max.takeIf { it is Number? } as Number?)?.toFloat()
+                } else if (unitValue >= ((max.takeIf { it is Number? } as Number?)?.toFloat()
                         ?: Float.MIN_VALUE)) {
-                    return copy(
+                    copy(
                         value = unitValue as T?,
                         lastUpdateTime = updateTime,
                         max = unitValue,
                         maxLastUpdateTime = updateTime,
+                        lastTriggerSource = lastTriggerSource
+                    )
+                } else {
+                    copy(
+                        value = unitValue as T?,
+                        lastUpdateTime = updateTime,
                         lastTriggerSource = lastTriggerSource
                     )
                 }

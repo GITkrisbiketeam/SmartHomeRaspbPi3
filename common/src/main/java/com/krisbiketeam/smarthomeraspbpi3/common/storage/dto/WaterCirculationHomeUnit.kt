@@ -2,6 +2,7 @@ package com.krisbiketeam.smarthomeraspbpi3.common.storage.dto
 
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
 import kotlinx.coroutines.Job
+import timber.log.Timber
 
 data class WaterCirculationHomeUnit<T : Any>(
     override val name: String = "", // Name should be unique for all units
@@ -76,15 +77,16 @@ data class WaterCirculationHomeUnit<T : Any>(
         lastTriggerSource: String,
         booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> Unit
     ): HomeUnit<T> {
+        Timber.d("updateHomeUnitValuesAndTimes hwUnit:$hwUnit unitValue:$unitValue")
         // We set Switch and normal value as updateHomeUnitValuesAndTimes is only called by HwUnit
         return when (hwUnit.name) {
             temperatureHwUnitName -> {
                 copy(
                     temperatureValue = unitValue as TemperatureType?,
                     temperatureLastUpdateTime = updateTime
-                ).also {
+                ).also { homeUnitCopy ->
                     temperatureThreshold?.let { threshold ->
-                        temperatureValue?.let { temperature ->
+                        homeUnitCopy.temperatureValue?.let { temperature ->
                             val timeoutCondition: Boolean = actionTimeout?.let { timeout ->
                                 motionLastUpdateTime?.let { motionTime ->
                                     motionTime + timeout < updateTime
@@ -92,6 +94,7 @@ data class WaterCirculationHomeUnit<T : Any>(
                             } ?: false
                             if (temperature > threshold || timeoutCondition) {
                                 // turn Off circulation
+                                Timber.d("updateHomeUnitValuesAndTimes hwUnit:$hwUnit apply temperature")
                                 booleanApplyAction(
                                     BooleanApplyActionData(
                                         newActionVal = false,
@@ -106,19 +109,18 @@ data class WaterCirculationHomeUnit<T : Any>(
                         }
                     }
                 }
-
-
             }
             motionHwUnitName -> {
                 copy(
                     motionValue = unitValue as MotionType?,
                     motionLastUpdateTime = updateTime
-                ).also {
+                ).also { homeUnitCopy ->
                     // TODO: Should we also turn off circulation while no more motion???
-                    if (motionValue == true &&
+                    if (homeUnitCopy.motionValue == true &&
                         (temperatureValue ?: TemperatureType.MIN_VALUE) <
                         (temperatureThreshold ?: TemperatureType.MAX_VALUE)
                     ) {
+                        Timber.d("updateHomeUnitValuesAndTimes hwUnit:$hwUnit apply motion")
                         booleanApplyAction(
                             BooleanApplyActionData(
                                 newActionVal = true,
