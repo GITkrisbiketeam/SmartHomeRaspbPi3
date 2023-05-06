@@ -114,6 +114,7 @@ class RoomDetailHomeUnitListAdapter(private val homeInformationRepository: Fireb
                     null
                 }
                 secondValueVisible = secondValue != null
+
                 homeUnitItemSwitch.setOnCheckedChangeListener { _, isChecked ->
                     Timber.d("OnCheckedChangeListener isChecked: $isChecked homeUnitItem: $homeUnitItem")
                     if (homeUnitItem.value != isChecked) {

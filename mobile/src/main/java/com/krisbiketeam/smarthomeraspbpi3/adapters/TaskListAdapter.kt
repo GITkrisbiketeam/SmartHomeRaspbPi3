@@ -93,6 +93,14 @@ class TaskListAdapter(private val homeInformationRepository: FirebaseHomeInforma
                             homeUnit.value.toString()
                         }
                     } ?: "N/A"
+                    secondValue = item.homeUnit?.let { homeUnit ->
+                        if (homeUnit.type == HomeUnitType.HOME_WATER_CIRCULATION && homeUnit is WaterCirculationHomeUnit && homeUnit.temperatureValue is Float) {
+                            String.format("%.2f", homeUnit.temperatureValue)
+                        } else {
+                            null
+                        }
+                    }
+                    secondValueVisible = secondValue != null
 
                     taskItemValueSwitch.setOnCheckedChangeListener { _, isChecked ->
                         Timber.d("OnCheckedChangeListener isChecked: $isChecked item: $item")

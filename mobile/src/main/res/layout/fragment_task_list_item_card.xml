@@ -6,6 +6,7 @@
     <data>
 
         <import type="android.view.View" />
+
         <import type="com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType" />
 
         <variable
@@ -14,7 +15,15 @@
 
         <variable
             name="value"
-            type="String"/>
+            type="String" />
+
+        <variable
+            name="secondValue"
+            type="String" />
+
+        <variable
+            name="secondValueVisible"
+            type="Boolean" />
 
         <variable
             name="taskModel"
@@ -26,8 +35,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/margin_small"
-        android:backgroundTint='@{taskModel.error ? @color/colorError : @color/colorOnError}'
-        >
+        android:backgroundTint='@{taskModel.error ? @color/colorError : @color/colorOnError}'>
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -51,10 +59,10 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_margin="@dimen/margin_normal"
+                android:gravity="center_horizontal"
+                android:maxLines="2"
                 android:text="@{taskModel.homeUnit != null ? taskModel.homeUnit.name : null}"
                 android:textAppearance="?attr/textAppearanceHeadline5"
-                android:maxLines="2"
-                android:gravity="center_horizontal"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
@@ -67,12 +75,13 @@
                 android:layout_marginStart="@dimen/margin_normal"
                 android:layout_marginTop="@dimen/margin_normal"
                 android:layout_marginBottom="@dimen/margin_normal"
+                android:gravity="center_horizontal"
                 android:text='@{value}'
                 android:textAppearance="?attr/textAppearanceHeadline5"
-                android:gravity="center_horizontal"
                 app:layout_constraintEnd_toStartOf="@+id/task_item_value_switch"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/task_item_title"
+                app:layout_goneMarginBottom="0dp"
                 app:layout_goneMarginEnd="@dimen/margin_normal"
                 tools:text="false" />
 
@@ -82,12 +91,29 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/margin_small"
                 android:layout_marginEnd="@dimen/activity_horizontal_margin"
-                app:setChecked="@{taskModel.homeUnit.value}"
                 android:visibility="@{HomeUnitType.HOME_LIGHT_SWITCHES.equals(taskModel.homeUnit.type) || HomeUnitType.HOME_WATER_CIRCULATION.equals(taskModel.homeUnit.type) || HomeUnitType.HOME_MCP23017_WATCH_DOG.equals(taskModel.homeUnit.type) || HomeUnitType.HOME_ACTUATORS.equals(taskModel.homeUnit.type) || HomeUnitType.HOME_BLINDS.equals(taskModel.homeUnit.type) ? View.VISIBLE : View.GONE}"
                 app:layout_constraintBottom_toBottomOf="@id/task_item_item1"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@+id/task_item_item1"
-                app:layout_constraintTop_toTopOf="@id/task_item_item1"  />
+                app:layout_constraintTop_toTopOf="@id/task_item_item1"
+                app:setChecked="@{taskModel.homeUnit.value}" />
+
+            <TextView
+                android:id="@+id/task_item_item2"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/margin_normal"
+                android:layout_marginTop="@dimen/margin_normal"
+                android:layout_marginBottom="@dimen/margin_normal"
+                android:gravity="center_horizontal"
+                android:text='@{secondValue}'
+                android:textAppearance="?attr/textAppearanceHeadline5"
+                android:visibility='@{secondValueVisible ? View.VISIBLE : View.GONE}'
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/task_item_item1"
+                tools:text="false" />
 
 
         </androidx.constraintlayout.widget.ConstraintLayout>
