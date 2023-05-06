@@ -269,6 +269,8 @@ abstract class HomeUnitDetailViewModelBase<T : HomeUnit<Any>>(
             homeUnit.value?.let { unit ->
                 return if (name.value.trim().isEmpty()) {
                     Pair(R.string.add_edit_home_unit_empty_name, null)
+                } else if (name.value.trim().contains(Regex("[.#$\\[\\]]"))) {
+                    Pair(R.string.add_edit_home_unit_name_illegal_character, null)
                 } else if (name.value.trim() != unit.name && homeUnitOfSelectedTypeList.find { it.name == name.value.trim() } != null) {
                     return Pair(R.string.add_edit_home_unit_name_already_used, null)
                 } else if (name.value.trim() != unit.name || type.value != unit.type) {
