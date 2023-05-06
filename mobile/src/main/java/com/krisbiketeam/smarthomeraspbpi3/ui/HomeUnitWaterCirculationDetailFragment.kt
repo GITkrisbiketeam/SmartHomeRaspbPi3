@@ -66,6 +66,12 @@ class HomeUnitWaterCirculationDetailFragment :
             homeUnitValueSwitch.setOnCheckedChangeListener { _, isChecked ->
                 homeUnitDetailViewModel.setValueFromSwitch(isChecked)
             }
+            homeUnitMinClearButton.setOnClickListener {
+                homeUnitDetailViewModel.clearMinValue()
+            }
+            homeUnitMaxClearButton.setOnClickListener {
+                homeUnitDetailViewModel.clearMaxValue()
+            }
         }
         additionalHwUnitBindings?.run {
             motionHwUnitNameSpinner.setOnLongClickListener {

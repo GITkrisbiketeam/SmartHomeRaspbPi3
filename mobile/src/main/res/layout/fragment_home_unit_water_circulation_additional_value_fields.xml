@@ -147,6 +147,122 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/home_unit_temperature_value_title" />
 
+        <androidx.constraintlayout.widget.Group
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:visibility='@{safeUnbox(viewModel.isEditMode || viewModel.temperatureMinValue == "null") ? View.GONE : View.VISIBLE}'
+            app:constraint_referenced_ids="home_unit_min_value_title,home_unit_min_value,home_unit_min_value_last_update_time,home_unit_min_clear_button" />
+
+        <TextView
+            android:id="@+id/home_unit_min_value_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/activity_horizontal_margin"
+            android:layout_marginTop="@dimen/margin_small"
+            android:paddingStart="@dimen/margin_small"
+            android:text="@string/add_edit_home_unit_text_min_value"
+            android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+            app:layout_constraintEnd_toStartOf="@id/home_unit_min_value"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/home_unit_temperature_value_last_update_time"
+            tools:ignore="RtlSymmetry" />
+
+        <TextView
+            android:id="@+id/home_unit_min_value"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/margin_small"
+            android:text="@{viewModel.temperatureMinValue}"
+            android:textAppearance="@style/TextAppearance.AppCompat.Body2"
+            app:layout_constraintBottom_toBottomOf="@id/home_unit_min_value_title"
+            app:layout_constraintEnd_toStartOf="@+id/home_unit_min_clear_button"
+            app:layout_constraintStart_toEndOf="@+id/home_unit_min_value_title"
+            app:layout_constraintTop_toTopOf="@id/home_unit_min_value_title" />
+
+        <TextView
+            android:id="@+id/home_unit_min_value_last_update_time"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/activity_horizontal_margin"
+            android:paddingStart="@dimen/margin_normal"
+            android:text="@{viewModel.temperatureMinLastUpdateTime}"
+            android:textAppearance="@style/TextAppearance.AppCompat.Caption"
+            app:layout_constraintEnd_toStartOf="@+id/home_unit_min_clear_button"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/home_unit_min_value_title"
+            tools:ignore="RtlSymmetry" />
+
+        <ImageButton
+            android:id="@+id/home_unit_min_clear_button"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="@dimen/margin_normal"
+            android:padding="@dimen/margin_normal"
+            android:src="@drawable/ic_baseline_clear_24"
+            app:layout_constraintBottom_toBottomOf="@id/home_unit_min_value_last_update_time"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/home_unit_min_value_title"
+            tools:ignore="ContentDescription" />
+
+        <androidx.constraintlayout.widget.Group
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:visibility='@{safeUnbox(viewModel.isEditMode || viewModel.temperatureMaxValue == "null") ? View.GONE : View.VISIBLE}'
+            app:constraint_referenced_ids="home_unit_max_value_title,home_unit_max_value,home_unit_max_value_last_update_time,home_unit_max_clear_button" />
+
+        <TextView
+            android:id="@+id/home_unit_max_value_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/margin_normal"
+            android:layout_marginTop="@dimen/margin_small"
+            android:paddingStart="@dimen/margin_small"
+            android:text="@string/add_edit_home_unit_text_max_value"
+            android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+            app:layout_constraintEnd_toStartOf="@id/home_unit_max_value"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/home_unit_min_value_last_update_time"
+            tools:ignore="RtlSymmetry" />
+
+        <TextView
+            android:id="@+id/home_unit_max_value"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/margin_small"
+            android:text="@{viewModel.temperatureMaxValue}"
+            android:textAppearance="@style/TextAppearance.AppCompat.Body2"
+            app:layout_constraintBottom_toBottomOf="@id/home_unit_max_value_title"
+            app:layout_constraintEnd_toStartOf="@+id/home_unit_max_clear_button"
+            app:layout_constraintStart_toEndOf="@+id/home_unit_max_value_title"
+            app:layout_constraintTop_toTopOf="@id/home_unit_max_value_title" />
+
+        <TextView
+            android:id="@+id/home_unit_max_value_last_update_time"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/activity_horizontal_margin"
+            android:paddingStart="@dimen/margin_normal"
+            android:text="@{viewModel.temperatureMaxLastUpdateTime}"
+            android:textAppearance="@style/TextAppearance.AppCompat.Caption"
+            app:layout_constraintEnd_toStartOf="@+id/home_unit_max_clear_button"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/home_unit_max_value_title"
+            tools:ignore="RtlSymmetry" />
+
+        <ImageButton
+            android:id="@+id/home_unit_max_clear_button"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="@dimen/margin_normal"
+            android:padding="@dimen/margin_normal"
+            android:src="@drawable/ic_baseline_clear_24"
+            app:layout_constraintBottom_toBottomOf="@id/home_unit_max_value_last_update_time"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/home_unit_max_value_title"
+            tools:ignore="ContentDescription" />
+
         <View
             android:id="@+id/home_unit_values_separator"
             android:layout_width="match_parent"
@@ -154,7 +270,7 @@
             android:layout_marginHorizontal="@dimen/margin_small"
             android:layout_marginTop="@dimen/margin_normal"
             android:background="@color/colorPrimaryDark"
-            app:layout_constraintTop_toBottomOf="@+id/home_unit_temperature_value_last_update_time" />
+            app:layout_constraintTop_toBottomOf="@+id/home_unit_max_value_last_update_time" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

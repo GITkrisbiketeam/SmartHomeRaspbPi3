@@ -80,7 +80,7 @@ class RoomDetailHomeUnitListAdapter(private val homeInformationRepository: Fireb
                 lastUpdateTime = getLastUpdateTime(root.context, homeUnitItem.lastUpdateTime)
                 // TODO Add handling of other type of HomeUnits (LightSwitchhomeUnit etc...
                 //  add some other types of ViewHolder for them)
-                secondLastUpdateTime =
+                additionalLastUpdateTime =
                     if (homeUnitItem.type == HomeUnitType.HOME_LIGHT_SWITCHES && homeUnitItem is LightSwitchHomeUnit) {
                         getLastUpdateTime(root.context, homeUnitItem.switchLastUpdateTime)
                     } else if (homeUnitItem.type == HomeUnitType.HOME_WATER_CIRCULATION && homeUnitItem is WaterCirculationHomeUnit) {
@@ -101,7 +101,19 @@ class RoomDetailHomeUnitListAdapter(private val homeInformationRepository: Fireb
                 } else{
                     homeUnitItem.value.toString()
                 }
-
+                secondValue =
+                    if (homeUnitItem.type == HomeUnitType.HOME_WATER_CIRCULATION && homeUnitItem is WaterCirculationHomeUnit && homeUnitItem.temperatureValue is Float) {
+                        String.format("%.2f", homeUnitItem.temperatureValue)
+                    } else {
+                        null
+                    }
+                secondValueLastUpdateTime =
+                if (homeUnitItem.type == HomeUnitType.HOME_WATER_CIRCULATION && homeUnitItem is WaterCirculationHomeUnit) {
+                    getLastUpdateTime(root.context, homeUnitItem.temperatureLastUpdateTime)
+                } else {
+                    null
+                }
+                secondValueVisible = secondValue != null
                 homeUnitItemSwitch.setOnCheckedChangeListener { _, isChecked ->
                     Timber.d("OnCheckedChangeListener isChecked: $isChecked homeUnitItem: $homeUnitItem")
                     if (homeUnitItem.value != isChecked) {

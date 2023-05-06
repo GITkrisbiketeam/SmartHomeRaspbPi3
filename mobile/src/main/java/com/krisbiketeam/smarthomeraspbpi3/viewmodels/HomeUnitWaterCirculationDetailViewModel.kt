@@ -82,6 +82,12 @@ class HomeUnitWaterCirculationDetailViewModel(
     val temperatureValue: MutableStateFlow<String> = MutableStateFlow("")
     val temperatureLastUpdateTime: MutableStateFlow<String> = MutableStateFlow("")
 
+    val temperatureMinValue: MutableStateFlow<String> = MutableStateFlow("")
+    val temperatureMinLastUpdateTime: MutableStateFlow<String> = MutableStateFlow("")
+
+    val temperatureMaxValue: MutableStateFlow<String> = MutableStateFlow("")
+    val temperatureMaxLastUpdateTime: MutableStateFlow<String> = MutableStateFlow("")
+
     val temperatureThreshold: MutableStateFlow<String> = MutableStateFlow("")
 
     val actionTimeout: MutableStateFlow<Long?> = MutableStateFlow(null)
@@ -98,8 +104,22 @@ class HomeUnitWaterCirculationDetailViewModel(
         temperatureValue.value = homeUnit.temperatureValue.toString()
         temperatureLastUpdateTime.value =
             getLastUpdateTime(getApplication(), homeUnit.temperatureLastUpdateTime)
+        temperatureMinValue.value = homeUnit.temperatureMin.toString()
+        temperatureMinLastUpdateTime.value = getLastUpdateTime(getApplication(), homeUnit.temperatureMinLastUpdateTime)
+        temperatureMaxValue.value = homeUnit.temperatureMax.toString()
+        temperatureMaxLastUpdateTime.value = getLastUpdateTime(getApplication(), homeUnit.temperatureMaxLastUpdateTime)
         temperatureThreshold.value = homeUnit.temperatureThreshold.toString()
         actionTimeout.value = homeUnit.actionTimeout
+    }
+
+    fun clearMinValue(): Task<Void>? {
+        Timber.d("clearMinValue homeUnit: ${homeUnit?.value}")
+        return homeUnit?.value?.let(homeRepository::clearMinHomeUnitValue)
+    }
+
+    fun clearMaxValue(): Task<Void>? {
+        Timber.d("clearMaxValue homeUnit: ${homeUnit?.value}")
+        return homeUnit?.value?.let(homeRepository::clearMaxHomeUnitValue)
     }
 
     fun setValueFromSwitch(isChecked: Boolean): Task<Void>? {
@@ -157,11 +177,15 @@ class HomeUnitWaterCirculationDetailViewModel(
             lastUpdateTime = homeUnit?.value?.lastUpdateTime,
             temperatureHwUnitName = temperatureHwUnitName.value,
             temperatureValue = temperatureValue.value.toFloatOrNull(),
-            //temperatureLastUpdateTime = temperatureLastUpdateTime.value,
+            temperatureLastUpdateTime = temperatureLastUpdateTime.value.toLongOrNull(),
+            temperatureMin = temperatureMinValue.value.toFloatOrNull(),
+            temperatureMinLastUpdateTime = temperatureMinLastUpdateTime.value.toLongOrNull(),
+            temperatureMax = temperatureMaxValue.value.toFloatOrNull(),
+            temperatureMaxLastUpdateTime = temperatureMaxLastUpdateTime.value.toLongOrNull(),
             temperatureThreshold = temperatureThreshold.value.toFloatOrNull(),
             motionHwUnitName = motionHwUnitName.value,
             motionValue = motionValue.value.toBooleanStrictOrNull(),
-            //motionLastUpdateTime = motionLastUpdateTime.value,
+            motionLastUpdateTime = motionLastUpdateTime.value.toLongOrNull(),
             actionTimeout = actionTimeout.value,
             // TODO: add mising logic
             enabled = true,

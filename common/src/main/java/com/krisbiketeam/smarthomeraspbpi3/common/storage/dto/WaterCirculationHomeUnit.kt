@@ -14,6 +14,10 @@ data class WaterCirculationHomeUnit<T : Any>(
     val temperatureHwUnitName: String? = null,
     val temperatureValue: TemperatureType? = null,
     val temperatureLastUpdateTime: Long? = null,
+    val temperatureMin: TemperatureType? = null,
+    val temperatureMinLastUpdateTime: Long? = null,
+    val temperatureMax: TemperatureType? = null,
+    val temperatureMaxLastUpdateTime: Long? = null,
     val temperatureThreshold: TemperatureType? = null,
     val motionHwUnitName: String? = null,
     val motionValue: MotionType? = null,
@@ -39,6 +43,10 @@ data class WaterCirculationHomeUnit<T : Any>(
             temperatureHwUnitName,
             temperatureValue,
             temperatureLastUpdateTime,
+            temperatureMin,
+            temperatureMinLastUpdateTime,
+            temperatureMax,
+            temperatureMaxLastUpdateTime,
             temperatureThreshold,
             motionHwUnitName,
             motionValue,
@@ -81,9 +89,10 @@ data class WaterCirculationHomeUnit<T : Any>(
         // We set Switch and normal value as updateHomeUnitValuesAndTimes is only called by HwUnit
         return when (hwUnit.name) {
             temperatureHwUnitName -> {
-                copy(
+                updateTemperatureValueMinMax(
                     temperatureValue = unitValue as TemperatureType?,
-                    temperatureLastUpdateTime = updateTime
+                    temperatureLastUpdateTime = updateTime,
+                    lastTriggerSource = lastTriggerSource
                 ).also { homeUnitCopy ->
                     temperatureThreshold?.let { threshold ->
                         homeUnitCopy.temperatureValue?.let { temperature ->
@@ -137,5 +146,44 @@ data class WaterCirculationHomeUnit<T : Any>(
             }
             else -> this
         }
+    }
+
+    private fun updateTemperatureValueMinMax(
+        temperatureValue: Any?,
+        temperatureLastUpdateTime: Long,
+        lastTriggerSource: String,
+    ): WaterCirculationHomeUnit<T> {
+        when (temperatureValue) {
+            is Float -> {
+                return if (temperatureValue <= (temperatureMin ?: Float.MAX_VALUE)) {
+                    copy(
+                        temperatureValue = temperatureValue as TemperatureType?,
+                        temperatureLastUpdateTime = temperatureLastUpdateTime,
+                        temperatureMin = temperatureValue,
+                        temperatureMinLastUpdateTime = temperatureLastUpdateTime,
+                        lastTriggerSource = lastTriggerSource
+                    )
+                } else if (temperatureValue >= (temperatureMax ?: Float.MIN_VALUE)) {
+                    copy(
+                        temperatureValue = temperatureValue as TemperatureType?,
+                        temperatureLastUpdateTime = temperatureLastUpdateTime,
+                        temperatureMax = temperatureValue,
+                        temperatureMaxLastUpdateTime = temperatureLastUpdateTime,
+                        lastTriggerSource = lastTriggerSource
+                    )
+                } else {
+                    copy(
+                        temperatureValue = temperatureValue as TemperatureType?,
+                        temperatureLastUpdateTime = temperatureLastUpdateTime,
+                        lastTriggerSource = lastTriggerSource
+                    )
+                }
+            }
+        }
+        return copy(
+            temperatureValue = temperatureValue as TemperatureType?,
+            temperatureLastUpdateTime = temperatureLastUpdateTime,
+            lastTriggerSource = lastTriggerSource
+        )
     }
 }

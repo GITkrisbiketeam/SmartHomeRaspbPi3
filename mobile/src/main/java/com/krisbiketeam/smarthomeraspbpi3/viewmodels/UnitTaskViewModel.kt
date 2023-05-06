@@ -33,7 +33,13 @@ class UnitTaskViewModel(
     val isBooleanApplySensor =
         MutableStateFlow(!(unitType == HomeUnitType.HOME_TEMPERATURES
                 || unitType == HomeUnitType.HOME_PRESSURES
-                || unitType == HomeUnitType.HOME_HUMIDITY))
+                || unitType == HomeUnitType.HOME_HUMIDITY
+                || unitType == HomeUnitType.HOME_IAQ
+                || unitType == HomeUnitType.HOME_STATIC_IAQ
+                || unitType == HomeUnitType.HOME_CO2
+                || unitType == HomeUnitType.HOME_BREATH_VOC
+                || unitType == HomeUnitType.HOME_GAS
+                || unitType == HomeUnitType.HOME_GAS_PERCENT))
 
     // Helper LiveData for UnitTaskList
     private val unitTaskList: StateFlow<Map<String, UnitTask>> =
