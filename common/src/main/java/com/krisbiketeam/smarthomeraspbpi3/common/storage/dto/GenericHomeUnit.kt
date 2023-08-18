@@ -114,7 +114,7 @@ data class GenericHomeUnit<T : Any>(
         // We need to handle differently values of non Basic Types
         return when (unitValue) {
             is PressureAndTemperature -> {
-                Timber.d("Received PressureAndTemperature $unitValue")
+                Timber.d("Received PressureAndTemperature $unitValue for ${this.type}.${this.name}")
                 when (type) {
                     HomeUnitType.HOME_TEMPERATURES -> {
                         updateValueMinMax(unitValue.temperature, updateTime, lastTriggerSource)
@@ -128,7 +128,7 @@ data class GenericHomeUnit<T : Any>(
                 }
             }
             is TemperatureAndHumidity -> {
-                Timber.d("Received TemperatureAndHumidity $unitValue")
+                Timber.d("Received TemperatureAndHumidity $unitValue for ${this.type}.${this.name}")
                 when (type) {
                     HomeUnitType.HOME_TEMPERATURES -> {
                         updateValueMinMax(unitValue.temperature, updateTime, lastTriggerSource)
@@ -142,7 +142,7 @@ data class GenericHomeUnit<T : Any>(
                 }
             }
             is Bme680Data -> {
-                Timber.d("Received TemperatureAndHumidity $unitValue")
+                Timber.d("Received Bme680Data $unitValue for ${this.type}.${this.name}")
                 when (type) {
                     HomeUnitType.HOME_TEMPERATURES -> {
                         updateValueMinMax(unitValue.temperature, updateTime, lastTriggerSource)

@@ -211,6 +211,9 @@ class Home(
                                         )
                                     }
                                 }
+                                Timber.d(
+                                    "homeUnitsDataProcessor NODE_ACTION_CHANGED applyFunction for: $homeUnit newValue:$newValue"
+                                )
                                 homeUnit.applyFunction(newValue, booleanApplyAction)
 
                                 if (alarmEnabled && homeUnit.shouldFirebaseNotify(newValue)) {
@@ -667,9 +670,9 @@ class Home(
                                 homeUnitsList[applyData.taskHomeUnitType to applyData.taskHomeUnitName] =
                                     updatedTaskHomeUnit
                             }
-                        }
 
-                        Timber.d("booleanApplyAction after set HW Value taskHomeUnit: $taskHomeUnit")
+                            Timber.d("booleanApplyAction after set HW Value updatedTaskHomeUnit: $updatedTaskHomeUnit")
+                        }
                     }
                 }
             }
