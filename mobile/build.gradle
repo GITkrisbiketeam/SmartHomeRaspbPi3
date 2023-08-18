@@ -58,6 +58,11 @@ android {
     }
 
     useLibrary 'android.test.mock'
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_9
+        targetCompatibility JavaVersion.VERSION_1_9
+    }
+    namespace 'com.krisbiketeam.smarthomeraspbpi3'
 }
 
 dependencies {
