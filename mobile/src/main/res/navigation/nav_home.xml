@@ -20,8 +20,24 @@
             app:popExitAnim="@anim/slide_out_right" />
 
         <action
-            android:id="@+id/action_room_list_fragment_to_home_unit_detail_fragment"
-            app:destination="@id/home_unit_detail_fragment"
+            android:id="@+id/action_room_list_fragment_to_home_unit_generic_detail_fragment"
+            app:destination="@id/home_unit_generic_detail_fragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+
+        <action
+            android:id="@+id/action_room_list_fragment_to_home_unit_light_switch_detail_fragment"
+            app:destination="@id/home_unit_light_switch_detail_fragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+
+        <action
+            android:id="@+id/action_room_list_fragment_to_home_unit_water_circulation_detail_fragment"
+            app:destination="@id/home_unit_water_circulation_detail_fragment"
             app:enterAnim="@anim/slide_in_right"
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
@@ -43,8 +59,32 @@
         tools:layout="@layout/fragment_task_list">
 
         <action
-            android:id="@+id/action_task_list_fragment_to_home_unit_detail_fragment"
-            app:destination="@id/home_unit_detail_fragment"
+            android:id="@+id/action_task_list_fragment_to_home_unit_generic_detail_fragment"
+            app:destination="@id/home_unit_generic_detail_fragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+
+        <action
+            android:id="@+id/action_task_list_fragment_to_home_unit_light_switch_detail_fragment"
+            app:destination="@id/home_unit_light_switch_detail_fragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+
+        <action
+            android:id="@+id/action_task_list_fragment_to_home_unit_water_circulation_detail_fragment"
+            app:destination="@id/home_unit_water_circulation_detail_fragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+
+        <action
+            android:id="@+id/action_task_list_fragment_to_home_unit_type_chooser_dialog_fragment"
+            app:destination="@id/home_unit_type_chooser_dialog_fragment"
             app:enterAnim="@anim/slide_in_right"
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
@@ -55,7 +95,45 @@
         android:id="@+id/new_room_dialog_fragment"
         android:name="com.krisbiketeam.smarthomeraspbpi3.ui.NewRoomFragmentDialog"
         android:label="@string/new_room_dialog_title"
-        tools:layout="@layout/fragment_new_room_dialog_fragment">
+        tools:layout="@layout/fragment_new_room_dialog_fragment"></fragment>
+
+    <fragment
+        android:id="@+id/home_unit_type_chooser_dialog_fragment"
+        android:name="com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitTypeChooserDialogFragment"
+        android:label="@string/unit_task_text_home_unit_type_select_spinner_prompt"
+        tools:layout="@layout/fragment_home_unit_type_chooser_dialog_fragment">
+        <argument
+            android:name="roomName"
+            android:defaultValue="@null"
+            app:argType="string"
+            app:nullable="true" />
+        <action
+            android:id="@+id/action_home_unit_type_chooser_dialog_fragment_to_home_unit_generic_detail_fragment"
+            app:destination="@id/home_unit_generic_detail_fragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right"
+            app:popUpToInclusive="true" />
+
+        <action
+            android:id="@+id/action_home_unit_type_chooser_dialog_fragment_to_home_unit_light_switch_detail_fragment"
+            app:destination="@id/home_unit_light_switch_detail_fragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right"
+            app:popUpToInclusive="true" />
+
+        <action
+            android:id="@+id/action_home_unit_type_chooser_dialog_fragment_to_home_unit_water_circulation_detail_fragment"
+            app:destination="@id/home_unit_water_circulation_detail_fragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right"
+            app:popUpToInclusive="true" />
+
     </fragment>
 
     <fragment
@@ -67,8 +145,29 @@
             android:name="roomName"
             app:argType="string" />
         <action
-            android:id="@+id/action_room_detail_fragment_to_home_unit_detail_fragment"
-            app:destination="@id/home_unit_detail_fragment"
+            android:id="@+id/action_room_detail_fragment_to_home_unit_generic_detail_fragment"
+            app:destination="@id/home_unit_generic_detail_fragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+        <action
+            android:id="@+id/action_room_detail_fragment_to_home_unit_light_switch_detail_fragment"
+            app:destination="@id/home_unit_light_switch_detail_fragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+        <action
+            android:id="@+id/action_room_detail_fragment_to_home_unit_water_circulation_detail_fragment"
+            app:destination="@id/home_unit_water_circulation_detail_fragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+        <action
+            android:id="@+id/action_room_detail_fragment_to_home_unit_type_chooser_dialog_fragment"
+            app:destination="@id/home_unit_type_chooser_dialog_fragment"
             app:enterAnim="@anim/slide_in_right"
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
@@ -76,34 +175,101 @@
     </fragment>
 
     <fragment
-        android:id="@+id/home_unit_detail_fragment"
-        android:name="com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitDetailFragment"
+        android:id="@+id/home_unit_generic_detail_fragment"
+        android:name="com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitGenericDetailFragment"
         android:label="@string/home_unit_detail_title"
-        tools:layout="@layout/fragment_home_unit_detail">
+        tools:layout="@layout/fragment_home_unit_detail_base">
         <argument
             android:name="roomName"
-            app:argType="string" />
+            android:defaultValue="@null"
+            app:argType="string"
+            app:nullable="true" />
         <argument
             android:name="homeUnitName"
-            app:argType="string" />
+            android:defaultValue="@null"
+            app:argType="string"
+            app:nullable="true" />
         <argument
             android:name="homeUnitType"
-            app:argType="string" />
+            android:defaultValue="UNKNOWN"
+            app:argType="com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType" />
         <action
-            android:id="@+id/action_home_unit_detail_fragment_to_unitTaskFragment"
+            android:id="@+id/action_home_unit_generic_detail_fragment_to_unit_task_fragment"
             app:destination="@id/unit_task_fragment"
             app:enterAnim="@anim/slide_in_right"
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
             app:popExitAnim="@anim/slide_out_right" />
         <action
-            android:id="@+id/action_home_unit_detail_fragment_to_add_edit_hw_unit_fragment"
+            android:id="@+id/action_home_unit_generic_detail_fragment_to_add_edit_hw_unit_fragment"
             app:destination="@id/add_edit_hw_unit_fragment"
             app:enterAnim="@anim/slide_in_right"
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
             app:popExitAnim="@anim/slide_out_right" />
 
+    </fragment>
+
+    <fragment
+        android:id="@+id/home_unit_light_switch_detail_fragment"
+        android:name="com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitLightSwitchDetailFragment"
+        android:label="@string/home_unit_detail_title"
+        tools:layout="@layout/fragment_home_unit_detail_base">
+        <argument
+            android:name="roomName"
+            android:defaultValue="@null"
+            app:argType="string"
+            app:nullable="true" />
+        <argument
+            android:name="homeUnitName"
+            android:defaultValue="@null"
+            app:argType="string"
+            app:nullable="true" />
+        <action
+            android:id="@+id/action_home_unit_light_switch_detail_fragment_to_unit_task_fragment"
+            app:destination="@id/unit_task_fragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+        <action
+            android:id="@+id/action_home_unit_light_switch_detail_fragment_to_add_edit_hw_unit_fragment"
+            app:destination="@id/add_edit_hw_unit_fragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/home_unit_water_circulation_detail_fragment"
+        android:name="com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitWaterCirculationDetailFragment"
+        android:label="@string/home_unit_detail_title"
+        tools:layout="@layout/fragment_home_unit_detail_base">
+        <argument
+            android:name="roomName"
+            android:defaultValue="@null"
+            app:argType="string"
+            app:nullable="true" />
+        <argument
+            android:name="homeUnitName"
+            android:defaultValue="@null"
+            app:argType="string"
+            app:nullable="true" />
+        <action
+            android:id="@+id/action_home_unit_water_circulation_detail_fragment_to_unit_task_fragment"
+            app:destination="@id/unit_task_fragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+        <action
+            android:id="@+id/action_home_unit_water_circulation_detail_fragment_to_add_edit_hw_unit_fragment"
+            app:destination="@id/add_edit_hw_unit_fragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
     </fragment>
 
     <fragment
@@ -114,13 +280,15 @@
 
         <argument
             android:name="taskName"
-            app:argType="string" />
+            app:argType="string"
+            app:nullable="true" />
         <argument
             android:name="homeUnitName"
             app:argType="string" />
         <argument
             android:name="homeUnitType"
-            app:argType="string" />
+            android:defaultValue="UNKNOWN"
+            app:argType="com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType" />
     </fragment>
 
 
@@ -173,6 +341,12 @@
         tools:layout="@layout/fragment_logs" />
 
     <fragment
+        android:id="@+id/things_app_logs_fragment"
+        android:name="com.krisbiketeam.smarthomeraspbpi3.ui.ThingsAppLogsFragment"
+        android:label="@string/things_app_logs_title"
+        tools:layout="@layout/fragment_things_app_logs" />
+
+    <fragment
         android:id="@+id/settings_fragment"
         android:name="com.krisbiketeam.smarthomeraspbpi3.ui.settings.SettingsFragment"
         android:label="@string/settings_title">
@@ -216,6 +390,14 @@
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
             app:popExitAnim="@anim/slide_out_right" />
+
+        <action
+            android:id="@+id/action_settings_fragment_to_things_app_logs_fragment"
+            app:destination="@id/things_app_logs_fragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
     </fragment>
 
     <fragment
@@ -228,7 +410,7 @@
         android:id="@+id/login_settings_fragment"
         android:name="com.krisbiketeam.smarthomeraspbpi3.ui.settings.LoginSettingsFragment"
         android:label="@string/settings_login_title"
-        tools:layout="@layout/fragment_settings_login" >
+        tools:layout="@layout/fragment_settings_login">
 
         <action
             android:id="@+id/action_login_settings_fragment_to_wifi_settings_fragment"
@@ -248,13 +430,27 @@
 
     <action
         android:id="@+id/goToHomeUnitDetailFragment"
-        app:destination="@id/home_unit_detail_fragment"
+        app:destination="@id/home_unit_generic_detail_fragment"
         app:enterAnim="@anim/slide_in_right"
         app:exitAnim="@anim/slide_out_left"
         app:popEnterAnim="@anim/slide_in_left"
-        app:popExitAnim="@anim/slide_out_right"
-        >
-    </action>
+        app:popExitAnim="@anim/slide_out_right"></action>
+
+    <action
+        android:id="@+id/goToHomeUnitLightSwitchDetailFragment"
+        app:destination="@id/home_unit_light_switch_detail_fragment"
+        app:enterAnim="@anim/slide_in_right"
+        app:exitAnim="@anim/slide_out_left"
+        app:popEnterAnim="@anim/slide_in_left"
+        app:popExitAnim="@anim/slide_out_right"></action>
+
+    <action
+        android:id="@+id/goToHomeUnitWaterCirculationDetailFragment"
+        app:destination="@id/home_unit_water_circulation_detail_fragment"
+        app:enterAnim="@anim/slide_in_right"
+        app:exitAnim="@anim/slide_out_left"
+        app:popEnterAnim="@anim/slide_in_left"
+        app:popExitAnim="@anim/slide_out_right"></action>
 
     <action
         android:id="@+id/goToRoomFragment"
@@ -263,9 +459,7 @@
         app:exitAnim="@anim/fade_out"
         app:popEnterAnim="@anim/fade_in"
         app:popExitAnim="@anim/fade_out"
-        app:popUpTo="@id/room_list_fragment"
-        >
-    </action>
+        app:popUpTo="@id/room_list_fragment"></action>
 
     <action
         android:id="@+id/goToLoginSettingsFragment"
@@ -273,9 +467,7 @@
         app:enterAnim="@anim/slide_in_right"
         app:exitAnim="@anim/slide_out_left"
         app:popEnterAnim="@anim/slide_in_left"
-        app:popExitAnim="@anim/slide_out_right"
-        >
-    </action>
+        app:popExitAnim="@anim/slide_out_right"></action>
 
     <action
         android:id="@+id/goToHomeSettingsFragment"
@@ -283,8 +475,6 @@
         app:enterAnim="@anim/slide_in_right"
         app:exitAnim="@anim/slide_out_left"
         app:popEnterAnim="@anim/slide_in_left"
-        app:popExitAnim="@anim/slide_out_right"
-        >
-    </action>
+        app:popExitAnim="@anim/slide_out_right"></action>
 
 </navigation>

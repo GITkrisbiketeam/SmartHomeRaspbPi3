@@ -15,29 +15,14 @@ import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.callbackFlow
 import timber.log.Timber
 
-
-private val typeIndicatorMap: HashMap<String, GenericTypeIndicator<out HomeUnit<out Any>>> by lazy {
-    hashMapOf(HOME_ACTUATORS to object : GenericTypeIndicator<HomeUnit<ActuatorType>>() {},
-            HOME_LIGHT_SWITCHES to object :
-                    GenericTypeIndicator<HomeUnit<LightSwitchType>>() {},
-            HOME_REED_SWITCHES to object :
-                    GenericTypeIndicator<HomeUnit<ReedSwitchType>>() {},
-            HOME_MOTIONS to object : GenericTypeIndicator<HomeUnit<MotionType>>() {},
-            HOME_TEMPERATURES to object :
-                    GenericTypeIndicator<HomeUnit<TemperatureType>>() {},
-            HOME_PRESSURES to object : GenericTypeIndicator<HomeUnit<PressureType>>() {},
-            HOME_HUMIDITY to object : GenericTypeIndicator<HomeUnit<HumidityType>>() {},
-            HOME_BLINDS to object : GenericTypeIndicator<HomeUnit<BlindType>>() {})
-}
-
 @ExperimentalCoroutinesApi
 fun getHomeUnitsFlow(homeNamePath: String?) = callbackFlow<Pair<ChildEventType, HomeUnit<Any>>> {
     val unitsList: List<MyChildEventListener> =
-            homeNamePath?.let { homePath ->
-                HOME_STORAGE_UNITS.map { storageUnit ->
-                    MyChildEventListener(homePath, storageUnit, this)
-                }
-            } ?: emptyList()
+        homeNamePath?.let { homePath ->
+            HOME_STORAGE_UNITS.map { storageUnit ->
+                MyChildEventListener(homePath, storageUnit, this)
+            }
+        } ?: emptyList()
 
 
     Timber.d("onActive")
@@ -53,25 +38,32 @@ fun getHomeUnitsFlow(homeNamePath: String?) = callbackFlow<Pair<ChildEventType, 
     }
 }.buffer(UNLIMITED)
 
-class MyChildEventListener(homePath: String, private val storageUnit: String, private val sendChannel: SendChannel<Pair<ChildEventType, HomeUnit<Any>>>) : ChildEventListener {
+class MyChildEventListener(
+    homePath: String,
+    private val storageUnitType: HomeUnitType,
+    private val sendChannel: SendChannel<Pair<ChildEventType, HomeUnit<Any>>>
+) : ChildEventListener {
 
-    val reference = Firebase.database.getReference("$homePath/$HOME_UNITS_BASE/$storageUnit")
+    val reference = Firebase.database.getReference("$homePath/$HOME_UNITS_BASE/$storageUnitType")
 
     override fun onChildAdded(dataSnapshot: DataSnapshot, previousChildName: String?) {
         // A new value has been added, add it to the displayed list
         val key = dataSnapshot.key
-        typeIndicatorMap[storageUnit]?.run {
+        getHomeUnitTypeIndicatorMap(storageUnitType).run {
             val unit = try {
                 dataSnapshot.getValue(this)
             } catch (e: DatabaseException) {
-                Timber.e("getHomeUnitsFlow onChildAdded (key=$key)(storageUnit=$storageUnit) could not get HomeUnit")
+                Timber.e(
+                    e,
+                    "getHomeUnitsFlow onChildAdded (key=$key)(storageUnit=$storageUnitType) could not get HomeUnit"
+                )
                 null
             }
             Timber.d("getHomeUnitsFlow onChildAdded (key=$key)(unit=${unit?.name})")
             unit?.let {
                 Timber.d("getHomeUnitsFlow onChildAdded (unit.room=${it.room})")
                 // We need to create new SecureStorage unit as the one returned from GenericTypeIndicator is covariant
-                sendChannel.trySendBlocking(ChildEventType.NODE_ACTION_ADDED to it.makeInvariant())
+                sendChannel.trySendBlocking(ChildEventType.NODE_ACTION_ADDED to it)
             }
         }
     }
@@ -80,17 +72,20 @@ class MyChildEventListener(homePath: String, private val storageUnit: String, pr
         // A value has changed, use the key to determine if we are displaying this
         // value and if so displayed the changed value.
         val key = dataSnapshot.key
-        typeIndicatorMap[storageUnit]?.run {
+        getHomeUnitTypeIndicatorMap(storageUnitType).run {
             val unit = try {
                 dataSnapshot.getValue(this)
             } catch (e: DatabaseException) {
-                Timber.e("getHomeUnitsFlow onChildChanged (key=$key)(storageUnit=$storageUnit) could not get HomeUnit")
+                Timber.e(
+                    e,
+                    "getHomeUnitsFlow onChildChanged (key=$key)(storageUnit=$storageUnitType) could not get HomeUnit"
+                )
                 null
             }
             Timber.d("getHomeUnitsFlow onChildChanged (key=$key)(unit=$unit)")
             unit?.let {
                 Timber.d("getHomeUnitsFlow onChildChanged (unit.room=${it.room})")
-                sendChannel.trySendBlocking(ChildEventType.NODE_ACTION_CHANGED to it.makeInvariant())
+                sendChannel.trySendBlocking(ChildEventType.NODE_ACTION_CHANGED to it)
             }
         }
     }
@@ -101,12 +96,12 @@ class MyChildEventListener(homePath: String, private val storageUnit: String, pr
         // A value has changed, use the key to determine if we are displaying this
         // value and if so remove it.
         val key = dataSnapshot.key
-        typeIndicatorMap[storageUnit]?.run {
+        getHomeUnitTypeIndicatorMap(storageUnitType).run {
             val unit = dataSnapshot.getValue(this)
             Timber.d("getHomeUnitsFlow onChildRemoved (key=$key)(unit=$unit)")
             unit?.let {
                 Timber.d("getHomeUnitsFlow onChildRemoved (unit.room=${it.room})")
-                sendChannel.trySendBlocking(ChildEventType.NODE_ACTION_DELETED to it.makeInvariant())
+                sendChannel.trySendBlocking(ChildEventType.NODE_ACTION_DELETED to it)
             }
         }
     }
@@ -116,7 +111,7 @@ class MyChildEventListener(homePath: String, private val storageUnit: String, pr
         // A value has changed position, use the key to determine if we are
         // displaying this value and if so move it.
         val key = dataSnapshot.key
-        typeIndicatorMap[storageUnit]?.run {
+        getHomeUnitTypeIndicatorMap(storageUnitType).run {
             val unit = dataSnapshot.getValue(this)
             //TODO does it also cover onChildChanged ??? or are those events both called???
             Timber.d("getHomeUnitsFlow onChildMoved (key=$key)(unit=$unit)")

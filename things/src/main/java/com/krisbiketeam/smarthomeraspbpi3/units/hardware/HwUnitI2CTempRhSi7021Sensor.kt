@@ -36,11 +36,11 @@ class HwUnitI2CTempRhSi7021Sensor(name: String, location: String, private val pi
 
     @Throws(Exception::class)
     // TODO use Flow here
-    override suspend fun registerListener(listener: Sensor.HwUnitListener<TemperatureAndHumidity>,
+    override suspend fun registerListener(scope: CoroutineScope, listener: Sensor.HwUnitListener<TemperatureAndHumidity>,
                                           exceptionHandler: CoroutineExceptionHandler) {
         Timber.d("registerListener")
         job?.cancel()
-        job = GlobalScope.plus(exceptionHandler).launch(Dispatchers.IO) {
+        job = scope.launch(Dispatchers.IO + exceptionHandler) {
             // We could also check for true as suspending delay() method is cancellable
             while (isActive) {
                 delay(refreshRate ?: REFRESH_RATE)

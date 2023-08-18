@@ -1,0 +1,131 @@
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+
+        <import type="android.view.View" />
+
+        <import type="com.krisbiketeam.smarthomeraspbpi3.utils.UtilsKt" />
+
+        <import type="com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType" />
+
+        <variable
+            name="viewModel"
+            type="com.krisbiketeam.smarthomeraspbpi3.viewmodels.HomeUnitWaterCirculationDetailViewModel" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/motion_hw_unit_name_layout"
+            style="@style/LargeTitleDropDownOutlineInputLayoutStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/activity_horizontal_margin"
+            android:layout_marginTop="@dimen/margin_normal"
+            android:hint="@string/add_edit_home_unit_text_motion_hw_unit_title"
+            app:endIconDropDownEnabled="@{viewModel.isEditMode}"
+            app:helperText="@string/add_edit_home_unit_text_room_spinner_prompt"
+            app:helperTextEnabled="@{viewModel.isEditMode}"
+            app:hintEnabled="true"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                android:id="@+id/motion_hw_unit_name_spinner"
+                style="@style/EnabledColorMaterialAutoCompleteTextViewStyle"
+                android:clickable="@{viewModel.isEditMode}"
+                android:focusable="@{true}"
+                app:entriesAutoComplete="@{viewModel.motionHwUnitNameList}"
+                app:entriesUsed="@{true}"
+                app:entriesWithEmpty="@{true}"
+                app:value="@={viewModel.motionHwUnitName}" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/temperature_hw_unit_name_layout"
+            style="@style/LargeTitleDropDownOutlineInputLayoutStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/activity_horizontal_margin"
+            android:layout_marginTop="@dimen/margin_normal"
+            android:hint="@string/add_edit_home_unit_text_temperature_hw_unit_title"
+            app:endIconDropDownEnabled="@{viewModel.isEditMode}"
+            app:helperText="@string/add_edit_home_unit_text_room_spinner_prompt"
+            app:helperTextEnabled="@{viewModel.isEditMode}"
+            app:hintEnabled="true"
+            app:layout_constraintTop_toBottomOf="@+id/motion_hw_unit_name_layout">
+
+            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                android:id="@+id/temperature_hw_unit_name_spinner"
+                style="@style/EnabledColorMaterialAutoCompleteTextViewStyle"
+                android:clickable="@{viewModel.isEditMode}"
+                android:focusable="@{true}"
+                app:entriesAutoComplete="@{viewModel.temperatureHwUnitNameList}"
+                app:entriesUsed="@{true}"
+                app:entriesWithEmpty="@{true}"
+                app:value="@={viewModel.temperatureHwUnitName}" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Task Duration -->
+        <androidx.constraintlayout.widget.Group
+            android:id="@+id/circulation_duration_group"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:clickable="@{safeUnbox(viewModel.isEditMode) ? true : false}"
+            app:constraint_referenced_ids="circulation_duration_title,circulation_duration"
+            app:layout_constraintBottom_toBottomOf="@+id/circulation_duration_title"
+            app:layout_constraintTop_toTopOf="@+id/circulation_duration_title" />
+
+        <!-- Circulation Duration title-->
+        <TextView
+            android:id="@+id/circulation_duration_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/activity_horizontal_margin"
+            android:layout_marginTop="@dimen/margin_normal"
+            android:text="@string/add_edit_home_unit_text_circulation_duration_title"
+            android:textColor="@color/colorSecondary"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/temperature_hw_unit_name_layout" />
+
+        <!-- Circulation Duration value -->
+        <TextView
+            android:id="@+id/circulation_duration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/margin_small"
+            android:hint="@string/add_edit_home_unit_text_circulation_duration_title"
+            android:text="@{UtilsKt.getDayTime(viewModel.actionTimeout)}"
+            android:textColor="@color/design_default_color_on_secondary"
+            app:layout_constraintBottom_toBottomOf="@+id/circulation_duration_title"
+            app:layout_constraintStart_toEndOf="@+id/circulation_duration_title"
+            app:layout_constraintTop_toTopOf="@+id/circulation_duration_title" />
+
+        <!-- Temperature Threshold -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/temperature_threshold_layout"
+            style="@style/LargeTitleOutlineTextInputLayoutStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/activity_horizontal_margin"
+            android:layout_marginTop="@dimen/margin_small"
+            android:enabled="@{viewModel.isEditMode}"
+            android:hint="@string/unit_task_text_threshold_title"
+            app:errorEnabled="true"
+            app:helperText="@string/unit_task_text_threshold_prompt"
+            app:helperTextEnabled="@{viewModel.isEditMode}"
+            app:hintEnabled="true"
+            app:layout_constraintTop_toBottomOf="@id/circulation_duration">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/temperature_threshold_edit_text"
+                style="@style/EnabledColorEditTextStyle"
+                android:inputType="numberDecimal|numberSigned"
+                android:text="@={viewModel.temperatureThreshold}" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

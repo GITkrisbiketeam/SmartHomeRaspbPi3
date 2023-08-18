@@ -1,187 +1,327 @@
 package com.krisbiketeam.smarthomeraspbpi3.common.storage.dto
 
-import com.google.firebase.database.Exclude
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.*
+import com.google.firebase.database.GenericTypeIndicator
+import com.krisbiketeam.smarthomeraspbpi3.common.FULL_DAY_IN_MILLIS
+import com.krisbiketeam.smarthomeraspbpi3.common.getOnlyTodayLocalTime
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.toHomeUnitType
+import kotlinx.coroutines.*
+import timber.log.Timber
 
-typealias LightType = Boolean
-typealias Light = HomeUnit<LightType>
 typealias ActuatorType = Boolean
-typealias Actuator = HomeUnit<LightType>
+typealias Actuator = GenericHomeUnit<ActuatorType>
 typealias LightSwitchType = Boolean
-typealias LightSwitch = HomeUnit<LightSwitchType>
+typealias LightSwitch = LightSwitchHomeUnit<LightSwitchType>
+typealias WaterCirculationType = Boolean
+typealias WaterCirculation = WaterCirculationHomeUnit<WaterCirculationType>
 typealias ReedSwitchType = Boolean
-typealias ReedSwitch = HomeUnit<ReedSwitchType>
+typealias ReedSwitch = GenericHomeUnit<ReedSwitchType>
 typealias MotionType = Boolean
-typealias Motion = HomeUnit<MotionType>
+typealias Motion = GenericHomeUnit<MotionType>
 typealias TemperatureType = Float
-typealias Temperature = HomeUnit<TemperatureType>
+typealias Temperature = GenericHomeUnit<TemperatureType>
 typealias PressureType = Float
-typealias Pressure = HomeUnit<PressureType>
+typealias Pressure = GenericHomeUnit<PressureType>
 typealias HumidityType = Float
-typealias Humidity = HomeUnit<HumidityType>
+typealias Humidity = GenericHomeUnit<HumidityType>
 typealias BlindType = Int
-typealias Blind = HomeUnit<BlindType>
+typealias Blind = GenericHomeUnit<BlindType>
 typealias GasType = Float
-typealias Gas = HomeUnit<GasType>
+typealias Gas = GenericHomeUnit<GasType>
 typealias GasPercentType = Float
-typealias GasPercent = HomeUnit<GasPercentType>
+typealias GasPercent = GenericHomeUnit<GasPercentType>
 typealias IaqType = Float
-typealias Iaq = HomeUnit<IaqType>
+typealias Iaq = GenericHomeUnit<IaqType>
 typealias Co2Type = Float
-typealias Co2 = HomeUnit<Co2Type>
+typealias Co2 = GenericHomeUnit<Co2Type>
 typealias BreathVocType = Float
-typealias BreathVoc = HomeUnit<BreathVocType>
+typealias BreathVoc = GenericHomeUnit<BreathVocType>
 
-val homeUnitTypeIndicatorMap: Map<String, Class<out Any?>> = mapOf(
-        HOME_ACTUATORS to ActuatorType::class.java,
-        HOME_LIGHT_SWITCHES to LightSwitchType::class.java,
-        HOME_REED_SWITCHES to ReedSwitchType::class.java,
-        HOME_MOTIONS to MotionType::class.java,
-        HOME_TEMPERATURES to TemperatureType::class.java,
-        HOME_PRESSURES to PressureType::class.java,
-        HOME_HUMIDITY to HumidityType::class.java,
-        HOME_BLINDS to BlindType::class.java,
-        HOME_GAS to GasType::class.java,
-        HOME_GAS_PERCENT to GasPercentType::class.java,
-        HOME_IAQ to IaqType::class.java,
-        HOME_STATIC_IAQ to IaqType::class.java,
-        HOME_CO2 to Co2Type::class.java,
-        HOME_BREATH_VOC to BreathVocType::class.java
-)
 
-val HOME_STORAGE_UNITS: List<String> = homeUnitTypeIndicatorMap.keys.toList()
+fun getHomeUnitTypeIndicatorMap(type: HomeUnitType): GenericTypeIndicator<HomeUnit<Any>> {
+    return when (type) {
+        HomeUnitType.HOME_ACTUATORS -> object : GenericTypeIndicator<Actuator>() {}
+        HomeUnitType.HOME_LIGHT_SWITCHES -> object : GenericTypeIndicator<LightSwitch>() {}
+        HomeUnitType.HOME_WATER_CIRCULATION -> object : GenericTypeIndicator<WaterCirculation>() {}
+        HomeUnitType.HOME_REED_SWITCHES -> object : GenericTypeIndicator<ReedSwitch>() {}
+        HomeUnitType.HOME_MOTIONS -> object : GenericTypeIndicator<Motion>() {}
+        HomeUnitType.HOME_TEMPERATURES -> object : GenericTypeIndicator<Temperature>() {}
+        HomeUnitType.HOME_PRESSURES -> object : GenericTypeIndicator<Pressure>() {}
+        HomeUnitType.HOME_HUMIDITY -> object : GenericTypeIndicator<Humidity>() {}
+        HomeUnitType.HOME_BLINDS -> object : GenericTypeIndicator<Blind>() {}
+        HomeUnitType.HOME_GAS -> object : GenericTypeIndicator<Gas>() {}
+        HomeUnitType.HOME_GAS_PERCENT -> object : GenericTypeIndicator<GasPercent>() {}
+        HomeUnitType.HOME_IAQ -> object : GenericTypeIndicator<Iaq>() {}
+        HomeUnitType.HOME_STATIC_IAQ -> object : GenericTypeIndicator<Iaq>() {}
+        HomeUnitType.HOME_CO2 -> object : GenericTypeIndicator<Co2>() {}
+        HomeUnitType.HOME_BREATH_VOC -> object : GenericTypeIndicator<BreathVoc>() {}
+        HomeUnitType.UNKNOWN -> throw IllegalArgumentException("NotSupported HomeUnitType requested")
+    } as GenericTypeIndicator<HomeUnit<Any>>
+}
 
-val HOME_ACTION_STORAGE_UNITS: List<String> = listOf(HOME_LIGHT_SWITCHES, HOME_BLINDS, HOME_ACTUATORS)
+val HOME_STORAGE_UNITS: List<HomeUnitType> =
+    HomeUnitType.values().filterNot { it == HomeUnitType.UNKNOWN }
 
-data class HomeUnit<T:Any>(var name: String = "", // Name should be unique for all units
-                       var type: String = "",
-                       var room: String = "",
-                       var hwUnitName: String? = "",
-                       var value: T? = null,
-                       var lastUpdateTime: Long? = null,
-                       var secondHwUnitName: String? = null,
-                       var secondValue: T? = null,
-                       var secondLastUpdateTime: Long? = null,
-                       var min: T? = null,
-                       var minLastUpdateTime: Long? = null,
-                       var max: T? = null,
-                       var maxLastUpdateTime: Long? = null,
-                       var lastTriggerSource: String? = null,
-                       var firebaseNotify: Boolean = false,
-                       @TriggerType var firebaseNotifyTrigger: String? = null,
-                       var showInTaskList: Boolean = false,
-                       var unitsTasks: Map<String,UnitTask> = HashMap()) {
-    constructor(homeUnit: HomeUnit<T>) : this(
-            homeUnit.name,
-            homeUnit.type,
-            homeUnit.room,
-            homeUnit.hwUnitName,
-            homeUnit.value,
-            homeUnit.lastUpdateTime,
-            homeUnit.secondHwUnitName,
-            homeUnit.secondValue,
-            homeUnit.secondLastUpdateTime,
-            homeUnit.min,
-            homeUnit.minLastUpdateTime,
-            homeUnit.max,
-            homeUnit.maxLastUpdateTime,
-            homeUnit.lastTriggerSource,
-            homeUnit.firebaseNotify,
-            homeUnit.firebaseNotifyTrigger,
-            homeUnit.showInTaskList,
-            homeUnit.unitsTasks)
+val HOME_ACTION_STORAGE_UNITS: List<HomeUnitType> =
+    listOf(
+        HomeUnitType.HOME_LIGHT_SWITCHES,
+        HomeUnitType.HOME_WATER_CIRCULATION,
+        HomeUnitType.HOME_BLINDS,
+        HomeUnitType.HOME_ACTUATORS,
+    )
+val HOME_FIREBASE_NOTIFY_STORAGE_UNITS: List<HomeUnitType> =
+    listOf(
+        HomeUnitType.HOME_ACTUATORS,
+        HomeUnitType.HOME_BLINDS,
+        HomeUnitType.HOME_REED_SWITCHES,
+        HomeUnitType.HOME_MOTIONS,
+        HomeUnitType.HOME_LIGHT_SWITCHES,
+        HomeUnitType.HOME_WATER_CIRCULATION,
+    )
 
-    @Exclude
-    @set:Exclude
-    @get:Exclude
-    var applyFunction: suspend HomeUnit<in Any>.(Any) -> Unit = { }
+interface HomeUnit<T : Any> {
+    var name: String // Name should be unique for all units
+    var type: HomeUnitType
+    var room: String
+    var hwUnitName: String?
+    var value: T?
+    var lastUpdateTime: Long?
 
-    fun makeInvariant(): HomeUnit<Any>{
-        return HomeUnit(
-                name,
-                type,
-                room,
-                hwUnitName,
-                value,
-                lastUpdateTime,
-                secondHwUnitName,
-                secondValue,
-                secondLastUpdateTime,
-                min,
-                minLastUpdateTime,
-                max,
-                maxLastUpdateTime,
-                lastTriggerSource,
-                firebaseNotify,
-                firebaseNotifyTrigger,
-                showInTaskList,
-                unitsTasks)
-    }
-    fun makeNotification(): HomeUnit<T>{
-        return HomeUnit(
-                name,
-                type,
-                room,
-                hwUnitName,
-                value,
-                lastUpdateTime,
-                secondHwUnitName,
-                secondValue,
-                secondLastUpdateTime,
-                min,
-                minLastUpdateTime,
-                max,
-                maxLastUpdateTime,
-                lastTriggerSource)
+    var lastTriggerSource: String?
+    var firebaseNotify: Boolean
+
+    @TriggerType
+    var firebaseNotifyTrigger: String?
+    var showInTaskList: Boolean
+    var unitsTasks: Map<String, UnitTask>
+
+    suspend fun applyFunction(
+        scope: CoroutineScope,
+        newVal: T,
+        booleanApplyAction: suspend HomeUnit<T>.(actionVal: Boolean, taskHomeUnitType: HomeUnitType, taskHomeUnitName: String, taskName: String, periodicallyOnlyHw: Boolean) -> Unit
+    ) {
+        unitsTasks.values.forEach { task ->
+            when (type) {
+                HomeUnitType.HOME_ACTUATORS,
+                HomeUnitType.HOME_LIGHT_SWITCHES,
+                HomeUnitType.HOME_WATER_CIRCULATION,
+                HomeUnitType.HOME_REED_SWITCHES,
+                HomeUnitType.HOME_MOTIONS,
+                HomeUnitType.HOME_BLINDS -> {
+                    if (newVal is Boolean) {
+                        booleanTaskApply(scope, newVal, task, booleanApplyAction)
+                    } else {
+                        Timber.e("applyFunction new value is not Boolean or is null")
+                    }
+                }
+                HomeUnitType.HOME_TEMPERATURES,
+                HomeUnitType.HOME_PRESSURES,
+                HomeUnitType.HOME_HUMIDITY,
+                HomeUnitType.HOME_GAS,
+                HomeUnitType.HOME_GAS_PERCENT,
+                HomeUnitType.HOME_IAQ,
+                HomeUnitType.HOME_STATIC_IAQ,
+                HomeUnitType.HOME_CO2,
+                HomeUnitType.HOME_BREATH_VOC -> {
+                    if (newVal is Float) {
+                        sensorTaskApply(scope, newVal, task, booleanApplyAction)
+                    } else {
+                        Timber.e("applyFunction new value is not Float or is null")
+                    }
+                }
+                HomeUnitType.UNKNOWN -> throw IllegalArgumentException("NotSupported HomeUnitType requested")
+            }
+        }
     }
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
+    fun makeNotification(): HomeUnit<T>
 
-        other as HomeUnit<*>
+    fun isUnitAffected(hwUnit: HwUnit): Boolean
 
-        if (name != other.name) return false
-        if (type != other.type) return false
-        if (room != other.room) return false
-        if (hwUnitName != other.hwUnitName) return false
-        if (value != other.value) return false
-        if (lastUpdateTime != other.lastUpdateTime) return false
-        if (secondHwUnitName != other.secondHwUnitName) return false
-        if (secondValue != other.secondValue) return false
-        if (secondLastUpdateTime != other.secondLastUpdateTime) return false
-        if (min != other.min) return false
-        if (minLastUpdateTime != other.minLastUpdateTime) return false
-        if (max != other.max) return false
-        if (maxLastUpdateTime != other.maxLastUpdateTime) return false
-        if (lastTriggerSource != other.lastTriggerSource) return false
-        if (firebaseNotify != other.firebaseNotify) return false
-        if (firebaseNotifyTrigger != other.firebaseNotifyTrigger) return false
-        if (showInTaskList != other.showInTaskList) return false
-        if (unitsTasks != other.unitsTasks) return false
+    fun unitValue(): T?
 
-        return true
+    suspend fun updateHomeUnitValuesAndTimes(
+        hwUnit: HwUnit,
+        unitValue: Any?,
+        updateTime: Long,
+        booleanApplyAction: suspend HomeUnit<T>.(actionVal: Boolean, taskHomeUnitType: HomeUnitType, taskHomeUnitName: String, taskName: String, periodicallyOnlyHw: Boolean) -> Unit
+    )
+
+    fun copy(): HomeUnit<T>
+
+    fun shouldFirebaseNotify(newVal: Any?): Boolean {
+        return firebaseNotify && (newVal !is Boolean || ((firebaseNotifyTrigger == null ||
+                firebaseNotifyTrigger == BOTH) ||
+                (firebaseNotifyTrigger == RISING_EDGE && newVal) ||
+                (firebaseNotifyTrigger == FALLING_EDGE && !newVal)))
     }
 
-    override fun hashCode(): Int {
-        var result = name.hashCode()
-        result = 31 * result + type.hashCode()
-        result = 31 * result + room.hashCode()
-        result = 31 * result + (hwUnitName?.hashCode() ?: 0)
-        result = 31 * result + (value?.hashCode() ?: 0)
-        result = 31 * result + (lastUpdateTime?.hashCode() ?: 0)
-        result = 31 * result + (secondHwUnitName?.hashCode() ?: 0)
-        result = 31 * result + (secondValue?.hashCode() ?: 0)
-        result = 31 * result + (secondLastUpdateTime?.hashCode() ?: 0)
-        result = 31 * result + (min?.hashCode() ?: 0)
-        result = 31 * result + (minLastUpdateTime?.hashCode() ?: 0)
-        result = 31 * result + (max?.hashCode() ?: 0)
-        result = 31 * result + (maxLastUpdateTime?.hashCode() ?: 0)
-        result = 31 * result + (lastTriggerSource?.hashCode() ?: 0)
-        result = 31 * result + firebaseNotify.hashCode()
-        result = 31 * result + (firebaseNotifyTrigger?.hashCode() ?: 0)
-        result = 31 * result + showInTaskList.hashCode()
-        result = 31 * result + unitsTasks.hashCode()
-        return result
+    // region applyFunction helper methods
+
+    private suspend fun booleanTaskApply(
+        scope: CoroutineScope,
+        newVal: Boolean,
+        task: UnitTask,
+        booleanApplyAction: suspend HomeUnit<T>.(actionVal: Boolean, taskHomeUnitType: HomeUnitType, taskHomeUnitName: String, taskName: String, periodicallyOnlyHw: Boolean) -> Unit
+    ) {
+        scope.launch {
+            Timber.v("booleanTaskApply before cancel task.taskJob:${task.taskJob} isActive:${task.taskJob?.isActive} isCancelled:${task.taskJob?.isCancelled} isCompleted:${task.taskJob?.isCompleted}")
+            task.taskJob?.cancel()
+            Timber.v("booleanTaskApply after cancel task.taskJob:${task.taskJob} isActive:${task.taskJob?.isActive} isCancelled:${task.taskJob?.isCancelled} isCompleted:${task.taskJob?.isCompleted}")
+
+            if (task.disabled == true) {
+                Timber.d("booleanTaskApply task not enabled $task")
+            } else {
+                if ((task.trigger == null || task.trigger == BOTH)
+                    || (task.trigger == RISING_EDGE && newVal)
+                    || (task.trigger == FALLING_EDGE && !newVal)
+                ) {
+                    task.taskJob = scope.launch(Dispatchers.IO) {
+                        do {
+                            booleanTaskTimed(newVal, task, booleanApplyAction)
+                        } while (this.isActive && task.periodically == true && ((task.delay.isValidTime() && task.duration.isValidTime())
+                                    || (task.startTime.isValidTime() && task.endTime.isValidTime())
+                                    || (task.startTime.isValidTime() && task.duration.isValidTime()))
+                        )
+                    }
+                    Timber.v("booleanTaskApply after booleanTaskTimed task.taskJob:${task.taskJob} isActive:${task.taskJob?.isActive} isCancelled:${task.taskJob?.isCancelled} isCompleted:${task.taskJob?.isCompleted}")
+                } else if (task.resetOnInverseTrigger == true) {
+                    booleanApplyAction(newVal, task, booleanApplyAction)
+                }
+            }
+        }
+
     }
+
+    private suspend fun sensorTaskApply(
+        scope: CoroutineScope,
+        newVal: Float,
+        task: UnitTask,
+        booleanApplyAction: suspend HomeUnit<T>.(actionVal: Boolean, taskHomeUnitType: HomeUnitType, taskHomeUnitName: String, taskName: String, periodicallyOnlyHw: Boolean) -> Unit
+    ) {
+        scope.launch {
+            if (task.disabled == true) {
+                Timber.d("sensorTaskApply task not enabled $task")
+                task.taskJob?.cancel()
+            } else {
+                task.threshold?.let { threshold ->
+                    if ((task.trigger == null || task.trigger == BOTH
+                                || task.trigger == RISING_EDGE) && newVal >= threshold + (task.hysteresis
+                            ?: 0f)
+                    ) {
+                        task.taskJob?.cancel()
+                        task.taskJob = scope.launch(Dispatchers.IO) {
+                            booleanTaskTimed(true, task, booleanApplyAction)
+                        }
+                    } else if ((task.trigger == null || task.trigger == BOTH
+                                || task.trigger == FALLING_EDGE) && newVal <= threshold - (task.hysteresis
+                            ?: 0f)
+                    ) {
+                        task.taskJob?.cancel()
+                        task.taskJob = scope.launch(Dispatchers.IO) {
+                            booleanTaskTimed(false, task, booleanApplyAction)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private suspend fun booleanTaskTimed(
+        newVal: Boolean,
+        task: UnitTask,
+        booleanApplyAction: suspend HomeUnit<T>.(actionVal: Boolean, taskHomeUnitType: HomeUnitType, taskHomeUnitName: String, taskName: String, periodicallyOnlyHw: Boolean) -> Unit
+    ) {
+        task.startTime.takeIf { it.isValidTime() }?.let { startTime ->
+            val currTime = System.currentTimeMillis().getOnlyTodayLocalTime()
+            task.endTime.takeIf { it.isValidTime() }?.let { endTime ->
+                Timber.e("booleanTaskTimed startTime:$startTime endTime:$endTime currTime: $currTime")
+                if (startTime < endTime) {
+                    if (currTime < startTime) {
+                        delay(startTime - currTime)
+                        booleanApplyAction(newVal, task, booleanApplyAction)
+                        val endCurrTime = System.currentTimeMillis().getOnlyTodayLocalTime()
+                        delay(endTime - endCurrTime)
+                        booleanApplyAction(!newVal, task, booleanApplyAction)
+                        delay(FULL_DAY_IN_MILLIS - endCurrTime)
+                    } else if (endTime < currTime) {
+                        delay(FULL_DAY_IN_MILLIS - currTime)
+                    } else {
+                        booleanApplyAction(newVal, task, booleanApplyAction)
+                        val endCurrTime = System.currentTimeMillis().getOnlyTodayLocalTime()
+                        delay(endTime - endCurrTime)
+                        booleanApplyAction(!newVal, task, booleanApplyAction)
+                        delay(FULL_DAY_IN_MILLIS - endCurrTime)
+                    }
+                } else if (endTime < startTime) {
+                    if (currTime < endTime) {
+                        booleanApplyAction(newVal, task, booleanApplyAction)
+                        delay(endTime - currTime)
+                        booleanApplyAction(!newVal, task, booleanApplyAction)
+                        val endCurrTime = System.currentTimeMillis().getOnlyTodayLocalTime()
+                        delay(startTime - endCurrTime)
+                        booleanApplyAction(newVal, task, booleanApplyAction)
+                        delay(FULL_DAY_IN_MILLIS - startTime)
+                    } else if (currTime < startTime) {
+                        delay(startTime - currTime)
+                        booleanApplyAction(newVal, task, booleanApplyAction)
+                        delay(FULL_DAY_IN_MILLIS - startTime)
+                    } else {
+                        booleanApplyAction(newVal, task, booleanApplyAction)
+                        delay(FULL_DAY_IN_MILLIS - currTime)
+                    }
+                }
+            } ?: task.duration?.let { duration ->
+                booleanApplyAction(newVal, task, booleanApplyAction)
+                delay(duration)
+                booleanApplyAction(!newVal, task, booleanApplyAction)
+            } ?: run {
+                if (currTime < startTime) {
+                    delay(startTime - currTime)
+                }
+                booleanApplyAction(newVal, task, booleanApplyAction)
+            }
+        } ?: task.endTime.takeIf { it.isValidTime() }?.let { endTime ->
+            val endCurrTime = System.currentTimeMillis().getOnlyTodayLocalTime()
+            if (endCurrTime < endTime) {
+                delay(endTime - endCurrTime)
+            }
+            booleanApplyAction(!newVal, task, booleanApplyAction)
+        } ?: task.delay.takeIf { it.isValidTime() }?.let { delay ->
+            delay(delay)
+            booleanApplyAction(newVal, task, booleanApplyAction)
+            task.duration?.let { duration ->
+                delay(duration)
+                booleanApplyAction(!newVal, task, booleanApplyAction)
+            }
+        } ?: task.duration.takeIf { it.isValidTime() }?.let { duration ->
+            booleanApplyAction(newVal, task, booleanApplyAction)
+            delay(duration)
+            booleanApplyAction(!newVal, task, booleanApplyAction)
+        }
+        ?: booleanApplyAction(newVal, task, booleanApplyAction)
+    }
+
+    private suspend fun booleanApplyAction(
+        actionVal: Boolean,
+        task: UnitTask,
+        booleanApplyAction: suspend HomeUnit<T>.(actionVal: Boolean, taskHomeUnitType: HomeUnitType, taskHomeUnitName: String, taskName: String, periodicallyOnlyHw: Boolean) -> Unit
+    ) {
+        val newActionVal: Boolean = (task.inverse ?: false) xor actionVal
+        task.homeUnitsList.forEach {
+            booleanApplyAction(
+                newActionVal,
+                it.type.toHomeUnitType(),
+                it.name,
+                task.name,
+                task.periodicallyOnlyHw ?: false
+            )
+        }
+    }
+
+    // endregion
+}
+
+private fun Long?.isValidTime(): Boolean {
+    return this != null && this > 0
 }

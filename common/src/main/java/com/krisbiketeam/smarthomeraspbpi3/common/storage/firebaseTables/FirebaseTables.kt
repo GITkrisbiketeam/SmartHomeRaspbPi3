@@ -37,24 +37,37 @@ const val HOME_TASKS_ORDER = "tasksOrder"
 // region HomeUnits
 const val HOME_UNITS_BASE = "home_units"
 
-// actuators
-const val HOME_ACTUATORS = "actuators"
-const val HOME_BLINDS = "blinds"
-// boolean sensor
-const val HOME_REED_SWITCHES = "reed_switches"
-const val HOME_MOTIONS = "motions"
-// combined actuator/sensor
-const val HOME_LIGHT_SWITCHES = "light_switches"
-// float sensors
-const val HOME_TEMPERATURES = "temperatures"
-const val HOME_PRESSURES = "pressures"
-const val HOME_HUMIDITY = "humidity"
-const val HOME_GAS = "gas"
-const val HOME_GAS_PERCENT = "gas_percent"
-const val HOME_IAQ = "iaq"
-const val HOME_STATIC_IAQ = "static_iaq"
-const val HOME_CO2 = "co2"
-const val HOME_BREATH_VOC = "breathVoc"
+enum class HomeUnitType(private val firebaseTableName: String) {
+    UNKNOWN(""),
+    HOME_ACTUATORS("actuators"),
+    HOME_BLINDS("blinds"),
+
+    // boolean sensor
+    HOME_REED_SWITCHES("reed_switches"),
+    HOME_MOTIONS("motions"),
+
+    // combined actuator/sensor
+    HOME_LIGHT_SWITCHES("light_switches"),
+    HOME_WATER_CIRCULATION("water_circulation"),
+    // float sensors
+    HOME_TEMPERATURES("temperatures"),
+    HOME_PRESSURES("pressures"),
+    HOME_HUMIDITY("humidity"),
+    HOME_GAS("gas"),
+    HOME_GAS_PERCENT("gas_percent"),
+    HOME_IAQ("iaq"),
+    HOME_STATIC_IAQ("static_iaq"),
+    HOME_CO2("co2"),
+    HOME_BREATH_VOC("breathVoc");
+
+    override fun toString(): String {
+        return firebaseTableName
+    }
+}
+
+fun String.toHomeUnitType(): HomeUnitType {
+    return HomeUnitType.values().first { it.toString() == this }
+}
 
 const val HOME_VAL = "value"
 const val HOME_VAL_LAST_UPDATE = "lastUpdateTime"
@@ -89,6 +102,9 @@ const val HOME_LAST_ONLINE_TIME = "lastOnline"
 
 // region Logs
 const val LOG_INFORMATION_BASE = "log"
+const val LOG_HW_UNIT_ERRORS = "error"
+const val LOG_HW_UNIT = "hw_units"
+const val LOG_THINGS_LOGS = "things_logs"
 // endregion
 
 // region "home"

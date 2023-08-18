@@ -8,6 +8,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
 import com.krisbiketeam.smarthomeraspbpi3.units.HwUnitI2C
 import com.krisbiketeam.smarthomeraspbpi3.units.Sensor
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -61,7 +62,7 @@ open class HwUnitI2CPCF8574ATSensor(name: String, location: String, private val 
         }
     }
 
-    override suspend fun registerListener(listener: Sensor.HwUnitListener<Boolean>,
+    override suspend fun registerListener(scope: CoroutineScope, listener: Sensor.HwUnitListener<Boolean>,
                                           exceptionHandler: CoroutineExceptionHandler) {
         Timber.d("registerListener")
         hwUnitListener = listener

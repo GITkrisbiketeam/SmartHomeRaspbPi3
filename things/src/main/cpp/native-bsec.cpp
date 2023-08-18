@@ -44,9 +44,9 @@ struct timespec current_time_spec{};
  * @return          result of the bus communication function
  */
 int8_t bus_write(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data_ptr, uint16_t data_len) {
-    LOGE("bus_write dev_addr:%d reg_addr:%d data_len:%d", dev_addr, reg_addr, data_len);
+    LOGV("bus_write dev_addr:%d reg_addr:%d data_len:%d", dev_addr, reg_addr, data_len);
     if (g_ctx.done) {
-        LOGI("bus_write sensor is finished");
+        LOGE("bus_write sensor is finished");
         return 0;
     }
 
@@ -61,23 +61,23 @@ int8_t bus_write(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data_ptr, uint
             return 0;
         }
     }
-    LOGI("LoadBsecJNI bus_write g_ctx:%s", g_ctx.javaVM);
+    LOGV("LoadBsecJNI bus_write g_ctx:%s", g_ctx.javaVM);
 
-    LOGE("bus_write reg_data_ptr:%d", reg_data_ptr[0]);
+    LOGV("bus_write reg_data_ptr:%d", reg_data_ptr[0]);
     jbyteArray byteArray = env->NewByteArray(data_len);
 
     jbyte *data = env->GetByteArrayElements(byteArray, nullptr);
 
     if (data != nullptr) {
-        LOGE("bus_write data:%d", data[0]);
+        LOGV("bus_write data:%d", data[0]);
         memcpy(data, reg_data_ptr, data_len);
-        LOGE("bus_write data:%d", data[0]);
+        LOGV("bus_write data:%d", data[0]);
 
         env->SetByteArrayRegion(byteArray, 0, data_len, data);
 
-        LOGE("bus_write byteArray:%s", byteArray[0]);
+        LOGV("bus_write byteArray:%s", byteArray[0]);
         env->ReleaseByteArrayElements(byteArray, data, JNI_ABORT);
-        LOGE("bus_write data:%d reg_data_ptr:%d", data[0], reg_data_ptr[0]);
+        LOGV("bus_write data:%d reg_data_ptr:%d", data[0], reg_data_ptr[0]);
 
     } else {
         LOGE("bus_write GetByteArrayElements Error");
@@ -87,12 +87,12 @@ int8_t bus_write(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data_ptr, uint
 
     jmethodID writeRegister = (*env).GetMethodID(g_ctx.jniNativeBsecClz,
                                                  "writeRegister", "(I[BI)I");
-    LOGE("bus_write writeRegister:%s", writeRegister);
+    LOGV("bus_write writeRegister:%s", writeRegister);
 
     //env->GetByteArrayRegion(byteArray, 0, data_len, reg_data_ptr)
     int result = env->CallIntMethod(g_ctx.jniNativeBsecObj, writeRegister, reg_addr, byteArray,
                                     data_len);
-    LOGE("bus_write result:%d", result);
+    LOGV("bus_write result:%d", result);
     return result;
 }
 
@@ -107,7 +107,7 @@ int8_t bus_write(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data_ptr, uint
  * @return          result of the bus communication function
  */
 int8_t bus_read(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data_ptr, uint16_t data_len) {
-    LOGE("bus_read dev_addr:%d reg_addr:%d data_len:%d", dev_addr, reg_addr, data_len);
+    LOGV("bus_read dev_addr:%d reg_addr:%d data_len:%d", dev_addr, reg_addr, data_len);
     if (g_ctx.done) {
         LOGE("bus_read sensor is finished");
         return 0;
@@ -129,30 +129,30 @@ int8_t bus_read(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data_ptr, uint1
 
     jbyteArray byteArray = env->NewByteArray(data_len);
 
-    LOGE("bus_read byteArray:%d", byteArray[0]);
+    LOGV("bus_read byteArray:%d", byteArray[0]);
     int result = env->CallIntMethod(g_ctx.jniNativeBsecObj, readRegister, reg_addr, byteArray,
                                     data_len);
 
-    LOGE("bus_read byteArray:%d", byteArray[0]);
+    LOGV("bus_read byteArray:%d", byteArray[0]);
 
     jbyte *data = env->GetByteArrayElements(byteArray, nullptr);
 
 
     if (data != nullptr) {
-        LOGE("bus_read data:%d", data[0]);
+        LOGV("bus_read data:%d", data[0]);
         memcpy(reg_data_ptr, data, data_len);
-        LOGE("bus_read reg_data_ptr:%d data:%d", reg_data_ptr[0], data[0]);
+        LOGV("bus_read reg_data_ptr:%d data:%d", reg_data_ptr[0], data[0]);
         env->GetByteArrayRegion(byteArray, 0, data_len, data);
 
         env->ReleaseByteArrayElements(byteArray, data, JNI_ABORT);
 
-        LOGE("bus_read data:%d", data[0]);
+        LOGV("bus_read data:%d", data[0]);
     } else {
         LOGE("bus_read GetByteArrayElements Error");
         return -1;
     }
 
-    LOGE("bus_read reg_data_ptr:%d", reg_data_ptr[0]);
+    LOGV("bus_read reg_data_ptr:%d", reg_data_ptr[0]);
     //env->GetByteArrayRegion(byteArray, 0, data_len, reg_data_ptr)
     return result;
 }
@@ -165,7 +165,7 @@ int8_t bus_read(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data_ptr, uint1
  * @return          none
  */
 void sleep(uint32_t t_ms) {
-    LOGE("sleep t_ms:%d", t_ms);
+    LOGV("sleep t_ms:%d", t_ms);
     if (g_ctx.done) {
         LOGE("sleep sensor is finished");
         return;
@@ -200,7 +200,7 @@ int64_t get_timestamp_us() {
     system_current_time =
             1000000.0 * current_time_spec.tv_sec + (double) current_time_spec.tv_nsec / 1e3;
 
-    LOGE("get_timestamp_us :%lld", system_current_time);
+    LOGV("get_timestamp_us :%lld", system_current_time);
     return system_current_time;
 }
 
@@ -227,7 +227,7 @@ output_ready(int64_t timestamp, float iaq, uint8_t iaq_accuracy, float temperatu
              float co2_equivalent, uint8_t co2_accuracy, float breath_voc_equivalent,
              uint8_t breath_voc_accuracy, float comp_gas_value, uint8_t comp_gas_accuracy,
              float gas_percentage, uint8_t gas_percentage_accuracy) {
-    LOGE("output_ready timestamp :%lld bsec_library_return_t:%d", timestamp, bsec_status);
+    LOGV("output_ready timestamp :%lld bsec_library_return_t:%d", timestamp, bsec_status);
     // Please insert system specific code to further process or display the BSEC outputs
 
     JavaVM *javaVM = g_ctx.javaVM;
@@ -259,7 +259,7 @@ output_ready(int64_t timestamp, float iaq, uint8_t iaq_accuracy, float temperatu
  * @return          number of bytes copied to state_buffer
  */
 uint32_t state_load(uint8_t *state_buffer, uint32_t n_buffer) {
-    LOGE("state_load n_buffer :%d", n_buffer);
+    LOGI("state_load n_buffer :%d", n_buffer);
     if (g_ctx.done) {
         LOGE("state_load sensor is finished");
         return 0;
@@ -284,26 +284,26 @@ uint32_t state_load(uint8_t *state_buffer, uint32_t n_buffer) {
 
     jbyteArray byteArray = env->NewByteArray(n_buffer);
 
-    LOGE("state_load byteArray:%d", byteArray[0]);
+    LOGV("state_load byteArray:%d", byteArray[0]);
     int loadCount = env->CallIntMethod(g_ctx.jniNativeBsecObj, stateLoad, byteArray, n_buffer);
-    LOGE("state_load byteArray:%d loadCount:%d", byteArray[0], loadCount);
+    LOGV("state_load byteArray:%d loadCount:%d", byteArray[0], loadCount);
 
     jbyte *data = env->GetByteArrayElements(byteArray, nullptr);
 
     if (data != nullptr) {
-        LOGE("state_load data:%d", data[0]);
+        LOGV("state_load data:%d", data[0]);
         memcpy(state_buffer, data, loadCount);
-        LOGE("state_load state_buffer:%d data:%d", state_buffer[0], data[0]);
+        LOGV("state_load state_buffer:%d data:%d", state_buffer[0], data[0]);
         env->GetByteArrayRegion(byteArray, 0, loadCount, data);
 
         env->ReleaseByteArrayElements(byteArray, data, JNI_ABORT);
-        LOGE("state_load data:%d", data[0]);
+        LOGV("state_load data:%d", data[0]);
     } else {
         LOGE("state_load GetByteArrayElements Error");
         return 0;
     }
 
-    LOGE("state_load state_buffer:%d", state_buffer[0]);
+    LOGV("state_load state_buffer:%d", state_buffer[0]);
     //env->GetByteArrayRegion(byteArray, 0, data_len, reg_data_ptr)
     return loadCount;
 }
@@ -317,7 +317,7 @@ uint32_t state_load(uint8_t *state_buffer, uint32_t n_buffer) {
  * @return          none
  */
 void state_save(const uint8_t *state_buffer, uint32_t length) {
-    LOGE("state_save length :%d", length);
+    LOGI("state_save length :%d", length);
     if (g_ctx.done) {
         LOGE("state_load sensor is finished");
         return;
@@ -334,21 +334,21 @@ void state_save(const uint8_t *state_buffer, uint32_t length) {
             return;
         }
     }
-    LOGE("state_save state_buffer:%d", state_buffer[0]);
+    LOGV("state_save state_buffer:%d", state_buffer[0]);
     jbyteArray byteArray = env->NewByteArray(length);
 
     jbyte *data = env->GetByteArrayElements(byteArray, nullptr);
 
     if (data != nullptr) {
-        LOGE("state_save data:%d", data[0]);
+        LOGV("state_save data:%d", data[0]);
         memcpy(data, state_buffer, length);
-        LOGE("state_save data:%d", data[0]);
+        LOGV("state_save data:%d", data[0]);
 
         env->SetByteArrayRegion(byteArray, 0, length, data);
 
-        LOGE("state_save byteArray:%s", byteArray[0]);
+        LOGV("state_save byteArray:%s", byteArray[0]);
         env->ReleaseByteArrayElements(byteArray, data, JNI_ABORT);
-        LOGE("state_save data:%d state_buffer:%d", data[0], state_buffer[0]);
+        LOGV("state_save data:%d state_buffer:%d", data[0], state_buffer[0]);
 
     } else {
         LOGE("state_save GetByteArrayElements Error");
@@ -372,7 +372,7 @@ void state_save(const uint8_t *state_buffer, uint32_t length) {
  * @return          number of bytes copied to config_buffer
  */
 uint32_t config_load(uint8_t *config_buffer, uint32_t n_buffer) {
-    LOGE("config_load n_buffer :%d", n_buffer);
+    LOGI("config_load n_buffer :%d", n_buffer);
     if (g_ctx.done) {
         LOGE("config_load sensor is finished");
         return 0;

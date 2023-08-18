@@ -5,35 +5,35 @@ ext {
     minSdkVersionThings = 27
 
     // Languages
-    kotlinVersion = '1.5.31'
+    kotlinVersion = '1.6.21'
 
-    kotlinxCoroutinesAndroid = '1.5.0'
-    kotlinxCoroutinesReactive = '1.5.0'
+    kotlinxCoroutinesAndroid = '1.6.3'
+    kotlinxCoroutinesReactive = '1.6.3'
 
     // ClassPath
-    gradlePluginVersion = '7.0.3'
-    googleServicesClassVersion = '4.3.5'
+    gradlePluginVersion = '7.2.1'
+    googleServicesClassVersion = '4.3.10'
 
     // Google
     playServicesVersion = '17.6.0'
-    playServicesNearbyVersion = '18.0.0'
+    playServicesNearbyVersion = '18.2.0'
 
-    firebaseBom = '28.4.1'
+    firebaseBom = '30.1.0'
 
-    androidxAppcompatVersion = '1.3.1'
-    androidxConstraintLayoutVersion = '2.1.1'
-    androidxPreferenceVersion = '1.1.1'
-    androidxCoreKtx = '1.7.0'
+    androidxAppcompatVersion = '1.4.2'
+    androidxConstraintLayoutVersion = '2.1.4'
+    androidxPreferenceVersion = '1.2.0'
+    androidxCoreKtx = '1.8.0'
     androidxSecurityCrypto = '1.1.0-alpha03'
     androidxLegacySupportV4 = '1.0.0'
-    androidxAnnotationVersion = '1.2.0'
-    lifecycleKtxVersion = '2.4.0'
+    androidxAnnotationVersion = '1.4.0'
+    lifecycleKtxVersion = '2.4.1'
 
-    androidMaterialVesrion = '1.4.0'
+    androidMaterialVesrion = '1.6.1'
     supportLibraryVersion = '28.0.0'
     contraintLayoutVersion = '1.1.3'
     androidArchComponentsVersion = '1.1.1'
-    navigationVersion = '2.3.5'
+    navigationVersion = '2.4.2'
 
     // Things
     rainbowhatVersion = '1.0'

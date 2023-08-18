@@ -14,6 +14,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.nearby.NearbyServiceProvider
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorageImpl
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.*
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.settings.HomeSettingsViewModel
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.settings.LoginSettingsViewModel
@@ -29,11 +30,18 @@ val myModule: Module = module {
     viewModel { RoomListViewModel(get(), get()) }
     viewModel { TaskListViewModel(get(), get()) }
     viewModel { NewRoomDialogViewModel(androidApplication(), get()) }
+    viewModel { HomeUnitTypeChooserDialogViewModel() }
     viewModel { (roomName: String) -> RoomDetailViewModel(get(), roomName) }
-    viewModel { (roomName: String, homeUnitName: String, homeUnitType: String) ->
-        HomeUnitDetailViewModel(androidApplication(), get(), roomName, homeUnitName, homeUnitType)
+    viewModel { (roomName: String?, homeUnitName: String?, homeUnitType: HomeUnitType) ->
+        HomeUnitGenericDetailViewModel(androidApplication(), get(), roomName, homeUnitName, homeUnitType)
     }
-    viewModel { (taskName: String, homeUnitName: String, homeUnitType: String) ->
+    viewModel { (roomName: String?, homeUnitName: String?) ->
+        HomeUnitLightSwitchDetailViewModel(androidApplication(), get(), roomName, homeUnitName)
+    }
+    viewModel { (roomName: String?, homeUnitName: String?) ->
+        HomeUnitWaterCirculationDetailViewModel(androidApplication(), get(), roomName, homeUnitName)
+    }
+    viewModel { (taskName: String?, homeUnitName: String, homeUnitType: HomeUnitType) ->
         UnitTaskViewModel(get(), taskName, homeUnitName, homeUnitType)
     }
     viewModel { (wifiManager: WifiManager, connectivityManager: ConnectivityManager) ->
@@ -46,6 +54,7 @@ val myModule: Module = module {
     viewModel { HwUnitListViewModel(get()) }
     viewModel { HwUnitErrorEventListViewModel(get()) }
     viewModel { LogsViewModel(get()) }
+    viewModel { ThingsAppLogsViewModel(get(), get()) }
 
     single { FirebaseHomeInformationRepository() }
     single<SecureStorage> { SecureStorageImpl(androidApplication(), get()) }

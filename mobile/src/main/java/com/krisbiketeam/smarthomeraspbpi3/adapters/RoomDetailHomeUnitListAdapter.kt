@@ -8,7 +8,9 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_LIGHT_SWITCHES
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.LightSwitchHomeUnit
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.WaterCirculationHomeUnit
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.LAST_TRIGGER_SOURCE_ROOM_HOME_UNITS_LIST
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentRoomDetailListItemBinding
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomDetailFragmentDirections
@@ -37,7 +39,21 @@ class RoomDetailHomeUnitListAdapter(private val homeInformationRepository: Fireb
     private fun createOnClickListener(item: HomeUnit<Any>): View.OnClickListener {
         return View.OnClickListener { view ->
             Timber.d("onClick item: $item")
-            val direction = RoomDetailFragmentDirections.actionRoomDetailFragmentToHomeUnitDetailFragment(item.room, item.name, item.type)
+            val direction = when (item.type) {
+                HomeUnitType.HOME_LIGHT_SWITCHES -> RoomDetailFragmentDirections.actionRoomDetailFragmentToHomeUnitLightSwitchDetailFragment(
+                    item.room,
+                    item.name
+                )
+                HomeUnitType.HOME_WATER_CIRCULATION -> RoomDetailFragmentDirections.actionRoomDetailFragmentToHomeUnitWaterCirculationDetailFragment(
+                    item.room,
+                    item.name
+                )
+                else -> RoomDetailFragmentDirections.actionRoomDetailFragmentToHomeUnitGenericDetailFragment(
+                    item.room,
+                    item.name,
+                    item.type
+                )
+            }
             view.findNavController().navigate(direction)
         }
     }
@@ -52,15 +68,22 @@ class RoomDetailHomeUnitListAdapter(private val homeInformationRepository: Fireb
                 clickListener = listener
                 homeUnit = item
                 lastUpdateTime = getLastUpdateTime(root.context, item.lastUpdateTime)
-                secondLastUpdateTime = if (item.type == HOME_LIGHT_SWITCHES) {
-                    getLastUpdateTime(root.context, item.secondLastUpdateTime)
-                } else {
-                    null
-                }
+                // TODO Add handling of other type of HomeUnits (LightSwitchhomeUnit etc...
+                //  add some other types of ViewHolder for them)
+                secondLastUpdateTime =
+                    if (item.type == HomeUnitType.HOME_LIGHT_SWITCHES && item is LightSwitchHomeUnit) {
+                        getLastUpdateTime(root.context, item.switchLastUpdateTime)
+                    } else if (item.type == HomeUnitType.HOME_WATER_CIRCULATION && item is WaterCirculationHomeUnit) {
+                        getLastUpdateTime(root.context, item.motionLastUpdateTime)
+                    } else {
+                        null
+                    }
                 value = if(item.value is Double || item.value is Float) {
                     String.format("%.2f", item.value)
-                } else if(item.type == HOME_LIGHT_SWITCHES) {
-                    item.secondValue.toString()
+                } else if(item.type == HomeUnitType.HOME_LIGHT_SWITCHES && item is LightSwitchHomeUnit) {
+                    item.switchValue.toString()
+                } else if(item.type == HomeUnitType.HOME_WATER_CIRCULATION && item is WaterCirculationHomeUnit) {
+                    item.motionValue.toString()
                 } else{
                     item.value.toString()
                 }

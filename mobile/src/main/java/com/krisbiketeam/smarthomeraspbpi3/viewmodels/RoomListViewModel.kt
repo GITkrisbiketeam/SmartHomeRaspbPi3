@@ -3,7 +3,7 @@ package com.krisbiketeam.smarthomeraspbpi3.viewmodels
 import androidx.lifecycle.ViewModel
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_TEMPERATURES
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
 import com.krisbiketeam.smarthomeraspbpi3.model.RoomListAdapterModel
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomListFragment
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -21,7 +21,7 @@ class RoomListViewModel(private val homeRepository: FirebaseHomeInformationRepos
 
     @ExperimentalCoroutinesApi
     val roomWithHomeUnitsListFromFlow: Flow<List<RoomListAdapterModel>> = secureStorage.homeNameFlow.flatMapLatest {
-        Timber.e("secureStorage.homeNameLiveData")
+        Timber.e("secureStorage.homeNameFlow")
         combine(homeRepository.roomListFlow(), homeRepository.homeUnitListFlow().debounce(100), homeRepository.hwUnitErrorEventListFlow(), homeRepository.roomListOrderFlow()) { roomList, homeUnitsList, hwUnitErrorEventList, itemsOrder ->
             Timber.e("roomListAdapterModelMap")
             val roomListAdapterModelMap: MutableMap<String, RoomListAdapterModel> = roomList.associate {
@@ -31,7 +31,7 @@ class RoomListViewModel(private val homeRepository: FirebaseHomeInformationRepos
             homeUnitsList.forEach {
                 if (roomListAdapterModelMap.containsKey(it.room)) {
                     // set Given room Temperature if present
-                    if (it.type == HOME_TEMPERATURES) {
+                    if (it.type == HomeUnitType.HOME_TEMPERATURES) {
                         roomListAdapterModelMap[it.room]?.homeUnit = it
                     }
                     roomListAdapterModelMap[it.room]?.error =
@@ -52,7 +52,7 @@ class RoomListViewModel(private val homeRepository: FirebaseHomeInformationRepos
                 // save new updated order
                 apply {
                     val newItemsOrder = this.mapNotNull { model ->
-                        model.room?.name ?: model.homeUnit?.let { it.type + '.' + it.name }
+                        model.room?.name ?: model.homeUnit?.let { it.type.toString() + '.' + it.name }
                     }
                     if (newItemsOrder != localItemsOrder) {
                         localItemsOrder = newItemsOrder

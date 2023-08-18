@@ -8,6 +8,7 @@ import android.widget.ListView
 import android.widget.TextView
 import androidx.appcompat.widget.AppCompatImageView
 import com.krisbiketeam.smarthomeraspbpi3.R
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
 
 class AutoCompleteAdapter(context: Context, entries: List<Any>, private val entriesUsed: Boolean = false, withEmpty: Boolean = false) :
         ArrayAdapter<Any>(context, if (entriesUsed) {
@@ -19,6 +20,7 @@ class AutoCompleteAdapter(context: Context, entries: List<Any>, private val entr
                 when {
                     all { it is String } -> add(0, "")
                     all { it is Int } -> add(0, "")
+                    all { it is HomeUnitType } -> add(0, "")
                     all { it is Pair<*, *> } -> add(0, Pair("", false))
                 }
             }

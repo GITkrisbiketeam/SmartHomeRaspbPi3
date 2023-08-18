@@ -5,8 +5,8 @@ import android.view.*
 import androidx.core.os.bundleOf
 import androidx.core.util.Pair
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import com.github.mikephil.charting.charts.Chart
 import com.github.mikephil.charting.components.AxisBase
 import com.github.mikephil.charting.formatter.ValueFormatter
@@ -21,8 +21,10 @@ import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentLogsBinding
 import com.krisbiketeam.smarthomeraspbpi3.utils.toLogsFloat
 import com.krisbiketeam.smarthomeraspbpi3.utils.toLogsLong
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.LogsViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -65,17 +67,9 @@ class LogsFragment : androidx.fragment.app.Fragment() {
             invalidate()
         }
 
-        lifecycleScope.launch {
-            lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                launch {
-                    subscribeLogsData(binding.fragmentLogsLineChart)
-                }
+        subscribeLogsData(binding.fragmentLogsLineChart)
 
-                launch {
-                    subscribeFilterMenuItems()
-                }
-            }
-        }
+        subscribeFilterMenuItems()
 
         setHasOptionsMenu(true)
 
@@ -104,7 +98,6 @@ class LogsFragment : androidx.fragment.app.Fragment() {
 
             }
         }
-
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -117,26 +110,37 @@ class LogsFragment : androidx.fragment.app.Fragment() {
                 openDateRangePicker()
                 true
             }
-            else -> if (logsViewModel.addFilter(item.itemId)) true else super.onOptionsItemSelected(item)
+            else -> when {
+                logsViewModel.addFilter(item.itemId) -> {
+                    true
+                }
+                else -> {
+                    super.onOptionsItemSelected(item)
+                }
+            }
         }
     }
 
     @ExperimentalCoroutinesApi
-    private suspend fun subscribeFilterMenuItems() {
-        logsViewModel.menuItemHwUnitListFlow.collect {
-            Timber.d("subscribeFilterMenuItems  size:${it.size}")
-            activity?.invalidateOptionsMenu()
+    private fun subscribeFilterMenuItems() {
+        lifecycleScope.launch {
+            logsViewModel.menuItemHwUnitListFlow.flowWithLifecycle(lifecycle, Lifecycle.State.RESUMED).flowOn(Dispatchers.IO).collect {
+                Timber.d("subscribeFilterMenuItems  size:${it.size}")
+                activity?.invalidateOptionsMenu()
+            }
         }
     }
 
     @ExperimentalCoroutinesApi
-    private suspend fun subscribeLogsData(combinedChart: Chart<*>) {
-        logsViewModel.logsData.collect { lineData ->
-            Timber.d("subscribeLogsData lineData: $lineData")
-            combinedChart.data = lineData
-            combinedChart.xAxis.axisMinimum = lineData.xMin.toLogsLong().getOnlyDateLocalTime().toLogsFloat()
-            combinedChart.xAxis.axisMaximum = (lineData.xMax.toLogsLong().getOnlyDateLocalTime() + FULL_DAY_IN_MILLIS).toLogsFloat()
-            combinedChart.invalidate() // refresh
+    private fun subscribeLogsData(combinedChart: Chart<*>) {
+        lifecycleScope.launch {
+            logsViewModel.logsData.flowWithLifecycle(lifecycle, Lifecycle.State.RESUMED).flowOn(Dispatchers.IO).collect { lineData ->
+                Timber.d("subscribeLogsData lineData: $lineData")
+                combinedChart.data = lineData
+                combinedChart.xAxis.axisMinimum = lineData.xMin.toLogsLong().getOnlyDateLocalTime().toLogsFloat()
+                combinedChart.xAxis.axisMaximum = (lineData.xMax.toLogsLong().getOnlyDateLocalTime() + FULL_DAY_IN_MILLIS).toLogsFloat()
+                combinedChart.invalidate() // refresh
+            }
         }
     }
 
