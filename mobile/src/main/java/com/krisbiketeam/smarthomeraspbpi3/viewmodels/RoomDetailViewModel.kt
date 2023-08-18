@@ -7,7 +7,7 @@ import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.Room
-import com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitDetailFragment
+import com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitGenericDetailFragment
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomDetailFragment
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -39,15 +39,15 @@ class RoomDetailViewModel(
         combine(homeRepository.homeUnitListFlow().debounce(100), homeUnitsOrderStateFlow, room.map { it?.unitsOrder?: emptyList() }) { homeUnitList, newOrderList, existingOrderList ->
             Timber.e("homeUnitsMap Flow")
             val orderList = if (newOrderList.isNullOrEmpty()) existingOrderList else newOrderList
-            val map: MutableMap<String, HomeUnit<Any>?> = orderList.associateWithTo(LinkedHashMap(orderList.size), { null })
+            val map: MutableMap<String, HomeUnit<Any>?> = orderList.associateWithTo(LinkedHashMap(orderList.size)) { null }
             homeUnitList.forEach {
                 if (it.room == room.value?.name) {
-                    Timber.e("homeUnitsMap Flow filter")
-                    map[it.type + '.' + it.name] = it
+                    //Timber.e("homeUnitsMap Flow filter")
+                    map[it.type.toString() + '.' + it.name] = it
                 }
             }
             map.values.filterNotNull().also { unitsList ->
-                val newOrder = unitsList.map { it.type + '.' + it.name }
+                val newOrder = unitsList.map { it.type.toString() + '.' + it.name }
                 if (newOrder != orderList || newOrderList.isNullOrEmpty()) {
                     homeUnitsOrderStateFlow.value = newOrder
                 }
@@ -74,7 +74,7 @@ class RoomDetailViewModel(
     }
 
     /**
-     * return true if we want to exit [HomeUnitDetailFragment]
+     * return true if we want to exit [HomeUnitGenericDetailFragment]
      */
     fun actionDiscard() {
         isEditMode.value = false

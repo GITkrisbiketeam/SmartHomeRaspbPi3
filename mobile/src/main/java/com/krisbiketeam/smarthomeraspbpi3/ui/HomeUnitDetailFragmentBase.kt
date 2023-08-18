@@ -10,39 +10,28 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
-import androidx.navigation.fragment.navArgs
 import androidx.transition.Fade
 import androidx.transition.TransitionManager
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_LIGHT_SWITCHES
-import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentHomeUnitDetailBinding
-import com.krisbiketeam.smarthomeraspbpi3.viewmodels.HomeUnitDetailViewModel
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
+import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentHomeUnitDetailBaseBinding
+import com.krisbiketeam.smarthomeraspbpi3.viewmodels.HomeUnitDetailViewModelBase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
-import org.koin.androidx.viewmodel.ext.android.viewModel
-import org.koin.core.parameter.parametersOf
 import timber.log.Timber
 
 @ExperimentalCoroutinesApi
-class HomeUnitDetailFragment : Fragment() {
+abstract class HomeUnitDetailFragmentBase<T : HomeUnit<Any>> : Fragment() {
 
-    private val args: HomeUnitDetailFragmentArgs by navArgs()
+    abstract val homeUnitDetailViewModel: HomeUnitDetailViewModelBase<T>
 
-    private var rootBinding: FragmentHomeUnitDetailBinding? = null
-
-    private val homeUnitDetailViewModel: HomeUnitDetailViewModel by viewModel {
-        parametersOf(
-                arguments?.let { args.roomName } ?: "",
-                arguments?.let { args.homeUnitName } ?: "",
-                arguments?.let { args.homeUnitType } ?: "")
-    }
+    private var rootBinding: FragmentHomeUnitDetailBaseBinding? = null
 
     private val analytics: Analytics by inject()
 
@@ -51,12 +40,15 @@ class HomeUnitDetailFragment : Fragment() {
             container: ViewGroup?,
             savedInstanceState: Bundle?
     ): View {
-        val binding = DataBindingUtil.inflate<FragmentHomeUnitDetailBinding>(
-                inflater, R.layout.fragment_home_unit_detail, container, false).apply {
+        val binding = DataBindingUtil.inflate<FragmentHomeUnitDetailBaseBinding>(
+                inflater, R.layout.fragment_home_unit_detail_base, container, false).apply {
             viewModel = homeUnitDetailViewModel
             lifecycleOwner = viewLifecycleOwner
 
             setHasOptionsMenu(true)
+
+            bindAdditionalValueFields(inflater, container)?.run(homeUnitGenericAdditionalValueFields::addView)
+            bindAdditionalHwUnits(inflater, container)?.run(homeUnitGenericAdditionalHwUnits::addView)
 
             rootBinding = this
         }
@@ -75,17 +67,24 @@ class HomeUnitDetailFragment : Fragment() {
                 Timber.d("onCreateView unitTaskList Observer taskListMap: $taskListMap")
                 // Update UnitTask list
                 // Do not show default HOME_LIGHT_SWITCHES UnitTask (with UnitTask name same as HomeUnit name) responsible for linking two hwUnits
-                homeUnitDetailViewModel.unitTaskListAdapter.submitList(taskListMap.values.filterNot { args.homeUnitType == HOME_LIGHT_SWITCHES && it.name == args.homeUnitName })
+                homeUnitDetailViewModel.unitTaskListAdapter.submitList(taskListMap.values.toList())
             }
         }
 
         analytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW, bundleOf(
                 FirebaseAnalytics.Param.SCREEN_NAME to this::class.simpleName,
-                FirebaseAnalytics.Param.ITEM_NAME to args.roomName
+                FirebaseAnalytics.Param.ITEM_NAME to homeUnitDetailViewModel.room.value
         ))
 
         return binding.root
     }
+
+
+    abstract fun bindAdditionalValueFields(inflater: LayoutInflater, container: ViewGroup?): View?
+
+    abstract fun bindAdditionalHwUnits(inflater: LayoutInflater, container: ViewGroup?): View?
+
+    abstract fun navigateToddEditHwUnitFragment(hwUnitName:String)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -94,7 +93,7 @@ class HomeUnitDetailFragment : Fragment() {
             hwUnitNameSpinner.setOnLongClickListener {
                 val hwUnitName = homeUnitDetailViewModel.hwUnitName.value
                 if (hwUnitName != null && homeUnitDetailViewModel.isEditMode.value) {
-                    findNavController().navigate(HomeUnitDetailFragmentDirections.actionHomeUnitDetailFragmentToAddEditHwUnitFragment(hwUnitName))
+                    navigateToddEditHwUnitFragment(hwUnitName)
                     true
                 } else {
                     false
@@ -103,32 +102,8 @@ class HomeUnitDetailFragment : Fragment() {
             hwUnitNameSpinner.setOnClickListener {
                 val hwUnitName = homeUnitDetailViewModel.hwUnitName.value
                 if (hwUnitName != null && !homeUnitDetailViewModel.isEditMode.value) {
-                    findNavController().navigate(HomeUnitDetailFragmentDirections.actionHomeUnitDetailFragmentToAddEditHwUnitFragment(hwUnitName))
+                    navigateToddEditHwUnitFragment(hwUnitName)
                 }
-            }
-            secondHwUnitNameSpinner.setOnLongClickListener {
-                val hwUnitName = homeUnitDetailViewModel.secondHwUnitName.value
-                if (hwUnitName != null && homeUnitDetailViewModel.isEditMode.value) {
-                    findNavController().navigate(HomeUnitDetailFragmentDirections.actionHomeUnitDetailFragmentToAddEditHwUnitFragment(hwUnitName))
-                    true
-                } else {
-                    false
-                }
-            }
-            secondHwUnitNameSpinner.setOnClickListener {
-                val hwUnitName = homeUnitDetailViewModel.secondHwUnitName.value
-                if (hwUnitName != null && !homeUnitDetailViewModel.isEditMode.value) {
-                    findNavController().navigate(HomeUnitDetailFragmentDirections.actionHomeUnitDetailFragmentToAddEditHwUnitFragment(hwUnitName))
-                }
-            }
-            homeUnitMinClearButton.setOnClickListener {
-                homeUnitDetailViewModel.clearMinValue()
-            }
-            homeUnitMaxClearButton.setOnClickListener {
-                homeUnitDetailViewModel.clearMaxValue()
-            }
-            homeUnitValueSwitch.setOnCheckedChangeListener { _, isChecked ->
-                homeUnitDetailViewModel.setValueFromSwitch(isChecked)
             }
         }
     }
@@ -149,10 +124,7 @@ class HomeUnitDetailFragment : Fragment() {
             true -> {
                 menu.findItem((R.id.action_discard))?.isVisible = true
                 menu.findItem((R.id.action_save))?.isVisible = true
-                menu.findItem((R.id.action_delete))?.isVisible =
-                        arguments?.let {
-                            args.homeUnitName.isNotEmpty()
-                        } ?: false
+                menu.findItem((R.id.action_delete))?.isVisible = homeUnitDetailViewModel.homeUnit != null
                 menu.findItem((R.id.action_edit))?.isVisible = false
             }
             else -> {

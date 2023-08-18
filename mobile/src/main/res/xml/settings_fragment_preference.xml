@@ -38,6 +38,13 @@
             android:title="@string/hw_unit_error_event_list_title"
             />
 
+    <Preference
+            android:fragment="com.krisbiketeam.smarthomeraspbpi3.ui.ThingsAppLogsFragment"
+            android:key="@string/settings_things_app_logs_fragment_key"
+            android:persistent="false"
+            android:title="@string/things_app_logs_title"
+            />
+
     <SwitchPreferenceCompat
             app:key="@string/settings_alarm_enabled_key"
             app:summaryOff="Alarm disabled"

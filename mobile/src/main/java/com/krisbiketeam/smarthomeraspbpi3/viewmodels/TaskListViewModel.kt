@@ -31,7 +31,7 @@ class TaskListViewModel(private val homeRepository: FirebaseHomeInformationRepos
     private var localItemsOrder: List<String> = listOf()
 
     val taskListFromFlow: Flow<List<TaskListAdapterModel>> = secureStorage.homeNameFlow.flatMapLatest {
-        Timber.e("secureStorage.homeNameLiveData")
+        Timber.e("secureStorage.homeNameFlow")
         combine(homeRepository.homeUnitListFlow().debounce(100), homeRepository.hwUnitErrorEventListFlow(), homeRepository.taskListOrderFlow()) { homeUnitsList, hwUnitErrorEventList, itemsOrder ->
             Timber.e("taskListAdapterModelMap")
             val taskListAdapterModelMap: MutableMap<String, TaskListAdapterModel> = mutableMapOf()
@@ -39,7 +39,7 @@ class TaskListViewModel(private val homeRepository: FirebaseHomeInformationRepos
             homeUnitsList.filter {
                 it.room.isEmpty() || it.hwUnitName.isNullOrEmpty() || it.showInTaskList
             }.forEach {
-                taskListAdapterModelMap[it.type + '.' + it.name] = TaskListAdapterModel(null, it, hwUnitErrorEventList.firstOrNull { hwUnitLog -> hwUnitLog.name == it.hwUnitName } != null)
+                taskListAdapterModelMap[it.type.toString() + '.' + it.name] = TaskListAdapterModel(null, it, hwUnitErrorEventList.firstOrNull { hwUnitLog -> hwUnitLog.name == it.hwUnitName } != null)
             }
 
             // save current RoomListOrder
@@ -55,7 +55,7 @@ class TaskListViewModel(private val homeRepository: FirebaseHomeInformationRepos
                 // save new updated order
                 apply {
                     val newItemsOrder = this.mapNotNull { model ->
-                        model.room?.name ?: model.homeUnit?.let { it.type + '.' + it.name }
+                        model.room?.name ?: model.homeUnit?.let { it.type.toString() + '.' + it.name }
                     }
                     if (newItemsOrder != localItemsOrder) {
                         localItemsOrder = newItemsOrder

@@ -7,6 +7,7 @@ import androidx.databinding.ViewDataBinding
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentRoomListItemWithHomeUnitCardBinding
 import com.krisbiketeam.smarthomeraspbpi3.model.RoomListAdapterModel
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomListFragment
@@ -38,8 +39,19 @@ class RoomWithHomeUnitListAdapter : ListAdapter<RoomListAdapterModel, RoomWithHo
             val direction = when {
                 item.room != null     -> RoomListFragmentDirections.actionRoomListFragmentToRoomDetailFragment(
                         item.room.name)
-                item.homeUnit != null -> RoomListFragmentDirections.actionRoomListFragmentToHomeUnitDetailFragment(
-                        "", item.homeUnit?.name ?: "", item.homeUnit?.type ?: "")
+                item.homeUnit != null -> item.homeUnit?.let { homeUnit ->
+                    when (homeUnit.type) {
+                        HomeUnitType.HOME_LIGHT_SWITCHES -> RoomListFragmentDirections.actionRoomListFragmentToHomeUnitLightSwitchDetailFragment(
+                            "", homeUnit.name
+                        )
+                        HomeUnitType.HOME_WATER_CIRCULATION -> RoomListFragmentDirections.actionRoomListFragmentToHomeUnitWaterCirculationDetailFragment(
+                            "", homeUnit.name
+                        )
+                        else -> RoomListFragmentDirections.actionRoomListFragmentToHomeUnitGenericDetailFragment(
+                            "", homeUnit.name, homeUnit.type
+                        )
+                    }
+                }
                 else                  -> null
             }
             direction?.let {

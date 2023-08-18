@@ -43,11 +43,19 @@ class Bme680BsecJNI(private val scope: CoroutineScope, private val secureStorage
         //mDeviceMutex.withLock {
         try {
             if (mDevice != null) {
+                // TODO to test hwUnit close loop
+                /*runBlocking(scope.coroutineContext) {
+                    withContext(Dispatchers.Main) {
+                        val array = ByteArray(42) { i -> i.toByte() }
+                        secureStorage.bme680State = array.copyOf()
+                    }
+                }*/
                 closeBme680JNI()
             }
+            Timber.d("close mDevice")
             mDevice?.close()
         } catch (e: Exception) {
-            throw Exception("Error closing Si7021", e)
+            throw Exception("Error closing BME680", e)
         } finally {
             mDevice = null
             Timber.d("close finished")
@@ -62,7 +70,7 @@ class Bme680BsecJNI(private val scope: CoroutineScope, private val secureStorage
     @ExperimentalUnsignedTypes
     @Keep
     fun readRegister(register: Int, regDataBuffer: ByteArray, dataLen: Int): Int {
-        Timber.w("readRegister ${regDataBuffer.toHex()}")
+        Timber.v("readRegister ${regDataBuffer.toHex()}")
         return try {
             runBlocking(scope.coroutineContext) {
                 //mDeviceMutex.withLock {
@@ -70,7 +78,7 @@ class Bme680BsecJNI(private val scope: CoroutineScope, private val secureStorage
                     withContext(Dispatchers.Main) {
                         try {
                             readRegBuffer(register, regDataBuffer, dataLen)
-                            Timber.w("readRegister register:0x${Integer.toHexString(register)} dataLen:$dataLen ${regDataBuffer.toHex()}")
+                            Timber.v("readRegister register:0x${Integer.toHexString(register)} dataLen:$dataLen ${regDataBuffer.toHex()}")
                             0 // OK
                         } catch (e: Exception) {
                             Timber.e("Error writeRegBuffer i2c register $register e:$e")
@@ -95,7 +103,7 @@ class Bme680BsecJNI(private val scope: CoroutineScope, private val secureStorage
             runBlocking(scope.coroutineContext) {
                 //mDeviceMutex.withLock {
                 mDevice?.run {
-                    Timber.w("writeRegister register:0x${Integer.toHexString(register)} dataLen:$dataLen ${regDataBuffer.toHex()}")
+                    Timber.v("writeRegister register:0x${Integer.toHexString(register)} dataLen:$dataLen ${regDataBuffer.toHex()}")
                     withContext(Dispatchers.Main) {
                         try {
                             writeRegBuffer(register, regDataBuffer, dataLen)
@@ -141,6 +149,7 @@ class Bme680BsecJNI(private val scope: CoroutineScope, private val secureStorage
                 withContext(Dispatchers.IO) {
                     secureStorage.bme680State.run {
                         copyInto(stateBuffer)
+                        Timber.w("stateLoad size:$size buffer:0x${stateBuffer.toHex()}")
                         size
                     }
                 }
@@ -181,7 +190,7 @@ class Bme680BsecJNI(private val scope: CoroutineScope, private val secureStorage
                     breathVocEquivalent: Float, breathVocEquivalentAccuracy: Int,
                     compGasValue: Float, compGasAccuracy: Int,
                     gasPercentage: Float, gasPercentageAccuracy: Int) {
-        Timber.w("outputReady timestamp:$timestamp\n" +
+        Timber.v("outputReady timestamp:$timestamp\n" +
                 "    iaq:$iaq\n" +
                 "    iaqAccuracy:$iaqAccuracy\n" +
                 "    temperature:$temperature\n" +
@@ -202,9 +211,10 @@ class Bme680BsecJNI(private val scope: CoroutineScope, private val secureStorage
                 "    gasPercentage:$gasPercentage\n" +
                 "    gasPercentageAccuracy:$gasPercentageAccuracy\n")
 
-        CoroutineScope(scope.coroutineContext).launch {
+
+        scope.launch {
             resultCallback(Bme680Data(timestamp, iaq, iaqAccuracy, temperature, humidity,
-                    pressure/100, rawTemperature, rawHumidity, gas, bsec_status, staticIaq,
+                    pressure/100, rawTemperature, rawHumidity, gas/1000, bsec_status, staticIaq,
                     staticIaqAccuracy, co2Equivalent, co2EquivalentAccuracy, breathVocEquivalent,
                     breathVocEquivalentAccuracy, compGasValue, compGasAccuracy, gasPercentage,
                     gasPercentageAccuracy))

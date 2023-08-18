@@ -352,20 +352,38 @@ class MCP9808(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS) : Aut
         return if (shutdownMode) {
             //disable shutdown
             shutdownMode = false
-            // Wait 250 ms for conversion to complete
-            delay(POWER_ON_CONVERSION_DELAY)
+            // Wait 250 ms for conversion to complete (110% ot typ time for reliability)
+            delay((POWER_ON_CONVERSION_DELAY * 1.1).toLong())
             // check if conversion finished by reading OS bit to '1'
-            val temp = readTemperature()
+            val temp = readThreeTimesAndGetMedian()
             Timber.d("readOneShotTemperature conversion finished temp? $temp")
             //TODO: find better solution as some external action can reset this flag
             //restore shutdown mode
             shutdownMode = true
             temp
         } else {
-            readTemperature()
+            readThreeTimesAndGetMedian()
         }
     }
 
+    private suspend fun readThreeTimesAndGetMedian(): Float? {
+        val temp1 = readTemperature()
+        // Wait 250 ms for conversion to complete (110% ot typ time for reliability)
+        delay((POWER_ON_CONVERSION_DELAY * 1.1).toLong())
+        val temp2 = readTemperature()
+        // Wait 250 ms for conversion to complete (110% ot typ time for reliability)
+        delay((POWER_ON_CONVERSION_DELAY * 1.1).toLong())
+        val temp3 = readTemperature()
+
+        val list: List<Float?> = listOf(temp1, temp2, temp3)
+        return list.filterNotNull().sorted().let {
+            if (it.isNotEmpty()) {
+                it[it.size / 2]
+            } else {
+                null
+            }
+        }
+    }
 
     /**
      * Reads 16 bits from the given address.

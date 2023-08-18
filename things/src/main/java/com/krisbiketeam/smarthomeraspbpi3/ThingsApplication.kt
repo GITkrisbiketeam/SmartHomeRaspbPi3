@@ -4,7 +4,8 @@ import android.app.Application
 import com.google.android.things.device.TimeManager
 import com.google.firebase.FirebaseApp
 import com.krisbiketeam.smarthomeraspbpi3.di.myModule
-import com.krisbiketeam.smarthomeraspbpi3.utils.ConsoleLoggerTree
+import com.krisbiketeam.smarthomeraspbpi3.utils.ConsoleAndCrashliticsLoggerTree
+import com.krisbiketeam.smarthomeraspbpi3.utils.FirebaseDBLoggerTree
 import kotlinx.coroutines.IO_PARALLELISM_PROPERTY_NAME
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
@@ -27,7 +28,8 @@ class ThingsApplication : Application() {
 
         FirebaseApp.initializeApp(this)
 
-        Timber.plant(ConsoleLoggerTree)
+        Timber.plant(ConsoleAndCrashliticsLoggerTree)
+        Timber.plant(FirebaseDBLoggerTree)
 
         startKoin {
             androidContext(this@ThingsApplication)
