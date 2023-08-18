@@ -275,11 +275,13 @@ class FirebaseHomeInformationRepository {
         return homePathReference?.let {
             Firebase.database.getReference("$it/$HOME_UNITS_BASE/$type/$name")
                     .let { reference ->
-                        reference.child(HOME_VAL).setValue(value).continueWithTask {
-                            reference.child(HOME_VAL_LAST_UPDATE).setValue(lastUpdateTime).continueWithTask {
-                                reference.child(HOME_LAST_TRIGGER_SOURCE).setValue(lastTriggerSource)
-                            }
-                        }
+                        reference.updateChildren(
+                            mapOf(
+                                HOME_VAL to value,
+                                HOME_VAL_LAST_UPDATE to lastUpdateTime,
+                                HOME_LAST_TRIGGER_SOURCE to lastTriggerSource
+                            )
+                        )
                     }
         }
     }
@@ -312,9 +314,12 @@ class FirebaseHomeInformationRepository {
     fun clearMinHomeUnitValue(homeUnit: HomeUnit<Any>): Task<Void>? {
         return homePathReference?.let {
             Firebase.database.getReference("$it/$HOME_UNITS_BASE/${homeUnit.type}/${homeUnit.name}").let { reference ->
-                reference.child(HOME_MIN_VAL_LAST_UPDATE).removeValue().continueWithTask {
-                    reference.child(HOME_MIN_VAL).removeValue()
-                }
+                reference.updateChildren(
+                    mapOf(
+                        HOME_MIN_VAL_LAST_UPDATE to null,
+                        HOME_MIN_VAL to null,
+                    )
+                )
             }
         }
     }
@@ -325,9 +330,12 @@ class FirebaseHomeInformationRepository {
     fun clearMaxHomeUnitValue(homeUnit: HomeUnit<Any>): Task<Void>? {
         return homePathReference?.let {
             Firebase.database.getReference("$it/$HOME_UNITS_BASE/${homeUnit.type}/${homeUnit.name}").let { reference ->
-                reference.child(HOME_MAX_VAL_LAST_UPDATE).removeValue().continueWithTask {
-                    reference.child(HOME_MAX_VAL).removeValue()
-                }
+                reference.updateChildren(
+                    mapOf(
+                        HOME_MAX_VAL_LAST_UPDATE to null,
+                        HOME_MAX_VAL to null,
+                    )
+                )
             }
         }
     }

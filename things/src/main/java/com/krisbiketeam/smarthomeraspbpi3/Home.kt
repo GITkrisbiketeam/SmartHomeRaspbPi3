@@ -214,7 +214,10 @@ class Home(
                                 Timber.d(
                                     "homeUnitsDataProcessor NODE_ACTION_CHANGED applyFunction for: $homeUnit newValue:$newValue"
                                 )
-                                homeUnit.applyFunction(newValue, booleanApplyAction)
+                                // applyFunction is suspending/blocking so need to launch new coroutine
+                                scope.launch(Dispatchers.IO) {
+                                    homeUnit.applyFunction(newValue, booleanApplyAction)
+                                }
 
                                 if (alarmEnabled && homeUnit.shouldFirebaseNotify(newValue)) {
                                     Timber.d(
@@ -275,7 +278,10 @@ class Home(
                         }
                     }
                     homeUnit.value?.let { value ->
-                        homeUnit.applyFunction(value, booleanApplyAction)
+                        // applyFunction is suspending/blocking so need to launch new coroutine
+                        scope.launch(Dispatchers.IO) {
+                            homeUnit.applyFunction(value, booleanApplyAction)
+                        }
                     }
                     homeUnitsList[homeUnit.type to homeUnit.name] = homeUnit
                 }
@@ -461,7 +467,10 @@ class Home(
 
                     val newValue = updatedHomeUnit.unitValue()
                     if (newValue != null) {
-                        updatedHomeUnit.applyFunction(newValue, booleanApplyAction)
+                        launch {
+                            // applyFunction is suspending/blocking so need to launch new coroutine
+                            updatedHomeUnit.applyFunction(newValue, booleanApplyAction)
+                        }
                     }
                     homeInformationRepository.saveHomeUnit(updatedHomeUnit)
                     if (alarmEnabled && updatedHomeUnit.shouldFirebaseNotify(newValue)) {
@@ -651,11 +660,9 @@ class Home(
                             lastUpdateTime = if (!applyData.periodicallyOnlyHw) taskHwUnit.hwUnitValue.valueUpdateTime else taskHomeUnit.lastUpdateTime,
                             lastTriggerSource = if (!applyData.periodicallyOnlyHw) "${LAST_TRIGGER_SOURCE_BOOLEAN_APPLY}_from_${applyData.sourceHomeUnitName}_home_unit_by_${applyData.taskName}_task" else taskHomeUnit.lastTriggerSource
                         ).also { updatedTaskHomeUnit ->
+                            homeUnitsList[applyData.taskHomeUnitType to applyData.taskHomeUnitName] =
+                                updatedTaskHomeUnit
                             if (!applyData.periodicallyOnlyHw) {
-                                updatedTaskHomeUnit.applyFunction(
-                                    applyData.newActionVal,
-                                    booleanApplyAction
-                                )
                                 homeInformationRepository.saveHomeUnit(updatedTaskHomeUnit)
                                 // Firebase will be notified by homeUnitsDataProcessor
                                 homeInformationRepository.logHwUnitEvent(
@@ -666,9 +673,10 @@ class Home(
                                         taskHwUnit.hwUnitValue.valueUpdateTime
                                     )
                                 )
-                            } else {
-                                homeUnitsList[applyData.taskHomeUnitType to applyData.taskHomeUnitName] =
-                                    updatedTaskHomeUnit
+                                /*updatedTaskHomeUnit.applyFunction(
+                                        applyData.newActionVal,
+                                        booleanApplyAction
+                                    )*/
                             }
 
                             Timber.d("booleanApplyAction after set HW Value updatedTaskHomeUnit: $updatedTaskHomeUnit")
