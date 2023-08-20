@@ -4,7 +4,6 @@ buildscript {
     apply from: 'versions.gradle'
     repositories {
         google()
-        jcenter()
         mavenCentral()
     }
     dependencies {
@@ -13,20 +12,11 @@ buildscript {
         classpath "com.google.gms:google-services:$googleServicesClassVersion"
         classpath "androidx.navigation:navigation-safe-args-gradle-plugin:$navigationVersion"
 
-        //classpath ('com.google.firebase:firebase-plugins:1.1.0') {
-        //    exclude group: 'com.google.guava', module: 'guava-jdk5'
-        //}
-
-        // NOTE: Do not place your application dependencies here; they belong
-        // in the individual module build.gradle files
-
         // Add the Crashlytics Gradle plugin (be sure to add version
         // 2.0.0 or later if you built your app with Android Studio 4.1).
         classpath 'com.google.firebase:firebase-crashlytics-gradle:2.9.4'
         // Add the dependency for the Performance Monitoring plugin
         classpath 'com.google.firebase:perf-plugin:1.4.2'  // Performance Monitoring plugin
-
-        classpath "io.insert-koin:koin-gradle-plugin:$koin_version"
     }
 }
 
