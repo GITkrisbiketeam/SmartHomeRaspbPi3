@@ -312,13 +312,13 @@ class FirebaseHomeInformationRepository {
     /**
      *  Clears givens @see[HomeUnit] min value from DB
      */
-    fun clearMinHomeUnitValue(homeUnit: HomeUnit<Any>): Task<Void>? {
+    fun clearMinHomeUnitValue(homeUnit: HomeUnit<Any>, minValName: String = HOME_MIN_VAL, minValTimeName: String = HOME_MIN_VAL_LAST_UPDATE): Task<Void>? {
         return homePathReference?.let {
             Firebase.database.getReference("$it/$HOME_UNITS_BASE/${homeUnit.type}/${homeUnit.name}").let { reference ->
                 reference.updateChildren(
                     mapOf(
-                        HOME_MIN_VAL_LAST_UPDATE to null,
-                        HOME_MIN_VAL to null,
+                        minValTimeName to null,
+                        minValName to null,
                     )
                 )
             }
@@ -328,13 +328,13 @@ class FirebaseHomeInformationRepository {
     /**
      *  Clears givens @see[HomeUnit] min value from DB
      */
-    fun clearMaxHomeUnitValue(homeUnit: HomeUnit<Any>): Task<Void>? {
+    fun clearMaxHomeUnitValue(homeUnit: HomeUnit<Any>, maxValName: String = HOME_MAX_VAL, maxValTimeName: String = HOME_MAX_VAL_LAST_UPDATE): Task<Void>? {
         return homePathReference?.let {
             Firebase.database.getReference("$it/$HOME_UNITS_BASE/${homeUnit.type}/${homeUnit.name}").let { reference ->
                 reference.updateChildren(
                     mapOf(
-                        HOME_MAX_VAL_LAST_UPDATE to null,
-                        HOME_MAX_VAL to null,
+                        maxValTimeName to null,
+                        maxValName to null,
                     )
                 )
             }

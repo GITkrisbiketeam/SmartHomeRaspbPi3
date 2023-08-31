@@ -7,6 +7,10 @@ import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.WaterCirculationHomeUnit
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_MAX_TEMPERATURE_VAL
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_MAX_TEMPERATURE_VAL_LAST_UPDATE
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_MIN_TEMPERATURE_VAL
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_MIN_TEMPERATURE_VAL_LAST_UPDATE
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.LAST_TRIGGER_SOURCE_HOME_UNIT_DETAILS
 import com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitLightSwitchDetailFragment
@@ -114,12 +118,14 @@ class HomeUnitWaterCirculationDetailViewModel(
 
     fun clearMinValue(): Task<Void>? {
         Timber.d("clearMinValue homeUnit: ${homeUnit?.value}")
-        return homeUnit?.value?.let(homeRepository::clearMinHomeUnitValue)
+        return homeUnit?.value?.let{
+            homeRepository.clearMinHomeUnitValue(it, HOME_MIN_TEMPERATURE_VAL, HOME_MIN_TEMPERATURE_VAL_LAST_UPDATE)
+        }
     }
 
     fun clearMaxValue(): Task<Void>? {
         Timber.d("clearMaxValue homeUnit: ${homeUnit?.value}")
-        return homeUnit?.value?.let(homeRepository::clearMaxHomeUnitValue)
+        return homeUnit?.value?.let { homeRepository.clearMaxHomeUnitValue(it, HOME_MAX_TEMPERATURE_VAL, HOME_MAX_TEMPERATURE_VAL_LAST_UPDATE) }
     }
 
     fun setValueFromSwitch(isChecked: Boolean): Task<Void>? {
