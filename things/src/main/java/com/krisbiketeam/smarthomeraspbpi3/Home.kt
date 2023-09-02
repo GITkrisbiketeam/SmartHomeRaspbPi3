@@ -648,7 +648,8 @@ class Home(
             hwUnitsList[taskHomeUnit.hwUnitName]?.let { taskHwUnit ->
                 Timber.d("booleanApplyAction taskHwUnit: ${taskHwUnit.hwUnit} unitValue:${taskHwUnit.hwUnitValue}")
                 if (taskHwUnit is Actuator && taskHwUnit.hwUnitValue.unitValue is Boolean?) {
-                    if (taskHomeUnit.value != applyData.newActionVal) {
+                    if (taskHomeUnit.value != applyData.newActionVal
+                        || taskHwUnit.hwUnitValue.unitValue != applyData.newActionVal) {
                         Timber.i("booleanApplyAction taskHwUnit setValue value: ${applyData.newActionVal} periodicallyOnlyHw: ${applyData.periodicallyOnlyHw}")
                         taskHwUnit.setValueWithException(
                             applyData.newActionVal,
