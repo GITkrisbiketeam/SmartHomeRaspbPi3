@@ -1,13 +1,13 @@
 package com.krisbiketeam.smarthomeraspbpi3.ui
 
+import android.annotation.SuppressLint
 import android.app.AlarmManager
 import android.app.PendingIntent
+import android.bluetooth.BluetoothAdapter
 import android.content.Context
 import android.content.Intent
-import android.net.wifi.WifiConfiguration
-import android.net.wifi.WifiManager
+import android.net.ConnectivityManager
 import android.os.Bundle
-import android.text.format.Formatter
 import android.view.KeyEvent
 import android.view.KeyEvent.*
 import androidx.appcompat.app.AppCompatActivity
@@ -67,7 +67,9 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
     private val secureStorage: SecureStorage by inject()
     private val homeInformationRepository: FirebaseHomeInformationRepository by inject()
     private lateinit var networkConnectionMonitor: NetworkConnectionMonitor
-    private lateinit var wifiManager: WifiManager
+    //private lateinit var wifiManager: WifiManager
+    private lateinit var connectivityManager: ConnectivityManager
+
     private lateinit var alarmManager: AlarmManager
 
     private val analytics: Analytics by inject()
@@ -160,10 +162,14 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
     private val networkConnectionListener = object : NetworkConnectionListener {
         override fun onNetworkAvailable(available: Boolean) {
             Timber.d("Received onNetworkAvailable $available")
-            val ipAddress = wifiManager.connectionInfo.ipAddress
-            val formattedIpAddress = Formatter.formatIpAddress(ipAddress)
-            Timber.v("onAvailable ipAddress: $formattedIpAddress")
-            ConsoleAndCrashliticsLoggerTree.setIpAddress(formattedIpAddress)
+            //val ipAddress = wifiManager.connectionInfo.ipAddress
+            //val formattedIpAddress = Formatter.formatIpAddress(ipAddress)
+            val connectivityIpAddersses = connectivityManager.getLinkProperties(connectivityManager.activeNetwork)?.linkAddresses?.joinToString {
+                it.address.toString()
+            }
+
+            Timber.v("onAvailable connectivityIpAdderss:$connectivityIpAddersses")
+            ConsoleAndCrashliticsLoggerTree.setIpAddress(connectivityIpAddersses?:"null")
             lifecycleScope.launch {
                 led1.setValueWithException(available)
             }
@@ -186,6 +192,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
         }
     }
 
+    @SuppressLint("MissingPermission")
     override fun onCreate(savedInstanceState: Bundle?) {
         Timber.d("onCreate")
         super.onCreate(savedInstanceState)
@@ -219,7 +226,8 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
 
         networkConnectionMonitor = NetworkConnectionMonitor(this)
 
-        wifiManager = getSystemService(Context.WIFI_SERVICE) as WifiManager
+        //wifiManager = getSystemService(Context.WIFI_SERVICE) as WifiManager
+        connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
         alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
@@ -241,8 +249,8 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
             if (networkConnectionMonitor.isNetworkConnected) {
                 led1.setValueWithException(true)
             } else {
-                if (!wifiManager.isWifiEnabled) {
-                    Timber.d("Wifi not enabled try enable it")
+                /*if (!wifiManager.isWifiEnabled) {
+                    Timber.d("Wifi not enabled try enable it disabled")
                     val enabled = wifiManager.setWifiEnabled(true)
                     Timber.d("Wifi enabled? $enabled")
                 }
@@ -252,9 +260,14 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
                         Timber.d("Not connected to WiFi, starting WiFiCredentialsReceiver")
                         startWiFiCredentialsReceiver()
                     }
-                }
+                }*/
             }
 
+            // only untill findingout sending credentials without wifi
+            //secureStorage.firebaseCredentials = FirebaseCredentials("***", "***", "uuid")
+            //val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+
+            //bluetoothAdapter.enable()
             if (secureStorage.isAuthenticated()) {
                 Timber.d("Login Firebase:${secureStorage.firebaseCredentials.email}")
                 loginFirebase()
@@ -262,6 +275,9 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
                 Timber.d("Not authenticated, starting FirebaseCredentialsReceiver")
                 startFirebaseCredentialsReceiver()
             }
+
+            // only untill findingout sending credentials without wifi
+            //secureStorage.homeName = "test home"
 
             if (secureStorage.homeName.isNotEmpty()) {
                 Timber.d("Set Home Name:${secureStorage.homeName}")
@@ -271,12 +287,13 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
                 Timber.d("No Home Name defined, starting HomeNameReceiver")
                 startHomeNameReceiver()
             }
+            //bluetoothAdapter.disable()
 
             Timber.d("connectAndSetupJob finished")
         }
     }
 
-    private suspend fun startWiFiCredentialsReceiver() {
+    /*private suspend fun startWiFiCredentialsReceiver() {
         val blinkJob = blinkLed(ledA)
         try {
             withTimeout(NEARBY_TIMEOUT) {
@@ -289,7 +306,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
             Timber.w("waitForWifiCredentials timeout or finished")
             blinkJob.cancelAndJoin()
         }
-    }
+    }*/
 
     private suspend fun startFirebaseCredentialsReceiver() {
         val blinkJob = blinkLed(ledB)
@@ -645,7 +662,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
                         connectAndSetupJob?.cancel()
                         connectAndSetupJob = lifecycleScope.launch {
                             ledA.setValueWithException(false)
-                            startWiFiCredentialsReceiver()
+                            //startWiFiCredentialsReceiver()
                             Timber.i("startWiFiCredentialsReceiver finished")
                         }
                         return true
@@ -808,7 +825,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
         }
     }
 
-    private fun addWiFi(wifiManager: WifiManager, wifiCredentials: WifiCredentials) {
+    /*private fun addWiFi(wifiManager: WifiManager, wifiCredentials: WifiCredentials) {
 
         // only WPA is supported right now
         val wifiConfiguration = WifiConfiguration()
@@ -840,7 +857,7 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
             }
         }
     }
-
+*/
     private fun blinkLed(led: HwUnitI2CPCF8574ATActuator): Job {
         return lifecycleScope.launch(Dispatchers.IO) {
             try {

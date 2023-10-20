@@ -143,35 +143,40 @@ class NearbyServiceProvider(private val context: Context, private val moshi: Mos
 
     private fun requestConnection(endpointId: String) {
         Nearby.getConnectionsClient(context).requestConnection(
-                CLIENT_ID,
-                endpointId,
-                connectionLifecycleCallback)
-                .addOnSuccessListener {
-                    // We successfully requested a connection. Now both sides
-                    // must accept before the connection is established.
-                    Timber.d("requestConnection:SUCCESS")
-                }
-                .addOnFailureListener {
-                    // Nearby Connections failed to request the connection.
-                    Timber.w("requestConnection:FAILURE ${it.stackTraceToString()}")
-                }
-
+            CLIENT_ID,
+            endpointId,
+            connectionLifecycleCallback,
+            ConnectionOptions.Builder()
+                //.setConnectionType(ConnectionType.NON_DISRUPTIVE)
+                .setLowPower(true)
+                .build()
+        ).addOnSuccessListener {
+            // We successfully requested a connection. Now both sides
+            // must accept before the connection is established.
+            Timber.d("requestConnection:SUCCESS")
+        }.addOnFailureListener {
+            // Nearby Connections failed to request the connection.
+            Timber.w("requestConnection:FAILURE ${it.stackTraceToString()}")
+        }
     }
 
     private fun startAdvertising() {
         Timber.d("Starting Advertising")
 
         Nearby.getConnectionsClient(context).startAdvertising(
-                NICK_NAME,
-                SERVICE_ID,
-                connectionLifecycleCallback,
-                AdvertisingOptions.Builder().setStrategy(Strategy.P2P_STAR).build())
-                .addOnSuccessListener {
-                    Timber.d("startAdvertising:onResult: SUCCESS")
-                }
-                .addOnFailureListener {
-                    Timber.w("Advertising failed! ${it.stackTraceToString()}")
-                }
+            NICK_NAME,
+            SERVICE_ID,
+            connectionLifecycleCallback,
+            AdvertisingOptions.Builder()
+                .setStrategy(Strategy.P2P_POINT_TO_POINT)
+                .setLowPower(true)
+                //.setConnectionType(ConnectionType.NON_DISRUPTIVE)
+                .build()
+        ).addOnSuccessListener {
+            Timber.d("startAdvertising:onResult: SUCCESS")
+        }.addOnFailureListener {
+            Timber.w("Advertising failed! ${it.stackTraceToString()}")
+        }
     }
 
     private fun startDiscovery() {
@@ -180,7 +185,10 @@ class NearbyServiceProvider(private val context: Context, private val moshi: Mos
         Nearby.getConnectionsClient(context).startDiscovery(
                 SERVICE_ID,
                 endpointDiscoveryCallback,
-                DiscoveryOptions.Builder().setStrategy(Strategy.P2P_STAR).build())
+                DiscoveryOptions.Builder()
+                    .setStrategy(Strategy.P2P_POINT_TO_POINT)
+                    .setLowPower(true)
+                    .build())
                 .addOnSuccessListener {
                     Timber.d("startDiscovery:SUCCESS")
                 }
