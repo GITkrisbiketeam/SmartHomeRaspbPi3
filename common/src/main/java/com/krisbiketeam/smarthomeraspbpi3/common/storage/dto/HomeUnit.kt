@@ -102,7 +102,7 @@ sealed interface HomeUnit<T : Any>  {
 
     suspend fun applyFunction(
         newVal: T,
-        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> Unit
+        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> HomeUnit<T>?
     ) {
         unitsTasks.values.forEach { task ->
             when (type) {
@@ -150,7 +150,7 @@ sealed interface HomeUnit<T : Any>  {
         unitValue: Any?,
         updateTime: Long,
         lastTriggerSource: String,
-        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> Unit
+        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> HomeUnit<T>?
     ): HomeUnit<T>
 
     fun copyWithValues(
@@ -171,7 +171,7 @@ sealed interface HomeUnit<T : Any>  {
     private suspend fun booleanTaskApply(
         newVal: Boolean,
         task: UnitTask,
-        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> Unit
+        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> HomeUnit<T>?
     ) {
         supervisorScope {
             launch {
@@ -207,7 +207,7 @@ sealed interface HomeUnit<T : Any>  {
     private suspend fun sensorTaskApply(
         newVal: Float,
         task: UnitTask,
-        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> Unit
+        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> HomeUnit<T>?
     ) {
         supervisorScope {
             launch {
@@ -242,7 +242,7 @@ sealed interface HomeUnit<T : Any>  {
     private suspend fun booleanTaskTimed(
         newVal: Boolean,
         task: UnitTask,
-        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> Unit
+        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> HomeUnit<T>?
     ) {
         task.startTime.takeIf { it.isValidTime() }?.let { startTime ->
             val currTime = System.currentTimeMillis().getOnlyTodayLocalTime()
@@ -317,7 +317,7 @@ sealed interface HomeUnit<T : Any>  {
     private suspend fun booleanApplyAction(
         actionVal: Boolean,
         task: UnitTask,
-        booleanApplyAction: suspend (applyData:BooleanApplyActionData) -> Unit
+        booleanApplyAction: suspend (applyData:BooleanApplyActionData) -> HomeUnit<T>?
     ) {
         val newActionVal: Boolean = (task.inverse ?: false) xor actionVal
         task.homeUnitsList.forEach {

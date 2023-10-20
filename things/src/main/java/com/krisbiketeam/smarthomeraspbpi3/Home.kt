@@ -66,7 +66,7 @@ class Home(
 
     private var alarmEnabled: Boolean = secureStorage.alarmEnabled
 
-    private val booleanApplyAction: suspend (BooleanApplyActionData) -> Unit =
+    private val booleanApplyAction: suspend (BooleanApplyActionData) -> HomeUnit<Any>? =
         { applyData: BooleanApplyActionData -> booleanApplyAction(applyData) }
 
     @ExperimentalCoroutinesApi
@@ -641,7 +641,7 @@ class Home(
 
     // region applyFunction helper methods
 
-    private suspend fun booleanApplyAction(applyData: BooleanApplyActionData) {
+    private suspend fun booleanApplyAction(applyData: BooleanApplyActionData):HomeUnit<Any>? {
         Timber.d("booleanApplyAction applyData: $applyData")
         homeUnitsList[applyData.taskHomeUnitType to applyData.taskHomeUnitName]?.let { taskHomeUnit ->
             Timber.d("booleanApplyAction taskHomeUnit: $taskHomeUnit")
@@ -681,12 +681,14 @@ class Home(
                             }
 
                             Timber.d("booleanApplyAction after set HW Value updatedTaskHomeUnit: $updatedTaskHomeUnit")
+                            return updatedTaskHomeUnit
                         }
                     }
                 }
             }
                 ?: Timber.w("booleanApplyAction taskHwUnit:${taskHomeUnit.hwUnitName}: not exist yet or anymore")
         }
+        return null
     }
 
     // endregion
