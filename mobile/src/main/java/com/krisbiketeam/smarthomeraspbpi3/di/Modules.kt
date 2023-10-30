@@ -71,5 +71,5 @@ val myModule: Module = module {
     factory { TaskListAdapter(get()) }
 
     factory { NearbyServiceLiveData(get()) }
-    factory<NearbyService> { NearbyServiceProvider(androidApplication(), get()) }
+    factory<NearbyService> { NearbyServiceProvider(androidApplication()) }
 }

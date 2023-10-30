@@ -3,6 +3,7 @@ ext {
     compileWithSDK = 33
     minSdkVersionApp = 23
     minSdkVersionThings = 27
+    targetedSdkVersionThings = 32
 
     // Languages
     kotlinVersion = '1.8.21'
@@ -46,6 +47,8 @@ ext {
     // Tooling
     timberVersion = '4.7.1'
     moshiVersion = '1.5.0'
+    kotlinxSerialization = '1.5.1'
+    kotlinSerializationPlugin = '1.9.10'
 
     // Koin DI
     koin_version = '3.4.3'

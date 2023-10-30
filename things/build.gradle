@@ -1,6 +1,7 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
+apply plugin: 'kotlinx-serialization'
 // Apply the Crashlytics Gradle plugin
 apply plugin: 'com.google.firebase.crashlytics'
 // Apply the Performance Monitoring plugin
@@ -19,7 +20,7 @@ android {
     defaultConfig {
         applicationId "com.krisbiketeam.smarthomeraspbpi3"
         minSdkVersion minSdkVersionThings
-        targetSdkVersion targetedSDK
+        targetSdkVersion targetedSdkVersionThings
         versionCode 2
         versionName "2.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -69,6 +70,7 @@ dependencies {
     implementation "androidx.constraintlayout:constraintlayout:$androidxConstraintLayoutVersion"
     implementation "androidx.annotation:annotation:$androidxAnnotationVersion"
     implementation "androidx.core:core-ktx:$androidxCoreKtx"
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinxSerialization"
 
     implementation "com.google.android.gms:play-services-base:$playServicesVersion"
     implementation "com.google.android.gms:play-services-nearby:$playServicesNearbyVersion"
@@ -85,7 +87,6 @@ dependencies {
 
     implementation "io.insert-koin:koin-android:$koin_version"
 
-    implementation "com.squareup.moshi:moshi:$moshiVersion"
     implementation "com.jakewharton.timber:timber:$timberVersion"
 
     compileOnly "com.google.android.things:androidthings:$thingsVersion"

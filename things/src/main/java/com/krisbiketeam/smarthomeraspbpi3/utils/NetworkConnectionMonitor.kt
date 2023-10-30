@@ -27,7 +27,8 @@ class NetworkConnectionMonitor(activity: Activity) : ConnectivityManager.Network
 
     private var networkConnectionListener: NetworkConnectionListener? = null
 
-    val isNetworkConnected =
+    val isNetworkConnected
+        get() =
             connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)?.run {
                 (hasTransport(NetworkCapabilities.TRANSPORT_WIFI) || hasTransport(
                         NetworkCapabilities.TRANSPORT_CELLULAR) || hasTransport(
@@ -56,7 +57,6 @@ class NetworkConnectionMonitor(activity: Activity) : ConnectivityManager.Network
         networkConnectionListener?.onNetworkAvailable(false)
     }
 
-    @Suppress("DEPRECATION")
     override fun onAvailable(network: Network) {
         networkConnectionListener?.onNetworkAvailable(true)
     }

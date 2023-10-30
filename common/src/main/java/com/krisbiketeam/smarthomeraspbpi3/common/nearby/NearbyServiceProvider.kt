@@ -7,7 +7,8 @@ import com.google.android.gms.nearby.connection.PayloadTransferUpdate.Status.FAI
 import com.google.android.gms.nearby.connection.PayloadTransferUpdate.Status.SUCCESS
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.FirebaseCredentials
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.WifiCredentials
-import com.squareup.moshi.Moshi
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import timber.log.Timber
 
  const val NICK_NAME = "SmartHome Raspberry Pi3"
@@ -15,7 +16,7 @@ import timber.log.Timber
  const val CLIENT_ID = "clientId"
 
 //TODO: Add Stop/Pause/Resume
-class NearbyServiceProvider(private val context: Context, private val moshi: Moshi) : NearbyService {
+class NearbyServiceProvider(private val context: Context) : NearbyService {
     private var dataSendResultListener: NearbyService.DataSendResultListener? = null
     private var dataReceiverListener: NearbyService.DataReceiverListener? = null
     private var dataToBeSent: String? = null
@@ -203,16 +204,13 @@ class NearbyServiceProvider(private val context: Context, private val moshi: Mos
 
         when (data) {
             is WifiCredentials -> {
-                val adapter = moshi.adapter(WifiCredentials::class.java)
-                dataToBeSent = adapter.toJson(data)
+                dataToBeSent = Json.encodeToString(data)
             }
             is FirebaseCredentials -> {
-                val adapter = moshi.adapter(FirebaseCredentials::class.java)
-                dataToBeSent = adapter.toJson(data)
+                dataToBeSent = Json.encodeToString(data)
             }
             is String -> {
-                val adapter = moshi.adapter(String::class.java)
-                dataToBeSent = adapter.toJson(data)
+                dataToBeSent = Json.encodeToString(data)
             }
         }
 
