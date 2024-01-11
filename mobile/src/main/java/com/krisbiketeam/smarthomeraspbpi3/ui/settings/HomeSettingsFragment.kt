@@ -23,7 +23,6 @@ import com.krisbiketeam.smarthomeraspbpi3.common.MyLiveDataState
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentSettingsHomeBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.settings.HomeSettingsViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
@@ -73,11 +72,11 @@ class HomeSettingsFragment : Fragment() {
             lifecycleOwner = viewLifecycleOwner
         }
 
-        homeSettingsViewModel.nearByState.observe(viewLifecycleOwner, { pair ->
-            pair?.let { (state, data) ->
+        homeSettingsViewModel.nearByState.observe(viewLifecycleOwner) { pair ->
+            pair.let { (state, data) ->
 
                 when (state) {
-                    MyLiveDataState.ERROR      -> {
+                    MyLiveDataState.ERROR -> {
                         if (data is Exception) {
                             Timber.e(data, "Request failed")
                         }
@@ -85,16 +84,18 @@ class HomeSettingsFragment : Fragment() {
                         binding.homeName.requestFocus()
                     }
 
-                    MyLiveDataState.INIT       -> {
+                    MyLiveDataState.INIT -> {
                     }
+
                     MyLiveDataState.CONNECTING -> {
                     }
-                    MyLiveDataState.DONE       -> {
+
+                    MyLiveDataState.DONE -> {
                         findNavController().navigateUp()
                     }
                 }
             }
-        })
+        }
 
         analytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW, bundleOf(
                 FirebaseAnalytics.Param.SCREEN_NAME to this::class.simpleName

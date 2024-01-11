@@ -49,9 +49,9 @@ class LoginSettingsFragment : Fragment() {
                 }
                 false
             })
-            loginSettingsViewModel.password.observe(viewLifecycleOwner, {
+            loginSettingsViewModel.password.observe(viewLifecycleOwner) {
                 binding.passwordLayout.error = null
-            })
+            }
             loginConnectButton.setOnClickListener { attemptLogin() }
 
             addOnRebindCallback(object : OnRebindCallback<ViewDataBinding>() {
@@ -67,7 +67,7 @@ class LoginSettingsFragment : Fragment() {
             lifecycleOwner = viewLifecycleOwner
         }
 
-        loginSettingsViewModel.loginState.observe(viewLifecycleOwner, { pair ->
+        loginSettingsViewModel.loginState.observe(viewLifecycleOwner) { pair ->
             pair?.let { (state, data) ->
                 Timber.d("loginState changed state: $state data: $data")
                 when (state) {
@@ -75,6 +75,7 @@ class LoginSettingsFragment : Fragment() {
                         binding.passwordLayout.error = getString(R.string.error_incorrect_password)
                         binding.password.requestFocus()
                     }
+
                     MyLiveDataState.INIT -> Unit
                     MyLiveDataState.CONNECTING -> Unit
                     MyLiveDataState.DONE -> {
@@ -84,14 +85,14 @@ class LoginSettingsFragment : Fragment() {
 
                         if (secureStorage.homeName.isEmpty()) {
                             Timber.d("No Home Name defined, starting HomeSettingsFragment")
-                            findNavController().navigate(R.id.home_settings_fragment)
+                            findNavController().navigate(LoginSettingsFragmentDirections.actionLoginSettingsFragmentToHomeSettingsFragment())
                         } else {
                             findNavController().navigateUp()
                         }
                     }
                 }
             }
-        })
+        }
 
         analytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW, bundleOf(
                 FirebaseAnalytics.Param.SCREEN_NAME to this::class.simpleName

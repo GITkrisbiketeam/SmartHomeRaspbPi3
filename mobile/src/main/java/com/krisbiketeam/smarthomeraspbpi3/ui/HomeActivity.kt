@@ -123,7 +123,7 @@ class HomeActivity : AppCompatActivity() {
                     )
                 )
                 else -> navController.navigate(
-                    NavHomeDirections.goToHomeUnitDetailFragment(
+                    NavHomeDirections.goToHomeUnitGenericDetailFragment(
                         "",
                         name,
                         type
@@ -332,7 +332,7 @@ class HomeActivity : AppCompatActivity() {
                 R.string.new_room_dialog_title
             )
                 .setOnMenuItemClickListener {
-                    navController.navigate(RoomListFragmentDirections.actionRoomListFragmentToNewRoomDialogFragment())
+                    navController.navigate(NavHomeDirections.goToNewRoomDialogFragment())
                     if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
                         drawerLayout.closeDrawers()
                     }
@@ -357,7 +357,7 @@ class HomeActivity : AppCompatActivity() {
                     "\t\t${room.name}"
                 )
                     .setOnMenuItemClickListener {
-                        navController.navigate(RoomListFragmentDirections.goToRoomFragment(room.name))
+                        navController.navigate(NavHomeDirections.goToRoomFragment(room.name))
                         it.isChecked = true
                         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
                             drawerLayout.closeDrawers()

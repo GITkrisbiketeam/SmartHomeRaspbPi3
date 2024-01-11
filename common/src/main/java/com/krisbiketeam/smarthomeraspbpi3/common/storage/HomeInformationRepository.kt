@@ -12,6 +12,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.*
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.*
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.flows.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import timber.log.Timber
 
@@ -22,6 +23,8 @@ class FirebaseHomeInformationRepository {
     // Reference for all home related "Units"
     private var homePathReference: String? = null
     private var userPathReference: String? = null
+
+    private val homePahReferenceUpdated: Channel<Unit> = Channel()
 
     private val referenceHWUnitsDelegate = resetableLazy {
         homePathReference?.let { Firebase.database.getReference("$it/$HOME_HW_UNITS_BASE") }
@@ -72,7 +75,7 @@ class FirebaseHomeInformationRepository {
     // region Notifications
     // Reference for all notifications
     private val referenceNotifications =
-            Firebase.database.getReference(NOTIFICATION_INFORMATION_BASE)
+        Firebase.database.getReference(NOTIFICATION_INFORMATION_BASE)
     // endregion
 
     // endregion
@@ -100,6 +103,8 @@ class FirebaseHomeInformationRepository {
 
         referenceHomePreferencesDelegate.reset()
 
+        homePahReferenceUpdated.trySend(Unit)
+
         // Keep tracking changes even if there are not active listeners
         //Firebase.database.getReference(this).keepSynced(true)
     }
@@ -112,12 +117,12 @@ class FirebaseHomeInformationRepository {
     // region User and its Notification token handling
 
     fun writeNewUser(uid: String, name: String, email: String) {
-        referenceUsers.child(uid).updateChildren(mapOf(Pair(USER_NAME, name), Pair(USER_EMAIL, email)))
+        referenceUsers.child(uid)
+            .updateChildren(mapOf(Pair(USER_NAME, name), Pair(USER_EMAIL, email)))
     }
 
     fun addUserNotiToken(uid: String, token: String) {
-        referenceUsers.child(uid).child(USER_NOTIFICATION_TOKENS)
-                .child(token).setValue(true)
+        referenceUsers.child(uid).child(USER_NOTIFICATION_TOKENS).child(token).setValue(true)
     }
 
     fun startUserToFirebaseConnectionActiveMonitor() {
@@ -264,37 +269,42 @@ class FirebaseHomeInformationRepository {
         //return referenceHomeUnits?.child("${homeUnit.type}/${homeUnit.name}")?.setValue(homeUnit)
         return homePathReference?.let {
             Firebase.database.getReference("$it/$HOME_UNITS_BASE/${homeUnit.type}/${homeUnit.name}")
-                    .setValue(homeUnit)
+                .setValue(homeUnit)
         }
     }
 
     /**
      *  Updates given @see[HomeUnit] value updateTime in DB
      */
-    fun updateHomeUnitValue(type: HomeUnitType, name:String, value: Any?, lastUpdateTime:Long, lastTriggerSource: String?): Task<Void>? {
+    fun updateHomeUnitValue(
+        type: HomeUnitType,
+        name: String,
+        value: Any?,
+        lastUpdateTime: Long,
+        lastTriggerSource: String?
+    ): Task<Void>? {
         Timber.w("updateHomeUnitValue $type $name value:$value")
         return homePathReference?.let {
-            Firebase.database.getReference("$it/$HOME_UNITS_BASE/$type/$name")
-                    .let { reference ->
-                        reference.updateChildren(
-                            mapOf(
-                                HOME_VAL to value,
-                                HOME_VAL_LAST_UPDATE to lastUpdateTime,
-                                HOME_LAST_TRIGGER_SOURCE to lastTriggerSource
-                            )
-                        )
-                    }
+            Firebase.database.getReference("$it/$HOME_UNITS_BASE/$type/$name").updateChildren(
+                mapOf(
+                    HOME_VAL to value,
+                    HOME_VAL_LAST_UPDATE to lastUpdateTime,
+                    HOME_LAST_TRIGGER_SOURCE to lastTriggerSource
+                )
+            )
         }
     }
 
     /**
      *  Updates given @see[HomeUnit] value updateTime in DB
      */
-    fun updateHomeUnitRoomName(homeUnitType: HomeUnitType, homeUnitName: String, room: String): Task<Void>? {
+    fun updateHomeUnitRoomName(
+        homeUnitType: HomeUnitType, homeUnitName: String, room: String
+    ): Task<Void>? {
         Timber.w("updateHomeUnitRoomName $homeUnitType $homeUnitName")
         return homePathReference?.let {
-            Firebase.database.getReference("$it/$HOME_UNITS_BASE/$homeUnitType/$homeUnitName").child(HOME_ROOM)
-                .setValue(room)
+            Firebase.database.getReference("$it/$HOME_UNITS_BASE/$homeUnitType/$homeUnitName")
+                .child(HOME_ROOM).setValue(room)
         }
     }
 
@@ -305,39 +315,40 @@ class FirebaseHomeInformationRepository {
         //return referenceHomeUnits?.child("${homeUnit.type}/${homeUnit.name}")?.setValue(homeUnit)
         return homePathReference?.let {
             Firebase.database.getReference("$it/$HOME_UNITS_BASE/${homeUnit.type}/${homeUnit.name}")
-                    .removeValue()
+                .removeValue()
         }
     }
 
     /**
      *  Clears givens @see[HomeUnit] min value from DB
      */
-    fun clearMinHomeUnitValue(homeUnit: HomeUnit<Any>, minValName: String = HOME_MIN_VAL, minValTimeName: String = HOME_MIN_VAL_LAST_UPDATE): Task<Void>? {
+    fun clearMinHomeUnitValue(
+        homeUnit: HomeUnit<Any>,
+        minValName: String = HOME_MIN_VAL,
+        minValTimeName: String = HOME_MIN_VAL_LAST_UPDATE
+    ): Task<Void>? {
         return homePathReference?.let {
-            Firebase.database.getReference("$it/$HOME_UNITS_BASE/${homeUnit.type}/${homeUnit.name}").let { reference ->
-                reference.updateChildren(
-                    mapOf(
-                        minValTimeName to null,
-                        minValName to null,
-                    )
-                )
-            }
+            Firebase.database.getReference("$it/$HOME_UNITS_BASE/${homeUnit.type}/${homeUnit.name}")
+                .updateChildren(mapOf(minValTimeName to null, minValName to null))
         }
     }
 
     /**
      *  Clears givens @see[HomeUnit] min value from DB
      */
-    fun clearMaxHomeUnitValue(homeUnit: HomeUnit<Any>, maxValName: String = HOME_MAX_VAL, maxValTimeName: String = HOME_MAX_VAL_LAST_UPDATE): Task<Void>? {
+    fun clearMaxHomeUnitValue(
+        homeUnit: HomeUnit<Any>,
+        maxValName: String = HOME_MAX_VAL,
+        maxValTimeName: String = HOME_MAX_VAL_LAST_UPDATE
+    ): Task<Void>? {
         return homePathReference?.let {
-            Firebase.database.getReference("$it/$HOME_UNITS_BASE/${homeUnit.type}/${homeUnit.name}").let { reference ->
-                reference.updateChildren(
+            Firebase.database.getReference("$it/$HOME_UNITS_BASE/${homeUnit.type}/${homeUnit.name}")
+                .updateChildren(
                     mapOf(
                         maxValTimeName to null,
                         maxValName to null,
                     )
                 )
-            }
         }
     }
     // endregion
@@ -346,23 +357,26 @@ class FirebaseHomeInformationRepository {
     /**
      *  Saves/updates given @see[UnitTask] in DB
      */
-    fun saveUnitTask(homeUnitType: HomeUnitType, homeUnitName: String, unitTask: UnitTask): Task<Void>? {
+    fun saveUnitTask(
+        homeUnitType: HomeUnitType, homeUnitName: String, unitTask: UnitTask
+    ): Task<Void>? {
         return homePathReference?.let {
             Firebase.database.getReference(
-                    "$it/$HOME_UNITS_BASE/$homeUnitType/$homeUnitName/$HOME_UNIT_TASKS/${unitTask.name}")
-                    .setValue(unitTask)
+                "$it/$HOME_UNITS_BASE/$homeUnitType/$homeUnitName/$HOME_UNIT_TASKS/${unitTask.name}"
+            ).setValue(unitTask)
         }
     }
 
     /**
      *  Deletes given @see[UnitTask] from DB
      */
-    fun deleteUnitTask(homeUnitType: HomeUnitType, homeUnitName: String,
-                       unitTask: UnitTask): Task<Void>? {
+    fun deleteUnitTask(
+        homeUnitType: HomeUnitType, homeUnitName: String, unitTask: UnitTask
+    ): Task<Void>? {
         return homePathReference?.let {
             Firebase.database.getReference(
-                    "$it/$HOME_UNITS_BASE/$homeUnitType/$homeUnitName/$HOME_UNIT_TASKS/${unitTask.name}")
-                    .removeValue()
+                "$it/$HOME_UNITS_BASE/$homeUnitType/$homeUnitName/$HOME_UNIT_TASKS/${unitTask.name}"
+            ).removeValue()
         }
     }
     // endregion
@@ -394,8 +408,7 @@ class FirebaseHomeInformationRepository {
             val myConnectionsRef = Firebase.database.getReference("$this/$HOME_ONLINE")
 
             // Stores the timestamp of my last disconnect (the last time I was seen online)
-            val lastOnlineRef =
-                    Firebase.database.getReference("$this/$HOME_LAST_ONLINE_TIME")
+            val lastOnlineRef = Firebase.database.getReference("$this/$HOME_LAST_ONLINE_TIME")
 
             val connectedRef = Firebase.database.getReference(".info/connected")
 
@@ -429,35 +442,38 @@ class FirebaseHomeInformationRepository {
     /**
      *  Adds given @see[HwUnitLog] to the log @see[LOG_INFORMATION_BASE] list in DB
      */
-    fun logHwUnitEvent(hwUnitLog: HwUnitLog<out Any>):Task<Void>? {
+    fun logHwUnitEvent(hwUnitLog: HwUnitLog<out Any>): Task<Void>? {
         return homePathReference?.let {
             Timber.d("logHwUnitEvent hwUnitLog:$hwUnitLog")
-            Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$LOG_HW_UNIT/${hwUnitLog.name}/${hwUnitLog.getOnlyDateLocalTime()}/${hwUnitLog.localtime}").setValue(hwUnitLog)
+            Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$LOG_HW_UNIT/${hwUnitLog.name}/${hwUnitLog.getOnlyDateLocalTime()}/${hwUnitLog.localtime}")
+                .setValue(hwUnitLog)
         }
     }
 
     /**
      *  Adds given @see[HwUnitLog] to the log @see[LOG_INFORMATION_BASE] list in DB
      */
-    fun logHwUnitError(hwUnitLog: HwUnitLog<out Any>):Task<Void>? {
+    fun logHwUnitError(hwUnitLog: HwUnitLog<out Any>): Task<Void>? {
         return homePathReference?.let {
-            Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$LOG_HW_UNIT_ERRORS/${hwUnitLog.name}").push().setValue(hwUnitLog)
+            Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$LOG_HW_UNIT_ERRORS/${hwUnitLog.name}")
+                .push().setValue(hwUnitLog)
         }
     }
 
     /**
      *  Adds given @see[HwUnitLog] to the log @see[LOG_INFORMATION_BASE] list in DB
      */
-    fun logThingsLog(log: RemoteLog, timeStamp:Long):Task<Void>? {
+    fun logThingsLog(log: RemoteLog, timeStamp: Long): Task<Void>? {
         return homePathReference?.let {
-            Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$LOG_THINGS_LOGS/${timeStamp.getOnlyDateLocalTime()}/${timeStamp}").setValue(log)
+            Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$LOG_THINGS_LOGS/${timeStamp.getOnlyDateLocalTime()}/${timeStamp}")
+                .setValue(log)
         }
     }
 
     /**
      * Clear all HwUnit Logs entries from DB
      */
-    fun clearAllHwUnitLogs():Task<Void>? {
+    fun clearAllHwUnitLogs(): Task<Void>? {
         return homePathReference?.let {
             Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$LOG_HW_UNIT").removeValue()
         }
@@ -466,9 +482,10 @@ class FirebaseHomeInformationRepository {
     /**
      * Clear HwUnit Logs entries from DB
      */
-    fun clearHwUnitLogs(hwUnitLogName: String):Task<Void>? {
+    fun clearHwUnitLogs(hwUnitLogName: String): Task<Void>? {
         return homePathReference?.let {
-            Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$LOG_HW_UNIT/$hwUnitLogName").removeValue()
+            Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$LOG_HW_UNIT/$hwUnitLogName")
+                .removeValue()
         }
     }
 
@@ -476,9 +493,10 @@ class FirebaseHomeInformationRepository {
      * Clear HwUnit Logs entries from DB
      * getOnlyDateLocalTime()
      */
-    fun clearHwUnitLogs(hwUnitLogName: String, dayTime: String):Task<Void>? {
+    fun clearHwUnitLogs(hwUnitLogName: String, dayTime: String): Task<Void>? {
         return homePathReference?.let {
-            Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$LOG_HW_UNIT/$hwUnitLogName/$dayTime").removeValue()
+            Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$LOG_HW_UNIT/$hwUnitLogName/$dayTime")
+                .removeValue()
         }
     }
 
@@ -486,36 +504,40 @@ class FirebaseHomeInformationRepository {
     /**
      * Clear all HwUnit Error Logs entries from DB
      */
-    fun clearAllHwUnitErrorLogs():Task<Void>? {
+    fun clearAllHwUnitErrorLogs(): Task<Void>? {
         return homePathReference?.let {
-            Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$LOG_HW_UNIT_ERRORS").removeValue()
+            Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$LOG_HW_UNIT_ERRORS")
+                .removeValue()
         }
     }
 
     /**
      * Clear HwUnit Error Logs entries from DB
      */
-    fun clearHwUnitErrorLogs(hwUnitLogName: String):Task<Void>? {
+    fun clearHwUnitErrorLogs(hwUnitLogName: String): Task<Void>? {
         return homePathReference?.let {
-            Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$LOG_HW_UNIT_ERRORS/$hwUnitLogName").removeValue()
+            Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$LOG_HW_UNIT_ERRORS/$hwUnitLogName")
+                .removeValue()
         }
     }
 
     /**
      * Clear all HwUnit Error Logs entries from DB
      */
-    fun clearAllThingsLog():Task<Void>? {
+    fun clearAllThingsLog(): Task<Void>? {
         return homePathReference?.let {
-            Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$LOG_THINGS_LOGS").removeValue()
+            Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$LOG_THINGS_LOGS")
+                .removeValue()
         }
     }
 
     /**
      * Clear day Things Logs entries from DB
      */
-    fun clearDayThingsLog(dayTime: String):Task<Void>? {
+    fun clearDayThingsLog(dayTime: String): Task<Void>? {
         return homePathReference?.let {
-            Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$LOG_THINGS_LOGS/$dayTime").removeValue()
+            Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$LOG_THINGS_LOGS/$dayTime")
+                .removeValue()
         }
     }
 
@@ -525,11 +547,13 @@ class FirebaseHomeInformationRepository {
     // region restarts
 
     fun setResetAppFlag(): Task<Void>? {
-        return homePathReference?.let { Firebase.database.getReference(it) }?.child(RESTART_APP)?.setValue(true)
+        return homePathReference?.let { Firebase.database.getReference(it) }?.child(RESTART_APP)
+            ?.setValue(true)
     }
 
     fun clearResetAppFlag(): Task<Void>? {
-        return homePathReference?.let { Firebase.database.getReference(it) }?.child(RESTART_APP)?.removeValue()
+        return homePathReference?.let { Firebase.database.getReference(it) }?.child(RESTART_APP)
+            ?.removeValue()
     }
 
     // endregion
@@ -546,9 +570,7 @@ class FirebaseHomeInformationRepository {
 
     private val isUserOnline: Flow<Boolean?> by lazy {
         genericReferenceFlow<Boolean?>(userPathReference?.let { Firebase.database.getReference("$it/$USER_ONLINE") }).shareIn(
-                ProcessLifecycleOwner.get().lifecycleScope,
-                SharingStarted.WhileSubscribed(),
-                1
+            ProcessLifecycleOwner.get().lifecycleScope, SharingStarted.WhileSubscribed(), 1
         )
     }
 
@@ -575,7 +597,7 @@ class FirebaseHomeInformationRepository {
      * get Flow of @see[HwUnit] for listening to changes in entries in DB
      */
     fun hwUnitFlow(hwUnitName: String, closeOnEmpty: Boolean = false): Flow<HwUnit> {
-        return if(hwUnitName.isEmpty()){
+        return if (hwUnitName.isEmpty()) {
             emptyFlow()
         } else {
             genericReferenceFlow(referenceHWUnits?.child(hwUnitName), closeOnEmpty)
@@ -589,10 +611,11 @@ class FirebaseHomeInformationRepository {
     fun hwUnitErrorEventListFlow(): Flow<List<HwUnitLog<Any>>> = hwUnitErrorEventList
 
     private val hwUnitErrorEventList: Flow<List<HwUnitLog<Any>>> by lazy {
-        genericListReferenceFlow<HwUnitLog<Any>>(referenceHwError).shareIn(
-                ProcessLifecycleOwner.get().lifecycleScope,
-                SharingStarted.WhileSubscribed(),
-                1)
+        homePahReferenceUpdated.receiveAsFlow().onStart { emit(Unit) }.flatMapLatest {
+            genericListReferenceFlow<HwUnitLog<Any>>(referenceHwError)
+        }.shareIn(
+            ProcessLifecycleOwner.get().lifecycleScope, SharingStarted.WhileSubscribed(), 1
+        )
     }
 
     /**
@@ -612,10 +635,11 @@ class FirebaseHomeInformationRepository {
     fun roomListFlow(): Flow<List<Room>> = roomList
 
     private val roomList: Flow<List<Room>> by lazy {
-        genericListReferenceFlow<Room>(referenceRooms).shareIn(
-                ProcessLifecycleOwner.get().lifecycleScope,
-                SharingStarted.WhileSubscribed(),
-                1)
+        homePahReferenceUpdated.receiveAsFlow().onStart { emit(Unit) }.flatMapLatest {
+            genericListReferenceFlow<Room>(referenceRooms)
+        }.shareIn(
+            ProcessLifecycleOwner.get().lifecycleScope, SharingStarted.WhileSubscribed(), 1
+        )
     }
 
 
@@ -623,25 +647,27 @@ class FirebaseHomeInformationRepository {
         return genericReferenceFlow(referenceRooms?.child(roomName), closeOnEmpty)
     }
 
-    fun roomListOrderFlow() : Flow<List<String>> = roomListOrder
+    fun roomListOrderFlow(): Flow<List<String>> = roomListOrder
 
     private val roomListOrder: Flow<List<String>> by lazy {
-        genericListReferenceFlow<String>(getHomePreference(HOME_ROOMS_ORDER)).shareIn(
-                ProcessLifecycleOwner.get().lifecycleScope,
-                SharingStarted.WhileSubscribed(),
-                1)
+        homePahReferenceUpdated.receiveAsFlow().onStart { emit(Unit) }.flatMapLatest {
+            genericListReferenceFlow<String>(getHomePreference(HOME_ROOMS_ORDER))
+        }.shareIn(
+            ProcessLifecycleOwner.get().lifecycleScope, SharingStarted.WhileSubscribed(), 1
+        )
     }
     // endregion
 
     // region Task
 
-    fun taskListOrderFlow() : Flow<List<String>> = taskListOrder
+    fun taskListOrderFlow(): Flow<List<String>> = taskListOrder
 
     private val taskListOrder: Flow<List<String>> by lazy {
-        genericListReferenceFlow<String>(getHomePreference(HOME_TASKS_ORDER)).shareIn(
-                ProcessLifecycleOwner.get().lifecycleScope,
-                SharingStarted.WhileSubscribed(),
-                1)
+        homePahReferenceUpdated.receiveAsFlow().onStart { emit(Unit) }.flatMapLatest {
+            genericListReferenceFlow<String>(getHomePreference(HOME_TASKS_ORDER))
+        }.shareIn(
+            ProcessLifecycleOwner.get().lifecycleScope, SharingStarted.WhileSubscribed(), 1
+        )
     }
 
     // endregion
@@ -666,17 +692,21 @@ class FirebaseHomeInformationRepository {
      * get Flow of @see[GenericHomeUnit<Any>] for for given unit type and name for listening to changes
      * in entries in DB
      */
-    fun genericHomeUnitFlow(unitType: HomeUnitType, unitName: String, closeOnEmpty: Boolean = false): Flow<GenericHomeUnit<Any>> {
+    fun genericHomeUnitFlow(
+        unitType: HomeUnitType, unitName: String, closeOnEmpty: Boolean = false
+    ): Flow<GenericHomeUnit<Any>> {
         return homePathReference?.let {
-            genericReferenceFlow(Firebase.database.getReference("$it/$HOME_UNITS_BASE/$unitType/$unitName"), closeOnEmpty)
+            genericReferenceFlow(
+                Firebase.database.getReference("$it/$HOME_UNITS_BASE/$unitType/$unitName"),
+                closeOnEmpty
+            )
         } ?: emptyFlow()
     }
 
     /**
      * get Flow of @see[GenericHomeUnit<Any>] for for given unit type and name for listening to changes
      * in entries in DB
-     */
-    /*
+     *//*
     inline fun <reified T: HomeUnit<Any>> genericHomeUnitFlow1(unitType: HomeUnitType, unitName: String, closeOnEmpty: Boolean = false): Flow<T> {
         return homePathReference?.let {
             when(unitType){
@@ -692,9 +722,14 @@ class FirebaseHomeInformationRepository {
      * get Flow of @see[LightSwitchHomeUnit<Any>] for [HomeUnitType.HOME_LIGHT_SWITCHES] type and
      * name for listening to changes in entries in DB
      */
-    fun lightSwitchHomeUnitFlow(unitName: String, closeOnEmpty: Boolean = false): Flow<LightSwitchHomeUnit<Any>> {
+    fun lightSwitchHomeUnitFlow(
+        unitName: String, closeOnEmpty: Boolean = false
+    ): Flow<LightSwitchHomeUnit<Any>> {
         return homePathReference?.let {
-            genericReferenceFlow(Firebase.database.getReference("$it/$HOME_UNITS_BASE/${HomeUnitType.HOME_LIGHT_SWITCHES}/$unitName"), closeOnEmpty)
+            genericReferenceFlow(
+                Firebase.database.getReference("$it/$HOME_UNITS_BASE/${HomeUnitType.HOME_LIGHT_SWITCHES}/$unitName"),
+                closeOnEmpty
+            )
         } ?: emptyFlow()
     }
 
@@ -702,9 +737,14 @@ class FirebaseHomeInformationRepository {
      * get Flow of @see[WaterCirculationHomeUnit<Any>] for [HomeUnitType.HOME_WATER_CIRCULATION] type and
      * name for listening to changes in entries in DB
      */
-    fun waterCirculationHomeUnitFlow(unitName: String, closeOnEmpty: Boolean = false): Flow<WaterCirculationHomeUnit<Any>> {
+    fun waterCirculationHomeUnitFlow(
+        unitName: String, closeOnEmpty: Boolean = false
+    ): Flow<WaterCirculationHomeUnit<Any>> {
         return homePathReference?.let {
-            genericReferenceFlow(Firebase.database.getReference("$it/$HOME_UNITS_BASE/${HomeUnitType.HOME_WATER_CIRCULATION}/$unitName"), closeOnEmpty)
+            genericReferenceFlow(
+                Firebase.database.getReference("$it/$HOME_UNITS_BASE/${HomeUnitType.HOME_WATER_CIRCULATION}/$unitName"),
+                closeOnEmpty
+            )
         } ?: emptyFlow()
     }
 
@@ -712,9 +752,14 @@ class FirebaseHomeInformationRepository {
      * get Flow of @see[WaterCirculationHomeUnit<Any>] for [HomeUnitType.HOME_MCP23017_WATCH_DOG] type and
      * name for listening to changes in entries in DB
      */
-    fun mcp23017WatchDogHomeUnitFlow(unitName: String, closeOnEmpty: Boolean = false): Flow<MCP23017WatchDogHomeUnit<Any>> {
+    fun mcp23017WatchDogHomeUnitFlow(
+        unitName: String, closeOnEmpty: Boolean = false
+    ): Flow<MCP23017WatchDogHomeUnit<Any>> {
         return homePathReference?.let {
-            genericReferenceFlow(Firebase.database.getReference("$it/$HOME_UNITS_BASE/${HomeUnitType.HOME_MCP23017_WATCH_DOG}/$unitName"), closeOnEmpty)
+            genericReferenceFlow(
+                Firebase.database.getReference("$it/$HOME_UNITS_BASE/${HomeUnitType.HOME_MCP23017_WATCH_DOG}/$unitName"),
+                closeOnEmpty
+            )
         } ?: emptyFlow()
     }
 
@@ -726,11 +771,12 @@ class FirebaseHomeInformationRepository {
      */
     fun unitTaskListFlow(unitType: HomeUnitType, unitName: String): Flow<Map<String, UnitTask>> {
         return homePathReference?.let { home ->
-            Firebase.database.getReference("$home/$HOME_UNITS_BASE/$unitType/$unitName/$HOME_UNIT_TASKS").let { reference ->
-                genericListReferenceFlow<UnitTask>(reference)
-            }.map { list ->
-                list.associateBy { it.name }
-            }
+            Firebase.database.getReference("$home/$HOME_UNITS_BASE/$unitType/$unitName/$HOME_UNIT_TASKS")
+                .let { reference ->
+                    genericListReferenceFlow<UnitTask>(reference)
+                }.map { list ->
+                    list.associateBy { it.name }
+                }
         } ?: emptyFlow()
     }
     // endregion
@@ -743,10 +789,11 @@ class FirebaseHomeInformationRepository {
     fun isHomeOnlineFlow(): Flow<Boolean?> = isHomeOnline
 
     private val isHomeOnline: Flow<Boolean?> by lazy {
-        genericReferenceFlow<Boolean?>(homePathReference?.let { Firebase.database.getReference("$it/$HOME_ONLINE") }).shareIn(
-                ProcessLifecycleOwner.get().lifecycleScope,
-                SharingStarted.WhileSubscribed(),
-                1)
+        homePahReferenceUpdated.receiveAsFlow().onStart { emit(Unit) }.flatMapLatest {
+            genericReferenceFlow<Boolean?>(homePathReference?.let { Firebase.database.getReference("$it/$HOME_ONLINE") })
+        }.shareIn(
+            ProcessLifecycleOwner.get().lifecycleScope, SharingStarted.WhileSubscribed(), 1
+        )
     }
 
     /**
@@ -755,39 +802,40 @@ class FirebaseHomeInformationRepository {
     fun lastHomeOnlineTimeFlow(): Flow<Long?> = lastHomeOnline
 
     private val lastHomeOnline: Flow<Long?> by lazy {
-        genericReferenceFlow<Long?>(homePathReference?.let { Firebase.database.getReference("$it/$HOME_LAST_ONLINE_TIME") }).shareIn(
-                ProcessLifecycleOwner.get().lifecycleScope,
-                SharingStarted.WhileSubscribed(),
-                1)
+        homePahReferenceUpdated.receiveAsFlow().onStart { emit(Unit) }.flatMapLatest {
+            genericReferenceFlow<Long?>(homePathReference?.let { Firebase.database.getReference("$it/$HOME_LAST_ONLINE_TIME") })
+        }.shareIn(
+            ProcessLifecycleOwner.get().lifecycleScope, SharingStarted.WhileSubscribed(), 1
+        )
     }
 
     // endregion
 
     // region Logs
 
-    fun logsFlow(hwUnitName:String): Flow<Map<String,Map<String,HwUnitLog<Any?>>>> {
+    fun logsFlow(hwUnitName: String): Flow<Map<String, Map<String, HwUnitLog<Any?>>>> {
         return homePathReference?.let {
             genericReferenceFlow(Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$LOG_HW_UNIT/$hwUnitName"))
-        }?: emptyFlow()
+        } ?: emptyFlow()
     }
 
-    fun logsFlow(hwUnitName:String, date: Long): Flow<Map<String,HwUnitLog<Any?>>> {
+    fun logsFlow(hwUnitName: String, date: Long): Flow<Map<String, HwUnitLog<Any?>>> {
         return homePathReference?.let {
             genericReferenceFlow(Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$LOG_HW_UNIT/$hwUnitName/$date"))
-        }?: emptyFlow()
+        } ?: emptyFlow()
     }
 
-    fun hwUnitErrorLogsFlow(hwUnitName:String): Flow<List<HwUnitLog<Any>>> {
+    fun hwUnitErrorLogsFlow(hwUnitName: String): Flow<List<HwUnitLog<Any>>> {
         return homePathReference?.let {
             genericListReferenceFlow(Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$LOG_HW_UNIT_ERRORS/$hwUnitName"))
-        }?: emptyFlow()
+        } ?: emptyFlow()
     }
 
 
-    fun thingsAppLogsFlow(date: Long): Flow<Map<String,RemoteLog>> {
+    fun thingsAppLogsFlow(date: Long): Flow<Map<String, RemoteLog>> {
         return homePathReference?.let {
             genericReferenceFlow(Firebase.database.getReference("$it/$LOG_INFORMATION_BASE/$LOG_THINGS_LOGS/$date"))
-        }?: emptyFlow()
+        } ?: emptyFlow()
     }
 
     // endregion
@@ -807,9 +855,10 @@ class FirebaseHomeInformationRepository {
     // endregion
 
     fun getHomesFLow(): Flow<List<String>> =
-            genericListReferenceFlow(Firebase.database.reference.child(HOME_LIST))
+        genericListReferenceFlow(Firebase.database.reference.child(HOME_LIST))
 
-    fun addHomeToList(homeName: String): Task<Void> = Firebase.database.reference.child(HOME_LIST).push().setValue(homeName)
+    fun addHomeToList(homeName: String): Task<Void> =
+        Firebase.database.reference.child(HOME_LIST).push().setValue(homeName)
 
     // endregion
 }
