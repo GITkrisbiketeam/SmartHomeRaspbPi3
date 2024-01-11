@@ -63,7 +63,7 @@ fun getHomeUnitTypeIndicatorMap(type: HomeUnitType): GenericTypeIndicator<HomeUn
 }
 
 val HOME_STORAGE_UNITS: List<HomeUnitType> =
-    HomeUnitType.values().filterNot { it == HomeUnitType.UNKNOWN }
+    HomeUnitType.entries.filterNot { it == HomeUnitType.UNKNOWN }
 
 val HOME_ACTION_STORAGE_UNITS: List<HomeUnitType> =
     listOf(
@@ -88,10 +88,10 @@ sealed interface HomeUnit<T : Any>  {
     val type: HomeUnitType
     val room: String
     val hwUnitName: String?
-    val value: T?
-    val lastUpdateTime: Long?
+    var value: T?
+    var lastUpdateTime: Long?
 
-    val lastTriggerSource: String?
+    var lastTriggerSource: String?
     val firebaseNotify: Boolean
 
     @TriggerType
@@ -100,9 +100,9 @@ sealed interface HomeUnit<T : Any>  {
     val unitsTasks: Map<String, UnitTask>
     val unitJobs: MutableMap<String, Job>
 
-    suspend fun applyFunction(
+    suspend fun taskApplyFunction(
         newVal: T,
-        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> HomeUnit<T>?
+        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> Unit
     ) {
         unitsTasks.values.forEach { task ->
             when (type) {
@@ -116,7 +116,7 @@ sealed interface HomeUnit<T : Any>  {
                     if (newVal is Boolean) {
                         booleanTaskApply(newVal, task, booleanApplyAction)
                     } else {
-                        Timber.e("applyFunction new value is not Boolean or is null")
+                        Timber.e("taskApplyFunction new value is not Boolean or is null")
                     }
                 }
                 HomeUnitType.HOME_TEMPERATURES,
@@ -131,7 +131,7 @@ sealed interface HomeUnit<T : Any>  {
                     if (newVal is Float) {
                         sensorTaskApply(newVal, task, booleanApplyAction)
                     } else {
-                        Timber.e("applyFunction new value is not Float or is null")
+                        Timber.e("taskApplyFunction new value is not Float or is null")
                     }
                 }
                 HomeUnitType.UNKNOWN -> throw IllegalArgumentException("NotSupported HomeUnitType requested")
@@ -150,14 +150,8 @@ sealed interface HomeUnit<T : Any>  {
         unitValue: Any?,
         updateTime: Long,
         lastTriggerSource: String,
-        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> HomeUnit<T>?
-    ): HomeUnit<T>
-
-    fun copyWithValues(
-        value: T? = this.value,
-        lastUpdateTime: Long? = this.lastUpdateTime,
-        lastTriggerSource: String? = this.lastTriggerSource,
-    ): HomeUnit<T>
+        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> Unit
+    )
 
     fun shouldFirebaseNotify(newVal: Any?): Boolean {
         return firebaseNotify && (newVal !is Boolean || ((firebaseNotifyTrigger == null ||
@@ -166,12 +160,12 @@ sealed interface HomeUnit<T : Any>  {
                 (firebaseNotifyTrigger == FALLING_EDGE && !newVal)))
     }
 
-    // region applyFunction helper methods
+    // region taskApplyFunction helper methods
 
     private suspend fun booleanTaskApply(
         newVal: Boolean,
         task: UnitTask,
-        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> HomeUnit<T>?
+        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> Unit
     ) {
         supervisorScope {
             launch {
@@ -207,7 +201,7 @@ sealed interface HomeUnit<T : Any>  {
     private suspend fun sensorTaskApply(
         newVal: Float,
         task: UnitTask,
-        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> HomeUnit<T>?
+        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> Unit
     ) {
         supervisorScope {
             launch {
@@ -242,7 +236,7 @@ sealed interface HomeUnit<T : Any>  {
     private suspend fun booleanTaskTimed(
         newVal: Boolean,
         task: UnitTask,
-        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> HomeUnit<T>?
+        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> Unit
     ) {
         task.startTime.takeIf { it.isValidTime() }?.let { startTime ->
             val currTime = System.currentTimeMillis().getOnlyTodayLocalTime()
@@ -317,7 +311,7 @@ sealed interface HomeUnit<T : Any>  {
     private suspend fun booleanApplyAction(
         actionVal: Boolean,
         task: UnitTask,
-        booleanApplyAction: suspend (applyData:BooleanApplyActionData) -> HomeUnit<T>?
+        booleanApplyAction: suspend (applyData:BooleanApplyActionData) -> Unit
     ) {
         val newActionVal: Boolean = (task.inverse ?: false) xor actionVal
         task.homeUnitsList.forEach {

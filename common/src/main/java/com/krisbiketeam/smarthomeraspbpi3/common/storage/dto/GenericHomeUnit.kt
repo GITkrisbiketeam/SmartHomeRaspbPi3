@@ -9,13 +9,13 @@ data class GenericHomeUnit<T : Any>(
     override val type: HomeUnitType = HomeUnitType.HOME_TEMPERATURES,
     override val room: String = "",
     override val hwUnitName: String? = "",
-    override val value: T? = null,
-    override val lastUpdateTime: Long? = null,
-    val min: T? = null,
-    val minLastUpdateTime: Long? = null,
-    val max: T? = null,
-    val maxLastUpdateTime: Long? = null,
-    override val lastTriggerSource: String? = null,
+    override var value: T? = null,
+    override var lastUpdateTime: Long? = null,
+    var min: T? = null,
+    var minLastUpdateTime: Long? = null,
+    var max: T? = null,
+    var maxLastUpdateTime: Long? = null,
+    override var lastTriggerSource: String? = null,
     override val firebaseNotify: Boolean = false,
     @TriggerType override val firebaseNotifyTrigger: String? = null,
     override val showInTaskList: Boolean = false,
@@ -49,19 +49,17 @@ data class GenericHomeUnit<T : Any>(
         if (type != other.type) return false
         if (room != other.room) return false
         if (hwUnitName != other.hwUnitName) return false
-        if (value != other.value) return false
-        if (lastUpdateTime != other.lastUpdateTime) return false
-        if (min != other.min) return false
-        if (minLastUpdateTime != other.minLastUpdateTime) return false
-        if (max != other.max) return false
-        if (maxLastUpdateTime != other.maxLastUpdateTime) return false
-        if (lastTriggerSource != other.lastTriggerSource) return false
+        //if (value != other.value) return false
+        //if (lastUpdateTime != other.lastUpdateTime) return false
+        //if (min != other.min) return false
+        //if (minLastUpdateTime != other.minLastUpdateTime) return false
+        //if (max != other.max) return false
+        //if (maxLastUpdateTime != other.maxLastUpdateTime) return false
+        //if (lastTriggerSource != other.lastTriggerSource) return false
         if (firebaseNotify != other.firebaseNotify) return false
         if (firebaseNotifyTrigger != other.firebaseNotifyTrigger) return false
         if (showInTaskList != other.showInTaskList) return false
-        if (unitsTasks != other.unitsTasks) return false
-
-        return true
+        return unitsTasks == other.unitsTasks
     }
 
     override fun hashCode(): Int {
@@ -83,19 +81,6 @@ data class GenericHomeUnit<T : Any>(
         return result
     }
 
-    override fun copyWithValues(
-        value: T?,
-        lastUpdateTime: Long?,
-        lastTriggerSource: String?,
-    ): HomeUnit<T> {
-        // previus copy was not copying unitJobs
-        return copy(
-            value = value,
-            lastUpdateTime = lastUpdateTime,
-            lastTriggerSource = lastTriggerSource,
-        )
-    }
-
     override fun isUnitAffected(hwUnit: HwUnit): Boolean {
         return hwUnitName == hwUnit.name
     }
@@ -109,10 +94,10 @@ data class GenericHomeUnit<T : Any>(
         unitValue: Any?,
         updateTime: Long,
         lastTriggerSource: String,
-        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> HomeUnit<T>?
-    ): HomeUnit<T> {
+        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> Unit
+    ) {
         // We need to handle differently values of non Basic Types
-        return when (unitValue) {
+        when (unitValue) {
             is PressureAndTemperature -> {
                 Timber.d("Received PressureAndTemperature $unitValue for ${this.type}.${this.name}")
                 when (type) {
@@ -123,7 +108,7 @@ data class GenericHomeUnit<T : Any>(
                         updateValueMinMax(unitValue.pressure, updateTime, lastTriggerSource)
                     }
                     else -> {
-                        this
+                        Unit
                     }
                 }
             }
@@ -137,7 +122,7 @@ data class GenericHomeUnit<T : Any>(
                         updateValueMinMax(unitValue.humidity, updateTime, lastTriggerSource)
                     }
                     else -> {
-                        this
+                        Unit
                     }
                 }
             }
@@ -177,7 +162,7 @@ data class GenericHomeUnit<T : Any>(
                     }
                     else -> {
                         // do nothing, no supported sensor
-                        this
+                        Unit
                     }
                 }
             }
@@ -190,42 +175,35 @@ data class GenericHomeUnit<T : Any>(
 
     private fun updateValueMinMax(
         unitValue: Any?,
-        updateTime: Long,
-        lastTriggerSource: String,
-    ): HomeUnit<T> {
-        when (unitValue) {
-            is Float -> {
-                return if (unitValue <= ((min.takeIf { it is Number? } as Number?)?.toFloat()
-                        ?: Float.MAX_VALUE)) {
-                    copy(
-                        value = unitValue as T?,
-                        lastUpdateTime = updateTime,
-                        min = unitValue,
-                        minLastUpdateTime = updateTime,
-                        lastTriggerSource = lastTriggerSource
-                    )
-                } else if (unitValue >= ((max.takeIf { it is Number? } as Number?)?.toFloat()
-                        ?: Float.MIN_VALUE)) {
-                    copy(
-                        value = unitValue as T?,
-                        lastUpdateTime = updateTime,
-                        max = unitValue,
-                        maxLastUpdateTime = updateTime,
-                        lastTriggerSource = lastTriggerSource
-                    )
-                } else {
-                    copy(
-                        value = unitValue as T?,
-                        lastUpdateTime = updateTime,
-                        lastTriggerSource = lastTriggerSource
-                    )
-                }
+        valueUpdateTime: Long,
+        valueLastTriggerSource: String,
+    ) {
+        if (unitValue is Float) {
+            if (unitValue <= ((min.takeIf { it is Number? } as Number?)?.toFloat()
+                    ?: Float.MAX_VALUE)) {
+                value = unitValue as T?
+                lastUpdateTime = valueUpdateTime
+                min = unitValue
+                minLastUpdateTime = valueUpdateTime
+                lastTriggerSource = valueLastTriggerSource
+            } else if (unitValue >= ((max.takeIf { it is Number? } as Number?)?.toFloat()
+                    ?: Float.MIN_VALUE)) {
+                value = unitValue as T?
+                lastUpdateTime = valueUpdateTime
+                max = unitValue
+                maxLastUpdateTime = valueUpdateTime
+                lastTriggerSource = valueLastTriggerSource
+
+            } else {
+                value = unitValue as T?
+                lastUpdateTime = valueUpdateTime
+                lastTriggerSource = valueLastTriggerSource
+
             }
+        } else {
+            value = unitValue as T?
+            lastUpdateTime = valueUpdateTime
+            lastTriggerSource = valueLastTriggerSource
         }
-        return copy(
-            value = unitValue as T?,
-            lastUpdateTime = updateTime,
-            lastTriggerSource = lastTriggerSource
-        )
     }
 }

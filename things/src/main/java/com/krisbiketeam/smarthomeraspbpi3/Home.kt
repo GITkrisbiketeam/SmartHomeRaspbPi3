@@ -66,7 +66,7 @@ class Home(
 
     private var alarmEnabled: Boolean = secureStorage.alarmEnabled
 
-    private val booleanApplyAction: suspend (BooleanApplyActionData) -> HomeUnit<Any>? =
+    private val booleanApplyAction: suspend (BooleanApplyActionData) -> Unit =
         { applyData: BooleanApplyActionData -> booleanApplyAction(applyData) }
 
     @ExperimentalCoroutinesApi
@@ -147,151 +147,141 @@ class Home(
     }
 
     private suspend fun homeUnitsDataProcessor(pair: Pair<ChildEventType, HomeUnit<Any>>) {
-        pair.let { (action, homeUnit) ->
-            Timber.d("homeUnitsDataProcessor changed: $pair")
-            when (action) {
-                ChildEventType.NODE_ACTION_CHANGED -> {
-                    Timber.d("homeUnitsDataProcessor NODE_ACTION_CHANGED NEW:  $homeUnit")
-                    homeUnitsList[homeUnit.type to homeUnit.name]?.run {
-                        Timber.d("homeUnitsDataProcessor NODE_ACTION_CHANGED EXISTING: $this}")
-                        if (homeUnit == this) {
-                            Timber.d("homeUnitsDataProcessor no changes made, return: ${this.type} ${this.name}")
-                            return@let
-                        }
+        Timber.d("homeUnitsDataProcessor changed: $pair")
+        val (action, newHomeUnit)  = pair
+        when (action) {
+            ChildEventType.NODE_ACTION_CHANGED -> {
+                Timber.d("homeUnitsDataProcessor NODE_ACTION_CHANGED NEW:  $newHomeUnit")
+
+                val newValue = newHomeUnit.value
+                var updateValue = false
+                val existingHomeUnit = homeUnitsList.compute(newHomeUnit.type to newHomeUnit.name){ _, existingHomeUnit ->
+                    Timber.d("homeUnitsDataProcessor NODE_ACTION_CHANGED EXISTING: $existingHomeUnit}")
+
+                    updateValue = newHomeUnit.value != null && newHomeUnit.value != existingHomeUnit?.value
+
+                    if (newHomeUnit != existingHomeUnit) {
+                        Timber.d("homeUnitsDataProcessor HomeUnit changed Inmutable: ${existingHomeUnit?.type} ${existingHomeUnit?.name}")
                         // set previous apply function to new homeUnit
-                        unitsTasks.forEach { (key, value) ->
-                            if (homeUnit.unitsTasks.contains(key)) {
-                                homeUnit.unitsTasks[key]?.taskJob = value.taskJob
+                        existingHomeUnit?.unitsTasks?.forEach { (key, value) ->
+                            if (newHomeUnit.unitsTasks.contains(key)) {
+                                newHomeUnit.unitsTasks[key]?.taskJob = value.taskJob
                             } else {
                                 value.taskJob?.cancel()
                             }
                         }
                         // set previous unitJobs to new homeUnit
-                        homeUnit.unitJobs.putAll(unitJobs)
+                        newHomeUnit.unitJobs.putAll(existingHomeUnit?.unitJobs?: mutableMapOf())
+                        newHomeUnit
+                    } else {
+                        existingHomeUnit
+                    }
+                }
+                Timber.d("homeUnitsDataProcessor NODE_ACTION_CHANGED EXISTING: $existingHomeUnit}")
 
-                        var actuatedHomeUnit: HomeUnit<Any>? = null
-                        homeUnit.value?.let { newValue ->
-                            if (newValue != value) {
-                                hwUnitsList[homeUnit.hwUnitName]?.let { hwUnit ->
-                                    Timber.d(
-                                        "homeUnitsDataProcessor NODE_ACTION_CHANGED hwUnit: ${hwUnit.hwUnit}"
-                                    )
-                                    // Actuators can be changed from remote mobile App so apply HomeUnitState to hwUnitState if it changed
-                                    if (hwUnit is Actuator) {
-                                        Timber.d(
-                                            "homeUnitsDataProcessor NODE_ACTION_CHANGED baseUnit setValue newValue: $newValue"
-                                        )
+                if (updateValue && existingHomeUnit != null && newValue != null) {
+                    hwUnitsList[existingHomeUnit.hwUnitName]?.let { hwUnit ->
+                        Timber.d(
+                            "homeUnitsDataProcessor NODE_ACTION_CHANGED hwUnit: ${hwUnit.hwUnit}"
+                        )
+                        // Actuators can be changed from remote mobile App so apply HomeUnitState to hwUnitState if it changed
+                        if (hwUnit is Actuator) {
+                            Timber.d(
+                                "homeUnitsDataProcessor NODE_ACTION_CHANGED baseUnit setValue newValue: $newValue"
+                            )
 
-                                        hwUnit.setValueWithException(newValue).join()
+                            hwUnit.setValueWithException(newValue).join()
 
-                                        actuatedHomeUnit =
-                                            homeUnit.copyWithValues(lastUpdateTime = hwUnit.hwUnitValue.valueUpdateTime)
-                                                .also {
-                                                    // need to set it to homeUnitsList before applyFunction is called so that it will use updated value in it
-                                                    homeUnitsList[homeUnit.type to homeUnit.name] =
-                                                        it
-                                                }
+                            homeInformationRepository.logHwUnitEvent(
+                                HwUnitLog(
+                                    hwUnit.hwUnit,
+                                    hwUnit.hwUnitValue.unitValue,
+                                    "homeUnitsDataProcessor",
+                                    hwUnit.hwUnitValue.valueUpdateTime
+                                )
+                            )
 
-                                        // TODO should we trigger this HomeUnit update loop?
-                                        homeInformationRepository.updateHomeUnitValue(
-                                            homeUnit.type,
-                                            homeUnit.name,
-                                            newValue,
-                                            hwUnit.hwUnitValue.valueUpdateTime,
-                                            homeUnit.lastTriggerSource
-                                        )
+                            existingHomeUnit.updateHomeUnitValuesAndTimes(
+                                hwUnit.hwUnit,
+                                newValue,
+                                hwUnit.hwUnitValue.valueUpdateTime,
+                                newHomeUnit.lastTriggerSource?:"${LAST_TRIGGER_SOURCE_HW_UNIT}_from_${hwUnit.hwUnit.name}",
+                                booleanApplyAction
+                                )
 
-                                        homeInformationRepository.logHwUnitEvent(
-                                            HwUnitLog(
-                                                hwUnit.hwUnit,
-                                                newValue,
-                                                "homeUnitsDataProcessor",
-                                                hwUnit.hwUnitValue.valueUpdateTime
-                                            )
-                                        )
-                                    }
-                                }
+                            // taskApplyFunction is suspending/blocking so need to launch new coroutine
+                            scope.launch(Dispatchers.IO) {
                                 Timber.d(
-                                    "homeUnitsDataProcessor NODE_ACTION_CHANGED applyFunction for: $homeUnit newValue:$newValue"
+                                    "homeUnitsDataProcessor NODE_ACTION_CHANGED taskApplyFunction for: $existingHomeUnit newValue:$newValue"
                                 )
-                                // applyFunction is suspending/blocking so need to launch new coroutine
-                                scope.launch(Dispatchers.IO) {
-                                    homeUnit.applyFunction(newValue, booleanApplyAction)
-                                }
+                                existingHomeUnit.taskApplyFunction(newValue, booleanApplyAction)
+                            }
+                        }
+                    }
 
-                                if (alarmEnabled && homeUnit.shouldFirebaseNotify(newValue)) {
-                                    Timber.d(
-                                        "homeUnitsDataProcessor NODE_ACTION_CHANGED notify with FCM Message"
-                                    )
-                                    homeInformationRepository.notifyHomeUnitEvent(homeUnit)
-                                }
-                            }
-                        }
-                        homeUnitsList[homeUnit.type to homeUnit.name] = actuatedHomeUnit?:homeUnit
+                }
+            }
+            ChildEventType.NODE_ACTION_ADDED -> {
+                val existingUnit = homeUnitsList[newHomeUnit.type to newHomeUnit.name]
+                Timber.d(
+                    "homeUnitsDataProcessor NODE_ACTION_ADDED EXISTING $existingUnit ; NEW  $newHomeUnit"
+                )
+                // set previous apply function to new homeUnit
+                existingUnit?.unitsTasks?.forEach { (key, value) ->
+                    if (newHomeUnit.unitsTasks.contains(key)) {
+                        newHomeUnit.unitsTasks[key]?.taskJob = value.taskJob
+                    } else {
+                        value.taskJob?.cancel()
                     }
                 }
-                ChildEventType.NODE_ACTION_ADDED -> {
-                    val existingUnit = homeUnitsList[homeUnit.type to homeUnit.name]
-                    Timber.d(
-                        "homeUnitsDataProcessor NODE_ACTION_ADDED EXISTING $existingUnit ; NEW  $homeUnit"
-                    )
-                    // Set/Update HhUnit States according to HomeUnit state and vice versa
-                    hwUnitsList[homeUnit.hwUnitName]?.let { hwUnit ->
-                        Timber.d("homeUnitsDataProcessor NODE_ACTION_ADDED hwUnit: ${hwUnit.hwUnit.name} hwUnit value:${hwUnit.hwUnitValue.unitValue}")
-                        // set previous apply function to new homeUnit
-                        existingUnit?.unitsTasks?.forEach { (key, value) ->
-                            if (homeUnit.unitsTasks.contains(key)) {
-                                homeUnit.unitsTasks[key]?.taskJob = value.taskJob
-                            } else {
-                                value.taskJob?.cancel()
-                            }
-                        }
-                        // set previous unitJobs to new homeUnit
-                        homeUnit.unitJobs.putAll(existingUnit?.unitJobs?: emptyMap())
+                // set previous unitJobs to new homeUnit
+                newHomeUnit.unitJobs.putAll(existingUnit?.unitJobs?: emptyMap())
 
-                        if (homeUnit.value != hwUnit.hwUnitValue.unitValue) {
-                            if (hwUnit is Actuator && homeUnit.value != null) {
-                                Timber.d(
-                                    "homeUnitsDataProcessor NODE_ACTION_ADDED baseUnit ${homeUnit.name} setValue value: ${homeUnit.value}"
+                homeUnitsList[newHomeUnit.type to newHomeUnit.name] = newHomeUnit
+
+                // Set/Update HhUnit States according to HomeUnit state and vice versa
+                hwUnitsList[newHomeUnit.hwUnitName]?.let { hwUnit ->
+                    Timber.d("homeUnitsDataProcessor NODE_ACTION_ADDED hwUnit: ${hwUnit.hwUnit.name} hwUnit value:${hwUnit.hwUnitValue.unitValue}")
+
+                    val newValue = newHomeUnit.value
+                    if (newValue != hwUnit.hwUnitValue.unitValue) {
+                        if (hwUnit is Actuator && newValue != null) {
+                            Timber.d(
+                                "homeUnitsDataProcessor NODE_ACTION_ADDED baseUnit ${newHomeUnit.name} setValue value: ${newHomeUnit.value}"
+                            )
+                            hwUnit.setValueWithException(newValue).join()
+                                homeInformationRepository.updateHomeUnitValue(
+                                    newHomeUnit.type,
+                                    newHomeUnit.name,
+                                    newValue,
+                                    hwUnit.hwUnitValue.valueUpdateTime,
+                                    newHomeUnit.lastTriggerSource
                                 )
-                                homeUnit.value?.let { value ->
-                                    hwUnit.setValueWithException(value).join()
-                                    homeInformationRepository.updateHomeUnitValue(
-                                        homeUnit.type,
-                                        homeUnit.name,
-                                        value,
-                                        hwUnit.hwUnitValue.valueUpdateTime,
-                                        homeUnit.lastTriggerSource
-                                    )
-                                }
-                            } else if (hwUnit is Sensor && hwUnit.hwUnitValue.unitValue != null) {
-                                homeInformationRepository.saveHomeUnit(
-                                    homeUnit.updateHomeUnitValuesAndTimes(
-                                        hwUnit.hwUnit,
-                                        hwUnit.hwUnitValue.unitValue,
-                                        hwUnit.hwUnitValue.valueUpdateTime,
-                                        LAST_TRIGGER_SOURCE_HOME_UNIT_ADDED,
-                                        booleanApplyAction
-                                    )
-                                )
-                            }
+                        } else if (hwUnit is Sensor && hwUnit.hwUnitValue.unitValue != null) {
+                            newHomeUnit.updateHomeUnitValuesAndTimes(
+                                hwUnit.hwUnit,
+                                hwUnit.hwUnitValue.unitValue,
+                                hwUnit.hwUnitValue.valueUpdateTime,
+                                LAST_TRIGGER_SOURCE_HOME_UNIT_ADDED,
+                                booleanApplyAction
+                            )
+                            homeInformationRepository.saveHomeUnit(newHomeUnit)
                         }
                     }
-                    homeUnit.value?.let { value ->
-                        // applyFunction is suspending/blocking so need to launch new coroutine
-                        scope.launch(Dispatchers.IO) {
-                            homeUnit.applyFunction(value, booleanApplyAction)
-                        }
+                }
+                newHomeUnit.value?.let { value ->
+                    // taskApplyFunction is suspending/blocking so need to launch new coroutine
+                    scope.launch(Dispatchers.IO) {
+                        newHomeUnit.taskApplyFunction(value, booleanApplyAction)
                     }
-                    homeUnitsList[homeUnit.type to homeUnit.name] = homeUnit
                 }
-                ChildEventType.NODE_ACTION_DELETED -> {
-                    val result = homeUnitsList.remove(homeUnit.type to homeUnit.name)
-                    Timber.d("homeUnitsDataProcessor NODE_ACTION_DELETED: $result")
-                }
-                else -> {
-                    Timber.e("homeUnitsDataProcessor unsupported action: $action")
-                }
+            }
+            ChildEventType.NODE_ACTION_DELETED -> {
+                val result = homeUnitsList.remove(newHomeUnit.type to newHomeUnit.name)
+                Timber.d("homeUnitsDataProcessor NODE_ACTION_DELETED: $result")
+            }
+            else -> {
+                Timber.e("homeUnitsDataProcessor unsupported action: $action")
             }
         }
     }
@@ -456,26 +446,27 @@ class Home(
                 )
 
                 homeUnitsList.values.filter { it.isUnitAffected(hwUnit) }.forEach { homeUnit ->
-                    val updatedHomeUnit = homeUnit.updateHomeUnitValuesAndTimes(
+                    homeUnit.updateHomeUnitValuesAndTimes(
                         hwUnit,
                         hwUnitValue.unitValue,
                         hwUnitValue.valueUpdateTime,
                         "${LAST_TRIGGER_SOURCE_HW_UNIT}_from_${hwUnit.name}",
                         booleanApplyAction
                     )
-                    homeUnitsList[homeUnit.type to homeUnit.name] = updatedHomeUnit
 
-                    val newValue = updatedHomeUnit.unitValue()
+                    val newValue = homeUnit.unitValue()
                     if (newValue != null) {
                         launch {
-                            // applyFunction is suspending/blocking so need to launch new coroutine
-                            updatedHomeUnit.applyFunction(newValue, booleanApplyAction)
+                            // taskApplyFunction is suspending/blocking so need to launch new coroutine
+                            homeUnit.taskApplyFunction(newValue, booleanApplyAction)
                         }
                     }
-                    homeInformationRepository.saveHomeUnit(updatedHomeUnit)
-                    if (alarmEnabled && updatedHomeUnit.shouldFirebaseNotify(newValue)) {
+
+                    homeInformationRepository.saveHomeUnit(homeUnit)
+
+                    if (alarmEnabled && homeUnit.shouldFirebaseNotify(newValue)) {
                         Timber.d("onHwUnitChanged notify with FCM Message")
-                        homeInformationRepository.notifyHomeUnitEvent(updatedHomeUnit)
+                        homeInformationRepository.notifyHomeUnitEvent(homeUnit)
                     }
                 }
                 // TODO: SHOULD THIS BE HERE?
@@ -641,7 +632,7 @@ class Home(
 
     // region applyFunction helper methods
 
-    private suspend fun booleanApplyAction(applyData: BooleanApplyActionData):HomeUnit<Any>? {
+    private suspend fun booleanApplyAction(applyData: BooleanApplyActionData) {
         Timber.d("booleanApplyAction applyData: $applyData")
         homeUnitsList[applyData.taskHomeUnitType to applyData.taskHomeUnitName]?.let { taskHomeUnit ->
             Timber.d("booleanApplyAction taskHomeUnit: $taskHomeUnit")
@@ -656,39 +647,34 @@ class Home(
                             !applyData.periodicallyOnlyHw
                         ).join()
                         Timber.d("booleanApplyAction after set HW Value taskHwUnit: ${taskHwUnit.hwUnit} unitValue:${taskHwUnit.hwUnitValue}")
-                        taskHomeUnit.copyWithValues(
-                            value = applyData.newActionVal,
-                            lastUpdateTime = if (!applyData.periodicallyOnlyHw) taskHwUnit.hwUnitValue.valueUpdateTime else taskHomeUnit.lastUpdateTime,
-                            lastTriggerSource = if (!applyData.periodicallyOnlyHw) "${LAST_TRIGGER_SOURCE_BOOLEAN_APPLY}_from_${applyData.sourceHomeUnitName}_home_unit_by_${applyData.taskName}_task" else taskHomeUnit.lastTriggerSource
-                        ).also { updatedTaskHomeUnit ->
-                            homeUnitsList[applyData.taskHomeUnitType to applyData.taskHomeUnitName] =
-                                updatedTaskHomeUnit
-                            if (!applyData.periodicallyOnlyHw) {
-                                homeInformationRepository.saveHomeUnit(updatedTaskHomeUnit)
-                                // Firebase will be notified by homeUnitsDataProcessor
-                                homeInformationRepository.logHwUnitEvent(
-                                    HwUnitLog(
-                                        taskHwUnit.hwUnit,
-                                        applyData.newActionVal,
-                                        "booleanApplyAction",
-                                        taskHwUnit.hwUnitValue.valueUpdateTime
-                                    )
-                                )
-                                /*updatedTaskHomeUnit.applyFunction(
-                                        applyData.newActionVal,
-                                        booleanApplyAction
-                                    )*/
-                            }
 
-                            Timber.d("booleanApplyAction after set HW Value updatedTaskHomeUnit: $updatedTaskHomeUnit")
-                            return updatedTaskHomeUnit
+                        taskHomeUnit.value = applyData.newActionVal
+                        taskHomeUnit.lastUpdateTime = if (!applyData.periodicallyOnlyHw) taskHwUnit.hwUnitValue.valueUpdateTime else taskHomeUnit.lastUpdateTime
+                        taskHomeUnit.lastTriggerSource = if (!applyData.periodicallyOnlyHw) "${LAST_TRIGGER_SOURCE_BOOLEAN_APPLY}_from_${applyData.sourceHomeUnitName}_home_unit_by_${applyData.taskName}_task" else taskHomeUnit.lastTriggerSource
+
+                        if (!applyData.periodicallyOnlyHw) {
+                            homeInformationRepository.saveHomeUnit(taskHomeUnit)
+                            // Firebase will be notified by homeUnitsDataProcessor
+                            homeInformationRepository.logHwUnitEvent(
+                                HwUnitLog(
+                                    taskHwUnit.hwUnit,
+                                    applyData.newActionVal,
+                                    "booleanApplyAction",
+                                    taskHwUnit.hwUnitValue.valueUpdateTime
+                                )
+                            )
+                            /*updatedTaskHomeUnit.taskApplyFunction(
+                                    applyData.newActionVal,
+                                    booleanApplyAction
+                                )*/
                         }
+
+                        Timber.d("booleanApplyAction after set HW Value taskHomeUnit: $taskHomeUnit")
                     }
                 }
             }
                 ?: Timber.w("booleanApplyAction taskHwUnit:${taskHomeUnit.hwUnitName}: not exist yet or anymore")
         }
-        return null
     }
 
     // endregion

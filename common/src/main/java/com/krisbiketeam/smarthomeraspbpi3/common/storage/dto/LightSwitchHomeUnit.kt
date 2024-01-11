@@ -9,13 +9,13 @@ data class LightSwitchHomeUnit<T : Any>(
     override val type: HomeUnitType = HomeUnitType.HOME_LIGHT_SWITCHES,
     override val room: String = "",
     override val hwUnitName: String? = "",
-    override val value: T? = null,
-    override val lastUpdateTime: Long? = null,
+    override var value: T? = null,
+    override var lastUpdateTime: Long? = null,
     val switchHwUnitName: String? = null,
-    val switchValue: T? = null,
-    val switchLastUpdateTime: Long? = null,
+    var switchValue: T? = null,
+    var switchLastUpdateTime: Long? = null,
 
-    override val lastTriggerSource: String? = null,
+    override var lastTriggerSource: String? = null,
     override val firebaseNotify: Boolean = false,
     @TriggerType override val firebaseNotifyTrigger: String? = null,
     override val showInTaskList: Boolean = false,
@@ -51,18 +51,16 @@ data class LightSwitchHomeUnit<T : Any>(
         if (type != other.type) return false
         if (room != other.room) return false
         if (hwUnitName != other.hwUnitName) return false
-        if (value != other.value) return false
-        if (lastUpdateTime != other.lastUpdateTime) return false
+        //if (value != other.value) return false
+        //if (lastUpdateTime != other.lastUpdateTime) return false
         if (switchHwUnitName != other.switchHwUnitName) return false
-        if (switchValue != other.switchValue) return false
-        if (switchLastUpdateTime != other.switchLastUpdateTime) return false
-        if (lastTriggerSource != other.lastTriggerSource) return false
+        //if (switchValue != other.switchValue) return false
+        //if (switchLastUpdateTime != other.switchLastUpdateTime) return false
+        //if (lastTriggerSource != other.lastTriggerSource) return false
         if (firebaseNotify != other.firebaseNotify) return false
         if (firebaseNotifyTrigger != other.firebaseNotifyTrigger) return false
         if (showInTaskList != other.showInTaskList) return false
-        if (unitsTasks != other.unitsTasks) return false
-
-        return true
+        return unitsTasks == other.unitsTasks
     }
 
     override fun hashCode(): Int {
@@ -83,19 +81,6 @@ data class LightSwitchHomeUnit<T : Any>(
         return result
     }
 
-    override fun copyWithValues(
-        value: T?,
-        lastUpdateTime: Long?,
-        lastTriggerSource: String?,
-    ): HomeUnit<T> {
-        // previus copy was not copying unitJobs
-        return copy(
-            value = value,
-            lastUpdateTime = lastUpdateTime,
-            lastTriggerSource = lastTriggerSource,
-        )
-    }
-
     override fun isUnitAffected(hwUnit: HwUnit): Boolean {
         return switchHwUnitName == hwUnit.name
     }
@@ -109,22 +94,20 @@ data class LightSwitchHomeUnit<T : Any>(
         unitValue: Any?,
         updateTime: Long,
         lastTriggerSource: String,
-        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> HomeUnit<T>?
-    ): HomeUnit<T> {
+        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> Unit
+    ) {
         // We set Switch and normal value as updateHomeUnitValuesAndTimes is only called by HwUnit
-        return copy(switchValue = unitValue as T?, switchLastUpdateTime = updateTime).let {
-            if (unitValue is Boolean) {
-                booleanApplyAction(BooleanApplyActionData(
-                    newActionVal = unitValue,
-                    taskHomeUnitType = type,
-                    taskHomeUnitName = name,
-                    taskName = name,
-                    sourceHomeUnitName = name,
-                    periodicallyOnlyHw = false
-                ))?: it
-            } else {
-                it
-            }
+        switchValue = unitValue as T?
+        switchLastUpdateTime = updateTime
+        if (unitValue is Boolean) {
+            booleanApplyAction(BooleanApplyActionData(
+                newActionVal = unitValue,
+                taskHomeUnitType = type,
+                taskHomeUnitName = name,
+                taskName = name,
+                sourceHomeUnitName = name,
+                periodicallyOnlyHw = false
+            ))
         }
     }
 }

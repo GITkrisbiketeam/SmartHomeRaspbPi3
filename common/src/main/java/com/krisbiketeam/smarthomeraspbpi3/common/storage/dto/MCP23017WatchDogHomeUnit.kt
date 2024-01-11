@@ -14,15 +14,15 @@ data class MCP23017WatchDogHomeUnit<T : Any>(
     override val type: HomeUnitType = HomeUnitType.HOME_MCP23017_WATCH_DOG,
     override val room: String = "",
     override val hwUnitName: String? = "",
-    override val value: T? = null,
-    override val lastUpdateTime: Long? = null,
+    override var value: T? = null,
+    override var lastUpdateTime: Long? = null,
     val inputHwUnitName: String? = null,
-    val inputValue: T? = null,
-    val inputLastUpdateTime: Long? = null,
+    var inputValue: T? = null,
+    var inputLastUpdateTime: Long? = null,
     val watchDogTimeout: Long = DEFAULT_WATCH_DOG_TIMEOUT,
     val watchDogDelay: Long = DEFAULT_WATCH_DOG_DELAY,
 
-    override val lastTriggerSource: String? = null,
+    override var lastTriggerSource: String? = null,
     override val firebaseNotify: Boolean = false,
     @TriggerType override val firebaseNotifyTrigger: String? = null,
     override val showInTaskList: Boolean = false,
@@ -57,20 +57,18 @@ data class MCP23017WatchDogHomeUnit<T : Any>(
         if (type != other.type) return false
         if (room != other.room) return false
         if (hwUnitName != other.hwUnitName) return false
-        if (value != other.value) return false
-        if (lastUpdateTime != other.lastUpdateTime) return false
+        //if (value != other.value) return false
+        //if (lastUpdateTime != other.lastUpdateTime) return false
         if (inputHwUnitName != other.inputHwUnitName) return false
-        if (inputValue != other.inputValue) return false
-        if (inputLastUpdateTime != other.inputLastUpdateTime) return false
+        //if (inputValue != other.inputValue) return false
+        //if (inputLastUpdateTime != other.inputLastUpdateTime) return false
         if (watchDogTimeout != other.watchDogTimeout) return false
         if (watchDogDelay != other.watchDogDelay) return false
-        if (lastTriggerSource != other.lastTriggerSource) return false
+        //if (lastTriggerSource != other.lastTriggerSource) return false
         if (firebaseNotify != other.firebaseNotify) return false
         if (firebaseNotifyTrigger != other.firebaseNotifyTrigger) return false
         if (showInTaskList != other.showInTaskList) return false
-        if (unitsTasks != other.unitsTasks) return false
-
-        return true
+        return unitsTasks == other.unitsTasks
     }
 
     override fun hashCode(): Int {
@@ -93,19 +91,6 @@ data class MCP23017WatchDogHomeUnit<T : Any>(
         return result
     }
 
-    override fun copyWithValues(
-        value: T?,
-        lastUpdateTime: Long?,
-        lastTriggerSource: String?,
-    ): HomeUnit<T> {
-        // previus copy was not copying unitJobs
-        return copy(
-            value = value,
-            lastUpdateTime = lastUpdateTime,
-            lastTriggerSource = lastTriggerSource,
-        )
-    }
-
     override fun isUnitAffected(hwUnit: HwUnit): Boolean {
         return inputHwUnitName == hwUnit.name
     }
@@ -119,8 +104,8 @@ data class MCP23017WatchDogHomeUnit<T : Any>(
         unitValue: Any?,
         updateTime: Long,
         lastTriggerSource: String,
-        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> HomeUnit<T>?
-    ): HomeUnit<T> {
+        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> Unit
+    ) {
         // We set Switch and normal value as updateHomeUnitValuesAndTimes is only called by HwUnit
         supervisorScope {
             unitJobs[WATCH_DOG_TIMEOUT_TASK_KEY]?.cancel()
@@ -146,6 +131,8 @@ data class MCP23017WatchDogHomeUnit<T : Any>(
                 }
             }
         }
-        return copy(inputValue = unitValue as T?, inputLastUpdateTime = updateTime)
+        inputValue = unitValue as T?
+        inputLastUpdateTime = updateTime
+        this.lastTriggerSource = lastTriggerSource
     }
 }
