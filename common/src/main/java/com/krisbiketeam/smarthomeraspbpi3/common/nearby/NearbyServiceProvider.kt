@@ -2,20 +2,33 @@ package com.krisbiketeam.smarthomeraspbpi3.common.nearby
 
 import android.content.Context
 import com.google.android.gms.nearby.Nearby
-import com.google.android.gms.nearby.connection.*
+import com.google.android.gms.nearby.connection.AdvertisingOptions
+import com.google.android.gms.nearby.connection.ConnectionInfo
+import com.google.android.gms.nearby.connection.ConnectionLifecycleCallback
+import com.google.android.gms.nearby.connection.ConnectionOptions
+import com.google.android.gms.nearby.connection.ConnectionResolution
+import com.google.android.gms.nearby.connection.ConnectionsStatusCodes
+import com.google.android.gms.nearby.connection.DiscoveredEndpointInfo
+import com.google.android.gms.nearby.connection.DiscoveryOptions
+import com.google.android.gms.nearby.connection.EndpointDiscoveryCallback
+import com.google.android.gms.nearby.connection.Payload
+import com.google.android.gms.nearby.connection.PayloadCallback
+import com.google.android.gms.nearby.connection.PayloadTransferUpdate
 import com.google.android.gms.nearby.connection.PayloadTransferUpdate.Status.FAILURE
 import com.google.android.gms.nearby.connection.PayloadTransferUpdate.Status.SUCCESS
+import com.google.android.gms.nearby.connection.Strategy
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.FirebaseCredentials
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.WifiCredentials
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import timber.log.Timber
 
- const val NICK_NAME = "SmartHome Raspberry Pi3"
+const val NICK_NAME = "SmartHome Raspberry Pi3"
  const val SERVICE_ID = "com.krisbiketeam.smarthomeraspbpi3"
  const val CLIENT_ID = "clientId"
 
 //TODO: Add Stop/Pause/Resume
+@Deprecated("NearbyService should not be used anymore")
 class NearbyServiceProvider(private val context: Context) : NearbyService {
     private var dataSendResultListener: NearbyService.DataSendResultListener? = null
     private var dataReceiverListener: NearbyService.DataReceiverListener? = null

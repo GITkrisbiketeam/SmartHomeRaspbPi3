@@ -20,6 +20,8 @@ import com.krisbiketeam.smarthomeraspbpi3.common.ble.data.ReadFirebaseLoginReque
 import com.krisbiketeam.smarthomeraspbpi3.common.ble.data.ReadFirebaseStateRequest
 import com.krisbiketeam.smarthomeraspbpi3.common.ble.data.ReadHomeNameRequest
 import com.krisbiketeam.smarthomeraspbpi3.common.ble.data.ReadHomeStateRequest
+import com.krisbiketeam.smarthomeraspbpi3.common.ble.data.ReadNetworkIpRequest
+import com.krisbiketeam.smarthomeraspbpi3.common.ble.data.ReadNetworkStateRequest
 import com.krisbiketeam.smarthomeraspbpi3.common.ble.data.WriteCharacteristicData
 import com.krisbiketeam.smarthomeraspbpi3.common.ble.data.WriteFirebaseLoginData
 import com.krisbiketeam.smarthomeraspbpi3.common.ble.data.WriteFirebasePasswordData
@@ -127,6 +129,16 @@ class BleService(private val context: Context,
                     CHARACTERISTIC_FIREBASE_STATE_UUID -> {
                         Timber.d("received CHARACTERISTIC_FIREBASE_STATE_UUID")
                         thingsBleStateProvider.readData(ReadFirebaseStateRequest()).data
+                    }
+
+                    CHARACTERISTIC_NETWORK_STATE_UUID -> {
+                        Timber.d("received CHARACTERISTIC_NETWORK_STATE_UUID")
+                        thingsBleStateProvider.readData(ReadNetworkStateRequest()).data
+                    }
+
+                    CHARACTERISTIC_NETWORK_IP_UUID -> {
+                        Timber.d("received CHARACTERISTIC_NETWORK_IP_UUID")
+                        thingsBleStateProvider.readData(ReadNetworkIpRequest()).data
                     }
 
                     else -> null
@@ -346,10 +358,40 @@ class BleService(private val context: Context,
             serviceFirebase.addCharacteristic(characteristicFirebaseState)
             addService(serviceFirebase)
 
-
             addedService = serviceAdded.receive()
             if (addedService.uuid != serviceFirebase.uuid) {
                 Timber.w("different service added ${addedService.uuid}than requested ${serviceHome.uuid}")
+            }
+
+            val serviceNetwork = BluetoothGattService(
+                SERVICE_NETWORK_UUID,
+                BluetoothGattService.SERVICE_TYPE_PRIMARY
+            )
+            val characteristicNetworkIp = BluetoothGattCharacteristic(
+                CHARACTERISTIC_NETWORK_IP_UUID,
+                BluetoothGattCharacteristic.PROPERTY_WRITE or BluetoothGattCharacteristic.PROPERTY_READ,
+                BluetoothGattCharacteristic.PERMISSION_WRITE or BluetoothGattCharacteristic.PERMISSION_READ
+            )
+            val networkClientConfigurationDescriptor = BluetoothGattDescriptor(
+                CLIENT_CONFIGURATION_DESCRIPTOR_UUID,
+                BluetoothGattDescriptor.PERMISSION_READ or BluetoothGattDescriptor.PERMISSION_WRITE
+            ).apply {
+                value = BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
+            }
+            val characteristicNetworkState = BluetoothGattCharacteristic(
+                CHARACTERISTIC_NETWORK_STATE_UUID,
+                BluetoothGattCharacteristic.PROPERTY_READ,
+                BluetoothGattCharacteristic.PERMISSION_READ
+            )
+            characteristicNetworkState.addDescriptor(networkClientConfigurationDescriptor)
+
+            serviceNetwork.addCharacteristic(characteristicNetworkIp)
+            serviceNetwork.addCharacteristic(characteristicNetworkState)
+            addService(serviceNetwork)
+
+            addedService = serviceAdded.receive()
+            if (addedService.uuid != serviceNetwork.uuid) {
+                Timber.w("different service added ${addedService.uuid}than requested ${serviceNetwork.uuid}")
             }
         }
     }

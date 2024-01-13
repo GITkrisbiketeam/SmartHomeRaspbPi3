@@ -1,6 +1,9 @@
 package com.krisbiketeam.smarthomeraspbpi3.common.storage
 
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.FirebaseCredentials
+import com.krisbiketeam.smarthomeraspbpi3.common.ble.data.FirebaseState
+import com.krisbiketeam.smarthomeraspbpi3.common.ble.data.HomeState
+import com.krisbiketeam.smarthomeraspbpi3.common.ble.data.NetworkState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 
@@ -23,15 +26,21 @@ interface SecureStorage {
     val homeNameFlow: Flow<String>
 
     var alarmEnabled: Boolean
-    @ExperimentalCoroutinesApi
-    val alarmEnabledFlow : Flow<Boolean>
-
-    var remoteLoggingLevel : Int
 
     @ExperimentalCoroutinesApi
-    val remoteLoggingLevelFlow : Flow<Int>
+    val alarmEnabledFlow: Flow<Boolean>
+
+    var remoteLoggingLevel: Int
+
+    @ExperimentalCoroutinesApi
+    val remoteLoggingLevelFlow: Flow<Int>
 
     var bme680State: ByteArray
+
+    var networkState: NetworkState
+    var networkIpAddress: String
+    var firebaseState: FirebaseState
+    val homeState: HomeState
 
     fun isAuthenticated(): Boolean
 }

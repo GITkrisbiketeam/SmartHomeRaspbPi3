@@ -4,8 +4,11 @@ import com.krisbiketeam.smarthomeraspbpi3.common.ble.CHARACTERISTIC_FIREBASE_LOG
 import com.krisbiketeam.smarthomeraspbpi3.common.ble.CHARACTERISTIC_FIREBASE_STATE_UUID
 import com.krisbiketeam.smarthomeraspbpi3.common.ble.CHARACTERISTIC_HOME_NAME_UUID
 import com.krisbiketeam.smarthomeraspbpi3.common.ble.CHARACTERISTIC_HOME_STATE_UUID
+import com.krisbiketeam.smarthomeraspbpi3.common.ble.CHARACTERISTIC_NETWORK_IP_UUID
+import com.krisbiketeam.smarthomeraspbpi3.common.ble.CHARACTERISTIC_NETWORK_STATE_UUID
 import com.krisbiketeam.smarthomeraspbpi3.common.ble.SERVICE_FIREBASE_UUID
 import com.krisbiketeam.smarthomeraspbpi3.common.ble.SERVICE_HOME_UUID
+import com.krisbiketeam.smarthomeraspbpi3.common.ble.SERVICE_NETWORK_UUID
 import timber.log.Timber
 import java.util.UUID
 
@@ -58,6 +61,26 @@ data class ReadFirebaseStateData(val state: FirebaseState) : ReadCharacteristicD
     override val data: ByteArray = byteArrayOf(state.value.toByte())
 }
 
+open class ReadNetworkIpRequest : ReadCharacteristicRequest {
+    override val serviceUuid: UUID = SERVICE_NETWORK_UUID
+    override val characteristicUuid: UUID = CHARACTERISTIC_NETWORK_IP_UUID
+}
+
+data class ReadNetworkIpData(val name: String?) : ReadCharacteristicData, ReadNetworkIpRequest() {
+    override val data: ByteArray = name?.toByteArray() ?: byteArrayOf()
+}
+
+open class ReadNetworkStateRequest : ReadCharacteristicRequest {
+    override val serviceUuid: UUID = SERVICE_NETWORK_UUID
+    override val characteristicUuid: UUID = CHARACTERISTIC_NETWORK_STATE_UUID
+}
+
+data class ReadNetworkStateData(val state: NetworkState) : ReadCharacteristicData,
+    ReadNetworkStateRequest() {
+    override val data: ByteArray = byteArrayOf(state.value.toByte())
+}
+
+
 fun UUID.mapToReadHomeNameData(byteArray: ByteArray?): ReadCharacteristicData? {
     return when (this) {
         CHARACTERISTIC_HOME_NAME_UUID -> {
@@ -82,6 +105,18 @@ fun UUID.mapToReadHomeNameData(byteArray: ByteArray?): ReadCharacteristicData? {
             val state = byteArray?.takeIf { byteArray.size == 1 }?.get(0)?.toInt() ?: -1
             Timber.d("received CHARACTERISTIC_FIREBASE_STATE_UUID value: $state")
             ReadFirebaseStateData(FirebaseState.getState(state))
+        }
+
+        CHARACTERISTIC_NETWORK_IP_UUID -> {
+            val ip = runCatching { byteArray?.run(::String) }.getOrNull()
+            Timber.d("received CHARACTERISTIC_NETWORK_IP_UUID ip: $ip")
+            ReadNetworkIpData(ip)
+        }
+
+        CHARACTERISTIC_NETWORK_STATE_UUID -> {
+            val state = byteArray?.takeIf { byteArray.size == 1 }?.get(0)?.toInt() ?: -1
+            Timber.d("received CHARACTERISTIC_NETWORK_STATE_UUID value: $state")
+            ReadNetworkStateData(NetworkState.getState(state))
         }
 
         else -> null

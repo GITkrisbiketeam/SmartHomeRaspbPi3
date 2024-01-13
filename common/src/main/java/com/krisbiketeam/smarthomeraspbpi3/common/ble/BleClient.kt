@@ -25,9 +25,10 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import timber.log.Timber
 
 
-class BleClient(private val context: Context, private val notifyData: (NotificationData) -> Unit) {
+class BleClient(private val context: Context) {
 
     private var bluetoothGatt: BluetoothGatt? = null
+    private var notifyData: ((NotificationData) -> Unit)? = null
 
     private val connectedChannel = Channel<Boolean>()
     private val servicesDiscoveredChannel = Channel<Boolean>()
@@ -153,7 +154,8 @@ class BleClient(private val context: Context, private val notifyData: (Notificat
     fun isConnectedFlow(): Flow<Boolean> = connectedChannel.receiveAsFlow()
 
     @SuppressLint("MissingPermission")
-    suspend fun connect(bleDevice: BluetoothDevice) {
+    suspend fun connect(bleDevice: BluetoothDevice, notifyData: (NotificationData) -> Unit) {
+        this.notifyData = notifyData
         bluetoothGatt = bleDevice.connectGatt(context, false, gattCallback).also { gatt ->
             val servicesDiscovered = servicesDiscoveredChannel.receive()
             if (!servicesDiscovered) {
@@ -174,6 +176,7 @@ class BleClient(private val context: Context, private val notifyData: (Notificat
     @SuppressLint("MissingPermission")
     fun disconnectGattServer() {
         Timber.d("disconnectGattServer")
+        notifyData = null
         bluetoothGatt?.disconnect() ?: connectedChannel.trySend(false)
         bluetoothGatt?.close()
         bluetoothGatt = null
@@ -199,7 +202,7 @@ class BleClient(private val context: Context, private val notifyData: (Notificat
                     Timber.d("characteristic written ${writtenCharacteristic.uuid}")
                 }
             } ?: Timber.e("WRITE CHARACTERISTIC ${data.characteristicUuid} not found")
-        }
+        } ?: Timber.e("WRITE CHARACTERISTIC gatt not connected")
     }
 
     @SuppressLint("MissingPermission")
@@ -222,6 +225,9 @@ class BleClient(private val context: Context, private val notifyData: (Notificat
                 Timber.e("READ CHARACTERISTIC ${data.characteristicUuid} not found")
                 null
             }
+        } ?: run {
+            Timber.e("READ CHARACTERISTIC gatt not connected")
+            null
         }
     }
 
@@ -243,6 +249,13 @@ class BleClient(private val context: Context, private val notifyData: (Notificat
                     enableCharacteristicConfigurationDescriptor(gatt, it)
                 }
             } ?: Timber.d("enable Firebase notification not found")
+        gatt.getService(SERVICE_NETWORK_UUID)
+            ?.getCharacteristic(CHARACTERISTIC_NETWORK_STATE_UUID)
+            ?.let {
+                if (gatt.setCharacteristicNotification(it, true)) {
+                    enableCharacteristicConfigurationDescriptor(gatt, it)
+                }
+            } ?: Timber.d("enable Network notification not found")
     }
 
     @SuppressLint("MissingPermission")
@@ -275,19 +288,19 @@ class BleClient(private val context: Context, private val notifyData: (Notificat
             CHARACTERISTIC_HOME_NAME_UUID -> {
                 val value = kotlin.runCatching { String(byteArray) }.getOrNull()
                 Timber.i("received CHARACTERISTIC_HOME_NAME_UUID value: $value")
-                notifyData(HomeNameNotification(value))
+                notifyData?.invoke(HomeNameNotification(value))
             }
 
             CHARACTERISTIC_HOME_STATE_UUID -> {
                 val value = byteArray.takeIf { byteArray.size == 1 }?.get(0)?.toInt() ?: -1
                 Timber.i("received CHARACTERISTIC_HOME_STATE_UUID value: $value")
-                notifyData(HomeStateNotification(HomeState.getState(value)))
+                notifyData?.invoke(HomeStateNotification(HomeState.getState(value)))
             }
 
             CHARACTERISTIC_FIREBASE_STATE_UUID -> {
                 val value = byteArray.takeIf { byteArray.size == 1 }?.get(0)?.toInt() ?: -1
                 Timber.i("received CHARACTERISTIC_FIREBASE_STATE_UUID value: $value")
-                notifyData(FirebaseStateNotification(FirebaseState.getState(value)))
+                notifyData?.invoke(FirebaseStateNotification(FirebaseState.getState(value)))
             }
         }
     }

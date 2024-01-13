@@ -11,6 +11,9 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.FirebaseCredentials
+import com.krisbiketeam.smarthomeraspbpi3.common.ble.data.FirebaseState
+import com.krisbiketeam.smarthomeraspbpi3.common.ble.data.HomeState
+import com.krisbiketeam.smarthomeraspbpi3.common.ble.data.NetworkState
 import com.krisbiketeam.smarthomeraspbpi3.common.decodeHex
 import com.krisbiketeam.smarthomeraspbpi3.common.toHex
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -47,15 +50,21 @@ class SecureStorageImpl(private val context: Context, homeInformationRepository:
 
     override var bme680State: ByteArray by encryptedSharedPreferences.bme680State()
 
+    override var networkState: NetworkState = NetworkState.NONE
+    override var networkIpAddress: String = ""
+    override var firebaseState: FirebaseState = loginState()
+    override val homeState: HomeState
+        get() = if (homeName.isNotEmpty()) HomeState.SET else HomeState.NONE
+
     @ExperimentalCoroutinesApi
     override val firebaseCredentialsFlow = callbackFlow {
         val preferenceChangeListener =
-                SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-                    Timber.i("homeNameFlow  changed $key")
-                    if (key == EMAIL_KEY || key == PASSWORD_KEY || key == UID_KEY) {
-                        this@callbackFlow.trySendBlocking(firebaseCredentials)
-                    }
+            SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+                Timber.i("homeNameFlow  changed $key")
+                if (key == EMAIL_KEY || key == PASSWORD_KEY || key == UID_KEY) {
+                    this@callbackFlow.trySendBlocking(firebaseCredentials)
                 }
+            }
         this@callbackFlow.trySendBlocking(firebaseCredentials)
         Timber.i("firebaseCredentialsFlow  register")
         encryptedSharedPreferences.registerOnSharedPreferenceChangeListener(preferenceChangeListener)
@@ -281,13 +290,34 @@ class SecureStorageImpl(private val context: Context, homeInformationRepository:
                         getEncryptedSharedPreferences()
                     } else {
                         Timber.e("Permanently failed to instantiate EncryptedSharedPreferences $e")
-                        context.getSharedPreferences(SHARED_PREFERENCES_FILE_NAME, Context.MODE_PRIVATE)
+                        context.getSharedPreferences(
+                            SHARED_PREFERENCES_FILE_NAME,
+                            Context.MODE_PRIVATE
+                        )
                     }
                 }
+
                 else -> {
                     Timber.e("Permanently failed to instantiate EncryptedSharedPreferences $e")
                     context.getSharedPreferences(SHARED_PREFERENCES_FILE_NAME, Context.MODE_PRIVATE)
                 }
+            }
+        }
+    }
+
+    private fun loginState(): FirebaseState {
+        return when {
+            isAuthenticated() -> {
+                FirebaseState.LOGGED
+            }
+
+            firebaseCredentials.email.isNotEmpty()
+                    && firebaseCredentials.password.isNotEmpty() -> {
+                FirebaseState.SET
+            }
+
+            else -> {
+                FirebaseState.NONE
             }
         }
     }

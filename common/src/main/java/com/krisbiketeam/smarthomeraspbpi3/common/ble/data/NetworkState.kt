@@ -1,15 +1,13 @@
 package com.krisbiketeam.smarthomeraspbpi3.common.ble.data
 
-enum class FirebaseState(val value: Int) {
+enum class NetworkState(val value: Int) {
 
     NONE(0),
-    SET(1),
-    LOGGED(2),
-    LOGGED_IN(3),
-    NOT_LOGGED(4);
+    CONNECTED(1),
+    DISCONNECTED(2);
 
     companion object {
-        fun getState(state: Int): FirebaseState {
+        fun getState(state: Int): NetworkState {
             return entries.find {
                 it.value == state
             } ?: NONE

@@ -11,6 +11,9 @@ import androidx.databinding.DataBindingUtil
 import androidx.databinding.OnRebindCallback
 import androidx.databinding.ViewDataBinding
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.flowWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.transition.TransitionManager
 import com.google.firebase.analytics.FirebaseAnalytics
@@ -21,6 +24,9 @@ import com.krisbiketeam.smarthomeraspbpi3.common.auth.FirebaseCredentials
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentSettingsLoginBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.settings.LoginSettingsViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import timber.log.Timber
@@ -49,8 +55,11 @@ class LoginSettingsFragment : Fragment() {
                 }
                 false
             })
-            loginSettingsViewModel.password.observe(viewLifecycleOwner) {
-                binding.passwordLayout.error = null
+            lifecycleScope.launch {
+                loginSettingsViewModel.password.flowWithLifecycle(lifecycle, Lifecycle.State.RESUMED)
+                    .flowOn(Dispatchers.IO).collect {
+                        binding.passwordLayout.error = null
+                    }
             }
             loginConnectButton.setOnClickListener { attemptLogin() }
 
@@ -67,9 +76,12 @@ class LoginSettingsFragment : Fragment() {
             lifecycleOwner = viewLifecycleOwner
         }
 
-        loginSettingsViewModel.loginState.observe(viewLifecycleOwner) { pair ->
-            pair?.let { (state, data) ->
-                Timber.d("loginState changed state: $state data: $data")
+        lifecycleScope.launch {
+            loginSettingsViewModel.bleConnectionState.flowWithLifecycle(
+                lifecycle,
+                Lifecycle.State.RESUMED
+            ).flowOn(Dispatchers.IO).collect { state ->
+                Timber.d("loginState changed state: $state")
                 when (state) {
                     MyLiveDataState.ERROR -> {
                         binding.passwordLayout.error = getString(R.string.error_incorrect_password)
@@ -79,10 +91,6 @@ class LoginSettingsFragment : Fragment() {
                     MyLiveDataState.INIT -> Unit
                     MyLiveDataState.CONNECTING -> Unit
                     MyLiveDataState.DONE -> {
-                        if (data is FirebaseCredentials) {
-                            secureStorage.firebaseCredentials = data
-                        }
-
                         if (secureStorage.homeName.isEmpty()) {
                             Timber.d("No Home Name defined, starting HomeSettingsFragment")
                             findNavController().navigate(LoginSettingsFragmentDirections.actionLoginSettingsFragmentToHomeSettingsFragment())

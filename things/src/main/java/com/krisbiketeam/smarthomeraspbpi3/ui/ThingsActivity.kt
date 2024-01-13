@@ -32,6 +32,8 @@ import com.krisbiketeam.smarthomeraspbpi3.common.ble.data.FirebaseState
 import com.krisbiketeam.smarthomeraspbpi3.common.ble.data.FirebaseStateNotification
 import com.krisbiketeam.smarthomeraspbpi3.common.ble.data.HomeState
 import com.krisbiketeam.smarthomeraspbpi3.common.ble.data.HomeStateNotification
+import com.krisbiketeam.smarthomeraspbpi3.common.ble.data.NetworkState
+import com.krisbiketeam.smarthomeraspbpi3.common.ble.data.NetworkStateNotification
 import com.krisbiketeam.smarthomeraspbpi3.common.ble.data.WriteFirebaseLoginData
 import com.krisbiketeam.smarthomeraspbpi3.common.ble.data.WriteFirebasePasswordData
 import com.krisbiketeam.smarthomeraspbpi3.common.ble.data.WriteHomeNameData
@@ -180,6 +182,11 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
                     it.address.toString()
                 }
 
+            // TODO report networkStates to BLE
+            secureStorage.networkIpAddress = connectivityIpAddersses ?: ""
+            secureStorage.networkState =
+                if (available) NetworkState.CONNECTED else NetworkState.DISCONNECTED
+
             Timber.v("onAvailable connectivityIpAdderss:$connectivityIpAddersses")
             ConsoleAndCrashliticsLoggerTree.setIpAddress(connectivityIpAddersses ?: "null")
             lifecycleScope.launch {
@@ -230,6 +237,8 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
         alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
         Timber.i("onCreate isNetworkConnected: ${networkConnectionMonitor.isNetworkConnected}")
+        secureStorage.networkState =
+            if (networkConnectionMonitor.isNetworkConnected) NetworkState.CONNECTED else NetworkState.DISCONNECTED
 
         lifecycleScope.launch {
             ledA.setValueWithException(false)
@@ -250,6 +259,8 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
                 if (secureStorage.isAuthenticated()) {
                     Timber.d("Login Firebase:${secureStorage.firebaseCredentials.email}")
                     val result = authentication.loginSuspend(secureStorage.firebaseCredentials)
+                    secureStorage.firebaseState =
+                        if (result) FirebaseState.LOGGED_IN else FirebaseState.NOT_LOGGED
                     led2.setValueWithException(result)
                 } else {
                     Timber.d("Not authenticated, starting FirebaseCredentialsReceiver")
@@ -305,11 +316,12 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
                             if (result) {
                                 FirebaseState.LOGGED_IN
                             } else {
-                                FirebaseState.SET
+                                FirebaseState.NOT_LOGGED
                             }
                         } else {
-                            FirebaseState.NOT_LOGGED
+                            FirebaseState.SET
                         }
+                        secureStorage.firebaseState = firebaseState
                         bleService.sendNotification(FirebaseStateNotification(firebaseState))
                     }
                 } ?: Timber.e("Could not get FirebaseCredentials")
@@ -425,6 +437,9 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
             val bleService: BleService = getBluetoothContext().get()
             bleService.start()
 
+            bleService.sendNotification(NetworkStateNotification(secureStorage.networkState))
+            bleService.sendNotification(FirebaseStateNotification(secureStorage.firebaseState))
+
             var loginWrite: String? = null
             var passWrite: String? = null
             bleService.writeDataRequestReceived()
@@ -500,6 +515,10 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
             val bleService: BleService = getBluetoothContext().get()
             bleService.start()
 
+            bleService.sendNotification(NetworkStateNotification(secureStorage.networkState))
+            bleService.sendNotification(FirebaseStateNotification(secureStorage.firebaseState))
+            bleService.sendNotification(HomeStateNotification(secureStorage.homeState))
+
             var homeWrite: String? = null
             bleService.writeDataRequestReceived()
                 .transformWhile {
@@ -520,8 +539,6 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
                     }
                     homeWrite == null
                 }.collect()
-
-
             Timber.d("waitForHomeName finished $homeWrite")
             homeWrite
         } else {

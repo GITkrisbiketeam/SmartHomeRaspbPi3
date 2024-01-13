@@ -7,7 +7,7 @@ enum class HomeState(val value: Int) {
 
     companion object {
         fun getState(state: Int): HomeState {
-            return HomeState.values().find {
+            return entries.find {
                 it.value == state
             } ?: NONE
         }
