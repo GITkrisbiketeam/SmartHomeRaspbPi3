@@ -164,7 +164,6 @@ data class WaterCirculationHomeUnit<T : Any>(
         booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> Unit
     ) {
         Timber.d("updateHomeUnitValuesAndTimes hwUnit:$hwUnit unitValue:$unitValue")
-        // We set Switch and normal value as updateHomeUnitValuesAndTimes is only called by HwUnit
         when (hwUnit.name) {
             temperatureHwUnitName -> {
                 updateTemperatureValueMinMax(
@@ -227,6 +226,12 @@ data class WaterCirculationHomeUnit<T : Any>(
                     //}
                     //}
                 }
+            }
+
+            hwUnitName -> {
+                value = unitValue as T?
+                lastUpdateTime = updateTime
+                this.lastTriggerSource = lastTriggerSource
             }
         }
     }

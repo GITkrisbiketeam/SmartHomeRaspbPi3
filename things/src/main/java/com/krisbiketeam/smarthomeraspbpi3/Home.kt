@@ -177,7 +177,7 @@ class Home(
                         existingHomeUnit
                     }
                 }
-                Timber.d("homeUnitsDataProcessor NODE_ACTION_CHANGED EXISTING: $existingHomeUnit}")
+                Timber.d("homeUnitsDataProcessor NODE_ACTION_CHANGED UPDATING: $existingHomeUnit}")
 
                 if (updateValue && existingHomeUnit != null && newValue != null) {
                     hwUnitsList[existingHomeUnit.hwUnitName]?.let { hwUnit ->
