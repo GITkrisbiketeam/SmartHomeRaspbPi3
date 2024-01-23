@@ -160,7 +160,7 @@ class Home(
 
                     updateValue = newHomeUnit.value != null && newHomeUnit.value != existingHomeUnit?.value
 
-                    if (newHomeUnit != existingHomeUnit) {
+                    if (newHomeUnit.isHomeUnitChanged(existingHomeUnit)) {
                         Timber.d("homeUnitsDataProcessor HomeUnit changed Inmutable: ${existingHomeUnit?.type} ${existingHomeUnit?.name}")
                         // set previous apply function to new homeUnit
                         existingHomeUnit?.unitsTasks?.forEach { (key, value) ->
@@ -542,7 +542,7 @@ class Home(
                 ) as BaseHwUnit<Any>
             }
             BoardConfig.IO_EXTENDER_MCP23017_INPUT -> {
-                MCP23017Pin.Pin.values().find {
+                MCP23017Pin.Pin.entries.find {
                     it.name == hwUnit.ioPin
                 }?.let { ioPin ->
                     HwUnitI2CMCP23017Sensor(
@@ -555,7 +555,7 @@ class Home(
                 }
             }
             BoardConfig.IO_EXTENDER_MCP23017_OUTPUT -> {
-                MCP23017Pin.Pin.values().find {
+                MCP23017Pin.Pin.entries.find {
                     it.name == hwUnit.ioPin
                 }?.let { ioPin ->
                     HwUnitI2CMCP23017Actuator(

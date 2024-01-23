@@ -143,6 +143,8 @@ sealed interface HomeUnit<T : Any>  {
 
     fun isUnitAffected(hwUnit: HwUnit): Boolean
 
+    fun isHomeUnitChanged(other: HomeUnit<T>?): Boolean
+
     fun unitValue(): T?
 
     suspend fun updateHomeUnitValuesAndTimes(

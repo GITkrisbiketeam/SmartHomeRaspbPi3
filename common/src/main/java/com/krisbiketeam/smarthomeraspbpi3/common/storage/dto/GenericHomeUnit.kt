@@ -49,13 +49,13 @@ data class GenericHomeUnit<T : Any>(
         if (type != other.type) return false
         if (room != other.room) return false
         if (hwUnitName != other.hwUnitName) return false
-        //if (value != other.value) return false
-        //if (lastUpdateTime != other.lastUpdateTime) return false
-        //if (min != other.min) return false
-        //if (minLastUpdateTime != other.minLastUpdateTime) return false
-        //if (max != other.max) return false
-        //if (maxLastUpdateTime != other.maxLastUpdateTime) return false
-        //if (lastTriggerSource != other.lastTriggerSource) return false
+        if (value != other.value) return false
+        if (lastUpdateTime != other.lastUpdateTime) return false
+        if (min != other.min) return false
+        if (minLastUpdateTime != other.minLastUpdateTime) return false
+        if (max != other.max) return false
+        if (maxLastUpdateTime != other.maxLastUpdateTime) return false
+        if (lastTriggerSource != other.lastTriggerSource) return false
         if (firebaseNotify != other.firebaseNotify) return false
         if (firebaseNotifyTrigger != other.firebaseNotifyTrigger) return false
         if (showInTaskList != other.showInTaskList) return false
@@ -83,6 +83,27 @@ data class GenericHomeUnit<T : Any>(
 
     override fun isUnitAffected(hwUnit: HwUnit): Boolean {
         return hwUnitName == hwUnit.name
+    }
+
+    override fun isHomeUnitChanged(other: HomeUnit<T>?): Boolean {
+        if (other == null) return true
+        if (other !is GenericHomeUnit<*>) return true
+
+        if (name != other.name) return true
+        if (type != other.type) return true
+        if (room != other.room) return true
+        if (hwUnitName != other.hwUnitName) return true
+        //if (value != other.value) return false
+        //if (lastUpdateTime != other.lastUpdateTime) return false
+        //if (min != other.min) return false
+        //if (minLastUpdateTime != other.minLastUpdateTime) return false
+        //if (max != other.max) return false
+        //if (maxLastUpdateTime != other.maxLastUpdateTime) return false
+        //if (lastTriggerSource != other.lastTriggerSource) return false
+        if (firebaseNotify != other.firebaseNotify) return true
+        if (firebaseNotifyTrigger != other.firebaseNotifyTrigger) return true
+        if (showInTaskList != other.showInTaskList) return true
+        return unitsTasks != other.unitsTasks
     }
 
     override fun unitValue(): T? {

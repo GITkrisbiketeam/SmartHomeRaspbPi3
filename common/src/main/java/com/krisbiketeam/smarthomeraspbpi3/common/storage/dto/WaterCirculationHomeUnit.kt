@@ -68,22 +68,22 @@ data class WaterCirculationHomeUnit<T : Any>(
         if (type != other.type) return false
         if (room != other.room) return false
         if (hwUnitName != other.hwUnitName) return false
-        //if (value != other.value) return false
-        //if (lastUpdateTime != other.lastUpdateTime) return false
+        if (value != other.value) return false
+        if (lastUpdateTime != other.lastUpdateTime) return false
         if (temperatureHwUnitName != other.temperatureHwUnitName) return false
-        //if (temperatureValue != other.temperatureValue) return false
-        //if (temperatureLastUpdateTime != other.temperatureLastUpdateTime) return false
-        //if (temperatureMin != other.temperatureMin) return false
-        //if (temperatureMinLastUpdateTime != other.temperatureMinLastUpdateTime) return false
-        //if (temperatureMax != other.temperatureMax) return false
-        //if (temperatureMaxLastUpdateTime != other.temperatureMaxLastUpdateTime) return false
+        if (temperatureValue != other.temperatureValue) return false
+        if (temperatureLastUpdateTime != other.temperatureLastUpdateTime) return false
+        if (temperatureMin != other.temperatureMin) return false
+        if (temperatureMinLastUpdateTime != other.temperatureMinLastUpdateTime) return false
+        if (temperatureMax != other.temperatureMax) return false
+        if (temperatureMaxLastUpdateTime != other.temperatureMaxLastUpdateTime) return false
         if (temperatureThreshold != other.temperatureThreshold) return false
         if (motionHwUnitName != other.motionHwUnitName) return false
-        //if (motionValue != other.motionValue) return false
-        //if (motionLastUpdateTime != other.motionLastUpdateTime) return false
+        if (motionValue != other.motionValue) return false
+        if (motionLastUpdateTime != other.motionLastUpdateTime) return false
         if (actionTimeout != other.actionTimeout) return false
         if (enabled != other.enabled) return false
-        //if (lastTriggerSource != other.lastTriggerSource) return false
+        if (lastTriggerSource != other.lastTriggerSource) return false
         if (firebaseNotify != other.firebaseNotify) return false
         if (firebaseNotifyTrigger != other.firebaseNotifyTrigger) return false
         if (showInTaskList != other.showInTaskList) return false
@@ -120,6 +120,36 @@ data class WaterCirculationHomeUnit<T : Any>(
 
     override fun isUnitAffected(hwUnit: HwUnit): Boolean {
         return temperatureHwUnitName == hwUnit.name || motionHwUnitName == hwUnit.name
+    }
+
+    override fun isHomeUnitChanged(other: HomeUnit<T>?): Boolean {
+        if (other == null) return true
+        if (other !is WaterCirculationHomeUnit<*>) return true
+
+        if (name != other.name) return true
+        if (type != other.type) return true
+        if (room != other.room) return true
+        if (hwUnitName != other.hwUnitName) return true
+        //if (value != other.value) return false
+        //if (lastUpdateTime != other.lastUpdateTime) return false
+        if (temperatureHwUnitName != other.temperatureHwUnitName) return true
+        //if (temperatureValue != other.temperatureValue) return false
+        //if (temperatureLastUpdateTime != other.temperatureLastUpdateTime) return false
+        //if (temperatureMin != other.temperatureMin) return false
+        //if (temperatureMinLastUpdateTime != other.temperatureMinLastUpdateTime) return false
+        //if (temperatureMax != other.temperatureMax) return false
+        //if (temperatureMaxLastUpdateTime != other.temperatureMaxLastUpdateTime) return false
+        if (temperatureThreshold != other.temperatureThreshold) return true
+        if (motionHwUnitName != other.motionHwUnitName) return true
+        //if (motionValue != other.motionValue) return false
+        //if (motionLastUpdateTime != other.motionLastUpdateTime) return false
+        if (actionTimeout != other.actionTimeout) return true
+        if (enabled != other.enabled) return true
+        //if (lastTriggerSource != other.lastTriggerSource) return false
+        if (firebaseNotify != other.firebaseNotify) return true
+        if (firebaseNotifyTrigger != other.firebaseNotifyTrigger) return true
+        if (showInTaskList != other.showInTaskList) return true
+        return unitsTasks != other.unitsTasks
     }
 
     override fun unitValue(): T? {

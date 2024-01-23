@@ -57,14 +57,14 @@ data class MCP23017WatchDogHomeUnit<T : Any>(
         if (type != other.type) return false
         if (room != other.room) return false
         if (hwUnitName != other.hwUnitName) return false
-        //if (value != other.value) return false
-        //if (lastUpdateTime != other.lastUpdateTime) return false
+        if (value != other.value) return false
+        if (lastUpdateTime != other.lastUpdateTime) return false
         if (inputHwUnitName != other.inputHwUnitName) return false
-        //if (inputValue != other.inputValue) return false
-        //if (inputLastUpdateTime != other.inputLastUpdateTime) return false
+        if (inputValue != other.inputValue) return false
+        if (inputLastUpdateTime != other.inputLastUpdateTime) return false
         if (watchDogTimeout != other.watchDogTimeout) return false
         if (watchDogDelay != other.watchDogDelay) return false
-        //if (lastTriggerSource != other.lastTriggerSource) return false
+        if (lastTriggerSource != other.lastTriggerSource) return false
         if (firebaseNotify != other.firebaseNotify) return false
         if (firebaseNotifyTrigger != other.firebaseNotifyTrigger) return false
         if (showInTaskList != other.showInTaskList) return false
@@ -93,6 +93,28 @@ data class MCP23017WatchDogHomeUnit<T : Any>(
 
     override fun isUnitAffected(hwUnit: HwUnit): Boolean {
         return inputHwUnitName == hwUnit.name
+    }
+
+    override fun isHomeUnitChanged(other: HomeUnit<T>?): Boolean {
+        if (other == null) return true
+        if (other !is MCP23017WatchDogHomeUnit<*>) return true
+
+        if (name != other.name) return true
+        if (type != other.type) return true
+        if (room != other.room) return true
+        if (hwUnitName != other.hwUnitName) return true
+        //if (value != other.value) return false
+        //if (lastUpdateTime != other.lastUpdateTime) return false
+        if (inputHwUnitName != other.inputHwUnitName) return true
+        //if (inputValue != other.inputValue) return false
+        //if (inputLastUpdateTime != other.inputLastUpdateTime) return false
+        if (watchDogTimeout != other.watchDogTimeout) return true
+        if (watchDogDelay != other.watchDogDelay) return true
+        //if (lastTriggerSource != other.lastTriggerSource) return false
+        if (firebaseNotify != other.firebaseNotify) return true
+        if (firebaseNotifyTrigger != other.firebaseNotifyTrigger) return true
+        if (showInTaskList != other.showInTaskList) return true
+        return unitsTasks != other.unitsTasks
     }
 
     override fun unitValue(): T? {

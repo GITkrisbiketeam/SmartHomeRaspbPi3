@@ -51,12 +51,12 @@ data class LightSwitchHomeUnit<T : Any>(
         if (type != other.type) return false
         if (room != other.room) return false
         if (hwUnitName != other.hwUnitName) return false
-        //if (value != other.value) return false
-        //if (lastUpdateTime != other.lastUpdateTime) return false
+        if (value != other.value) return false
+        if (lastUpdateTime != other.lastUpdateTime) return false
         if (switchHwUnitName != other.switchHwUnitName) return false
-        //if (switchValue != other.switchValue) return false
-        //if (switchLastUpdateTime != other.switchLastUpdateTime) return false
-        //if (lastTriggerSource != other.lastTriggerSource) return false
+        if (switchValue != other.switchValue) return false
+        if (switchLastUpdateTime != other.switchLastUpdateTime) return false
+        if (lastTriggerSource != other.lastTriggerSource) return false
         if (firebaseNotify != other.firebaseNotify) return false
         if (firebaseNotifyTrigger != other.firebaseNotifyTrigger) return false
         if (showInTaskList != other.showInTaskList) return false
@@ -85,6 +85,26 @@ data class LightSwitchHomeUnit<T : Any>(
         return switchHwUnitName == hwUnit.name
     }
 
+    override fun isHomeUnitChanged(other: HomeUnit<T>?): Boolean {
+        if (other == null) return true
+        if (other !is LightSwitchHomeUnit<*>) return true
+
+        if (name != other.name) return true
+        if (type != other.type) return true
+        if (room != other.room) return true
+        if (hwUnitName != other.hwUnitName) return true
+        //if (value != other.value) return false
+        //if (lastUpdateTime != other.lastUpdateTime) return false
+        if (switchHwUnitName != other.switchHwUnitName) return true
+        //if (switchValue != other.switchValue) return false
+        //if (switchLastUpdateTime != other.switchLastUpdateTime) return false
+        //if (lastTriggerSource != other.lastTriggerSource) return false
+        if (firebaseNotify != other.firebaseNotify) return true
+        if (firebaseNotifyTrigger != other.firebaseNotifyTrigger) return true
+        if (showInTaskList != other.showInTaskList) return true
+        return unitsTasks != other.unitsTasks
+    }
+
     override fun unitValue(): T? {
         return switchValue
     }
@@ -99,15 +119,18 @@ data class LightSwitchHomeUnit<T : Any>(
         // We set Switch and normal value as updateHomeUnitValuesAndTimes is only called by HwUnit
         switchValue = unitValue as T?
         switchLastUpdateTime = updateTime
+        this.lastTriggerSource = lastTriggerSource
         if (unitValue is Boolean) {
-            booleanApplyAction(BooleanApplyActionData(
-                newActionVal = unitValue,
-                taskHomeUnitType = type,
-                taskHomeUnitName = name,
-                taskName = name,
-                sourceHomeUnitName = name,
-                periodicallyOnlyHw = false
-            ))
+            booleanApplyAction(
+                BooleanApplyActionData(
+                    newActionVal = unitValue,
+                    taskHomeUnitType = type,
+                    taskHomeUnitName = name,
+                    taskName = name,
+                    sourceHomeUnitName = name,
+                    periodicallyOnlyHw = false
+                )
+            )
         }
     }
 }
