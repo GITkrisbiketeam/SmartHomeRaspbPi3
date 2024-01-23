@@ -95,10 +95,10 @@ data class GenericHomeUnit<T : Any>(
         if (hwUnitName != other.hwUnitName) return true
         //if (value != other.value) return false
         //if (lastUpdateTime != other.lastUpdateTime) return false
-        //if (min != other.min) return false
-        //if (minLastUpdateTime != other.minLastUpdateTime) return false
-        //if (max != other.max) return false
-        //if (maxLastUpdateTime != other.maxLastUpdateTime) return false
+        if (min != other.min) return true
+        if (minLastUpdateTime != other.minLastUpdateTime) return true
+        if (max != other.max) return true
+        if (maxLastUpdateTime != other.maxLastUpdateTime) return true
         //if (lastTriggerSource != other.lastTriggerSource) return false
         if (firebaseNotify != other.firebaseNotify) return true
         if (firebaseNotifyTrigger != other.firebaseNotifyTrigger) return true
