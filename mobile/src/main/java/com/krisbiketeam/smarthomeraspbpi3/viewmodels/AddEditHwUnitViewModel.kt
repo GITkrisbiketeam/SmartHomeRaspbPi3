@@ -121,7 +121,7 @@ class AddEditHwUnitViewModel(private val homeRepository: FirebaseHomeInformation
         Timber.d("init ioPinList type: $type hwUnitList: $hwUnitList softAddress: $softAddress hwUnit:$hwUnit")
         when (type) {
             BoardConfig.IO_EXTENDER_MCP23017_OUTPUT, BoardConfig.IO_EXTENDER_MCP23017_INPUT -> {
-                MCP23017Pin.Pin.values().map { pin ->
+                MCP23017Pin.Pin.entries.map { pin ->
                     if (pin.name == hwUnit?.ioPin) {
                         ioPin.value = pin.name
                     }
@@ -271,7 +271,7 @@ class AddEditHwUnitViewModel(private val homeRepository: FirebaseHomeInformation
 
     fun saveChanges(): Task<Void>? {
         Timber.d(
-                "saveChanges hwUnitLiveData: ${hwUnit.value} homeRepositoryTask.isComplete: ${homeRepositoryTask?.isComplete}")
+                "saveChanges hwUnitData: ${hwUnit.value} homeRepositoryTask.isComplete: ${homeRepositoryTask?.isComplete}")
         homeRepositoryTask = hwUnit.value?.let { unit ->
             showProgress.value = true
             Timber.e("Save all changes")

@@ -36,7 +36,6 @@ dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinxCoroutinesAndroid"
 
     implementation "com.jakewharton.timber:timber:$timberVersion"
-    implementation "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycleKtxVersion"
     implementation "androidx.lifecycle:lifecycle-process:$lifecycleKtxVersion"
 
     implementation "androidx.legacy:legacy-support-v4:$androidxLegacySupportV4"

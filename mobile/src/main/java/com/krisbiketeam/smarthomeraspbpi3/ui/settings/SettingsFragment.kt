@@ -3,7 +3,9 @@ package com.krisbiketeam.smarthomeraspbpi3.ui.settings
 import android.os.Bundle
 import android.view.View
 import androidx.core.os.bundleOf
-import androidx.lifecycle.asLiveData
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
@@ -13,6 +15,7 @@ import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
+import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import timber.log.Timber
 
@@ -39,11 +42,14 @@ class SettingsFragment : PreferenceFragmentCompat() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        homeRepository.restartAppFlow().asLiveData().observe(viewLifecycleOwner
-        ) { restart ->
-            if (restart) {
-                findPreference<Preference>(getString(R.string.settings_restart_rpi_things_app))?.summary =
-                    getString(R.string.settings_restarting)
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                homeRepository.restartAppFlow().collect { restart ->
+                    if (restart) {
+                        findPreference<Preference>(getString(R.string.settings_restart_rpi_things_app))?.summary =
+                            getString(R.string.settings_restarting)
+                    }
+                }
             }
         }
 

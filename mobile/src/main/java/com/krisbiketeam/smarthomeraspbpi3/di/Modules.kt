@@ -6,7 +6,6 @@ import com.krisbiketeam.smarthomeraspbpi3.adapters.RoomDetailHomeUnitListAdapter
 import com.krisbiketeam.smarthomeraspbpi3.adapters.TaskListAdapter
 import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.Authentication
-import com.krisbiketeam.smarthomeraspbpi3.common.auth.AuthenticationLiveData
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.FirebaseAuthentication
 import com.krisbiketeam.smarthomeraspbpi3.common.ble.BleClient
 import com.krisbiketeam.smarthomeraspbpi3.common.ble.BleScanner
@@ -79,7 +78,6 @@ val myModule: Module = module {
     single { Moshi.Builder().build() }
     single { Analytics() }
 
-    factory { AuthenticationLiveData(get()) }
     factory { RoomDetailHomeUnitListAdapter(get()) }
     factory { TaskListAdapter(get()) }
 

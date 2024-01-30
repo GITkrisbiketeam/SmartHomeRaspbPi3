@@ -2,7 +2,7 @@ package com.krisbiketeam.smarthomeraspbpi3.viewmodels
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.Observer
-import com.krisbiketeam.smarthomeraspbpi3.common.MyLiveDataState
+import com.krisbiketeam.smarthomeraspbpi3.common.RemoteConnectionState
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.FirebaseCredentials
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.WifiCredentials
 import com.krisbiketeam.smarthomeraspbpi3.di.testModule
@@ -20,7 +20,7 @@ class LoginSettingsViewModelTest : KoinTest {
     private val viewModel: LoginSettingsViewModel by inject()
 
     @Mock
-    lateinit var stateObserver: Observer<Pair<MyLiveDataState, Any>>
+    lateinit var stateObserver: Observer<Pair<RemoteConnectionState, Any>>
 
     @get:Rule
     val rule = InstantTaskExecutorRule()
@@ -38,16 +38,15 @@ class LoginSettingsViewModelTest : KoinTest {
 
     @Test
     fun initStateCorrect() {
-        Assert.assertEquals(viewModel.loginState.value, Pair(MyLiveDataState.INIT, Unit))
+        Assert.assertEquals(viewModel.loginState.value, Pair(RemoteConnectionState.INIT, Unit))
     }
 
     @Test
     fun sendDataByNearbyService() {
         viewModel.loginState.observeForever(stateObserver)
-        //TODO: there is MediatorLiveData that should be somehow handled
         viewModel.login(FirebaseCredentials("email", "password"))
 
         Mockito.verify(stateObserver)
-                .onChanged(Pair(MyLiveDataState.CONNECTING, WifiCredentials("email", "password")))
+                .onChanged(Pair(RemoteConnectionState.CONNECTING, WifiCredentials("email", "password")))
     }
 }

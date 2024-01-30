@@ -2,7 +2,7 @@ package com.krisbiketeam.smarthomeraspbpi3.viewmodels.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.krisbiketeam.smarthomeraspbpi3.common.MyLiveDataState
+import com.krisbiketeam.smarthomeraspbpi3.common.RemoteConnectionState
 import com.krisbiketeam.smarthomeraspbpi3.common.ble.BleClient
 import com.krisbiketeam.smarthomeraspbpi3.common.ble.BleScanner
 import com.krisbiketeam.smarthomeraspbpi3.common.ble.BluetoothEnablerManager
@@ -33,7 +33,7 @@ import timber.log.Timber
 
 
 /**
- * The ViewModel used in [HomeSettingsFragment].
+ * The ViewModel used in HomeSettingsFragment.
  */
 class HomeSettingsViewModel(
     private val secureStorage: SecureStorage,
@@ -44,8 +44,8 @@ class HomeSettingsViewModel(
 ) : ViewModel() {
     val homeName: MutableStateFlow<String> = MutableStateFlow(secureStorage.homeName)
     val remoteHomeSetup: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val bleConnectionState: MutableStateFlow<MyLiveDataState> =
-        MutableStateFlow(MyLiveDataState.INIT)
+    val bleConnectionState: MutableStateFlow<RemoteConnectionState> =
+        MutableStateFlow(RemoteConnectionState.INIT)
 
     val homeNameList: StateFlow<List<String>> =
         homeInformationRepository.getHomesFLow().flowOn(Dispatchers.IO)
@@ -66,7 +66,7 @@ class HomeSettingsViewModel(
 
                     }
                 }
-                bleConnectionState.value = MyLiveDataState.CONNECTING
+                bleConnectionState.value = RemoteConnectionState.CONNECTING
                 if (bluetoothEnablerManager.enableBluetooth()) {
 
                     Timber.d("search for BLE device")
@@ -85,7 +85,7 @@ class HomeSettingsViewModel(
                                     is HomeStateNotification -> {
                                         Timber.e("All set (Home) ${it.state}")
                                         if (it.state == HomeState.SET) {
-                                            bleConnectionState.value = MyLiveDataState.DONE
+                                            bleConnectionState.value = RemoteConnectionState.DONE
                                         }
                                     }
 
@@ -117,15 +117,15 @@ class HomeSettingsViewModel(
                         }
                     } else {
                         Timber.e("BLE device not found")
-                        bleConnectionState.value = MyLiveDataState.ERROR
+                        bleConnectionState.value = RemoteConnectionState.ERROR
                     }
                 } else {
                     Timber.e("bluetooth could not be enabled")
-                    bleConnectionState.value = MyLiveDataState.ERROR
+                    bleConnectionState.value = RemoteConnectionState.ERROR
                 }
             }
         } else {
-            bleConnectionState.value = MyLiveDataState.DONE
+            bleConnectionState.value = RemoteConnectionState.DONE
         }
     }
 }

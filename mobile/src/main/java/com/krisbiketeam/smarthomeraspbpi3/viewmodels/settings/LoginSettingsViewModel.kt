@@ -1,9 +1,8 @@
 package com.krisbiketeam.smarthomeraspbpi3.viewmodels.settings
 
-import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.krisbiketeam.smarthomeraspbpi3.common.MyLiveDataState
+import com.krisbiketeam.smarthomeraspbpi3.common.RemoteConnectionState
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.Authentication
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.FirebaseCredentials
 import com.krisbiketeam.smarthomeraspbpi3.common.ble.BleClient
@@ -37,7 +36,7 @@ import kotlin.coroutines.resumeWithException
 
 
 /**
- * The ViewModel used in [LoginSettingsFragment].
+ * The ViewModel used in LoginSettingsFragment.
  */
 class LoginSettingsViewModel(
     private val authentication: Authentication,
@@ -50,14 +49,13 @@ class LoginSettingsViewModel(
     var email: MutableStateFlow<String> = MutableStateFlow("")
     var password: MutableStateFlow<String> = MutableStateFlow("")
     var remoteLogin: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val loginState = MediatorLiveData<Pair<MyLiveDataState, Any>>()
-    val bleConnectionState: MutableStateFlow<MyLiveDataState> =
-        MutableStateFlow(MyLiveDataState.INIT)
+    val bleConnectionState: MutableStateFlow<RemoteConnectionState> =
+        MutableStateFlow(RemoteConnectionState.INIT)
 
     fun login(loginData: FirebaseCredentials) {
         Timber.d("login")
         viewModelScope.launch {
-            bleConnectionState.value = MyLiveDataState.CONNECTING
+            bleConnectionState.value = RemoteConnectionState.CONNECTING
             runCatching {
                 suspendCancellableCoroutine { continuation ->
 
@@ -72,13 +70,13 @@ class LoginSettingsViewModel(
                             )
 
                             if (!remoteLogin.value) {
-                                bleConnectionState.value = MyLiveDataState.DONE
+                                bleConnectionState.value = RemoteConnectionState.DONE
                             }
                             authentication.removeLoginResultListener()
                         }
 
                         override fun failed(exception: Exception) {
-                            bleConnectionState.value = MyLiveDataState.ERROR
+                            bleConnectionState.value = RemoteConnectionState.ERROR
 
                             continuation.resumeWithException(exception)
                             authentication.removeLoginResultListener()
@@ -95,7 +93,7 @@ class LoginSettingsViewModel(
                 }
             }.getOrNull()?.let { newLoginStateResult: FirebaseCredentials ->
                 Timber.d(
-                    "authenticationLivedata remoteLogin.value: ${remoteLogin.value} newLoginStateResult: $newLoginStateResult"
+                    "authentication data remoteLogin.value: ${remoteLogin.value} newLoginStateResult: $newLoginStateResult"
                 )
                 secureStorage.firebaseCredentials = newLoginStateResult
 
@@ -114,7 +112,7 @@ class LoginSettingsViewModel(
                             sendRegistrationToServer(homeInformationRepository, uid, token)
                             if (remoteLogin.value) {
                                 // initialize Nearby FirebaseCredentials transfer
-                                bleConnectionState.value = MyLiveDataState.CONNECTING
+                                bleConnectionState.value = RemoteConnectionState.CONNECTING
 
                                 sendToRemote(newLoginStateResult)
 
@@ -148,10 +146,10 @@ class LoginSettingsViewModel(
                             when (it) {
                                 is FirebaseStateNotification -> {
                                     if (it.state == FirebaseState.LOGGED_IN) {
-                                        bleConnectionState.value = MyLiveDataState.DONE
+                                        bleConnectionState.value = RemoteConnectionState.DONE
                                     } else {
                                         Timber.e("Cannot remote login to Firebase")
-                                        bleConnectionState.value = MyLiveDataState.ERROR
+                                        bleConnectionState.value = RemoteConnectionState.ERROR
                                     }
                                 }
 
@@ -181,11 +179,11 @@ class LoginSettingsViewModel(
                     }
                 } else {
                     Timber.e("BLE device not found")
-                    bleConnectionState.value = MyLiveDataState.ERROR
+                    bleConnectionState.value = RemoteConnectionState.ERROR
                 }
             } else {
                 Timber.e("bluetooth could not be enabled")
-                bleConnectionState.value = MyLiveDataState.ERROR
+                bleConnectionState.value = RemoteConnectionState.ERROR
             }
 
         }
