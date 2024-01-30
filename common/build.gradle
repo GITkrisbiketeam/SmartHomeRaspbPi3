@@ -44,7 +44,6 @@ dependencies {
     implementation "androidx.security:security-crypto:$androidxSecurityCrypto"
 
     implementation "com.google.android.gms:play-services-base:$playServicesVersion"
-    implementation "com.google.android.gms:play-services-nearby:$playServicesNearbyVersion"
 
     implementation platform("com.google.firebase:firebase-bom:$firebaseBom")
     implementation 'com.google.firebase:firebase-database-ktx'

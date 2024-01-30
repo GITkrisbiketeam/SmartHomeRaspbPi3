@@ -27,7 +27,6 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformation
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.firebase.getFirebaseAppToken
 import com.krisbiketeam.smarthomeraspbpi3.firebase.sendRegistrationToServer
-import com.krisbiketeam.smarthomeraspbpi3.ui.settings.WifiSettingsFragment
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -38,7 +37,7 @@ import kotlin.coroutines.resumeWithException
 
 
 /**
- * The ViewModel used in [WifiSettingsFragment].
+ * The ViewModel used in [LoginSettingsFragment].
  */
 class LoginSettingsViewModel(
     private val authentication: Authentication,

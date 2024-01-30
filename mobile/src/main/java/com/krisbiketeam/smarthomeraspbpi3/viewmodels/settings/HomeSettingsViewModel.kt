@@ -21,7 +21,6 @@ import com.krisbiketeam.smarthomeraspbpi3.common.ble.data.ReadNetworkStateReques
 import com.krisbiketeam.smarthomeraspbpi3.common.ble.data.WriteHomeNameData
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
-import com.krisbiketeam.smarthomeraspbpi3.ui.settings.WifiSettingsFragment
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -34,7 +33,7 @@ import timber.log.Timber
 
 
 /**
- * The ViewModel used in [WifiSettingsFragment].
+ * The ViewModel used in [HomeSettingsFragment].
  */
 class HomeSettingsViewModel(
     private val secureStorage: SecureStorage,

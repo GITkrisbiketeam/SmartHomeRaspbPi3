@@ -63,13 +63,6 @@ class SettingsFragment : PreferenceFragmentCompat() {
     override fun onPreferenceTreeClick(preference: Preference): Boolean {
         Timber.d("onPreferenceTreeClick preference: $preference")
         when (preference.key) {
-            getString(R.string.settings_wifi_fragment_key) -> {
-                Timber.d("onPreferenceTreeClick go to WifiSettings")
-                val direction =
-                        SettingsFragmentDirections.actionSettingsFragmentToWifiSettingsFragment()
-                findNavController().navigate(direction)
-                return true
-            }
             getString(R.string.settings_login_fragment_key) -> {
                 Timber.d("onPreferenceTreeClick go to LoginSettings")
                 val direction =

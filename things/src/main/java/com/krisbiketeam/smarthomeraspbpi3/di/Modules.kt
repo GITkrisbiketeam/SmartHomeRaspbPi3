@@ -10,8 +10,6 @@ import com.krisbiketeam.smarthomeraspbpi3.common.ble.BleService
 import com.krisbiketeam.smarthomeraspbpi3.common.ble.BluetoothEnablerManager
 import com.krisbiketeam.smarthomeraspbpi3.common.ble.BluetoothScope
 import com.krisbiketeam.smarthomeraspbpi3.common.ble.ThingsBleStateProvider
-import com.krisbiketeam.smarthomeraspbpi3.common.nearby.NearbyService
-import com.krisbiketeam.smarthomeraspbpi3.common.nearby.NearbyServiceProvider
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorageImpl
@@ -27,8 +25,6 @@ val myModule: Module = module {
     single<Authentication> { FirebaseAuthentication() }
     single { Analytics() }
     single { Home(get(), get(), get()) }
-
-    factory<NearbyService> { NearbyServiceProvider(androidApplication()) }
 
     factory { BluetoothScope() }
 

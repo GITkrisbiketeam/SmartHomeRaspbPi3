@@ -18,7 +18,6 @@ ext {
 
     // Google
     playServicesVersion = '18.2.0'
-    playServicesNearbyVersion = '18.7.0'
 
     firebaseBom = '31.2.3'
 
