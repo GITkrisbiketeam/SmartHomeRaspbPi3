@@ -3,12 +3,6 @@
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         >
-    <Preference
-            app:fragment="com.krisbiketeam.smarthomeraspbpi3.ui.WifiSettingsFragment"
-            app:key="@string/settings_wifi_fragment_key"
-            app:persistent="false"
-            app:title="Setup remote device WiFI"
-            />
 
     <Preference
             android:fragment="com.krisbiketeam.smarthomeraspbpi3.ui.settings.LoginSettingsFragment"

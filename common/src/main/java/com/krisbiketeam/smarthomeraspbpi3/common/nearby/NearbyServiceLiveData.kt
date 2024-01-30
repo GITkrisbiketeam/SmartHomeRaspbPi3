@@ -6,6 +6,7 @@ import androidx.lifecycle.Observer
 import com.krisbiketeam.smarthomeraspbpi3.common.MyLiveDataState
 import timber.log.Timber
 
+@Deprecated("NearbyService should not be used anymore")
 class NearbyServiceLiveData(private val nearbyService: NearbyService) : LiveData<Pair<MyLiveDataState, Any>>() {
     private var state: MyLiveDataState = MyLiveDataState.INIT
     private var data: Any = Unit

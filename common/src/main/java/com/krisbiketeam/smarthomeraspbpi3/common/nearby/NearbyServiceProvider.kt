@@ -2,20 +2,34 @@ package com.krisbiketeam.smarthomeraspbpi3.common.nearby
 
 import android.content.Context
 import com.google.android.gms.nearby.Nearby
-import com.google.android.gms.nearby.connection.*
+import com.google.android.gms.nearby.connection.AdvertisingOptions
+import com.google.android.gms.nearby.connection.ConnectionInfo
+import com.google.android.gms.nearby.connection.ConnectionLifecycleCallback
+import com.google.android.gms.nearby.connection.ConnectionOptions
+import com.google.android.gms.nearby.connection.ConnectionResolution
+import com.google.android.gms.nearby.connection.ConnectionsStatusCodes
+import com.google.android.gms.nearby.connection.DiscoveredEndpointInfo
+import com.google.android.gms.nearby.connection.DiscoveryOptions
+import com.google.android.gms.nearby.connection.EndpointDiscoveryCallback
+import com.google.android.gms.nearby.connection.Payload
+import com.google.android.gms.nearby.connection.PayloadCallback
+import com.google.android.gms.nearby.connection.PayloadTransferUpdate
 import com.google.android.gms.nearby.connection.PayloadTransferUpdate.Status.FAILURE
 import com.google.android.gms.nearby.connection.PayloadTransferUpdate.Status.SUCCESS
+import com.google.android.gms.nearby.connection.Strategy
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.FirebaseCredentials
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.WifiCredentials
-import com.squareup.moshi.Moshi
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import timber.log.Timber
 
- const val NICK_NAME = "SmartHome Raspberry Pi3"
+const val NICK_NAME = "SmartHome Raspberry Pi3"
  const val SERVICE_ID = "com.krisbiketeam.smarthomeraspbpi3"
  const val CLIENT_ID = "clientId"
 
 //TODO: Add Stop/Pause/Resume
-class NearbyServiceProvider(private val context: Context, private val moshi: Moshi) : NearbyService {
+@Deprecated("NearbyService should not be used anymore")
+class NearbyServiceProvider(private val context: Context) : NearbyService {
     private var dataSendResultListener: NearbyService.DataSendResultListener? = null
     private var dataReceiverListener: NearbyService.DataReceiverListener? = null
     private var dataToBeSent: String? = null
@@ -143,35 +157,40 @@ class NearbyServiceProvider(private val context: Context, private val moshi: Mos
 
     private fun requestConnection(endpointId: String) {
         Nearby.getConnectionsClient(context).requestConnection(
-                CLIENT_ID,
-                endpointId,
-                connectionLifecycleCallback)
-                .addOnSuccessListener {
-                    // We successfully requested a connection. Now both sides
-                    // must accept before the connection is established.
-                    Timber.d("requestConnection:SUCCESS")
-                }
-                .addOnFailureListener {
-                    // Nearby Connections failed to request the connection.
-                    Timber.w("requestConnection:FAILURE ${it.stackTraceToString()}")
-                }
-
+            CLIENT_ID,
+            endpointId,
+            connectionLifecycleCallback,
+            ConnectionOptions.Builder()
+                //.setConnectionType(ConnectionType.NON_DISRUPTIVE)
+                .setLowPower(true)
+                .build()
+        ).addOnSuccessListener {
+            // We successfully requested a connection. Now both sides
+            // must accept before the connection is established.
+            Timber.d("requestConnection:SUCCESS")
+        }.addOnFailureListener {
+            // Nearby Connections failed to request the connection.
+            Timber.w("requestConnection:FAILURE ${it.stackTraceToString()}")
+        }
     }
 
     private fun startAdvertising() {
         Timber.d("Starting Advertising")
 
         Nearby.getConnectionsClient(context).startAdvertising(
-                NICK_NAME,
-                SERVICE_ID,
-                connectionLifecycleCallback,
-                AdvertisingOptions.Builder().setStrategy(Strategy.P2P_STAR).build())
-                .addOnSuccessListener {
-                    Timber.d("startAdvertising:onResult: SUCCESS")
-                }
-                .addOnFailureListener {
-                    Timber.w("Advertising failed! ${it.stackTraceToString()}")
-                }
+            NICK_NAME,
+            SERVICE_ID,
+            connectionLifecycleCallback,
+            AdvertisingOptions.Builder()
+                .setStrategy(Strategy.P2P_POINT_TO_POINT)
+                .setLowPower(true)
+                //.setConnectionType(ConnectionType.NON_DISRUPTIVE)
+                .build()
+        ).addOnSuccessListener {
+            Timber.d("startAdvertising:onResult: SUCCESS")
+        }.addOnFailureListener {
+            Timber.w("Advertising failed! ${it.stackTraceToString()}")
+        }
     }
 
     private fun startDiscovery() {
@@ -180,7 +199,10 @@ class NearbyServiceProvider(private val context: Context, private val moshi: Mos
         Nearby.getConnectionsClient(context).startDiscovery(
                 SERVICE_ID,
                 endpointDiscoveryCallback,
-                DiscoveryOptions.Builder().setStrategy(Strategy.P2P_STAR).build())
+                DiscoveryOptions.Builder()
+                    .setStrategy(Strategy.P2P_POINT_TO_POINT)
+                    .setLowPower(true)
+                    .build())
                 .addOnSuccessListener {
                     Timber.d("startDiscovery:SUCCESS")
                 }
@@ -195,16 +217,13 @@ class NearbyServiceProvider(private val context: Context, private val moshi: Mos
 
         when (data) {
             is WifiCredentials -> {
-                val adapter = moshi.adapter(WifiCredentials::class.java)
-                dataToBeSent = adapter.toJson(data)
+                dataToBeSent = Json.encodeToString(data)
             }
             is FirebaseCredentials -> {
-                val adapter = moshi.adapter(FirebaseCredentials::class.java)
-                dataToBeSent = adapter.toJson(data)
+                dataToBeSent = Json.encodeToString(data)
             }
             is String -> {
-                val adapter = moshi.adapter(String::class.java)
-                dataToBeSent = adapter.toJson(data)
+                dataToBeSent = Json.encodeToString(data)
             }
         }
 

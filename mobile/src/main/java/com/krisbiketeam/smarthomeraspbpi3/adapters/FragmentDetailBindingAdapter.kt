@@ -46,9 +46,28 @@ fun stateBasedVisibility(view: View, pair: Pair<MyLiveDataState, Any>?) {
             MyLiveDataState.CONNECTING -> {
                 view.visibility = if (view is ProgressBar) View.VISIBLE else View.GONE
             }
+
             MyLiveDataState.INIT, MyLiveDataState.ERROR, MyLiveDataState.DONE -> {
                 view.visibility = if (view is ProgressBar) View.GONE else View.VISIBLE
             }
+        }
+    }
+}
+
+@BindingAdapter("bleStateBasedVisibility")
+fun bleStateBasedVisibility(view: View, state: MyLiveDataState) {
+    Timber.d("stateBasedVisibility state: $state; view: $view")
+    when (state) {
+        MyLiveDataState.CONNECTING -> {
+            view.visibility = if (view is ProgressBar) View.VISIBLE else View.GONE
+        }
+
+        MyLiveDataState.INIT, MyLiveDataState.ERROR, MyLiveDataState.DONE -> {
+            view.visibility = if (view is ProgressBar) View.GONE else View.VISIBLE
+        }
+
+        else -> {
+            view.visibility = if (view is ProgressBar) View.GONE else View.VISIBLE
         }
     }
 }
@@ -57,7 +76,8 @@ fun stateBasedVisibility(view: View, pair: Pair<MyLiveDataState, Any>?) {
 fun addDivider(recyclerView: RecyclerView, add: Boolean?) {
     Timber.d("addDivider recyclerView: $recyclerView; view: $add")
     if (add == null || add) recyclerView.addItemDecoration(
-            DividerItemDecoration(recyclerView.context, DividerItemDecoration.VERTICAL))
+        DividerItemDecoration(recyclerView.context, DividerItemDecoration.VERTICAL)
+    )
 }
 
 @BindingAdapter("setChecked")

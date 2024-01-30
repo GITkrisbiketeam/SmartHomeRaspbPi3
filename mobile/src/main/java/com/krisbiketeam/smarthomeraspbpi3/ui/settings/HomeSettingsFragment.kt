@@ -23,7 +23,6 @@ import com.krisbiketeam.smarthomeraspbpi3.common.MyLiveDataState
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentSettingsHomeBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.settings.HomeSettingsViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
@@ -37,12 +36,16 @@ class HomeSettingsFragment : Fragment() {
 
     private lateinit var binding: FragmentSettingsHomeBinding
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View {
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
 
-        binding = DataBindingUtil.inflate<FragmentSettingsHomeBinding>(inflater,
-                                                                       R.layout.fragment_settings_home,
-                                                                       container, false).apply {
+        binding = DataBindingUtil.inflate<FragmentSettingsHomeBinding>(
+            inflater,
+            R.layout.fragment_settings_home,
+            container, false
+        ).apply {
             viewModel = homeSettingsViewModel
 
             homeName.setOnEditorActionListener(TextView.OnEditorActionListener { _, id, _ ->
@@ -53,8 +56,33 @@ class HomeSettingsFragment : Fragment() {
                 false
             })
             lifecycleScope.launch {
-                homeSettingsViewModel.homeName.flowWithLifecycle(lifecycle, Lifecycle.State.RESUMED).flowOn(Dispatchers.IO).collect {
-                    binding.homeNameLayout.error = null
+                homeSettingsViewModel.homeName.flowWithLifecycle(lifecycle, Lifecycle.State.RESUMED)
+                    .flowOn(Dispatchers.IO).collect {
+                        binding.homeNameLayout.error = null
+                    }
+            }
+            lifecycleScope.launch {
+                homeSettingsViewModel.bleConnectionState.flowWithLifecycle(
+                    lifecycle,
+                    Lifecycle.State.RESUMED
+                ).flowOn(Dispatchers.IO).collect { state ->
+                    when (state) {
+                        MyLiveDataState.ERROR -> {
+                            binding.homeNameLayout.error =
+                                getString(R.string.cannot_setup_home_name)
+                            binding.homeName.requestFocus()
+                        }
+
+                        MyLiveDataState.INIT -> {
+                        }
+
+                        MyLiveDataState.CONNECTING -> {
+                        }
+
+                        MyLiveDataState.DONE -> {
+                            findNavController().navigateUp()
+                        }
+                    }
                 }
             }
 
@@ -73,32 +101,11 @@ class HomeSettingsFragment : Fragment() {
             lifecycleOwner = viewLifecycleOwner
         }
 
-        homeSettingsViewModel.nearByState.observe(viewLifecycleOwner, { pair ->
-            pair?.let { (state, data) ->
-
-                when (state) {
-                    MyLiveDataState.ERROR      -> {
-                        if (data is Exception) {
-                            Timber.e(data, "Request failed")
-                        }
-                        binding.homeNameLayout.error = getString(R.string.cannot_setup_home_name)
-                        binding.homeName.requestFocus()
-                    }
-
-                    MyLiveDataState.INIT       -> {
-                    }
-                    MyLiveDataState.CONNECTING -> {
-                    }
-                    MyLiveDataState.DONE       -> {
-                        findNavController().navigateUp()
-                    }
-                }
-            }
-        })
-
-        analytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW, bundleOf(
+        analytics.logEvent(
+            FirebaseAnalytics.Event.SCREEN_VIEW, bundleOf(
                 FirebaseAnalytics.Param.SCREEN_NAME to this::class.simpleName
-        ))
+            )
+        )
 
         return binding.root
     }
