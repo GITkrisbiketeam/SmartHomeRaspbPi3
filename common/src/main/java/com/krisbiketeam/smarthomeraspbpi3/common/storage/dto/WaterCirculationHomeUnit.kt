@@ -1,7 +1,11 @@
 package com.krisbiketeam.smarthomeraspbpi3.common.storage.dto
 
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import timber.log.Timber
 
 data class WaterCirculationHomeUnit<T : Any>(
@@ -83,7 +87,7 @@ data class WaterCirculationHomeUnit<T : Any>(
         unitValue: Any?,
         updateTime: Long,
         lastTriggerSource: String,
-        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> Unit
+        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> HomeUnit<T>?
     ): HomeUnit<T> {
         Timber.d("updateHomeUnitValuesAndTimes hwUnit:$hwUnit unitValue:$unitValue")
         // We set Switch and normal value as updateHomeUnitValuesAndTimes is only called by HwUnit
@@ -93,7 +97,7 @@ data class WaterCirculationHomeUnit<T : Any>(
                     temperatureValue = unitValue as TemperatureType?,
                     temperatureLastUpdateTime = updateTime,
                     lastTriggerSource = lastTriggerSource
-                ).also { homeUnitCopy ->
+                ).let { homeUnitCopy ->
                     temperatureThreshold?.let { threshold ->
                         homeUnitCopy.temperatureValue?.let { temperature ->
                             val timeoutCondition: Boolean = actionTimeout?.let { timeout ->
@@ -104,42 +108,55 @@ data class WaterCirculationHomeUnit<T : Any>(
                             if (temperature > threshold || timeoutCondition) {
                                 // turn Off circulation
                                 Timber.d("updateHomeUnitValuesAndTimes hwUnit:$hwUnit apply temperature")
-                                booleanApplyAction(
-                                    BooleanApplyActionData(
-                                        newActionVal = false,
-                                        taskHomeUnitType = type,
-                                        taskHomeUnitName = name,
-                                        taskName = name,
-                                        sourceHomeUnitName = name,
-                                        periodicallyOnlyHw = false
-                                    )
-                                )
+                                //supervisorScope {
+                                    //launch(Dispatchers.IO) {
+                                        booleanApplyAction(
+                                            BooleanApplyActionData(
+                                                newActionVal = false,
+                                                taskHomeUnitType = type,
+                                                taskHomeUnitName = name,
+                                                taskName = name,
+                                                sourceHomeUnitName = name,
+                                                periodicallyOnlyHw = false
+                                            )
+                                        )?: homeUnitCopy
+                                    //}
+                                //}
+                            } else {
+                                homeUnitCopy
                             }
-                        }
-                    }
+                        }?:homeUnitCopy
+                    }?: homeUnitCopy
                 }
             }
             motionHwUnitName -> {
                 copy(
                     motionValue = unitValue as MotionType?,
-                    motionLastUpdateTime = updateTime
-                ).also { homeUnitCopy ->
+                    motionLastUpdateTime = updateTime,
+                    lastTriggerSource = lastTriggerSource
+                ).let { homeUnitCopy ->
                     // TODO: Should we also turn off circulation while no more motion???
                     if (homeUnitCopy.motionValue == true &&
                         (temperatureValue ?: TemperatureType.MIN_VALUE) <
                         (temperatureThreshold ?: TemperatureType.MAX_VALUE)
                     ) {
                         Timber.d("updateHomeUnitValuesAndTimes hwUnit:$hwUnit apply motion")
-                        booleanApplyAction(
-                            BooleanApplyActionData(
-                                newActionVal = true,
-                                taskHomeUnitType = type,
-                                taskHomeUnitName = name,
-                                taskName = name,
-                                sourceHomeUnitName = name,
-                                periodicallyOnlyHw = false
-                            )
-                        )
+                        //supervisorScope {
+                            //launch(Dispatchers.IO) {
+                                booleanApplyAction(
+                                    BooleanApplyActionData(
+                                        newActionVal = true,
+                                        taskHomeUnitType = type,
+                                        taskHomeUnitName = name,
+                                        taskName = name,
+                                        sourceHomeUnitName = name,
+                                        periodicallyOnlyHw = false
+                                    )
+                                )?: homeUnitCopy
+                            //}
+                        //}
+                    } else {
+                        homeUnitCopy
                     }
                 }
 

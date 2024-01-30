@@ -5,7 +5,6 @@ apply plugin: 'kotlin-kapt'
 apply plugin: 'com.google.firebase.crashlytics'
 // Apply the Performance Monitoring plugin
 apply plugin: 'com.google.firebase.firebase-perf'
-apply plugin: 'koin'
 
 android {
     signingConfigs {
@@ -16,7 +15,7 @@ android {
             keyPassword 'krisbiketeam'
         }
     }
-    compileSdkVersion compileWithSDK
+    compileSdk compileWithSDK
     defaultConfig {
         applicationId "com.krisbiketeam.smarthomeraspbpi3"
         minSdkVersion minSdkVersionThings
@@ -41,10 +40,6 @@ android {
         }
     }
 
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
-
     buildFeatures {
         // Determines whether to generate a BuildConfig class.
         buildConfig = true
@@ -67,7 +62,6 @@ android {
 
 dependencies {
     implementation project(':common')
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinxCoroutinesAndroid"
     // Google dependencies
     implementation "androidx.legacy:legacy-support-v4:$androidxLegacySupportV4"

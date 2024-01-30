@@ -7,7 +7,6 @@ import com.google.android.things.device.DeviceManager
 import com.jakewharton.processphoenix.ProcessPhoenix
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.RemoteLog
-import org.koin.core.component.KoinApiExtension
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import timber.log.Timber
@@ -16,7 +15,6 @@ import java.util.*
 
 const val WATCH_DOG_RESTART_ACTION = "watch_dog_restart_action"
 
-@OptIn(KoinApiExtension::class)
 class WatchDogRestartReceiver  : BroadcastReceiver(), KoinComponent {
     override fun onReceive(context: Context, intent: Intent) {
         Timber.i("onReceive ${intent.action}")

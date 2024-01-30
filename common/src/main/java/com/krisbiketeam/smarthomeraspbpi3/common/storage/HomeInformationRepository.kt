@@ -15,6 +15,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import timber.log.Timber
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class FirebaseHomeInformationRepository {
     // region references
     // region Home reference
@@ -311,13 +312,13 @@ class FirebaseHomeInformationRepository {
     /**
      *  Clears givens @see[HomeUnit] min value from DB
      */
-    fun clearMinHomeUnitValue(homeUnit: HomeUnit<Any>): Task<Void>? {
+    fun clearMinHomeUnitValue(homeUnit: HomeUnit<Any>, minValName: String = HOME_MIN_VAL, minValTimeName: String = HOME_MIN_VAL_LAST_UPDATE): Task<Void>? {
         return homePathReference?.let {
             Firebase.database.getReference("$it/$HOME_UNITS_BASE/${homeUnit.type}/${homeUnit.name}").let { reference ->
                 reference.updateChildren(
                     mapOf(
-                        HOME_MIN_VAL_LAST_UPDATE to null,
-                        HOME_MIN_VAL to null,
+                        minValTimeName to null,
+                        minValName to null,
                     )
                 )
             }
@@ -327,13 +328,13 @@ class FirebaseHomeInformationRepository {
     /**
      *  Clears givens @see[HomeUnit] min value from DB
      */
-    fun clearMaxHomeUnitValue(homeUnit: HomeUnit<Any>): Task<Void>? {
+    fun clearMaxHomeUnitValue(homeUnit: HomeUnit<Any>, maxValName: String = HOME_MAX_VAL, maxValTimeName: String = HOME_MAX_VAL_LAST_UPDATE): Task<Void>? {
         return homePathReference?.let {
             Firebase.database.getReference("$it/$HOME_UNITS_BASE/${homeUnit.type}/${homeUnit.name}").let { reference ->
                 reference.updateChildren(
                     mapOf(
-                        HOME_MAX_VAL_LAST_UPDATE to null,
-                        HOME_MAX_VAL to null,
+                        maxValTimeName to null,
+                        maxValName to null,
                     )
                 )
             }
@@ -541,7 +542,6 @@ class FirebaseHomeInformationRepository {
 
     // region User Online
 
-    @ExperimentalCoroutinesApi
     fun isUserOnlineFlow(): Flow<Boolean?> = isUserOnline
 
     private val isUserOnline: Flow<Boolean?> by lazy {
@@ -560,7 +560,6 @@ class FirebaseHomeInformationRepository {
     /**
      * get [Flow] of [HwUnit] List for listening to changes in Room entries in DB
      */
-    @ExperimentalCoroutinesApi
     fun hwUnitListFlow(): Flow<List<HwUnit>> {
         return genericListReferenceFlow(referenceHWUnits)
     }
@@ -568,7 +567,6 @@ class FirebaseHomeInformationRepository {
     /**
      * get Flow of Pairs of @see[HwUnit] List changes for listening to changes in Room entries in DB
      */
-    @ExperimentalCoroutinesApi
     fun hwUnitsFlow(): Flow<Pair<ChildEventType, HwUnit>> {
         return getHwUnitsFlow(referenceHWUnits)
     }
@@ -576,7 +574,6 @@ class FirebaseHomeInformationRepository {
     /**
      * get Flow of @see[HwUnit] for listening to changes in entries in DB
      */
-    @ExperimentalCoroutinesApi
     fun hwUnitFlow(hwUnitName: String, closeOnEmpty: Boolean = false): Flow<HwUnit> {
         return if(hwUnitName.isEmpty()){
             emptyFlow()
@@ -589,10 +586,8 @@ class FirebaseHomeInformationRepository {
     /**
      * get [Flow] of [HwUnitLog] List for listening to changes HwUnit Error Event List in DB
      */
-    @ExperimentalCoroutinesApi
     fun hwUnitErrorEventListFlow(): Flow<List<HwUnitLog<Any>>> = hwUnitErrorEventList
 
-    @ExperimentalCoroutinesApi
     private val hwUnitErrorEventList: Flow<List<HwUnitLog<Any>>> by lazy {
         genericListReferenceFlow<HwUnitLog<Any>>(referenceHwError).shareIn(
                 ProcessLifecycleOwner.get().lifecycleScope,
@@ -614,10 +609,8 @@ class FirebaseHomeInformationRepository {
     /**
      * get Flow of List of Rooms for listening to changes in Room entries in DB
      */
-    @ExperimentalCoroutinesApi
     fun roomListFlow(): Flow<List<Room>> = roomList
 
-    @ExperimentalCoroutinesApi
     private val roomList: Flow<List<Room>> by lazy {
         genericListReferenceFlow<Room>(referenceRooms).shareIn(
                 ProcessLifecycleOwner.get().lifecycleScope,
@@ -626,15 +619,12 @@ class FirebaseHomeInformationRepository {
     }
 
 
-    @ExperimentalCoroutinesApi
     fun roomUnitFlow(roomName: String, closeOnEmpty: Boolean = false): Flow<Room> {
         return genericReferenceFlow(referenceRooms?.child(roomName), closeOnEmpty)
     }
 
-    @ExperimentalCoroutinesApi
     fun roomListOrderFlow() : Flow<List<String>> = roomListOrder
 
-    @ExperimentalCoroutinesApi
     private val roomListOrder: Flow<List<String>> by lazy {
         genericListReferenceFlow<String>(getHomePreference(HOME_ROOMS_ORDER)).shareIn(
                 ProcessLifecycleOwner.get().lifecycleScope,
@@ -645,10 +635,8 @@ class FirebaseHomeInformationRepository {
 
     // region Task
 
-    @ExperimentalCoroutinesApi
     fun taskListOrderFlow() : Flow<List<String>> = taskListOrder
 
-    @ExperimentalCoroutinesApi
     private val taskListOrder: Flow<List<String>> by lazy {
         genericListReferenceFlow<String>(getHomePreference(HOME_TASKS_ORDER)).shareIn(
                 ProcessLifecycleOwner.get().lifecycleScope,
@@ -662,7 +650,6 @@ class FirebaseHomeInformationRepository {
     /**
      * get Flow of @see[List<HomeUnit<Any>>] for listening to changes in entries in DB
      */
-    @ExperimentalCoroutinesApi
     fun homeUnitListFlow(unitType: HomeUnitType = HomeUnitType.UNKNOWN): Flow<List<HomeUnit<Any>>> {
         return getHomeUnitListFlow(homePathReference, unitType)
     }
@@ -671,7 +658,6 @@ class FirebaseHomeInformationRepository {
      * get instance of a Flow with @see[HomeUnit] List changes for listening to changes in entries in DB
      * this method properly maps HomeUnit impementations like [GenericHomeUnit] or [LightSwitchHomeUnit]
      */
-    @ExperimentalCoroutinesApi
     fun homeUnitsFlow(): Flow<Pair<ChildEventType, HomeUnit<Any>>> {
         return getHomeUnitsFlow(homePathReference)
     }
@@ -680,7 +666,6 @@ class FirebaseHomeInformationRepository {
      * get Flow of @see[GenericHomeUnit<Any>] for for given unit type and name for listening to changes
      * in entries in DB
      */
-    @ExperimentalCoroutinesApi
     fun genericHomeUnitFlow(unitType: HomeUnitType, unitName: String, closeOnEmpty: Boolean = false): Flow<GenericHomeUnit<Any>> {
         return homePathReference?.let {
             genericReferenceFlow(Firebase.database.getReference("$it/$HOME_UNITS_BASE/$unitType/$unitName"), closeOnEmpty)
@@ -691,7 +676,7 @@ class FirebaseHomeInformationRepository {
      * get Flow of @see[GenericHomeUnit<Any>] for for given unit type and name for listening to changes
      * in entries in DB
      */
-    /*@ExperimentalCoroutinesApi
+    /*
     inline fun <reified T: HomeUnit<Any>> genericHomeUnitFlow1(unitType: HomeUnitType, unitName: String, closeOnEmpty: Boolean = false): Flow<T> {
         return homePathReference?.let {
             when(unitType){
@@ -707,7 +692,6 @@ class FirebaseHomeInformationRepository {
      * get Flow of @see[LightSwitchHomeUnit<Any>] for [HomeUnitType.HOME_LIGHT_SWITCHES] type and
      * name for listening to changes in entries in DB
      */
-    @ExperimentalCoroutinesApi
     fun lightSwitchHomeUnitFlow(unitName: String, closeOnEmpty: Boolean = false): Flow<LightSwitchHomeUnit<Any>> {
         return homePathReference?.let {
             genericReferenceFlow(Firebase.database.getReference("$it/$HOME_UNITS_BASE/${HomeUnitType.HOME_LIGHT_SWITCHES}/$unitName"), closeOnEmpty)
@@ -718,7 +702,6 @@ class FirebaseHomeInformationRepository {
      * get Flow of @see[WaterCirculationHomeUnit<Any>] for [HomeUnitType.HOME_WATER_CIRCULATION] type and
      * name for listening to changes in entries in DB
      */
-    @ExperimentalCoroutinesApi
     fun waterCirculationHomeUnitFlow(unitName: String, closeOnEmpty: Boolean = false): Flow<WaterCirculationHomeUnit<Any>> {
         return homePathReference?.let {
             genericReferenceFlow(Firebase.database.getReference("$it/$HOME_UNITS_BASE/${HomeUnitType.HOME_WATER_CIRCULATION}/$unitName"), closeOnEmpty)
@@ -729,7 +712,6 @@ class FirebaseHomeInformationRepository {
      * get Flow of @see[WaterCirculationHomeUnit<Any>] for [HomeUnitType.HOME_MCP23017_WATCH_DOG] type and
      * name for listening to changes in entries in DB
      */
-    @ExperimentalCoroutinesApi
     fun mcp23017WatchDogHomeUnitFlow(unitName: String, closeOnEmpty: Boolean = false): Flow<MCP23017WatchDogHomeUnit<Any>> {
         return homePathReference?.let {
             genericReferenceFlow(Firebase.database.getReference("$it/$HOME_UNITS_BASE/${HomeUnitType.HOME_MCP23017_WATCH_DOG}/$unitName"), closeOnEmpty)
@@ -812,7 +794,6 @@ class FirebaseHomeInformationRepository {
 
     // region restarts
 
-    @ExperimentalCoroutinesApi
     fun restartAppFlow(): Flow<Boolean> {
         return homePathReference?.let { home ->
             Firebase.database.getReference("$home/$RESTART_APP").let { reference ->

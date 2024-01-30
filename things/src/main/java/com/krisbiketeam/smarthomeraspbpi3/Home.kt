@@ -66,7 +66,7 @@ class Home(
 
     private var alarmEnabled: Boolean = secureStorage.alarmEnabled
 
-    private val booleanApplyAction: suspend (BooleanApplyActionData) -> Unit =
+    private val booleanApplyAction: suspend (BooleanApplyActionData) -> HomeUnit<Any>? =
         { applyData: BooleanApplyActionData -> booleanApplyAction(applyData) }
 
     @ExperimentalCoroutinesApi
@@ -641,14 +641,15 @@ class Home(
 
     // region applyFunction helper methods
 
-    private suspend fun booleanApplyAction(applyData: BooleanApplyActionData) {
+    private suspend fun booleanApplyAction(applyData: BooleanApplyActionData):HomeUnit<Any>? {
         Timber.d("booleanApplyAction applyData: $applyData")
         homeUnitsList[applyData.taskHomeUnitType to applyData.taskHomeUnitName]?.let { taskHomeUnit ->
             Timber.d("booleanApplyAction taskHomeUnit: $taskHomeUnit")
             hwUnitsList[taskHomeUnit.hwUnitName]?.let { taskHwUnit ->
                 Timber.d("booleanApplyAction taskHwUnit: ${taskHwUnit.hwUnit} unitValue:${taskHwUnit.hwUnitValue}")
                 if (taskHwUnit is Actuator && taskHwUnit.hwUnitValue.unitValue is Boolean?) {
-                    if (taskHomeUnit.value != applyData.newActionVal) {
+                    if (taskHomeUnit.value != applyData.newActionVal
+                        || taskHwUnit.hwUnitValue.unitValue != applyData.newActionVal) {
                         Timber.i("booleanApplyAction taskHwUnit setValue value: ${applyData.newActionVal} periodicallyOnlyHw: ${applyData.periodicallyOnlyHw}")
                         taskHwUnit.setValueWithException(
                             applyData.newActionVal,
@@ -680,12 +681,14 @@ class Home(
                             }
 
                             Timber.d("booleanApplyAction after set HW Value updatedTaskHomeUnit: $updatedTaskHomeUnit")
+                            return updatedTaskHomeUnit
                         }
                     }
                 }
             }
                 ?: Timber.w("booleanApplyAction taskHwUnit:${taskHomeUnit.hwUnitName}: not exist yet or anymore")
         }
+        return null
     }
 
     // endregion

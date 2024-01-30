@@ -10,7 +10,7 @@ android {
             keyPassword 'krisbiketeam'
         }
     }
-    compileSdkVersion compileWithSDK
+    compileSdk compileWithSDK
     defaultConfig {
         minSdkVersion minSdkVersionApp
         targetSdkVersion targetedSDK
@@ -25,14 +25,10 @@ android {
         }
     }
 
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
     namespace 'com.krisbiketeam.smarthomeraspbpi3.common'
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinxCoroutinesAndroid"
 
     implementation "com.jakewharton.timber:timber:$timberVersion"

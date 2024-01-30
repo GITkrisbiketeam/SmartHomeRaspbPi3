@@ -10,9 +10,9 @@ import com.krisbiketeam.smarthomeraspbpi3.common.auth.WifiCredentials
 import com.squareup.moshi.Moshi
 import timber.log.Timber
 
-private const val NICK_NAME = "SmartHome Raspberry Pi3"
-private const val SERVICE_ID = "com.krisbiketeam.smarthomeraspbpi3"
-private const val CLIENT_ID = "clientId"
+ const val NICK_NAME = "SmartHome Raspberry Pi3"
+ const val SERVICE_ID = "com.krisbiketeam.smarthomeraspbpi3"
+ const val CLIENT_ID = "clientId"
 
 //TODO: Add Stop/Pause/Resume
 class NearbyServiceProvider(private val context: Context, private val moshi: Moshi) : NearbyService {
