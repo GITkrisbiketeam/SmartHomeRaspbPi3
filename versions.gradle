@@ -1,6 +1,6 @@
 ext {
-    targetedSDK = 33
-    compileWithSDK = 33
+    targetedSDK = 34
+    compileWithSDK = 34
     minSdkVersionApp = 23
     minSdkVersionThings = 27
     targetedSdkVersionThings = 32
@@ -9,11 +9,11 @@ ext {
     kotlinVersion = '1.8.21'
     kotlinGradlVersion = '1.8.0'
 
-    kotlinxCoroutinesAndroid = '1.6.3'
+    kotlinxCoroutinesAndroid = '1.7.3'
     kotlinxCoroutinesReactive = '1.6.3'
 
     // ClassPath
-    gradlePluginVersion = '7.4.1'
+    gradlePluginVersion = '8.2.1'
     googleServicesClassVersion = '4.3.10'
 
     // Google
@@ -24,7 +24,7 @@ ext {
     androidxAppcompatVersion = '1.6.1'
     androidxConstraintLayoutVersion = '2.1.4'
     androidxPreferenceVersion = '1.2.1'
-    androidxCoreKtx = '1.10.1'
+    androidxCoreKtx = '1.12.0'
     androidxSecurityCrypto = '1.1.0-alpha06'
     androidxLegacySupportV4 = '1.0.0'
     androidxAnnotationVersion = '1.6.0'

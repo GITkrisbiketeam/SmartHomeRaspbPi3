@@ -52,6 +52,10 @@ android {
         aidl = true
     }
 
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
     useLibrary 'android.test.mock'
     namespace 'com.krisbiketeam.smarthomeraspbpi3'
 }
