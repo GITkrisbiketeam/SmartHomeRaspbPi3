@@ -17,6 +17,7 @@
 package com.krisbiketeam.smarthomeraspbpi3.ui.compose.screens
 
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.FloatingActionButton
@@ -31,18 +32,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.krisbiketeam.smarthomeraspbpi3.R
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.Room
+import com.krisbiketeam.smarthomeraspbpi3.ui.compose.components.grid.SmartStaggeredGrid
 import com.krisbiketeam.smarthomeraspbpi3.ui.compose.core.topappbat.RoomListTopAppBar
-import com.krisbiketeam.smarthomeraspbpi3.viewmodels.RoomListViewModel
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun RoomListScreen(
     openDrawer: () -> Unit,
     onAddNewRoom: () -> Unit,
-    onRoomClick: (Room) -> Unit,
+    onRoomClick: (String) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: RoomListViewModel = koinViewModel(),
+    viewModel: RoomListScreenViewModel = koinViewModel(),
 ) {
     var isEditing by rememberSaveable { mutableStateOf(false) }
 
@@ -64,8 +64,22 @@ fun RoomListScreen(
             }
         }
     ) { paddingValues ->
-        val uiState by viewModel.roomWithHomeUnitsListFromFlow.collectAsStateWithLifecycle(emptyList())
+        val uiState by viewModel.roomListFlow.collectAsStateWithLifecycle(emptyList())
 
+        SmartStaggeredGrid(
+            uiState,
+            { model -> onRoomClick(model.title) },
+            { model, checked ->
+                model.switchUnit?.let { (homeUnitType, homeUnitName) ->
+                    viewModel.switchHomeUnitState(
+                        homeUnitType,
+                        homeUnitName,
+                        checked
+                    )
+                }
+            },
+            Modifier.padding(paddingValues)
+        )
         /*TasksContent(
             loading = uiState.isLoading,
             tasks = uiState.items,

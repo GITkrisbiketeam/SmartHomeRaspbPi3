@@ -16,6 +16,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorageImpl
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
 import com.krisbiketeam.smarthomeraspbpi3.ui.compose.core.drawer.SmartDrawerViewModel
+import com.krisbiketeam.smarthomeraspbpi3.ui.compose.screens.RoomListScreenViewModel
 import com.krisbiketeam.smarthomeraspbpi3.usecases.ReloginLastUserWithHomeUseCase
 import com.krisbiketeam.smarthomeraspbpi3.usecases.ReloginLastUserWithHomeUseCaseImpl
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.AddEditHwUnitViewModel
@@ -45,6 +46,8 @@ import org.koin.dsl.module
 
 val myModule: Module = module {
     viewModel { RoomListViewModel(get(), get()) }
+    viewModel { RoomListScreenViewModel(get()) }
+
     viewModel { TaskListViewModel(get(), get()) }
     viewModel { NewRoomDialogViewModel(androidApplication(), get()) }
     viewModel { HomeUnitTypeChooserDialogViewModel() }

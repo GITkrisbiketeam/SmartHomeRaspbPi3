@@ -74,7 +74,10 @@ fun SmartNavGraph(
             ) {
                 SmartModalDrawer(drawerState, currentRoute, navActions) {
                     RoomListScreen(openDrawer = { coroutineScope.launch { drawerState.open() } },
-                        {}, {})
+                        onAddNewRoom = {},
+                        onRoomClick = {
+                            navActions.navigateToRoomDetail(it)
+                        })
                 }
             }
         }
