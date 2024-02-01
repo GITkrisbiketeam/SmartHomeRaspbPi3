@@ -1,4 +1,4 @@
-package com.krisbiketeam.smarthomeraspbpi3.ui.compose.core.drawer
+package com.krisbiketeam.smarthomeraspbpi3.compose.core.drawer
 
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.Room
 

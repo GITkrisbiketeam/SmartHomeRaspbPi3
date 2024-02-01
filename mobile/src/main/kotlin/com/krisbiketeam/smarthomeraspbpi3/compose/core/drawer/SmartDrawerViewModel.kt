@@ -1,4 +1,4 @@
-package com.krisbiketeam.smarthomeraspbpi3.ui.compose.core.drawer
+package com.krisbiketeam.smarthomeraspbpi3.compose.core.drawer
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

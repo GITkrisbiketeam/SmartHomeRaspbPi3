@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.krisbiketeam.smarthomeraspbpi3.ui.compose.screens
+package com.krisbiketeam.smarthomeraspbpi3.compose.screens.roomlist
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -32,8 +32,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.krisbiketeam.smarthomeraspbpi3.R
-import com.krisbiketeam.smarthomeraspbpi3.ui.compose.components.grid.SmartStaggeredGrid
-import com.krisbiketeam.smarthomeraspbpi3.ui.compose.core.topappbat.RoomListTopAppBar
+import com.krisbiketeam.smarthomeraspbpi3.compose.components.grid.SmartStaggeredGrid
+import com.krisbiketeam.smarthomeraspbpi3.compose.components.topappbat.RoomListTopAppBar
 import org.koin.androidx.compose.koinViewModel
 
 @Composable

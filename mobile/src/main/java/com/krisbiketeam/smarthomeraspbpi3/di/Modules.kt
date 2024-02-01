@@ -15,10 +15,6 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformation
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorageImpl
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
-import com.krisbiketeam.smarthomeraspbpi3.ui.compose.core.drawer.SmartDrawerViewModel
-import com.krisbiketeam.smarthomeraspbpi3.ui.compose.screens.RoomListScreenViewModel
-import com.krisbiketeam.smarthomeraspbpi3.usecases.ReloginLastUserWithHomeUseCase
-import com.krisbiketeam.smarthomeraspbpi3.usecases.ReloginLastUserWithHomeUseCaseImpl
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.AddEditHwUnitViewModel
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.HomeUnitGenericDetailViewModel
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.HomeUnitLightSwitchDetailViewModel
@@ -46,20 +42,12 @@ import org.koin.dsl.module
 
 val myModule: Module = module {
     viewModel { RoomListViewModel(get(), get()) }
-    viewModel { RoomListScreenViewModel(get()) }
-
     viewModel { TaskListViewModel(get(), get()) }
     viewModel { NewRoomDialogViewModel(androidApplication(), get()) }
     viewModel { HomeUnitTypeChooserDialogViewModel() }
     viewModel { (roomName: String) -> RoomDetailViewModel(get(), roomName) }
     viewModel { (roomName: String?, homeUnitName: String?, homeUnitType: HomeUnitType) ->
-        HomeUnitGenericDetailViewModel(
-            androidApplication(),
-            get(),
-            roomName,
-            homeUnitName,
-            homeUnitType
-        )
+        HomeUnitGenericDetailViewModel(androidApplication(), get(), roomName, homeUnitName, homeUnitType)
     }
     viewModel { (roomName: String?, homeUnitName: String?) ->
         HomeUnitLightSwitchDetailViewModel(androidApplication(), get(), roomName, homeUnitName)
@@ -76,7 +64,6 @@ val myModule: Module = module {
     viewModel { LoginSettingsViewModel(get(), get(), get(), get(), get(), get()) }
     viewModel { HomeSettingsViewModel(get(), get(), get(), get(), get()) }
     viewModel { NavigationViewModel(get(), get()) }
-    viewModel { SmartDrawerViewModel(get(), get()) }
     viewModel { (hwUnitName: String) -> AddEditHwUnitViewModel(get(), hwUnitName) }
     viewModel { HwUnitListViewModel(get()) }
     viewModel { HwUnitErrorEventListViewModel(get()) }
@@ -103,6 +90,4 @@ val myModule: Module = module {
 
     factory { BleClient(androidApplication()) }
     //}
-
-    factory<ReloginLastUserWithHomeUseCase> { ReloginLastUserWithHomeUseCaseImpl(get(), get()) }
 }

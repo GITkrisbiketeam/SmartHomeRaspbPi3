@@ -1,4 +1,4 @@
-package com.krisbiketeam.smarthomeraspbpi3.ui.compose.theme
+package com.krisbiketeam.smarthomeraspbpi3.compose.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

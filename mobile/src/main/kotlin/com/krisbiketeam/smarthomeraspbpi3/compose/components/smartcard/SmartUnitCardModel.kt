@@ -1,4 +1,4 @@
-package com.krisbiketeam.smarthomeraspbpi3.ui.compose.components.smartcard
+package com.krisbiketeam.smarthomeraspbpi3.compose.components.smartcard
 
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
 

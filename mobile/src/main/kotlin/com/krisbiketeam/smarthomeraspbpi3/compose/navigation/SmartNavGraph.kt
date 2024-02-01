@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.krisbiketeam.smarthomeraspbpi3.ui.compose.navigation
+package com.krisbiketeam.smarthomeraspbpi3.compose.navigation
 
 import android.app.Activity
 import androidx.compose.foundation.layout.fillMaxSize
@@ -36,11 +36,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.krisbiketeam.smarthomeraspbpi3.ui.compose.core.drawer.SmartModalDrawer
-import com.krisbiketeam.smarthomeraspbpi3.ui.compose.core.topappbat.RoomDetailTopAppBar
-import com.krisbiketeam.smarthomeraspbpi3.ui.compose.core.topappbat.TaskListTopAppBar
-import com.krisbiketeam.smarthomeraspbpi3.ui.compose.navigation.SmartDestinationsArgs.ROOM_NAME_ARG
-import com.krisbiketeam.smarthomeraspbpi3.ui.compose.screens.RoomListScreen
+import com.krisbiketeam.smarthomeraspbpi3.compose.core.drawer.SmartModalDrawer
+import com.krisbiketeam.smarthomeraspbpi3.compose.components.topappbat.RoomDetailTopAppBar
+import com.krisbiketeam.smarthomeraspbpi3.compose.components.topappbat.TaskListTopAppBar
+import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartDestinationsArgs.ROOM_NAME_ARG
+import com.krisbiketeam.smarthomeraspbpi3.compose.screens.roomlist.RoomListScreen
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -107,7 +107,7 @@ fun SmartNavGraph(
                 }
             }
         }
-        composable(SmartDestinations.ROOM_DETAIL_ROUTE) {backStackEntry ->
+        composable(SmartDestinations.ROOM_DETAIL_ROUTE) { backStackEntry ->
             CompositionLocalProvider(
                 LocalViewModelStoreOwner provides viewModelStoreOwner
             ) {

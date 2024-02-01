@@ -1,4 +1,4 @@
-package com.krisbiketeam.smarthomeraspbpi3.ui.compose.screens
+package com.krisbiketeam.smarthomeraspbpi3.compose.screens.roomlist
 
 import androidx.lifecycle.ViewModel
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
@@ -6,7 +6,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.LightSwitchHomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.LAST_TRIGGER_SOURCE_ROOM_HOME_UNITS_LIST
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomListFragment
-import com.krisbiketeam.smarthomeraspbpi3.ui.compose.components.smartcard.SmartUnitCardModel
+import com.krisbiketeam.smarthomeraspbpi3.compose.components.smartcard.SmartUnitCardModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.krisbiketeam.smarthomeraspbpi3.ui.compose.core.drawer
+package com.krisbiketeam.smarthomeraspbpi3.compose.core.drawer
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -52,8 +52,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.Room
-import com.krisbiketeam.smarthomeraspbpi3.ui.compose.navigation.SmartDestinations
-import com.krisbiketeam.smarthomeraspbpi3.ui.compose.navigation.SmartNavigationActions
+import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartDestinations
+import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartNavigationActions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel

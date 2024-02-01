@@ -2,6 +2,7 @@ package com.krisbiketeam.smarthomeraspbpi3
 
 import android.app.Application
 import com.google.firebase.FirebaseApp
+import com.krisbiketeam.smarthomeraspbpi3.di.composeModule
 import com.krisbiketeam.smarthomeraspbpi3.di.myModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
@@ -19,7 +20,7 @@ class MobileApplication : Application() {
         })
         startKoin {
             androidContext(this@MobileApplication)
-            modules(myModule)
+            modules(myModule, composeModule)
         }
     }
 

@@ -5,8 +5,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
-import com.krisbiketeam.smarthomeraspbpi3.ui.compose.navigation.SmartNavGraph
-import com.krisbiketeam.smarthomeraspbpi3.ui.compose.theme.SmartHomeRaspbPi3Theme
+import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartNavGraph
+import com.krisbiketeam.smarthomeraspbpi3.compose.theme.SmartHomeRaspbPi3Theme
 import com.krisbiketeam.smarthomeraspbpi3.usecases.ReloginLastUserWithHomeUseCase
 import org.koin.android.ext.android.inject
 

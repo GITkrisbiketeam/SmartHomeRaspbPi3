@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.krisbiketeam.smarthomeraspbpi3.ui.compose.core.topappbat
+package com.krisbiketeam.smarthomeraspbpi3.compose.components.topappbat
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Box

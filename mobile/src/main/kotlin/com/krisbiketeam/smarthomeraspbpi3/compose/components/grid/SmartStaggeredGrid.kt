@@ -1,4 +1,4 @@
-package com.krisbiketeam.smarthomeraspbpi3.ui.compose.components.grid
+package com.krisbiketeam.smarthomeraspbpi3.compose.components.grid
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -16,8 +16,8 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.krisbiketeam.smarthomeraspbpi3.R
-import com.krisbiketeam.smarthomeraspbpi3.ui.compose.components.smartcard.SmartUnitCard
-import com.krisbiketeam.smarthomeraspbpi3.ui.compose.components.smartcard.SmartUnitCardModel
+import com.krisbiketeam.smarthomeraspbpi3.compose.components.smartcard.SmartUnitCard
+import com.krisbiketeam.smarthomeraspbpi3.compose.components.smartcard.SmartUnitCardModel
 
 @Composable
 fun SmartStaggeredGrid(

@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package com.krisbiketeam.smarthomeraspbpi3.ui.compose.navigation
+package com.krisbiketeam.smarthomeraspbpi3.compose.navigation
 
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
-import com.krisbiketeam.smarthomeraspbpi3.ui.compose.navigation.SmartScreens.ROOM_DETAIL_SCREEN
-import com.krisbiketeam.smarthomeraspbpi3.ui.compose.navigation.SmartScreens.ROOM_LIST_SCREEN
-import com.krisbiketeam.smarthomeraspbpi3.ui.compose.navigation.SmartScreens.TASK_LIST_SCREEN
-import com.krisbiketeam.smarthomeraspbpi3.ui.compose.navigation.SmartDestinationsArgs.ROOM_NAME_ARG
+import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartScreens.ROOM_DETAIL_SCREEN
+import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartScreens.ROOM_LIST_SCREEN
+import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartScreens.TASK_LIST_SCREEN
+import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartDestinationsArgs.ROOM_NAME_ARG
 import com.krisbiketeam.smarthomeraspbpi3.SmartActivity
 
 /**
