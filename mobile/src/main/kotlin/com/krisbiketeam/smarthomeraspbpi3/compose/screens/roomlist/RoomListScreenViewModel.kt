@@ -5,7 +5,6 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformation
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.LightSwitchHomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.LAST_TRIGGER_SOURCE_ROOM_HOME_UNITS_LIST
-import com.krisbiketeam.smarthomeraspbpi3.ui.RoomListFragment
 import com.krisbiketeam.smarthomeraspbpi3.compose.components.smartcard.SmartUnitCardModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -13,7 +12,7 @@ import kotlinx.coroutines.flow.debounce
 import timber.log.Timber
 
 /**
- * The ViewModel for [RoomListFragment].
+ * The ViewModel for [RoomListScreen].
  */
 class RoomListScreenViewModel(
     private val homeRepository: FirebaseHomeInformationRepository,

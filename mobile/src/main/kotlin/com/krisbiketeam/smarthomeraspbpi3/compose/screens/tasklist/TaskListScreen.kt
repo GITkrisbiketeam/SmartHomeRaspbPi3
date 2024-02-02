@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.krisbiketeam.smarthomeraspbpi3.compose.screens.roomlist
+package com.krisbiketeam.smarthomeraspbpi3.compose.screens.tasklist
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -32,24 +32,25 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.krisbiketeam.smarthomeraspbpi3.R
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
 import com.krisbiketeam.smarthomeraspbpi3.compose.components.grid.SmartStaggeredGrid
-import com.krisbiketeam.smarthomeraspbpi3.compose.components.topappbat.RoomListTopAppBar
+import com.krisbiketeam.smarthomeraspbpi3.compose.components.topappbat.TaskListTopAppBar
 import org.koin.androidx.compose.koinViewModel
 import timber.log.Timber
 
 @Composable
-fun RoomListScreen(
+fun TaskListScreen(
     openDrawer: () -> Unit,
-    onAddNewRoom: () -> Unit,
-    onRoomClick: (String) -> Unit,
+    onAddNewHomeUnit: () -> Unit,
+    onTaskClick: (HomeUnitType, String) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: RoomListScreenViewModel = koinViewModel(),
+    viewModel: TaskListScreenViewModel = koinViewModel(),
 ) {
     var isEditing by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
-            RoomListTopAppBar(
+            TaskListTopAppBar(
                 openDrawer = openDrawer,
                 isEditing,
                 onEditClicked = { isEditing = true },
@@ -59,7 +60,7 @@ fun RoomListScreen(
         modifier = modifier.fillMaxSize(),
         floatingActionButton = {
             if (isEditing) {
-                FloatingActionButton(onClick = onAddNewRoom) {
+                FloatingActionButton(onClick = onAddNewHomeUnit) {
                     Icon(Icons.Filled.Add, stringResource(id = R.string.menu_add))
                 }
             }
@@ -69,7 +70,14 @@ fun RoomListScreen(
 
         SmartStaggeredGrid(
             uiState,
-            { model -> onRoomClick(model.title) },
+            { model ->
+                model.switchUnit?.let { (homeUnitType, homeUnitName) ->
+                    onTaskClick(
+                        homeUnitType,
+                        homeUnitName
+                    )
+                }
+            },
             { model, isChecked ->
                 Timber.d("OnCheckedChangeListener isChecked: $isChecked item: $model")
                 model.switchUnit?.let { (homeUnitType, homeUnitName) ->
@@ -82,120 +90,8 @@ fun RoomListScreen(
             },
             Modifier.padding(paddingValues)
         )
-        /*TasksContent(
-            loading = uiState.isLoading,
-            tasks = uiState.items,
-            currentFilteringLabel = uiState.filteringUiInfo.currentFilteringLabel,
-            noTasksLabel = uiState.filteringUiInfo.noTasksLabel,
-            noTasksIconRes = uiState.filteringUiInfo.noTaskIconRes,
-            onRefresh = viewModel::refresh,
-            onTaskClick = onTaskClick,
-            onTaskCheckedChange = viewModel::completeTask,
-            modifier = Modifier.padding(paddingValues)
-        )*/
     }
 }
-/*
-
-@Composable
-private fun TasksContent(
-    loading: Boolean,
-    tasks: List<Task>,
-    @StringRes currentFilteringLabel: Int,
-    @StringRes noTasksLabel: Int,
-    @DrawableRes noTasksIconRes: Int,
-    onRefresh: () -> Unit,
-    onTaskClick: (Task) -> Unit,
-    onTaskCheckedChange: (Task, Boolean) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    LoadingContent(
-        loading = loading,
-        empty = tasks.isEmpty() && !loading,
-        emptyContent = { TasksEmptyContent(noTasksLabel, noTasksIconRes, modifier) },
-        onRefresh = onRefresh
-    ) {
-        Column(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(horizontal = dimensionResource(id = R.dimen.horizontal_margin))
-        ) {
-            Text(
-                text = stringResource(currentFilteringLabel),
-                modifier = Modifier.padding(
-                    horizontal = dimensionResource(id = R.dimen.list_item_padding),
-                    vertical = dimensionResource(id = R.dimen.vertical_margin)
-                ),
-                style = MaterialTheme.typography.h6
-            )
-            LazyColumn {
-                items(tasks) { task ->
-                    TaskItem(
-                        task = task,
-                        onTaskClick = onTaskClick,
-                        onCheckedChange = { onTaskCheckedChange(task, it) }
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun TaskItem(
-    task: Task,
-    onCheckedChange: (Boolean) -> Unit,
-    onTaskClick: (Task) -> Unit
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(
-                horizontal = dimensionResource(id = R.dimen.horizontal_margin),
-                vertical = dimensionResource(id = R.dimen.list_item_padding),
-            )
-            .clickable { onTaskClick(task) }
-    ) {
-        Checkbox(
-            checked = task.isCompleted,
-            onCheckedChange = onCheckedChange
-        )
-        Text(
-            text = task.titleForList,
-            style = MaterialTheme.typography.h6,
-            modifier = Modifier.padding(
-                start = dimensionResource(id = R.dimen.activity_horizontal_margin)
-            ),
-            textDecoration = if (task.isCompleted) {
-                TextDecoration.LineThrough
-            } else {
-                null
-            }
-        )
-    }
-}
-
-@Composable
-private fun TasksEmptyContent(
-    @StringRes noTasksLabel: Int,
-    @DrawableRes noTasksIconRes: Int,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Image(
-            painter = painterResource(id = noTasksIconRes),
-            contentDescription = stringResource(R.string.no_tasks_image_content_description),
-            modifier = Modifier.size(96.dp)
-        )
-        Text(stringResource(id = noTasksLabel))
-    }
-}
-*/
 
 // region previews
 /*

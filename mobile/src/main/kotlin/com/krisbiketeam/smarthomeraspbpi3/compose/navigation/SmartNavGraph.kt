@@ -36,11 +36,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.krisbiketeam.smarthomeraspbpi3.compose.core.drawer.SmartModalDrawer
 import com.krisbiketeam.smarthomeraspbpi3.compose.components.topappbat.RoomDetailTopAppBar
-import com.krisbiketeam.smarthomeraspbpi3.compose.components.topappbat.TaskListTopAppBar
+import com.krisbiketeam.smarthomeraspbpi3.compose.core.drawer.SmartModalDrawer
 import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartDestinationsArgs.ROOM_NAME_ARG
 import com.krisbiketeam.smarthomeraspbpi3.compose.screens.roomlist.RoomListScreen
+import com.krisbiketeam.smarthomeraspbpi3.compose.screens.tasklist.TaskListScreen
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -86,24 +86,11 @@ fun SmartNavGraph(
                 LocalViewModelStoreOwner provides viewModelStoreOwner
             ) {
                 SmartModalDrawer(drawerState, currentRoute, navActions) {
-                    // A surface container using the 'background' color from the theme
-                    Scaffold(
-                        topBar = {
-                            TaskListTopAppBar(
-                                openDrawer = { coroutineScope.launch { drawerState.open() } },
-                                false,
-                                onEditClicked = { },
-                                onFinishClicked = {  }
-                            )
-                        },
-                        modifier = modifier.fillMaxSize(),
-
-                    ) { paddingValues ->
-                        Text(
-                            text = "Hello Android!",
-                            modifier = Modifier.padding(paddingValues)
-                        )
-                    }
+                    TaskListScreen(openDrawer = { coroutineScope.launch { drawerState.open() } },
+                        onAddNewHomeUnit = {},
+                        onTaskClick = { homeUnitType, homeUnitName ->
+                            navActions.navigateToRoomDetail(homeUnitName)
+                        })
                 }
             }
         }
