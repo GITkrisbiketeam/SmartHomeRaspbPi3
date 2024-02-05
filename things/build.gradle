@@ -58,6 +58,10 @@ android {
             path file('src/main/cpp/CMakeLists.txt')
         }
     }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
     namespace 'com.krisbiketeam.smarthomeraspbpi3'
 }
 
@@ -73,7 +77,6 @@ dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinxSerialization"
 
     implementation "com.google.android.gms:play-services-base:$playServicesVersion"
-    implementation "com.google.android.gms:play-services-nearby:$playServicesNearbyVersion"
 
     implementation platform("com.google.firebase:firebase-bom:$firebaseBom")
     implementation 'com.google.firebase:firebase-database-ktx'

@@ -14,7 +14,6 @@
 
     <!-- Strings related to email -->
     <string name="prompt_email">Email</string>
-    <string name="prompt_wifi">SSID Name</string>
     <string name="prompt_password">Password</string>
     <string name="action_sign_in">Sign in or register</string>
     <string name="action_sign_in_short">Sign in</string>
@@ -25,7 +24,6 @@
     <string name="error_field_required">This field is required</string>
 
     <string name="settings_title">Settings</string>
-    <string name="settings_wifi_fragment_key">wifi_screen_key</string>
     <string name="settings_login_fragment_key">login_screen_key</string>
     <string name="settings_home_fragment_key">home_screen_key</string>
     <string name="settings_hw_unit_list_fragment_key">hw_unit_list_key</string>
@@ -36,7 +34,6 @@
     <string name="settings_alarm_enabled_key">alarmEnabledKey</string>
     <string name="settings_restarting">Restarting…</string>
 
-    <string name="settings_wifi_title">WiFi Connect</string>
     <string name="settings_login_title">Firebase Login</string>
     <string name="settings_home_title">Setup Home</string>
     <string name="settings_login_remote_device_login_checkbox_text">Remote Device Login</string>
