@@ -6,8 +6,10 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Menu
@@ -28,7 +30,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.krisbiketeam.smarthomeraspbpi3.R
@@ -91,7 +92,7 @@ fun TaskListTopAppBar(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LogsTopAppBar(
+fun LogsChartTopAppBar(
     openDrawer: () -> Unit,
     onPickDateClicked: () -> Unit,
     onFilterLogsClicked: () -> Unit,
@@ -105,7 +106,13 @@ fun LogsTopAppBar(
             }
         },
         actions = {
-            LogsFilterMenu(onPickDateClicked, onFilterLogsClicked, onClearAll)
+            IconButton(onClick = onPickDateClicked) {
+                Icon(Icons.Filled.DateRange, stringResource(id = R.string.menu_date_picker))
+            }
+            IconButton(onClick = onFilterLogsClicked) {
+                Icon(Icons.AutoMirrored.Filled.List, stringResource(id = R.string.menu_filter))
+            }
+            LogsChartMoreMenu(onClearAll)
         },
         modifier = Modifier.fillMaxWidth()
     )
@@ -166,7 +173,7 @@ fun HomeUnitDetailTopAppBar(
         },
         navigationIcon = {
             IconButton(onClick = onBack) {
-                Icon(Icons.Filled.ArrowBack, contentDescription = null)
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
             }
         },
         actions = {
@@ -195,62 +202,23 @@ fun AddEditTaskTopAppBar(@StringRes title: Int, onBack: () -> Unit) {
         title = { Text(text = stringResource(title)) },
         navigationIcon = {
             IconButton(onClick = onBack) {
-                Icon(Icons.Filled.ArrowBack, contentDescription = null)
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
             }
         },
         modifier = Modifier.fillMaxWidth()
     )
 }
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun SomeTopAppBar(
-    openDrawer: () -> Unit,
-    onFilterAllTasks: () -> Unit,
-    onFilterActiveTasks: () -> Unit,
-    onFilterCompletedTasks: () -> Unit,
-    onClearCompletedTasks: () -> Unit,
-    onRefresh: () -> Unit
-) {
-    TopAppBar(
-        title = { Text(text = stringResource(id = R.string.room_list_title)) },
-        navigationIcon = {
-            IconButton(onClick = openDrawer) {
-                Icon(Icons.Filled.Menu, null)
-            }
-        },
-        actions = {
-            LogsFilterMenu(onFilterAllTasks, onFilterActiveTasks, onFilterCompletedTasks)
-            MoreEditMenu(onClearCompletedTasks)
-        },
-        modifier = Modifier.fillMaxWidth()
-    )
-}
-
 
 // region private methods
 @Composable
-private fun LogsFilterMenu(
-    onPickDateClicked: () -> Unit,
-    onFilterLogsClicked: () -> Unit,
+private fun LogsChartMoreMenu(
     onClearAll: () -> Unit,
 ) {
     TopAppBarDropdownMenu(
         iconContent = {
-            Icon(
-                painterResource(id = R.drawable.ic_baseline_view_headline_24),
-                stringResource(id = R.string.menu_filter)
-            )
+            Icon(Icons.Filled.MoreVert, contentDescription = null)
         }
     ) { closeMenu ->
-        DropdownMenuItem(onClick = { onPickDateClicked(); closeMenu() }, text = {
-            Text(text = stringResource(id = R.string.menu_date_picker))
-        })
-
-        DropdownMenuItem(onClick = { onFilterLogsClicked(); closeMenu() }, text = {
-            Text(text = stringResource(id = R.string.menu_filter))
-        })
-
         DropdownMenuItem(onClick = { onClearAll(); closeMenu() }, text = {
             Text(text = stringResource(id = R.string.menu_clear_all))
         })
@@ -325,6 +293,7 @@ private fun TaskListTopAppBarPreview() {
         }
     }
 }
+
 @Preview
 @Composable
 private fun TaskListTopAppBarPreviewEditing() {
@@ -340,7 +309,7 @@ private fun TaskListTopAppBarPreviewEditing() {
 private fun LogsTopAppBarPreview() {
     MaterialTheme {
         Surface {
-            LogsTopAppBar({ }, { }, {}, {})
+            LogsChartTopAppBar({ }, { }, {}, {})
         }
     }
 }

@@ -17,6 +17,8 @@ import androidx.navigation.navigation
 import com.krisbiketeam.smarthomeraspbpi3.compose.components.topappbat.RoomDetailTopAppBar
 import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartDestinationsArgs.ROOM_NAME_ARG
 import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartGraphs.ROOM_LIST_GRAPH_ROOT
+import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartGraphs.TASK_LIST_GRAPH_ROOT
+import com.krisbiketeam.smarthomeraspbpi3.compose.screens.logschart.LogsChartScreen
 import com.krisbiketeam.smarthomeraspbpi3.compose.screens.roomlist.RoomListScreen
 import com.krisbiketeam.smarthomeraspbpi3.compose.screens.tasklist.TaskListScreen
 import kotlinx.coroutines.CoroutineScope
@@ -84,7 +86,12 @@ fun SmartNavGraph(
                 }
                 //nestedGraphs()
             }
+        }
 
+        navigation(
+            route = TASK_LIST_GRAPH_ROOT,
+            startDestination = SmartDestinations.TAK_LIST_ROUTE,
+        ) {
             composable(SmartDestinations.TAK_LIST_ROUTE) {
                 CompositionLocalProvider(
                     LocalViewModelStoreOwner provides viewModelStoreOwner
@@ -104,6 +111,14 @@ fun SmartNavGraph(
                 onBack = { navController.popBackStack() },
                 onDeleteTask = { navActions.navigateToTasks(DELETE_RESULT_OK) }
             )*/
+        }
+
+        composable(SmartDestinations.LOGS_CHART_ROUTE) {
+            CompositionLocalProvider(
+                LocalViewModelStoreOwner provides viewModelStoreOwner
+            ) {
+                LogsChartScreen(openDrawer = { coroutineScope.launch { drawerState.open() } })
+            }
         }
     }
 }

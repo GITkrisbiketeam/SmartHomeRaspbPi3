@@ -10,11 +10,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material3.Divider
 import androidx.compose.material3.DrawerState
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
@@ -63,6 +65,7 @@ fun SmartModalDrawer(
                     currentRouteArgs = currentRouteArgs,
                     navigateToRoomList = { navigationActions.navigateToRoomList() },
                     navigateToTaskList = { navigationActions.navigateToTaskList() },
+                    navigateToLogsChart = { navigationActions.navigateToLogsChart() },
                     navigateToRoomDetail = { navigationActions.navigateToRoomDetail(it) },
                     closeDrawer = { coroutineScope.launch { drawerState.close() } }
                 )
@@ -80,17 +83,22 @@ private fun AppDrawer(
     currentRouteArgs: String?,
     navigateToRoomList: () -> Unit,
     navigateToTaskList: () -> Unit,
+    navigateToLogsChart: () -> Unit,
     navigateToRoomDetail: (String) -> Unit,
     closeDrawer: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(modifier = modifier.fillMaxSize()) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
+    ) {
         DrawerHeader(uiState)
 
         uiState.roomList?.let { rooms ->
             DrawerRoomList(rooms, currentRoute, currentRouteArgs, navigateToRoomDetail, closeDrawer)
 
-            Divider(
+            HorizontalDivider(
                 modifier = Modifier.padding(horizontal = 28.dp),
                 color = MaterialTheme.colorScheme.primary
             )
@@ -113,6 +121,16 @@ private fun AppDrawer(
             isSelected = currentRoute == SmartDestinations.TAK_LIST_ROUTE,
             action = {
                 navigateToTaskList()
+                closeDrawer()
+            }
+        )
+
+        DrawerButton(
+            painter = painterResource(id = R.drawable.ic_statistics),
+            label = stringResource(id = R.string.logs_title),
+            isSelected = currentRoute == SmartDestinations.LOGS_CHART_ROUTE,
+            action = {
+                navigateToLogsChart()
                 closeDrawer()
             }
         )
@@ -254,6 +272,7 @@ fun PreviewAppDrawer() {
                 currentRouteArgs = null,
                 navigateToRoomList = {},
                 navigateToTaskList = {},
+                navigateToLogsChart = {},
                 navigateToRoomDetail = {},
                 closeDrawer = {}
             )

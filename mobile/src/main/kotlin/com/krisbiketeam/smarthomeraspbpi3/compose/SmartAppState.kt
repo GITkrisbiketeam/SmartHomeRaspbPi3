@@ -10,7 +10,7 @@ import androidx.navigation.NavDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartDestinations.LOGS_ROUTE
+import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartDestinations.LOGS_CHART_ROUTE
 import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartDestinations.ROOM_LIST_ROUTE
 import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartDestinations.TAK_LIST_ROUTE
 import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartNavigationActions
@@ -52,7 +52,7 @@ class SmartAppState(
         @Composable get() = when (currentDestination?.route) {
             ROOM_LIST_ROUTE -> SmartTopLevelDestination.ROOM_LIST_ROUTE
             TAK_LIST_ROUTE -> SmartTopLevelDestination.TAK_LIST_ROUTE
-            LOGS_ROUTE -> SmartTopLevelDestination.LOGS_ROUTE
+            LOGS_CHART_ROUTE -> SmartTopLevelDestination.LOGS_CHART_ROUTE
             else -> null
         }
 

@@ -1,6 +1,7 @@
 package com.krisbiketeam.smarthomeraspbpi3.di
 
 import com.krisbiketeam.smarthomeraspbpi3.compose.core.drawer.SmartDrawerViewModel
+import com.krisbiketeam.smarthomeraspbpi3.compose.screens.logschart.LogsChartViewModel
 import com.krisbiketeam.smarthomeraspbpi3.compose.screens.roomlist.RoomListScreenViewModel
 import com.krisbiketeam.smarthomeraspbpi3.compose.screens.tasklist.TaskListScreenViewModel
 import com.krisbiketeam.smarthomeraspbpi3.usecases.ReloginLastUserWithHomeUseCase
@@ -14,6 +15,7 @@ val composeModule: Module = module {
     viewModel { RoomListScreenViewModel(get()) }
     viewModel { TaskListScreenViewModel(get()) }
     viewModel { SmartDrawerViewModel(get(), get()) }
+    viewModel { LogsChartViewModel(get()) }
 
     factory<ReloginLastUserWithHomeUseCase> { ReloginLastUserWithHomeUseCaseImpl(get(), get()) }
 }

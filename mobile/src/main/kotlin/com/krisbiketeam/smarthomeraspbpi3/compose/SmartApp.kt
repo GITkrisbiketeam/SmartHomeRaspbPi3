@@ -1,6 +1,5 @@
 package com.krisbiketeam.smarthomeraspbpi3.compose
 
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -15,6 +14,7 @@ import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
@@ -74,28 +74,34 @@ fun SmartApp(
                 }
             },
         ) { padding ->
-
-            Row(
-                Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .consumeWindowInsets(padding)
-                    .windowInsetsPadding(
-                        WindowInsets.safeDrawing.only(
-                            WindowInsetsSides.Horizontal,
+            if (windowSizeClass.widthSizeClass != WindowWidthSizeClass.Compact) {
+                Row(
+                    Modifier
+                        .fillMaxSize()
+                        .padding(padding)
+                        .consumeWindowInsets(padding)
+                        .windowInsetsPadding(
+                            WindowInsets.safeDrawing.only(
+                                WindowInsetsSides.Horizontal,
+                            ),
                         ),
-                    ),
-            ) {
-                if (windowSizeClass.widthSizeClass != WindowWidthSizeClass.Compact) {
+                ) {
                     SmartSideNavigationRail(
                         destinations = SmartTopLevelDestination.entries,
                         smartNavigationActions = smartNavActions,
                         currentDestination = currentRoute,
                         modifier = Modifier.safeDrawingPadding(),
                     )
+                    SmartNavGraph(
+                        navController,
+                        coroutineScope,
+                        smartNavActions,
+                        drawerState,
+                        startDestination
+                    )
                 }
-
-                Column(Modifier.fillMaxSize()) {
+            } else {
+                Surface(modifier = Modifier.padding(padding)) {
                     SmartNavGraph(
                         navController,
                         coroutineScope,

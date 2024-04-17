@@ -9,7 +9,7 @@ import androidx.navigation.NavHostController
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.SmartActivity
 import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartDestinationsArgs.ROOM_NAME_ARG
-import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartScreens.LOGS_SCREEN
+import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartScreens.LOGS_CHART_SCREEN
 import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartScreens.ROOM_DETAIL_SCREEN
 import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartScreens.ROOM_LIST_SCREEN
 import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartScreens.TASK_LIST_SCREEN
@@ -26,8 +26,8 @@ object SmartGraphs {
 object SmartScreens {
     const val ROOM_LIST_SCREEN = "roomList"
     const val TASK_LIST_SCREEN = "taskList"
-    const val LOGS_SCREEN = "logs"
-    const val ROOM_DETAIL_SCREEN = "room"
+    const val LOGS_CHART_SCREEN = "logsChart"
+    const val ROOM_DETAIL_SCREEN = "roomDetail"
 }
 
 /**
@@ -45,13 +45,13 @@ object SmartDestinationsArgs {
 object SmartDestinations {
     const val ROOM_LIST_ROUTE = ROOM_LIST_SCREEN
     const val TAK_LIST_ROUTE = TASK_LIST_SCREEN
-    const val LOGS_ROUTE = LOGS_SCREEN
+    const val LOGS_CHART_ROUTE = LOGS_CHART_SCREEN
     const val ROOM_DETAIL_ROUTE = "$ROOM_DETAIL_SCREEN/{$ROOM_NAME_ARG}"
     //const val ADD_EDIT_TASK_ROUTE = "$ADD_EDIT_TASK_SCREEN/{$TITLE_ARG}?$TASK_ID_ARG={$TASK_ID_ARG}"
 }
 
 enum class SmartTopLevelDestination(
-    val destination:String,
+    val destination: String,
     @DrawableRes val icon: Int,
     @StringRes val titleTextId: Int,
 ) {
@@ -61,18 +61,21 @@ enum class SmartTopLevelDestination(
         titleTextId = R.string.room_list_title,
     ),
     TAK_LIST_ROUTE(
-        destination = SmartDestinations.TAK_LIST_ROUTE,
+        destination = SmartGraphs.TASK_LIST_GRAPH_ROOT,
         icon = R.drawable.ic_baseline_view_headline_24,
         titleTextId = R.string.task_list_title,
     ),
-    LOGS_ROUTE(
-        destination = SmartDestinations.LOGS_ROUTE,
+    LOGS_CHART_ROUTE(
+        destination = SmartDestinations.LOGS_CHART_ROUTE,
         icon = R.drawable.ic_statistics,
         titleTextId = R.string.logs_title,
     ),
 }
 
-fun NavDestination?.isTopLevelDestinationInHierarchy(destination: SmartTopLevelDestination):Boolean {
+fun NavDestination?.isTopLevelDestinationInHierarchy(destination: SmartTopLevelDestination): Boolean {
+    Timber.v("isTopLevelDestinationInHierarchy destination:${destination.destination}\n" +
+            "currentDestination:$this\n" +
+            "currentDestination hierarchy:\n    ${this?.hierarchy?.joinToString("\n    ")}")
     return this?.hierarchy?.any {
         it.route?.contains(destination.destination, true) ?: false
     } ?: false
@@ -104,7 +107,7 @@ class SmartNavigationActions(private val navController: NavHostController) {
     }
 
     fun navigateToTaskList() {
-        navController.navigate(SmartDestinations.TAK_LIST_ROUTE) {
+        navController.navigate(SmartGraphs.TASK_LIST_GRAPH_ROOT) {
             // Pop up to the start destination of the graph to
             // avoid building up a large stack of destinations
             // on the back stack as users select items
@@ -119,8 +122,8 @@ class SmartNavigationActions(private val navController: NavHostController) {
         }
     }
 
-    fun navigateToLogs() {
-        navController.navigate(SmartDestinations.LOGS_ROUTE) {
+    fun navigateToLogsChart() {
+        navController.navigate(SmartDestinations.LOGS_CHART_ROUTE) {
             // Pop up to the start destination of the graph to
             // avoid building up a large stack of destinations
             // on the back stack as users select items
@@ -152,7 +155,7 @@ class SmartNavigationActions(private val navController: NavHostController) {
         when (topLevelDestination) {
             SmartTopLevelDestination.ROOM_LIST_ROUTE -> navigateToRoomList()
             SmartTopLevelDestination.TAK_LIST_ROUTE -> navigateToTaskList()
-            SmartTopLevelDestination.LOGS_ROUTE -> navigateToLogs()
+            SmartTopLevelDestination.LOGS_CHART_ROUTE -> navigateToLogsChart()
         }
     }
 }

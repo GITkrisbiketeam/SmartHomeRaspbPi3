@@ -22,7 +22,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import com.krisbiketeam.smarthomeraspbpi3.R
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SmartUnitCard(
     model: SmartUnitCardModel,
@@ -33,7 +32,7 @@ fun SmartUnitCard(
     ElevatedCard(
         onClick = onClick,
         colors = if (model.error) {
-            CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)
+            CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.error)
         } else {
             CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
         },
@@ -52,7 +51,12 @@ fun SmartUnitCard(
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = dimensionResource(id = R.dimen.margin_normal))
+                    .padding(
+                        start = dimensionResource(id = R.dimen.margin_normal),
+                        end = dimensionResource(id = R.dimen.margin_small),
+                        top = dimensionResource(id = R.dimen.margin_small),
+                        bottom = dimensionResource(id = R.dimen.margin_small)
+                    )
                     .wrapContentWidth(Alignment.CenterHorizontally)
             )
             if (model.subtitle != null) {
@@ -62,7 +66,11 @@ fun SmartUnitCard(
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = dimensionResource(id = R.dimen.margin_normal))
+                        .padding(
+                            start = dimensionResource(id = R.dimen.margin_small),
+                            end = dimensionResource(id = R.dimen.margin_small),
+                            bottom = dimensionResource(id = R.dimen.margin_small)
+                        )
                         .wrapContentWidth(Alignment.CenterHorizontally)
                 )
             }
@@ -72,10 +80,9 @@ fun SmartUnitCard(
                         .fillMaxWidth()
                         .wrapContentHeight()
                         .padding(
-                            start = dimensionResource(id = R.dimen.margin_normal),
-                            end = dimensionResource(id = R.dimen.margin_normal)
+                            horizontal = dimensionResource(id = R.dimen.margin_small),
                         ),
-                    horizontalArrangement = if (model.switchText != null) Arrangement.Absolute.SpaceBetween else Arrangement.End,
+                    horizontalArrangement = if (model.switchText != null) Arrangement.Absolute.SpaceBetween else Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     if (model.switchText != null) {
@@ -84,7 +91,7 @@ fun SmartUnitCard(
                             textAlign = TextAlign.Center,
                             style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier.padding(
-                                end = dimensionResource(id = R.dimen.margin_normal)
+                                end = dimensionResource(id = R.dimen.margin_small)
                             )
                         )
                     }
@@ -112,7 +119,7 @@ private fun SmartUnitCardPreview() {
                 SmartUnitCard(SmartUnitCardModel("Title 3", "Subtitle 3", error = true), {}, {})
                 SmartUnitCard(SmartUnitCardModel("Title 4", "Subtitle 4", false), {}, {})
                 SmartUnitCard(SmartUnitCardModel("Title 5", "Subtitle 5", true), {}, {})
-                SmartUnitCard(SmartUnitCardModel( "Title 6", "Subtitle 6", true, "Switch"), {}, {})
+                SmartUnitCard(SmartUnitCardModel("Title 6", "Subtitle 6", true, "Switch"), {}, {})
             }
         }
     }
