@@ -23,7 +23,6 @@ class RoomListViewModel(private val homeRepository: FirebaseHomeInformationRepos
     val roomWithHomeUnitsListFromFlow: Flow<List<RoomListAdapterModel>> = secureStorage.homeNameFlow.flatMapLatest {
         Timber.e("secureStorage.homeNameFlow")
         combine(homeRepository.roomListFlow(), homeRepository.homeUnitListFlow().debounce(100), homeRepository.hwUnitErrorEventListFlow(), homeRepository.roomListOrderFlow()) { roomList, homeUnitsList, hwUnitErrorEventList, itemsOrder ->
-            Timber.e("roomListAdapterModelMap")
             val roomListAdapterModelMap: MutableMap<String, RoomListAdapterModel> = roomList.associate {
                 it.name to RoomListAdapterModel(it)
             }.toMutableMap()

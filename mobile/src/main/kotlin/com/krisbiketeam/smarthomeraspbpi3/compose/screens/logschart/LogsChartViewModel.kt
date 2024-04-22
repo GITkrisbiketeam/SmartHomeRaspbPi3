@@ -22,8 +22,15 @@ import timber.log.Timber
 /**
  * The ViewModel for [RoomListFragment].
  */
-class LogsChartViewModel(private val homeRepository: FirebaseHomeInformationRepository) :
+class LogsChartViewModel(
+    private val homeRepository: FirebaseHomeInformationRepository,
+    preselection: Pair<String, String>? = null
+) :
     ViewModel() {
+
+    init {
+        Timber.e("plotczyk $preselection")
+    }
 
     private val colorFloatArray = FloatArray(3) { idx ->
         when (idx) {
@@ -35,7 +42,8 @@ class LogsChartViewModel(private val homeRepository: FirebaseHomeInformationRepo
 
     // List of HwUnits with their value name ex. temperature or humidity
     private val filteredHwUnitListFlow: MutableStateFlow<List<Pair<String, String>>> =
-        MutableStateFlow(emptyList())
+        MutableStateFlow(preselection?.let { (hwUnitName, homeUnitType) -> listOf(hwUnitName to homeUnitType) }
+            ?: emptyList())
 
     val startRangeFlow: MutableStateFlow<Long> =
         MutableStateFlow(System.currentTimeMillis().getOnlyDateLocalTime())
@@ -52,7 +60,7 @@ class LogsChartViewModel(private val homeRepository: FirebaseHomeInformationRepo
                 hwUnitGroup,
                 ToggleableState.Off,
                 hwUnitList.map { hwUnitName ->
-                    hwUnitName to filteredHwUnitList.any { (filteredHwUnitName, filteredHwUnitGroup)->
+                    hwUnitName to filteredHwUnitList.any { (filteredHwUnitName, filteredHwUnitGroup) ->
                         hwUnitGroup == filteredHwUnitGroup && filteredHwUnitName == hwUnitName
                     }
                 })
@@ -251,10 +259,18 @@ class LogsChartViewModel(private val homeRepository: FirebaseHomeInformationRepo
         }
 
     private fun getMapNumberSensorData(
-        baseHwUnitLog: HwUnitLog<Any?>, hwUnitTypeGroupList: List<String>, logsList: Collection<HwUnitLog<Any?>>
+        baseHwUnitLog: HwUnitLog<Any?>,
+        hwUnitTypeGroupList: List<String>,
+        logsList: Collection<HwUnitLog<Any?>>
     ): List<LineDataSet> {
-        val mapNames = hwUnitTypeGroupList.map { mapHwUnitTypeGroupToHwUnitLogValueType(it, baseHwUnitLog.type) }
-        val hwUnitLogsTypeMap: Map<String?, MutableList<Entry>> = mapNames.associateWith { mutableListOf() }
+        val mapNames = hwUnitTypeGroupList.map {
+            mapHwUnitTypeGroupToHwUnitLogValueType(
+                it,
+                baseHwUnitLog.type
+            )
+        }
+        val hwUnitLogsTypeMap: Map<String?, MutableList<Entry>> =
+            mapNames.associateWith { mutableListOf() }
         logsList.sortedBy { it.servertime as Long }.forEach { hwUnitLog ->
             hwUnitLog.value?.let { hwValue ->
                 if (hwValue is Map<*, *>) {
@@ -279,7 +295,7 @@ class LogsChartViewModel(private val homeRepository: FirebaseHomeInformationRepo
             }
         }
         return hwUnitLogsTypeMap.map { entry ->
-            LineDataSet(entry.value, "${baseHwUnitLog.name}${entry.key?.let { "_$it" }?:""}")
+            LineDataSet(entry.value, "${baseHwUnitLog.name}${entry.key?.let { "_$it" } ?: ""}")
         }
     }
 

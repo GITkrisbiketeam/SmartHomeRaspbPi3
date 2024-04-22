@@ -8,5 +8,12 @@ data class SmartUnitCardModel(
     val switchState: Boolean? = null,
     val switchText: String? = null,
     val switchUnit: Pair<HomeUnitType, String>? = null,
-    val error: Boolean = false
+    val background: CardColorState = CardColorState.NONE
 )
+
+enum class CardColorState{
+    NONE,
+    ERROR,
+    MOTION,
+    REED_SWITCH
+}

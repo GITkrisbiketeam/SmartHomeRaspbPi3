@@ -122,15 +122,16 @@ fun LogsChartTopAppBar(
 @Composable
 fun RoomDetailTopAppBar(
     openDrawer: () -> Unit,
+    title: String,
     isEditing: Boolean,
     onEditClicked: () -> Unit,
-    onDone: () -> Unit,
+    onSave: () -> Unit,
     onDiscard: () -> Unit,
     onDelete: () -> Unit,
 ) {
     TopAppBar(
         title = {
-            Text(text = stringResource(id = R.string.room_details_title))
+            Text(text = title)
         },
         navigationIcon = {
             IconButton(onClick = openDrawer) {
@@ -140,7 +141,7 @@ fun RoomDetailTopAppBar(
 
         actions = {
             if (isEditing) {
-                IconButton(onClick = onDone) {
+                IconButton(onClick = onSave) {
                     Icon(Icons.Filled.Done, stringResource(id = R.string.menu_finish))
                 }
                 IconButton(onClick = onDiscard) {
@@ -319,7 +320,7 @@ private fun LogsTopAppBarPreview() {
 private fun RoomDetailTopAppBarPreview() {
     MaterialTheme {
         Surface {
-            RoomDetailTopAppBar({}, false, {}, {}, {}, {})
+            RoomDetailTopAppBar({}, "Bedroom", false, {}, {}, {}, {})
         }
     }
 }
@@ -329,7 +330,7 @@ private fun RoomDetailTopAppBarPreview() {
 private fun RoomDetailTopAppBarPreviewEditing() {
     MaterialTheme {
         Surface {
-            RoomDetailTopAppBar({}, true, {}, {}, {}, {})
+            RoomDetailTopAppBar({}, "Bedroom",true, {}, {}, {}, {})
         }
     }
 }

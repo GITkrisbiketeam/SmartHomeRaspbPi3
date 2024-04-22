@@ -26,6 +26,7 @@ import com.krisbiketeam.smarthomeraspbpi3.compose.components.topappbat.LogsChart
 import com.krisbiketeam.smarthomeraspbpi3.utils.toLogsFloat
 import com.krisbiketeam.smarthomeraspbpi3.utils.toLogsLong
 import org.koin.androidx.compose.koinViewModel
+import org.koin.core.parameter.parametersOf
 import timber.log.Timber
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -36,7 +37,8 @@ import java.util.Locale
 fun LogsChartScreen(
     openDrawer: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: LogsChartViewModel = koinViewModel(),
+    preselection: Pair<String, String>? = null,
+    viewModel: LogsChartViewModel = koinViewModel { parametersOf(preselection) },
 ) {
     val startRangeDate by viewModel.startRangeFlow.collectAsStateWithLifecycle()
     val endRangeDate by viewModel.endRangeFlow.collectAsStateWithLifecycle()
@@ -108,13 +110,13 @@ fun LogsChartScreen(
                 }
             },
             update = { chart ->
-                if(lineData.dataSetCount >0) {
+                if (lineData.dataSetCount > 0) {
                     Timber.d("subscribeLogsData lineData: ${lineData.dataSetCount} ${lineData.entryCount}")
                     chart.data = lineData
                     chart.xAxis.axisMinimum =
                         lineData.xMin.toLogsLong().getOnlyDateLocalTime().toLogsFloat()
                     chart.xAxis.axisMaximum = (lineData.xMax.toLogsLong()
-                        .getOnlyDateLocalTime() + (2*FULL_DAY_IN_MILLIS)).toLogsFloat()
+                        .getOnlyDateLocalTime() + (2 * FULL_DAY_IN_MILLIS)).toLogsFloat()
                     chart.invalidate() // refresh
                 }
             })

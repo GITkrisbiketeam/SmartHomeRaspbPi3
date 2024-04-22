@@ -47,12 +47,13 @@
             android:name=".ui.HomeActivity"
             android:windowSoftInputMode="adjustResize"/>
         <activity android:name=".LoadActivity"
+            android:label="Old SmartHomePi3"
             android:exported="true">
-            <!--<intent-filter>
+            <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>-->
+            </intent-filter>
         </activity>
         <activity android:name=".SmartActivity"
             android:exported="true">

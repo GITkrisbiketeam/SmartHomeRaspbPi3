@@ -7,11 +7,11 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.MCP23017WatchDogHom
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.WaterCirculationHomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.LAST_TRIGGER_SOURCE_TASK_LIST
+import com.krisbiketeam.smarthomeraspbpi3.compose.components.smartcard.CardColorState
 import com.krisbiketeam.smarthomeraspbpi3.compose.components.smartcard.SmartUnitCardModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
-import timber.log.Timber
 
 /**
  * The ViewModel for [TaskListScreen].
@@ -28,7 +28,6 @@ class TaskListScreenViewModel(
         homeRepository.taskListOrderFlow()
     ) { homeUnitsList, hwUnitErrorEventList, itemsOrder ->
 
-        Timber.e("roomListAdapterModelMap")
         val taskListModelMap: MutableMap<String, SmartUnitCardModel> = mutableMapOf()
 
         homeUnitsList.filter {
@@ -38,17 +37,19 @@ class TaskListScreenViewModel(
             val description: String? =
                 if (homeUnit.type == HomeUnitType.HOME_WATER_CIRCULATION && homeUnit is WaterCirculationHomeUnit) {
                     if (homeUnit.temperatureValue is Float) {
-                        String.format("%.2f\n", homeUnit.temperatureValue)
+                        String.format("%.1f\n", homeUnit.temperatureValue)
                     } else {
                         ""
                     }.plus("Motion: ${homeUnit.motionValue.toString()}")
                 } else if (homeUnit.type == HomeUnitType.HOME_LIGHT_SWITCHES && homeUnit is LightSwitchHomeUnit) {
                     val switchState = homeUnit.switchValue.toString().toBoolean()
-                    "Light switch: ${if(switchState) "On" else "Off"}"
+                    "Light switch: ${if (switchState) "On" else "Off"}"
                 } else if (homeUnit.type == HomeUnitType.HOME_MCP23017_WATCH_DOG && homeUnit is MCP23017WatchDogHomeUnit) {
                     homeUnit.inputValue.toString()
+                } else if (homeUnit.type == HomeUnitType.HOME_ACTUATORS) {
+                    null
                 } else if (homeUnit.value is Number) {
-                    String.format("%.2f", homeUnit.value)
+                    String.format("%.1f", homeUnit.value)
                 } else {
                     homeUnit.value.toString()
                 }
@@ -64,6 +65,11 @@ class TaskListScreenViewModel(
 
                 else -> null
             }
+            val background = when {
+                homeUnit.type == HomeUnitType.HOME_MOTIONS && homeUnit.value == true -> CardColorState.MOTION
+                hwUnitErrorEventList.firstOrNull { hwUnitLog -> hwUnitLog.name == homeUnit.hwUnitName } != null -> CardColorState.ERROR
+                else -> CardColorState.NONE
+            }
 
             taskListModelMap[homeUnit.type.toString() + '.' + homeUnit.name] = SmartUnitCardModel(
                 title = homeUnit.name,
@@ -71,7 +77,8 @@ class TaskListScreenViewModel(
                 switchState = switchState,
                 switchText = null,
                 switchUnit = homeUnit.type to homeUnit.name,
-                error = hwUnitErrorEventList.firstOrNull { hwUnitLog -> hwUnitLog.name == homeUnit.hwUnitName } != null)
+                background = background
+            )
         }
 
         // save current RoomListOrder
