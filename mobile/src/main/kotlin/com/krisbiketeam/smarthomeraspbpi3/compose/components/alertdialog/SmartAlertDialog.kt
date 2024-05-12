@@ -6,16 +6,20 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.krisbiketeam.smarthomeraspbpi3.R
+import kotlinx.coroutines.launch
 
 @Composable
 fun SmartAlertDialog(
     model: SmartAlertDialogModel,
     onOkClick: () -> Unit,
-    onCancelClick: () -> Unit,
+    onDismissClick: () -> Unit,
 ) {
+    val scope = rememberCoroutineScope()
+
     AlertDialog(
         title = {
             Text(text = stringResource(id = model.title))
@@ -24,21 +28,24 @@ fun SmartAlertDialog(
             Text(text = stringResource(id = model.description))
         },
         onDismissRequest = {
-            onCancelClick()
+            onDismissClick()
         },
         confirmButton = {
             TextButton(
                 onClick = {
-                    onOkClick()
+                    scope.launch {
+                        onOkClick()
+                        model.positiveButtonAction()
+                    }
                 }
             ) {
-                Text("Confirm")
+                Text(stringResource(model.positiveButtonTextId))
             }
         },
         dismissButton = {
             TextButton(
                 onClick = {
-                    onCancelClick()
+                    onDismissClick()
                 }
             ) {
                 Text(stringResource(R.string.cancel))
@@ -56,8 +63,8 @@ private fun SmartAlertDialogPreview() {
                 SmartAlertDialogModel(
                     R.string.save_room,
                     R.string.add_edit_home_unit_overwrite_changes,
-                    R.string.overwrite, {}
-                ), {}, {})
+                    R.string.overwrite
+                ) { }, {}, {})
         }
     }
 }

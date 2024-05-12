@@ -177,6 +177,10 @@ class SmartNavigationActions(private val navController: NavHostController) {
         }
     }
 
+    fun navigateUp() {
+        navController.navigateUp()
+    }
+
     fun navigateToSmartTopLevelDestination(topLevelDestination: SmartTopLevelDestination) {
         Timber.d("Navigation: ${topLevelDestination.name}")
 

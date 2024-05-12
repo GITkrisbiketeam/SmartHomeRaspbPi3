@@ -50,12 +50,14 @@ class RoomDetailScreenViewModel(
     private val roomName: MutableStateFlow<String> = MutableStateFlow(inputRoomName)
     private var editRoomName: String = inputRoomName
 
-    val room: StateFlow<Room?> =
+    private val room: StateFlow<Room?> =
         roomName.flatMapLatest { homeRepository.roomUnitFlow(it).flowOn(Dispatchers.IO) }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), null)
     val showProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     val showDialog: MutableStateFlow<SmartAlertDialogModel?> = MutableStateFlow(null)
+
+    val navigateUp: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     val homeUnitsList: StateFlow<List<HomeUnitCardModel>> by lazy {
         combine(
@@ -231,23 +233,14 @@ class RoomDetailScreenViewModel(
         }
     }
 
-    fun actionDeleteRoom(): Task<Void> {
-        Timber.d("deleteHomeUnit room.name: ${room.value?.name} ")
-        showProgress.value = true
-        return homeUnitsList.value.let { homeUnitList ->
-            Tasks.whenAll(homeUnitList.map { homeUnitModel ->
-                homeRepository.updateHomeUnitRoomName(
-                    homeUnitModel.id.homeUnitType,
-                    homeUnitModel.id.homeUnitName,
-                    ""
-                )
-            }).continueWithTask {
-                room.value?.let { room ->
-                    homeRepository.deleteRoom(room.name)
-                } ?: it
-            }.addOnCompleteListener {
-                Timber.d("Task completed")
-                showProgress.value = false
+    fun actionDeleteRoom() {
+        showDialog.value = SmartAlertDialogModel(
+            R.string.delete_room,
+            R.string.add_edit_home_unit_delete_home_unit_prompt,
+            R.string.menu_delete
+        ) {
+            viewModelScope.launch(Dispatchers.IO) {
+                deleteRoom()
             }
         }
     }
@@ -299,6 +292,28 @@ class RoomDetailScreenViewModel(
                     Timber.d("Task completed")
                     showProgress.value = false
                 }
+            }
+        }
+    }
+
+    private fun deleteRoom(): Task<Void> {
+        Timber.d("deleteHomeUnit room.name: ${room.value?.name} ")
+        showProgress.value = true
+        return homeUnitsList.value.let { homeUnitList ->
+            Tasks.whenAll(homeUnitList.map { homeUnitModel ->
+                homeRepository.updateHomeUnitRoomName(
+                    homeUnitModel.id.homeUnitType,
+                    homeUnitModel.id.homeUnitName,
+                    ""
+                )
+            }).continueWithTask {
+                room.value?.let { room ->
+                    homeRepository.deleteRoom(room.name)
+                } ?: it
+            }.addOnCompleteListener {
+                Timber.d("Task completed")
+                showProgress.value = false
+                navigateUp.value = true
             }
         }
     }

@@ -46,6 +46,7 @@ fun RoomDetailScreen(
     onHomeUnitClick: (HomeUnitType, String) -> Unit,
     onNewHomeUnitClick: (String) -> Unit,
     showLogs: (String, HomeUnitType) -> Unit,
+    navigateUp: () -> Unit,
     modifier: Modifier = Modifier,
     roomName: String,
     viewModel: RoomDetailScreenViewModel = koinViewModel { parametersOf(roomName) },
@@ -75,12 +76,7 @@ fun RoomDetailScreen(
                     }
                 },
                 onDelete = {
-                    viewModel.actionDeleteRoom()/*showDialog(R.string.add_edit_home_unit_delete_home_unit_prompt, R.string.menu_delete) {
-                        roomDetailViewModel.actionDeleteRoom().addOnCompleteListener {
-                            // navigate back Up from this Fragment
-                            findNavController().navigateUp()
-                        }
-                    }*/
+                    viewModel.actionDeleteRoom()
                 })
         },
         modifier = modifier.fillMaxSize(),
@@ -131,9 +127,29 @@ fun RoomDetailScreen(
             onOkClick = {
                 viewModel.showDialog.value = null
                 isEditing = false
-            }, onCancelClick = {
+            }, onDismissClick = {
                 viewModel.showDialog.value = null
             })
+    }
+
+    val navigateUp by viewModel.navigateUp.collectAsStateWithLifecycle()
+    if (navigateUp) {
+        navigateUp()
+    }
+
+    // TODO add Progress
+    val showProgress by viewModel.showProgress.collectAsStateWithLifecycle()
+    if (showProgress) {
+        /*SmartAlertDialog(model = it,
+            onOkClick = { shouldNavigateUp ->
+                viewModel.showDialog.value = null
+                isEditing = false
+                if (shouldNavigateUp) {
+                    navigateUp()
+                }
+            }, onDismissClick = {
+                viewModel.showDialog.value = null
+            })*/
     }
 }
 

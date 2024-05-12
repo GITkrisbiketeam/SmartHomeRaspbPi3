@@ -59,7 +59,10 @@ fun SmartNavGraph(
                     showLogs = { hwUnitName, homeUnitType ->
                         navActions.navigateToLogsChart(hwUnitName to homeUnitType)
                     },
-                    roomName = backStackEntry.arguments?.getString(ROOM_NAME_ARG) ?: "null"
+                    roomName = backStackEntry.arguments?.getString(ROOM_NAME_ARG) ?: "null",
+                    navigateUp = {
+                        navActions.navigateUp()
+                    }
                 )
             }
         }
