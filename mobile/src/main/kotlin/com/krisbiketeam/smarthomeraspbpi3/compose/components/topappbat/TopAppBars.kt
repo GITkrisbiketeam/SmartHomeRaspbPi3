@@ -198,6 +198,20 @@ fun HomeUnitDetailTopAppBar(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+fun SettingsTopAppBar(onBack: () -> Unit) {
+    TopAppBar(
+        title = { Text(text = stringResource(R.string.settings_title)) },
+        navigationIcon = {
+            IconButton(onClick = onBack) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+            }
+        },
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
 fun AddEditTaskTopAppBar(@StringRes title: Int, onBack: () -> Unit) {
     TopAppBar(
         title = { Text(text = stringResource(title)) },
@@ -331,6 +345,16 @@ private fun RoomDetailTopAppBarPreviewEditing() {
     MaterialTheme {
         Surface {
             RoomDetailTopAppBar({}, "Bedroom",true, {}, {}, {}, {})
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun SettingsTopAppBarPreview() {
+    MaterialTheme {
+        Surface {
+            SettingsTopAppBar() { }
         }
     }
 }

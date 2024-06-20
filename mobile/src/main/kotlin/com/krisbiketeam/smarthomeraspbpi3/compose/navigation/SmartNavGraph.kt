@@ -18,6 +18,7 @@ import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartGraphs.TASK_LI
 import com.krisbiketeam.smarthomeraspbpi3.compose.screens.logschart.LogsChartScreen
 import com.krisbiketeam.smarthomeraspbpi3.compose.screens.roomdetails.RoomDetailScreen
 import com.krisbiketeam.smarthomeraspbpi3.compose.screens.roomlist.RoomListScreen
+import com.krisbiketeam.smarthomeraspbpi3.compose.screens.settings.SettingsScreen
 import com.krisbiketeam.smarthomeraspbpi3.compose.screens.tasklist.TaskListScreen
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -75,6 +76,7 @@ fun SmartNavGraph(
                 TaskListScreen(openDrawer = { coroutineScope.launch { drawerState.open() } },
                     onAddNewHomeUnit = {},
                     onTaskClick = { homeUnitType, homeUnitName ->
+                        // TODO navigate to proper HomeUnit Detail screen
                         navActions.navigateToRoomDetail(homeUnitName)
                     })
             }
@@ -99,6 +101,19 @@ fun SmartNavGraph(
                 openDrawer = { coroutineScope.launch { drawerState.open() } },
                 preselection = if (homeUnitType != null && hwUnitName != null) hwUnitName to homeUnitType else null
             )
+        }
+
+        composable(
+            SmartDestinations.SETTINGS_ROUTE
+        ) {
+            SettingsScreen(
+                navigateUp = { navActions.navigateUp() },
+                navigateToLogin = {},
+                navigateToHomeSetup = {},
+                navigateToHwUnitList = {},
+                navigateToHwUnitErrorList = {},
+                navigateToLogsList = {},
+                navigateToHwUnitErrorLogsList = {})
         }
     }
 }

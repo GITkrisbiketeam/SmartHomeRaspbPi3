@@ -19,6 +19,7 @@ import com.krisbiketeam.smarthomeraspbpi3.ui.RoomDetailFragment
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -291,6 +292,7 @@ class RoomDetailScreenViewModel(
                 }.addOnCompleteListener {
                     Timber.d("Task completed")
                     showProgress.value = false
+                    navigateUp.value = true
                 }
             }
         }

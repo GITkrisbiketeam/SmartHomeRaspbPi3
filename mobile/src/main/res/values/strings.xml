@@ -36,7 +36,14 @@
 
     <string name="settings_login_title">Firebase Login</string>
     <string name="settings_home_title">Setup Home</string>
+    <string name="settings_group_account">Account</string>
+    <string name="settings_group_units_and_logs">Hardware &amp; Logs</string>
+    <string name="settings_group_other">Other</string>
     <string name="settings_login_remote_device_login_checkbox_text">Remote Device Login</string>
+    <string name="settings_alart_text">Enable/Disable Alarm</string>
+    <string name="settings_restart_pi">Restart RPi Things App</string>
+    <string name="settings_restart_alert_description">This will request to restart Rpi3 SmartHome App</string>
+
 
     <string name="navigation_drawer_header_content_description">navigation_drawer_header_content_description</string>
 

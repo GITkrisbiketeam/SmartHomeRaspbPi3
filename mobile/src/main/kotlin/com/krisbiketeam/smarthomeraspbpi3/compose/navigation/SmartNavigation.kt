@@ -15,6 +15,7 @@ import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartDestinationsAr
 import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartScreens.LOGS_CHART_SCREEN
 import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartScreens.ROOM_DETAIL_SCREEN
 import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartScreens.ROOM_LIST_SCREEN
+import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartScreens.SETTINGS_SCREEN
 import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartScreens.TASK_LIST_SCREEN
 import timber.log.Timber
 
@@ -29,6 +30,7 @@ object SmartGraphs {
 object SmartScreens {
     const val ROOM_LIST_SCREEN = "roomList"
     const val TASK_LIST_SCREEN = "taskList"
+    const val SETTINGS_SCREEN = "settings"
     const val LOGS_CHART_SCREEN = "logsChart"
     const val ROOM_DETAIL_SCREEN = "roomDetail"
 }
@@ -49,6 +51,7 @@ object SmartDestinationsArgs {
 object SmartDestinations {
     const val ROOM_LIST_ROUTE = ROOM_LIST_SCREEN
     const val TAK_LIST_ROUTE = TASK_LIST_SCREEN
+    const val SETTINGS_ROUTE = SETTINGS_SCREEN
     const val LOGS_CHART_ROUTE =
         "$LOGS_CHART_SCREEN?$HW_UNIT_NAME={$HW_UNIT_NAME}?$HOME_UNIT_TYPE={$HOME_UNIT_TYPE}"
     const val ROOM_DETAIL_ROUTE = "$ROOM_DETAIL_SCREEN/{$ROOM_NAME_ARG}"
@@ -127,6 +130,11 @@ class SmartNavigationActions(private val navController: NavHostController) {
             // Restore state when reselecting a previously selected item
             restoreState = true
         }
+    }
+
+    fun navigateToSettings() {
+        Timber.e("navigateToSettings")
+        navController.navigate(SETTINGS_SCREEN)
     }
 
     fun navigateToLogsChart(preselection: Pair<String, HomeUnitType>? = null) {

@@ -66,6 +66,7 @@ fun SmartModalDrawer(
                     navigateToRoomList = { navigationActions.navigateToRoomList() },
                     navigateToTaskList = { navigationActions.navigateToTaskList() },
                     navigateToLogsChart = { navigationActions.navigateToLogsChart() },
+                    navigateToSettings = { navigationActions.navigateToSettings() },
                     navigateToRoomDetail = { navigationActions.navigateToRoomDetail(it) },
                     closeDrawer = { coroutineScope.launch { drawerState.close() } }
                 )
@@ -84,6 +85,7 @@ private fun AppDrawer(
     navigateToRoomList: () -> Unit,
     navigateToTaskList: () -> Unit,
     navigateToLogsChart: () -> Unit,
+    navigateToSettings: () -> Unit,
     navigateToRoomDetail: (String) -> Unit,
     closeDrawer: () -> Unit,
     modifier: Modifier = Modifier
@@ -104,6 +106,15 @@ private fun AppDrawer(
             )
         }
 
+        DrawerButton(
+            painter = painterResource(id = R.drawable.ic_baseline_settings_24),
+            label = stringResource(id = R.string.settings_title),
+            isSelected = currentRoute == SmartDestinations.SETTINGS_ROUTE,
+            action = {
+                navigateToSettings()
+                closeDrawer()
+            }
+        )
 
         DrawerButton(
             painter = painterResource(id = R.drawable.ic_baseline_other_houses_24),
@@ -273,6 +284,7 @@ fun PreviewAppDrawer() {
                 navigateToRoomList = {},
                 navigateToTaskList = {},
                 navigateToLogsChart = {},
+                navigateToSettings = {},
                 navigateToRoomDetail = {},
                 closeDrawer = {}
             )
