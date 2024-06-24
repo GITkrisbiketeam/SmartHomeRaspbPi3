@@ -28,16 +28,17 @@ data class LightSwitchHomeUnit<T : Any>(
 
     override fun makeNotification(): LightSwitchHomeUnit<T> {
         return LightSwitchHomeUnit(
-            name,
-            type,
-            room,
-            hwUnitName,
-            value,
-            lastUpdateTime,
-            switchHwUnitName,
-            switchValue,
-            switchLastUpdateTime,
-            lastTriggerSource = lastTriggerSource
+            name = name,
+            type = type,
+            room = room,
+            hwUnitName = hwUnitName,
+            value = value,
+            lastUpdateTime = lastUpdateTime,
+            switchHwUnitName = switchHwUnitName,
+            switchValue = switchValue,
+            switchLastUpdateTime = switchLastUpdateTime,
+            lastTriggerSource = lastTriggerSource,
+            firebaseNotify = firebaseNotify
         )
     }
 

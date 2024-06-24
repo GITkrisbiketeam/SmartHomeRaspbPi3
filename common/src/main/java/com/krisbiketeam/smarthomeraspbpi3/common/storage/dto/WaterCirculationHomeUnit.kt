@@ -1,11 +1,7 @@
 package com.krisbiketeam.smarthomeraspbpi3.common.storage.dto
 
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.supervisorScope
 import timber.log.Timber
 
 data class WaterCirculationHomeUnit<T : Any>(
@@ -38,26 +34,27 @@ data class WaterCirculationHomeUnit<T : Any>(
 
     override fun makeNotification(): WaterCirculationHomeUnit<T> {
         return WaterCirculationHomeUnit(
-            name,
-            type,
-            room,
-            hwUnitName,
-            value,
-            lastUpdateTime,
-            temperatureHwUnitName,
-            temperatureValue,
-            temperatureLastUpdateTime,
-            temperatureMin,
-            temperatureMinLastUpdateTime,
-            temperatureMax,
-            temperatureMaxLastUpdateTime,
-            temperatureThreshold,
-            motionHwUnitName,
-            motionValue,
-            motionLastUpdateTime,
-            actionTimeout,
-            enabled,
-            lastTriggerSource = lastTriggerSource
+            name = name,
+            type = type,
+            room = room,
+            hwUnitName = hwUnitName,
+            value = value,
+            lastUpdateTime = lastUpdateTime,
+            temperatureHwUnitName = temperatureHwUnitName,
+            temperatureValue = temperatureValue,
+            temperatureLastUpdateTime = temperatureLastUpdateTime,
+            temperatureMin = temperatureMin,
+            temperatureMinLastUpdateTime = temperatureMinLastUpdateTime,
+            temperatureMax = temperatureMax,
+            temperatureMaxLastUpdateTime = temperatureMaxLastUpdateTime,
+            temperatureThreshold = temperatureThreshold,
+            motionHwUnitName = motionHwUnitName,
+            motionValue = motionValue,
+            motionLastUpdateTime = motionLastUpdateTime,
+            actionTimeout = actionTimeout,
+            enabled = enabled,
+            lastTriggerSource = lastTriggerSource,
+            firebaseNotify = firebaseNotify
         )
     }
 

@@ -25,17 +25,18 @@ data class GenericHomeUnit<T : Any>(
 
     override fun makeNotification(): GenericHomeUnit<T> {
         return GenericHomeUnit(
-            name,
-            type,
-            room,
-            hwUnitName,
-            value,
-            lastUpdateTime,
-            min,
-            minLastUpdateTime,
-            max,
-            maxLastUpdateTime,
-            lastTriggerSource
+            name = name,
+            type = type,
+            room = room,
+            hwUnitName = hwUnitName,
+            value = value,
+            lastUpdateTime = lastUpdateTime,
+            min = min,
+            minLastUpdateTime = minLastUpdateTime,
+            max = max,
+            maxLastUpdateTime = maxLastUpdateTime,
+            lastTriggerSource = lastTriggerSource,
+            firebaseNotify = firebaseNotify
         )
     }
 

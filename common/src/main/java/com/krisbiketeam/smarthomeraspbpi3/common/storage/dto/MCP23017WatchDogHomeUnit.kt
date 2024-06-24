@@ -32,18 +32,19 @@ data class MCP23017WatchDogHomeUnit<T : Any>(
 
     override fun makeNotification(): MCP23017WatchDogHomeUnit<T> {
         return MCP23017WatchDogHomeUnit(
-            name,
-            type,
-            room,
-            hwUnitName,
-            value,
-            lastUpdateTime,
-            inputHwUnitName,
-            inputValue,
-            inputLastUpdateTime,
-            watchDogTimeout,
-            watchDogDelay,
-            lastTriggerSource = lastTriggerSource
+            name = name,
+            type = type,
+            room = room,
+            hwUnitName = hwUnitName,
+            value = value,
+            lastUpdateTime = lastUpdateTime,
+            inputHwUnitName = inputHwUnitName,
+            inputValue = inputValue,
+            inputLastUpdateTime = inputLastUpdateTime,
+            watchDogTimeout = watchDogTimeout,
+            watchDogDelay = watchDogDelay,
+            lastTriggerSource = lastTriggerSource,
+            firebaseNotify = firebaseNotify
         )
     }
 
