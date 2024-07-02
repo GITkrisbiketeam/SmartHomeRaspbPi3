@@ -48,8 +48,11 @@ export const sendStorageUnitNotification = onValueWritten(
             log("User userKey: ", userKey);
             log("User : ", {user: user.val()});
             // Listing all users as an array.
-            var userTokens = Object.keys(user.child("notificationTokens").val());
-            userTokens.forEach((token) => { tokensMap.set(token, userKey) })
+            var tokens = user.child("notificationTokens").val()
+            if (tokens != null) {
+                var userTokens = Object.keys(tokens);
+                userTokens.forEach((token) => { tokensMap.set(token, userKey) })
+            }
         });
         log("Fetched tokensMap count: ", tokensMap.size);
 
