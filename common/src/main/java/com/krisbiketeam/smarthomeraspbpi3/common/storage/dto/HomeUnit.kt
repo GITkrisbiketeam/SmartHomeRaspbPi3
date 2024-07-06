@@ -175,10 +175,16 @@ sealed interface HomeUnit<T : Any>  {
     ) {
         supervisorScope {
             launch {
-                Timber.v("booleanTaskApply before cancel task.taskJob:${task.taskJob} isActive:${task.taskJob?.isActive} isCancelled:${task.taskJob?.isCancelled} isCompleted:${task.taskJob?.isCompleted}")
-                task.taskJob?.cancel()
-                Timber.v("booleanTaskApply after cancel task.taskJob:${task.taskJob} isActive:${task.taskJob?.isActive} isCancelled:${task.taskJob?.isCancelled} isCompleted:${task.taskJob?.isCompleted}")
-
+                if ((task.trigger == RISING_EDGE && newVal)
+                    || (task.trigger == FALLING_EDGE && !newVal)
+                    || (task.resetOnInverseTrigger == true)
+                ) {
+                    Timber.v("booleanTaskApply before cancel task.taskJob:${task.taskJob} isActive:${task.taskJob?.isActive} isCancelled:${task.taskJob?.isCancelled} isCompleted:${task.taskJob?.isCompleted}")
+                    task.taskJob?.cancel()
+                    Timber.v("booleanTaskApply after cancel task.taskJob:${task.taskJob} isActive:${task.taskJob?.isActive} isCancelled:${task.taskJob?.isCancelled} isCompleted:${task.taskJob?.isCompleted}")
+                } else {
+                    Timber.v("booleanTaskApply no need to cancel task.taskJob:${task.taskJob} as opposite rising edge occurred")
+                }
                 if (task.disabled == true) {
                     Timber.d("booleanTaskApply task not enabled $task")
                 } else {
