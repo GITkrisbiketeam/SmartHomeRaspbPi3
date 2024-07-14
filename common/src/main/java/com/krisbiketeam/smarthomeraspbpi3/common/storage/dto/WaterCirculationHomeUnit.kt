@@ -84,9 +84,11 @@ data class WaterCirculationHomeUnit<T : Any>(
         unitValue: Any?,
         updateTime: Long,
         lastTriggerSource: String,
-        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> HomeUnit<T>?
+        booleanApplyAction: suspend (applyData: BooleanApplyActionData<T>) -> HomeUnit<T>?
     ): HomeUnit<T> {
-        Timber.d("updateHomeUnitValuesAndTimes hwUnit:$hwUnit unitValue:$unitValue")
+        Timber.d("updateHomeUnitValuesAndTimes \n" +
+                "\t hwUnit:$hwUnit\n" +
+                "\t unitValue:$unitValue")
         // We set Switch and normal value as updateHomeUnitValuesAndTimes is only called by HwUnit
         return when (hwUnit.name) {
             temperatureHwUnitName -> {
@@ -114,7 +116,8 @@ data class WaterCirculationHomeUnit<T : Any>(
                                                 taskHomeUnitName = name,
                                                 taskName = name,
                                                 sourceHomeUnitName = name,
-                                                periodicallyOnlyHw = false
+                                                periodicallyOnlyHw = false,
+                                                homeUnitCopy
                                             )
                                         )?: homeUnitCopy
                                     //}
@@ -147,7 +150,8 @@ data class WaterCirculationHomeUnit<T : Any>(
                                         taskHomeUnitName = name,
                                         taskName = name,
                                         sourceHomeUnitName = name,
-                                        periodicallyOnlyHw = false
+                                        periodicallyOnlyHw = false,
+                                        homeUnitCopy
                                     )
                                 )?: homeUnitCopy
                             //}

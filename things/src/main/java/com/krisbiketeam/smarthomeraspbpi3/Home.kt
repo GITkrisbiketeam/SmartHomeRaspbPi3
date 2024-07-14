@@ -66,8 +66,8 @@ class Home(
 
     private var alarmEnabled: Boolean = secureStorage.alarmEnabled
 
-    private val booleanApplyAction: suspend (BooleanApplyActionData) -> HomeUnit<Any>? =
-        { applyData: BooleanApplyActionData -> booleanApplyAction(applyData) }
+    private val booleanApplyAction: suspend (BooleanApplyActionData<Any>) -> HomeUnit<Any>? =
+        { applyData: BooleanApplyActionData<Any> -> booleanApplyAction(applyData) }
 
     @ExperimentalCoroutinesApi
     fun start() {
@@ -442,7 +442,9 @@ class Home(
 
     override fun onHwUnitChanged(hwUnit: HwUnit, result: Result<HwUnitValue<Any?>>) {
         Timber.d(
-            "onHwUnitChanged unit: $hwUnit; result: $result"
+            "onHwUnitChanged \n" +
+                    "\t unit: $hwUnit; \n" +
+                    "\t result: $result"
         )
         scope.launch(Dispatchers.IO) {
             result.onSuccess { hwUnitValue ->
@@ -551,7 +553,7 @@ class Home(
                 ) as BaseHwUnit<Any>
             }
             BoardConfig.IO_EXTENDER_MCP23017_INPUT -> {
-                MCP23017Pin.Pin.values().find {
+                MCP23017Pin.Pin.entries.find {
                     it.name == hwUnit.ioPin
                 }?.let { ioPin ->
                     HwUnitI2CMCP23017Sensor(
@@ -564,7 +566,7 @@ class Home(
                 }
             }
             BoardConfig.IO_EXTENDER_MCP23017_OUTPUT -> {
-                MCP23017Pin.Pin.values().find {
+                MCP23017Pin.Pin.entries.find {
                     it.name == hwUnit.ioPin
                 }?.let { ioPin ->
                     HwUnitI2CMCP23017Actuator(
@@ -641,12 +643,16 @@ class Home(
 
     // region applyFunction helper methods
 
-    private suspend fun booleanApplyAction(applyData: BooleanApplyActionData):HomeUnit<Any>? {
+    private suspend fun booleanApplyAction(applyData: BooleanApplyActionData<Any>):HomeUnit<Any>? {
         Timber.d("booleanApplyAction applyData: $applyData")
-        homeUnitsList[applyData.taskHomeUnitType to applyData.taskHomeUnitName]?.let { taskHomeUnit ->
-            Timber.d("booleanApplyAction taskHomeUnit: $taskHomeUnit")
+
+        (applyData.homeUnit?:homeUnitsList[applyData.taskHomeUnitType to applyData.taskHomeUnitName])?.let { taskHomeUnit ->
+            Timber.d("booleanApplyAction\n" +
+                    "\t taskHomeUnit: $taskHomeUnit")
             hwUnitsList[taskHomeUnit.hwUnitName]?.let { taskHwUnit ->
-                Timber.d("booleanApplyAction taskHwUnit: ${taskHwUnit.hwUnit} unitValue:${taskHwUnit.hwUnitValue}")
+                Timber.d("booleanApplyAction\n" +
+                        "\t taskHwUnit: ${taskHwUnit.hwUnit}\n" +
+                        "\t unitValue:${taskHwUnit.hwUnitValue}")
                 if (taskHwUnit is Actuator && taskHwUnit.hwUnitValue.unitValue is Boolean?) {
                     if (taskHomeUnit.value != applyData.newActionVal
                         || taskHwUnit.hwUnitValue.unitValue != applyData.newActionVal) {
@@ -655,7 +661,9 @@ class Home(
                             applyData.newActionVal,
                             !applyData.periodicallyOnlyHw
                         ).join()
-                        Timber.d("booleanApplyAction after set HW Value taskHwUnit: ${taskHwUnit.hwUnit} unitValue:${taskHwUnit.hwUnitValue}")
+                        Timber.d("booleanApplyAction after set HW Value\n" +
+                                "\t taskHwUnit: ${taskHwUnit.hwUnit}\n" +
+                                "\t unitValue:${taskHwUnit.hwUnitValue}")
                         taskHomeUnit.copyWithValues(
                             value = applyData.newActionVal,
                             lastUpdateTime = if (!applyData.periodicallyOnlyHw) taskHwUnit.hwUnitValue.valueUpdateTime else taskHomeUnit.lastUpdateTime,
@@ -680,7 +688,8 @@ class Home(
                                     )*/
                             }
 
-                            Timber.d("booleanApplyAction after set HW Value updatedTaskHomeUnit: $updatedTaskHomeUnit")
+                            Timber.d("booleanApplyAction after set HW Value\n" +
+                                    "\t updatedTaskHomeUnit: $updatedTaskHomeUnit")
                             return updatedTaskHomeUnit
                         }
                     }

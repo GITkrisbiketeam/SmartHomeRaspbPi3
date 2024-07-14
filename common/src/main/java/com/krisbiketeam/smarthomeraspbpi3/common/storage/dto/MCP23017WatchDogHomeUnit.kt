@@ -120,7 +120,7 @@ data class MCP23017WatchDogHomeUnit<T : Any>(
         unitValue: Any?,
         updateTime: Long,
         lastTriggerSource: String,
-        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> HomeUnit<T>?
+        booleanApplyAction: suspend (applyData: BooleanApplyActionData<T>) -> HomeUnit<T>?
     ): HomeUnit<T> {
         // We set Switch and normal value as updateHomeUnitValuesAndTimes is only called by HwUnit
         supervisorScope {
@@ -142,7 +142,8 @@ data class MCP23017WatchDogHomeUnit<T : Any>(
                         taskHomeUnitName = name,
                         taskName = name,
                         sourceHomeUnitName = name,
-                        periodicallyOnlyHw = false
+                        periodicallyOnlyHw = false,
+                        this@MCP23017WatchDogHomeUnit
                     ))
                 }
             }
