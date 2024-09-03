@@ -38,11 +38,7 @@ ext {
     navigationVersion = '2.6.0'
 
     // Things
-    rainbowhatVersion = '1.0'
     thingsVersion = '1.0'
-    bmx280Version = '1.0'
-    bme680Version = '1.1.4'
-
 
     // Tooling
     timberVersion = '4.7.1'
