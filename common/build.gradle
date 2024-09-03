@@ -25,7 +25,10 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
     namespace 'com.krisbiketeam.smarthomeraspbpi3.common'
 }
 
@@ -33,7 +36,6 @@ dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinxCoroutinesAndroid"
 
     implementation "com.jakewharton.timber:timber:$timberVersion"
-    implementation "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycleKtxVersion"
     implementation "androidx.lifecycle:lifecycle-process:$lifecycleKtxVersion"
 
     implementation "androidx.legacy:legacy-support-v4:$androidxLegacySupportV4"
@@ -44,7 +46,6 @@ dependencies {
     implementation "androidx.security:security-crypto:$androidxSecurityCrypto"
 
     implementation "com.google.android.gms:play-services-base:$playServicesVersion"
-    implementation "com.google.android.gms:play-services-nearby:$playServicesNearbyVersion"
 
     implementation platform("com.google.firebase:firebase-bom:$firebaseBom")
     implementation 'com.google.firebase:firebase-database-ktx'

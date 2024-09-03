@@ -19,7 +19,7 @@ import androidx.transition.TransitionManager
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
-import com.krisbiketeam.smarthomeraspbpi3.common.MyLiveDataState
+import com.krisbiketeam.smarthomeraspbpi3.common.RemoteConnectionState
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentSettingsHomeBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.settings.HomeSettingsViewModel
 import kotlinx.coroutines.Dispatchers
@@ -67,19 +67,19 @@ class HomeSettingsFragment : Fragment() {
                     Lifecycle.State.RESUMED
                 ).flowOn(Dispatchers.IO).collect { state ->
                     when (state) {
-                        MyLiveDataState.ERROR -> {
+                        RemoteConnectionState.ERROR -> {
                             binding.homeNameLayout.error =
                                 getString(R.string.cannot_setup_home_name)
                             binding.homeName.requestFocus()
                         }
 
-                        MyLiveDataState.INIT -> {
+                        RemoteConnectionState.INIT -> {
                         }
 
-                        MyLiveDataState.CONNECTING -> {
+                        RemoteConnectionState.CONNECTING -> {
                         }
 
-                        MyLiveDataState.DONE -> {
+                        RemoteConnectionState.DONE -> {
                             findNavController().navigateUp()
                         }
                     }

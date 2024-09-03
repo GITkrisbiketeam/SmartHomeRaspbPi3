@@ -41,7 +41,7 @@ class UnitTaskViewModel(
                 || unitType == HomeUnitType.HOME_GAS
                 || unitType == HomeUnitType.HOME_GAS_PERCENT))
 
-    // Helper LiveData for UnitTaskList
+    // Helper StateFlow for UnitTaskList
     private val unitTaskList: StateFlow<Map<String, UnitTask>> =
         homeRepository.unitTaskListFlow(unitType, unitName).flowOn(Dispatchers.IO)
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyMap())
@@ -81,7 +81,7 @@ class UnitTaskViewModel(
 
     // Decide how to handle this list
     val homeUnitsTypeNameList: StateFlow<List<String>> =
-        _isEditMode.flatMapLatest { edit ->      // HomeUnitListLiveData
+        _isEditMode.flatMapLatest { edit ->
             Timber.d("init homeUnitList isEditMode edit: $edit")
             if (edit) {
                 combine(HOME_ACTION_STORAGE_UNITS.map { type ->

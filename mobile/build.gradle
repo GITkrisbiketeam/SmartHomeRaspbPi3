@@ -52,6 +52,10 @@ android {
         aidl = true
     }
 
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
     useLibrary 'android.test.mock'
     namespace 'com.krisbiketeam.smarthomeraspbpi3'
 }
@@ -69,7 +73,6 @@ dependencies {
     implementation "androidx.appcompat:appcompat:$androidxAppcompatVersion"
     implementation "androidx.preference:preference-ktx:$androidxPreferenceVersion"
     implementation "androidx.constraintlayout:constraintlayout:$androidxConstraintLayoutVersion"
-    implementation "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycleKtxVersion"
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycleKtxVersion"
     implementation "androidx.lifecycle:lifecycle-runtime-ktx:$lifecycleKtxVersion"
 

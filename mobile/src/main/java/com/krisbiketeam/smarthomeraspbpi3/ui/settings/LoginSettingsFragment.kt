@@ -19,7 +19,7 @@ import androidx.transition.TransitionManager
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
-import com.krisbiketeam.smarthomeraspbpi3.common.MyLiveDataState
+import com.krisbiketeam.smarthomeraspbpi3.common.RemoteConnectionState
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.FirebaseCredentials
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentSettingsLoginBinding
@@ -83,14 +83,14 @@ class LoginSettingsFragment : Fragment() {
             ).flowOn(Dispatchers.IO).collect { state ->
                 Timber.d("loginState changed state: $state")
                 when (state) {
-                    MyLiveDataState.ERROR -> {
+                    RemoteConnectionState.ERROR -> {
                         binding.passwordLayout.error = getString(R.string.error_incorrect_password)
                         binding.password.requestFocus()
                     }
 
-                    MyLiveDataState.INIT -> Unit
-                    MyLiveDataState.CONNECTING -> Unit
-                    MyLiveDataState.DONE -> {
+                    RemoteConnectionState.INIT -> Unit
+                    RemoteConnectionState.CONNECTING -> Unit
+                    RemoteConnectionState.DONE -> {
                         if (secureStorage.homeName.isEmpty()) {
                             Timber.d("No Home Name defined, starting HomeSettingsFragment")
                             findNavController().navigate(LoginSettingsFragmentDirections.actionLoginSettingsFragmentToHomeSettingsFragment())

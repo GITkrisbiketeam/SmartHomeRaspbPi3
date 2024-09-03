@@ -5,8 +5,6 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.net.ConnectivityManager
-import android.net.wifi.WifiConfiguration
-import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.KeyEvent.*
@@ -41,7 +39,6 @@ import com.krisbiketeam.smarthomeraspbpi3.common.ble.get
 import com.krisbiketeam.smarthomeraspbpi3.common.ble.getBluetoothContext
 import com.krisbiketeam.smarthomeraspbpi3.common.ble.withBluetoothContext
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig
-import com.krisbiketeam.smarthomeraspbpi3.common.nearby.NearbyService
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.ConnectionType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
@@ -62,13 +59,11 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.transformWhile
-import kotlinx.serialization.json.Json
 import org.koin.android.ext.android.inject
 import timber.log.Timber
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
 
 // Driver parameters
 private const val DRIVER_NAME = "PCF8574AT Button Driver"
@@ -82,7 +77,6 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
     private val secureStorage: SecureStorage by inject()
     private val homeInformationRepository: FirebaseHomeInformationRepository by inject()
     private lateinit var networkConnectionMonitor: NetworkConnectionMonitor
-    private lateinit var wifiManager: WifiManager
     private lateinit var connectivityManager: ConnectivityManager
 
     private lateinit var alarmManager: AlarmManager
@@ -232,7 +226,6 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
         networkConnectionMonitor = NetworkConnectionMonitor(this)
 
         connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        wifiManager = getSystemService(Context.WIFI_SERVICE) as WifiManager
 
         alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
@@ -280,21 +273,6 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
             }
 
             Timber.d("connectAndSetupJob finished")
-        }
-    }
-
-    private suspend fun startWiFiCredentialsReceiver() {
-        val blinkJob = blinkLed(ledA)
-        try {
-            withTimeout(NEARBY_TIMEOUT) {
-                waitForWifiCredentials()?.let { wifiCredentials ->
-                    Timber.i("waitForWifiCredentials returned:$wifiCredentials")
-                    addWiFi(wifiManager, wifiCredentials)
-                } ?: Timber.e("Could not get WifiCredentials")
-            }
-        } finally {
-            Timber.w("waitForWifiCredentials timeout or finished")
-            blinkJob.cancelAndJoin()
         }
     }
 
@@ -356,80 +334,6 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
         }
     }
 
-    private suspend fun waitForWifiCredentials(): WifiCredentials? =
-        suspendCancellableCoroutine { cont ->
-            val nearbyService: NearbyService by inject()
-            if (!nearbyService.isActive()) {
-                nearbyService.dataReceivedListener(object : NearbyService.DataReceiverListener {
-                    override fun onDataReceived(data: ByteArray?) {
-                        Timber.d("waitForWifiCredentials Received data: $data")
-                        data?.run {
-                            val jsonString = String(data)
-                            Timber.d("waitForWifiCredentials Data as String $jsonString")
-                            try {
-                                val wifiCredentials =
-                                    Json.decodeFromString<WifiCredentials>(jsonString)
-                                Timber.d(
-                                    "waitForWifiCredentials Data as wifiCredentials $wifiCredentials"
-                                )
-                                cont.resume(wifiCredentials)
-                            } catch (e: Exception) {
-                                cont.resumeWithException(e)
-                                Timber.d(
-                                    "waitForWifiCredentials Received Data could not be cast to WifiCredentials"
-                                )
-                            } finally {
-                                nearbyService.stop()
-                            }
-                        }
-                    }
-                })
-            } else {
-                Timber.d("waitForWifiCredentials start we are already listening for credentials")
-                cont.resume(null)
-            }
-            cont.invokeOnCancellation {
-                Timber.d("waitForWifiCredentials canceled")
-                nearbyService.stop()
-            }
-        }
-
-    private suspend fun waitForNearbyFirebaseCredentials(): FirebaseCredentials? =
-        suspendCancellableCoroutine { cont ->
-            val nearbyService: NearbyService by inject()
-            if (!nearbyService.isActive()) {
-                nearbyService.dataReceivedListener(object : NearbyService.DataReceiverListener {
-                    override fun onDataReceived(data: ByteArray?) {
-                        Timber.d("waitForFirebaseCredentials Received data: $data")
-                        data?.run {
-                            val jsonString = String(data)
-                            Timber.d("waitForFirebaseCredentials Data as String $jsonString")
-                            try {
-                                val credentials =
-                                    Json.decodeFromString<FirebaseCredentials>(jsonString)
-                                Timber.d("waitForFirebaseCredentials Data as credentials $credentials")
-                                cont.resume(credentials)
-                            } catch (e: Exception) {
-                                cont.resumeWithException(e)
-                                Timber.d(
-                                    "waitForFirebaseCredentials Received Data could not be cast to FirebaseCredentials"
-                                )
-                            } finally {
-                                nearbyService.stop()
-                            }
-                        }
-                    }
-                })
-            } else {
-                Timber.d("waitForFirebaseCredentials start we are already listening for credentials")
-                cont.resume(null)
-            }
-            cont.invokeOnCancellation {
-                Timber.d("waitForFirebaseCredentials canceled")
-                nearbyService.stop()
-            }
-        }
-
     private suspend fun waitForFirebaseCredentials(): FirebaseCredentials? {
         Timber.d("waitForFirebaseCredentials")
         val bluetoothEnablerManager: BluetoothEnablerManager = getBluetoothContext().get()
@@ -473,38 +377,6 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
         } else {
             Timber.d("waitForFirebaseCredentials bluetooth could not be enabled")
             null
-        }
-    }
-
-    private suspend fun waitForNearbyHomeName(): String? = suspendCancellableCoroutine { cont ->
-        val nearbyService: NearbyService by inject()
-        if (!nearbyService.isActive()) {
-            nearbyService.dataReceivedListener(object : NearbyService.DataReceiverListener {
-                override fun onDataReceived(data: ByteArray?) {
-                    Timber.d("waitForHomeName Received data: $data")
-                    data?.run {
-                        try {
-                            val homeName = String(data)
-                            Timber.d("waitForHomeName Data as homeName $homeName")
-                            cont.resume(homeName)
-                        } catch (e: Exception) {
-                            cont.resumeWithException(e)
-                            Timber.d(
-                                "waitForHomeName Received Data could not be cast to FirebaseCredentials"
-                            )
-                        } finally {
-                            nearbyService.stop()
-                        }
-                    }
-                }
-            })
-        } else {
-            Timber.d("waitForHomeName start we are already listening for credentials")
-            cont.resume(null)
-        }
-        cont.invokeOnCancellation {
-            Timber.d("waitForHomeName canceled")
-            nearbyService.stop()
         }
     }
 
@@ -909,39 +781,6 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
             val alarmTimeAtUTC = System.currentTimeMillis() + WATCH_DOG_RESTART_TIME
             alarmManager.setExact(AlarmManager.RTC_WAKEUP, alarmTimeAtUTC, pendingIntent)
             Timber.d("Shedule WatchDogRestart Alarm")
-        }
-    }
-
-    private fun addWiFi(wifiManager: WifiManager, wifiCredentials: WifiCredentials) {
-
-        // only WPA is supported right now
-        val wifiConfiguration = WifiConfiguration()
-        wifiConfiguration.SSID = String.format("\"%s\"", wifiCredentials.ssid)
-        wifiConfiguration.preSharedKey = String.format("\"%s\"", wifiCredentials.password)
-
-        val existingConfig =
-            wifiManager.configuredNetworks?.firstOrNull { wifiConfiguration.SSID == it.SSID }
-        if (existingConfig != null) {
-            Timber.d(
-                "This WiFi was already added update it. Existing: $existingConfig new one: $wifiConfiguration"
-            )
-            existingConfig.preSharedKey = wifiConfiguration.preSharedKey
-            val networkId = wifiManager.updateNetwork(existingConfig)
-            if (networkId != -1) {
-                Timber.d("successful update wifiConfig")
-                wifiManager.enableNetwork(networkId, true)
-            } else {
-                Timber.w("error updating wifiConfig")
-            }
-        } else {
-            Timber.d("This adding new configuration $wifiConfiguration")
-            val networkId = wifiManager.addNetwork(wifiConfiguration)
-            if (networkId != -1) {
-                Timber.d("successful added wifiConfig")
-                wifiManager.enableNetwork(networkId, true)
-            } else {
-                Timber.w("error adding wifiConfig")
-            }
         }
     }
 
