@@ -545,13 +545,6 @@ class Home(
                     hwUnit.refreshRate
                 ) as BaseHwUnit<Any>
             }
-            BoardConfig.TEMP_PRESS_SENSOR_BMP280 -> {
-                HwUnitI2CTempPressBMP280Sensor(
-                    hwUnit.name, hwUnit.location, hwUnit.pinName,
-                    hwUnit.softAddress ?: 0,
-                    hwUnit.refreshRate
-                ) as BaseHwUnit<Any>
-            }
             BoardConfig.IO_EXTENDER_MCP23017_INPUT -> {
                 MCP23017Pin.Pin.entries.find {
                     it.name == hwUnit.ioPin
