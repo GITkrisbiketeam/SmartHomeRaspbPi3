@@ -505,7 +505,8 @@ class Home(
                 HwUnitI2CTempMCP9808Sensor(
                     hwUnit.name, hwUnit.location, hwUnit.pinName,
                     hwUnit.softAddress ?: 0,
-                    hwUnit.refreshRate
+                    hwUnit.refreshRate,
+                    hwUnit.ignoreErrors
                 ) as BaseHwUnit<Any>
             }
             BoardConfig.TEMP_RH_SENSOR_SI7021 -> {
@@ -756,14 +757,25 @@ class Home(
         hwUnitErrorEventList[hwUnit.name] = hwUnitErrorEventList[hwUnit.name]?.let { triple ->
             Triple(hwUnitLog.localtime, triple.second.inc(), this@addHwUnitErrorEvent).apply {
                 if (triple.second >= 3) {
-                    hwUnitsList.remove(hwUnit.name)?.also {
-                        Timber.w(
-                            "addHwUnitErrorEvent to many errors ($second) from hwUnit: ${hwUnit.name}, remove it from hwUnitsList: $it"
-                        )
-                    }
-                    homeInformationRepository.addHwUnitErrorEvent(hwUnitLog)
-                    scope.launch {
-                        restartHwUnits()
+                    if (hwUnit.ignoreErrors == true) {
+                        if (!doNotReStartHwUnit) {
+                            scope.launch {
+                                delay(hwUnit.refreshRate ?: 10000L)
+                                triple.third?.let {
+                                    hwUnitStart(it)
+                                }
+                            }
+                        }
+                    } else {
+                        hwUnitsList.remove(hwUnit.name)?.also {
+                            Timber.w(
+                                "addHwUnitErrorEvent to many errors ($second) from hwUnit: ${hwUnit.name}, remove it from hwUnitsList: $it"
+                            )
+                        }
+                        homeInformationRepository.addHwUnitErrorEvent(hwUnitLog)
+                        scope.launch {
+                            restartHwUnits()
+                        }
                     }
                 } else {
                     Timber.w(
@@ -790,7 +802,7 @@ class Home(
                 }
             }
         })
-        Timber.e("addHwUnitErrorEvent hwUnitErrorEventList[hwUnit.name]:${hwUnitErrorEventList[hwUnit.name]?.third?.hwUnit?.name} ${hwUnitErrorEventList[hwUnit.name]?.second}")
+        Timber.e("addHwUnitErrorEvent hwUnitErrorEventList[hwUnit.name]:${hwUnitErrorEventList[hwUnit.name]?.third?.hwUnit?.name} count:${hwUnitErrorEventList[hwUnit.name]?.second} ignoreErrors:${hwUnit.ignoreErrors}")
 
         analytics.logEvent(EVENT_SENSOR_EXCEPTION) {
             param(SENSOR_NAME, this@addHwUnitErrorEvent.hwUnit.name)
