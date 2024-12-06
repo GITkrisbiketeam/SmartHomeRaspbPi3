@@ -19,6 +19,7 @@ class HwUnitI2CTempMCP9808Sensor(
     private val pinName: String,
     private val softAddress: Int,
     private val refreshRate: Long? = REFRESH_RATE,
+    ignoreErrors: Boolean?,
     override var device: AutoCloseable? = null
 ) : HwUnitI2C<Float>, Sensor<Float> {
 
@@ -29,7 +30,8 @@ class HwUnitI2CTempMCP9808Sensor(
         pinName,
         ConnectionType.I2C,
         softAddress,
-        refreshRate = refreshRate
+        refreshRate = refreshRate,
+        ignoreErrors = ignoreErrors
     )
     override var hwUnitValue: HwUnitValue<Float?> = HwUnitValue(null, System.currentTimeMillis())
 

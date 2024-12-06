@@ -26,4 +26,6 @@ data class HwUnit(
         // Refresh rate for Sensor Type Units
         val refreshRate: Long? = null,
         // Inverse logic
-        val inverse: Boolean? = null)
+        val inverse: Boolean? = null,
+        // IgnoreErrors
+        val ignoreErrors: Boolean? = null)

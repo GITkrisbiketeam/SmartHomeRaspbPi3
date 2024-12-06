@@ -57,8 +57,6 @@ dependencies {
 
     implementation "io.insert-koin:koin-core:$koin_version"
 
-
-    implementation "com.google.android.things.contrib:driver-bmx280:$bmx280Version"
     implementation "com.google.android.things:androidthings:$thingsVersion"
 
     testImplementation "junit:junit:$junitVersion"
