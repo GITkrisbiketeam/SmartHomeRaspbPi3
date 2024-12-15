@@ -58,7 +58,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".SmartActivity"
-            android:exported="true">
+            android:exported="true"
+            android:configChanges="uiMode" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

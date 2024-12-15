@@ -2,6 +2,11 @@
 
 package com.krisbiketeam.smarthomeraspbpi3.compose.screens.logschart
 
+import android.content.Context
+import android.content.res.Configuration
+import android.util.TypedValue
+import androidx.annotation.AttrRes
+import androidx.annotation.ColorInt
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -12,7 +17,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.github.mikephil.charting.charts.CombinedChart
 import com.github.mikephil.charting.components.AxisBase
@@ -23,6 +30,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.getOnlyDateLocalTime
 import com.krisbiketeam.smarthomeraspbpi3.compose.components.daterangepicker.SmartDateRangePicker
 import com.krisbiketeam.smarthomeraspbpi3.compose.components.logsfilterItemsDialog.LogsFilterItemsDialog
 import com.krisbiketeam.smarthomeraspbpi3.compose.components.topappbat.LogsChartTopAppBar
+import com.krisbiketeam.smarthomeraspbpi3.compose.darkThemeTextColor
 import com.krisbiketeam.smarthomeraspbpi3.utils.toLogsFloat
 import com.krisbiketeam.smarthomeraspbpi3.utils.toLogsLong
 import org.koin.androidx.compose.koinViewModel
@@ -82,6 +90,7 @@ fun LogsChartScreen(
         },
         modifier = modifier.fillMaxSize(),
     ) { paddingValues ->
+        val localContext = LocalContext.current
 
         AndroidView(
             modifier = Modifier
@@ -104,8 +113,14 @@ fun LogsChartScreen(
                                 return timeFormat.format(Date(value.toLogsLong()))
                             }
                         }
+                        textColor = context.darkThemeTextColor()
                     }
+                    axisLeft.textColor = context.darkThemeTextColor()
+
+                    legend.textColor = context.darkThemeTextColor()
+
                     setDrawGridBackground(false)
+                    setDrawBarShadow(true)
                     invalidate()
                 }
             },

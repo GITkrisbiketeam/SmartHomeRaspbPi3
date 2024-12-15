@@ -42,8 +42,8 @@ fun SmartNavGraph(
             route = ROOM_LIST_GRAPH_ROOT,
             startDestination = SmartDestinations.ROOM_LIST_ROUTE,
         ) {
-            drawerGesturesEnabled(true)
             composable(SmartDestinations.ROOM_LIST_ROUTE) {
+                drawerGesturesEnabled(true)
                 RoomListScreen(openDrawer = { coroutineScope.launch { drawerState.open() } },
                     onAddNewRoom = {},
                     onRoomClick = {
@@ -51,6 +51,7 @@ fun SmartNavGraph(
                     })
             }
             composable(SmartDestinations.ROOM_DETAIL_ROUTE) { backStackEntry ->
+                drawerGesturesEnabled(true)
                 RoomDetailScreen(
                     openDrawer = { coroutineScope.launch { drawerState.open() } },
                     onHomeUnitClick = { homeUnitType, homeUnitName ->
@@ -74,8 +75,8 @@ fun SmartNavGraph(
             route = TASK_LIST_GRAPH_ROOT,
             startDestination = SmartDestinations.TAK_LIST_ROUTE,
         ) {
-            drawerGesturesEnabled(true)
             composable(SmartDestinations.TAK_LIST_ROUTE) {
+                drawerGesturesEnabled(true)
                 TaskListScreen(openDrawer = { coroutineScope.launch { drawerState.open() } },
                     onAddNewHomeUnit = {},
                     onTaskClick = { homeUnitType, homeUnitName ->
