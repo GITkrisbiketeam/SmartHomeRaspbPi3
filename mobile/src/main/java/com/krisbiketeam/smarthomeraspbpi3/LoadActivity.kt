@@ -90,7 +90,7 @@ class LoadActivity : AppCompatActivity() {
     }
 
     private fun callHomeActivity() {
-        val intent = Intent(this, HomeActivity::class.java)
+        val intent = Intent(this, SmartActivity::class.java)
         startActivity(intent)
         finish()
     }
