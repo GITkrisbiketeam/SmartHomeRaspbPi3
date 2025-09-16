@@ -25,17 +25,18 @@ data class GenericHomeUnit<T : Any>(
 
     override fun makeNotification(): GenericHomeUnit<T> {
         return GenericHomeUnit(
-            name,
-            type,
-            room,
-            hwUnitName,
-            value,
-            lastUpdateTime,
-            min,
-            minLastUpdateTime,
-            max,
-            maxLastUpdateTime,
-            lastTriggerSource
+            name = name,
+            type = type,
+            room = room,
+            hwUnitName = hwUnitName,
+            value = value,
+            lastUpdateTime = lastUpdateTime,
+            min = min,
+            minLastUpdateTime = minLastUpdateTime,
+            max = max,
+            maxLastUpdateTime = maxLastUpdateTime,
+            lastTriggerSource = lastTriggerSource,
+            firebaseNotify = firebaseNotify
         )
     }
 
@@ -109,7 +110,7 @@ data class GenericHomeUnit<T : Any>(
         unitValue: Any?,
         updateTime: Long,
         lastTriggerSource: String,
-        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> HomeUnit<T>?
+        booleanApplyAction: suspend (applyData: BooleanApplyActionData<T>) -> HomeUnit<T>?
     ): HomeUnit<T> {
         // We need to handle differently values of non Basic Types
         return when (unitValue) {

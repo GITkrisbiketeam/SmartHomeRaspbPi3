@@ -56,13 +56,13 @@ class RoomDetailViewModel(
             room.map {
                 it?.unitsOrder ?: emptyList()
             }) { homeUnitList, hwUnitErrorEventList, newOrderList, existingOrderList ->
-            Timber.e("homeUnitsMap Flow")
+            Timber.i("homeUnitsMap Flow")
             val orderList = newOrderList.ifEmpty { existingOrderList }
             val map: MutableMap<String, RoomDetailListAdapterModel?> =
                 orderList.associateWithTo(LinkedHashMap(orderList.size)) { null }
             homeUnitList.forEach {
                 if (it.room == room.value?.name) {
-                    //Timber.e("homeUnitsMap Flow filter")
+                    //Timber.i("homeUnitsMap Flow filter")
                     map[it.type.toString() + '.' + it.name] = RoomDetailListAdapterModel(
                         it,
                         hwUnitErrorEventList.firstOrNull { hwUnitLog -> hwUnitLog.name == it.hwUnitName } != null)

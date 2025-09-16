@@ -63,7 +63,7 @@ fun getHomeUnitTypeIndicatorMap(type: HomeUnitType): GenericTypeIndicator<HomeUn
 }
 
 val HOME_STORAGE_UNITS: List<HomeUnitType> =
-    HomeUnitType.values().filterNot { it == HomeUnitType.UNKNOWN }
+    HomeUnitType.entries.filterNot { it == HomeUnitType.UNKNOWN }
 
 val HOME_ACTION_STORAGE_UNITS: List<HomeUnitType> =
     listOf(
@@ -102,7 +102,7 @@ sealed interface HomeUnit<T : Any>  {
 
     suspend fun applyFunction(
         newVal: T,
-        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> HomeUnit<T>?
+        booleanApplyAction: suspend (applyData: BooleanApplyActionData<T>) -> HomeUnit<T>?
     ) {
         unitsTasks.values.forEach { task ->
             when (type) {
@@ -150,7 +150,7 @@ sealed interface HomeUnit<T : Any>  {
         unitValue: Any?,
         updateTime: Long,
         lastTriggerSource: String,
-        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> HomeUnit<T>?
+        booleanApplyAction: suspend (applyData: BooleanApplyActionData<T>) -> HomeUnit<T>?
     ): HomeUnit<T>
 
     fun copyWithValues(
@@ -171,14 +171,20 @@ sealed interface HomeUnit<T : Any>  {
     private suspend fun booleanTaskApply(
         newVal: Boolean,
         task: UnitTask,
-        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> HomeUnit<T>?
+        booleanApplyAction: suspend (applyData: BooleanApplyActionData<T>) -> HomeUnit<T>?
     ) {
         supervisorScope {
             launch {
-                Timber.v("booleanTaskApply before cancel task.taskJob:${task.taskJob} isActive:${task.taskJob?.isActive} isCancelled:${task.taskJob?.isCancelled} isCompleted:${task.taskJob?.isCompleted}")
-                task.taskJob?.cancel()
-                Timber.v("booleanTaskApply after cancel task.taskJob:${task.taskJob} isActive:${task.taskJob?.isActive} isCancelled:${task.taskJob?.isCancelled} isCompleted:${task.taskJob?.isCompleted}")
-
+                if ((task.trigger == RISING_EDGE && newVal)
+                    || (task.trigger == FALLING_EDGE && !newVal)
+                    || (task.resetOnInverseTrigger == true)
+                ) {
+                    Timber.v("booleanTaskApply before cancel task.taskJob:${task.taskJob} isActive:${task.taskJob?.isActive} isCancelled:${task.taskJob?.isCancelled} isCompleted:${task.taskJob?.isCompleted}")
+                    task.taskJob?.cancel()
+                    Timber.v("booleanTaskApply after cancel task.taskJob:${task.taskJob} isActive:${task.taskJob?.isActive} isCancelled:${task.taskJob?.isCancelled} isCompleted:${task.taskJob?.isCompleted}")
+                } else {
+                    Timber.v("booleanTaskApply no need to cancel task.taskJob:${task.taskJob} as opposite rising edge occurred")
+                }
                 if (task.disabled == true) {
                     Timber.d("booleanTaskApply task not enabled $task")
                 } else {
@@ -207,7 +213,7 @@ sealed interface HomeUnit<T : Any>  {
     private suspend fun sensorTaskApply(
         newVal: Float,
         task: UnitTask,
-        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> HomeUnit<T>?
+        booleanApplyAction: suspend (applyData: BooleanApplyActionData<T>) -> HomeUnit<T>?
     ) {
         supervisorScope {
             launch {
@@ -242,7 +248,7 @@ sealed interface HomeUnit<T : Any>  {
     private suspend fun booleanTaskTimed(
         newVal: Boolean,
         task: UnitTask,
-        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> HomeUnit<T>?
+        booleanApplyAction: suspend (applyData: BooleanApplyActionData<T>) -> HomeUnit<T>?
     ) {
         task.startTime.takeIf { it.isValidTime() }?.let { startTime ->
             val currTime = System.currentTimeMillis().getOnlyTodayLocalTime()
@@ -317,7 +323,7 @@ sealed interface HomeUnit<T : Any>  {
     private suspend fun booleanApplyAction(
         actionVal: Boolean,
         task: UnitTask,
-        booleanApplyAction: suspend (applyData:BooleanApplyActionData) -> HomeUnit<T>?
+        booleanApplyAction: suspend (applyData:BooleanApplyActionData<T>) -> HomeUnit<T>?
     ) {
         val newActionVal: Boolean = (task.inverse ?: false) xor actionVal
         task.homeUnitsList.forEach {
@@ -336,13 +342,14 @@ sealed interface HomeUnit<T : Any>  {
     // endregion
 }
 
-data class BooleanApplyActionData(
+data class BooleanApplyActionData<T : Any>(
     val newActionVal: Boolean,
     val taskHomeUnitType: HomeUnitType,
     val taskHomeUnitName: String,
     val taskName: String,
     val sourceHomeUnitName: String,
     val periodicallyOnlyHw: Boolean,
+    val homeUnit: HomeUnit<T>? = null
 )
 
 private fun Long?.isValidTime(): Boolean {

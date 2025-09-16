@@ -32,18 +32,19 @@ data class MCP23017WatchDogHomeUnit<T : Any>(
 
     override fun makeNotification(): MCP23017WatchDogHomeUnit<T> {
         return MCP23017WatchDogHomeUnit(
-            name,
-            type,
-            room,
-            hwUnitName,
-            value,
-            lastUpdateTime,
-            inputHwUnitName,
-            inputValue,
-            inputLastUpdateTime,
-            watchDogTimeout,
-            watchDogDelay,
-            lastTriggerSource = lastTriggerSource
+            name = name,
+            type = type,
+            room = room,
+            hwUnitName = hwUnitName,
+            value = value,
+            lastUpdateTime = lastUpdateTime,
+            inputHwUnitName = inputHwUnitName,
+            inputValue = inputValue,
+            inputLastUpdateTime = inputLastUpdateTime,
+            watchDogTimeout = watchDogTimeout,
+            watchDogDelay = watchDogDelay,
+            lastTriggerSource = lastTriggerSource,
+            firebaseNotify = firebaseNotify
         )
     }
 
@@ -119,7 +120,7 @@ data class MCP23017WatchDogHomeUnit<T : Any>(
         unitValue: Any?,
         updateTime: Long,
         lastTriggerSource: String,
-        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> HomeUnit<T>?
+        booleanApplyAction: suspend (applyData: BooleanApplyActionData<T>) -> HomeUnit<T>?
     ): HomeUnit<T> {
         // We set Switch and normal value as updateHomeUnitValuesAndTimes is only called by HwUnit
         supervisorScope {
@@ -141,7 +142,8 @@ data class MCP23017WatchDogHomeUnit<T : Any>(
                         taskHomeUnitName = name,
                         taskName = name,
                         sourceHomeUnitName = name,
-                        periodicallyOnlyHw = false
+                        periodicallyOnlyHw = false,
+                        this@MCP23017WatchDogHomeUnit
                     ))
                 }
             }

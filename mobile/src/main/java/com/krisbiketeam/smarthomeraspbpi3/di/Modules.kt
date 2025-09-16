@@ -34,7 +34,6 @@ import com.krisbiketeam.smarthomeraspbpi3.viewmodels.ThingsAppLogsViewModel
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.UnitTaskViewModel
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.settings.HomeSettingsViewModel
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.settings.LoginSettingsViewModel
-import com.squareup.moshi.Moshi
 import org.koin.android.ext.koin.androidApplication
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.core.module.Module
@@ -75,7 +74,6 @@ val myModule: Module = module {
     single { FirebaseHomeInformationRepository() }
     single<SecureStorage> { SecureStorageImpl(androidApplication(), get()) }
     single<Authentication> { FirebaseAuthentication() }
-    single { Moshi.Builder().build() }
     single { Analytics() }
 
     factory { RoomDetailHomeUnitListAdapter(get()) }

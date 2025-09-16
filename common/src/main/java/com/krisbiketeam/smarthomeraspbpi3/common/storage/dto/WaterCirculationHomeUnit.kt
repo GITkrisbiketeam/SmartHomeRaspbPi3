@@ -1,11 +1,7 @@
 package com.krisbiketeam.smarthomeraspbpi3.common.storage.dto
 
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.supervisorScope
 import timber.log.Timber
 
 data class WaterCirculationHomeUnit<T : Any>(
@@ -38,26 +34,27 @@ data class WaterCirculationHomeUnit<T : Any>(
 
     override fun makeNotification(): WaterCirculationHomeUnit<T> {
         return WaterCirculationHomeUnit(
-            name,
-            type,
-            room,
-            hwUnitName,
-            value,
-            lastUpdateTime,
-            temperatureHwUnitName,
-            temperatureValue,
-            temperatureLastUpdateTime,
-            temperatureMin,
-            temperatureMinLastUpdateTime,
-            temperatureMax,
-            temperatureMaxLastUpdateTime,
-            temperatureThreshold,
-            motionHwUnitName,
-            motionValue,
-            motionLastUpdateTime,
-            actionTimeout,
-            enabled,
-            lastTriggerSource = lastTriggerSource
+            name = name,
+            type = type,
+            room = room,
+            hwUnitName = hwUnitName,
+            value = value,
+            lastUpdateTime = lastUpdateTime,
+            temperatureHwUnitName = temperatureHwUnitName,
+            temperatureValue = temperatureValue,
+            temperatureLastUpdateTime = temperatureLastUpdateTime,
+            temperatureMin = temperatureMin,
+            temperatureMinLastUpdateTime = temperatureMinLastUpdateTime,
+            temperatureMax = temperatureMax,
+            temperatureMaxLastUpdateTime = temperatureMaxLastUpdateTime,
+            temperatureThreshold = temperatureThreshold,
+            motionHwUnitName = motionHwUnitName,
+            motionValue = motionValue,
+            motionLastUpdateTime = motionLastUpdateTime,
+            actionTimeout = actionTimeout,
+            enabled = enabled,
+            lastTriggerSource = lastTriggerSource,
+            firebaseNotify = firebaseNotify
         )
     }
 
@@ -87,9 +84,11 @@ data class WaterCirculationHomeUnit<T : Any>(
         unitValue: Any?,
         updateTime: Long,
         lastTriggerSource: String,
-        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> HomeUnit<T>?
+        booleanApplyAction: suspend (applyData: BooleanApplyActionData<T>) -> HomeUnit<T>?
     ): HomeUnit<T> {
-        Timber.d("updateHomeUnitValuesAndTimes hwUnit:$hwUnit unitValue:$unitValue")
+        Timber.d("updateHomeUnitValuesAndTimes \n" +
+                "\t hwUnit:$hwUnit\n" +
+                "\t unitValue:$unitValue")
         // We set Switch and normal value as updateHomeUnitValuesAndTimes is only called by HwUnit
         return when (hwUnit.name) {
             temperatureHwUnitName -> {
@@ -117,7 +116,8 @@ data class WaterCirculationHomeUnit<T : Any>(
                                                 taskHomeUnitName = name,
                                                 taskName = name,
                                                 sourceHomeUnitName = name,
-                                                periodicallyOnlyHw = false
+                                                periodicallyOnlyHw = false,
+                                                homeUnitCopy
                                             )
                                         )?: homeUnitCopy
                                     //}
@@ -150,7 +150,8 @@ data class WaterCirculationHomeUnit<T : Any>(
                                         taskHomeUnitName = name,
                                         taskName = name,
                                         sourceHomeUnitName = name,
-                                        periodicallyOnlyHw = false
+                                        periodicallyOnlyHw = false,
+                                        homeUnitCopy
                                     )
                                 )?: homeUnitCopy
                             //}

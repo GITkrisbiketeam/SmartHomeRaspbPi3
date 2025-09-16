@@ -28,16 +28,17 @@ data class LightSwitchHomeUnit<T : Any>(
 
     override fun makeNotification(): LightSwitchHomeUnit<T> {
         return LightSwitchHomeUnit(
-            name,
-            type,
-            room,
-            hwUnitName,
-            value,
-            lastUpdateTime,
-            switchHwUnitName,
-            switchValue,
-            switchLastUpdateTime,
-            lastTriggerSource = lastTriggerSource
+            name = name,
+            type = type,
+            room = room,
+            hwUnitName = hwUnitName,
+            value = value,
+            lastUpdateTime = lastUpdateTime,
+            switchHwUnitName = switchHwUnitName,
+            switchValue = switchValue,
+            switchLastUpdateTime = switchLastUpdateTime,
+            lastTriggerSource = lastTriggerSource,
+            firebaseNotify = firebaseNotify
         )
     }
 
@@ -109,7 +110,7 @@ data class LightSwitchHomeUnit<T : Any>(
         unitValue: Any?,
         updateTime: Long,
         lastTriggerSource: String,
-        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> HomeUnit<T>?
+        booleanApplyAction: suspend (applyData: BooleanApplyActionData<T>) -> HomeUnit<T>?
     ): HomeUnit<T> {
         // We set Switch and normal value as updateHomeUnitValuesAndTimes is only called by HwUnit
         return copy(switchValue = unitValue as T?, switchLastUpdateTime = updateTime).let {
@@ -120,7 +121,8 @@ data class LightSwitchHomeUnit<T : Any>(
                     taskHomeUnitName = name,
                     taskName = name,
                     sourceHomeUnitName = name,
-                    periodicallyOnlyHw = false
+                    periodicallyOnlyHw = false,
+                    it
                 ))?: it
             } else {
                 it

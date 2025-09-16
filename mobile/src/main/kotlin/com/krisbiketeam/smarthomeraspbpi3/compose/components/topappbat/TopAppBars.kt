@@ -1,0 +1,373 @@
+package com.krisbiketeam.smarthomeraspbpi3.compose.components.topappbat
+
+import androidx.annotation.StringRes
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
+import com.krisbiketeam.smarthomeraspbpi3.R
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun RoomListTopAppBar(
+    openDrawer: () -> Unit,
+    isEditing: Boolean,
+    onEditClicked: () -> Unit,
+    onFinishClicked: () -> Unit
+) {
+    TopAppBar(
+        title = { Text(text = stringResource(id = R.string.room_list_title)) },
+        navigationIcon = {
+            IconButton(onClick = openDrawer) {
+                Icon(Icons.Filled.Menu, null)
+            }
+        },
+        actions = {
+            if (isEditing) {
+                IconButton(onClick = onFinishClicked) {
+                    Icon(Icons.Filled.Done, stringResource(id = R.string.menu_finish))
+                }
+            } else {
+                MoreEditMenu(onEditClicked)
+            }
+        },
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TaskListTopAppBar(
+    openDrawer: () -> Unit,
+    isEditing: Boolean,
+    onEditClicked: () -> Unit,
+    onFinishClicked: () -> Unit
+) {
+    TopAppBar(
+        title = { Text(text = stringResource(id = R.string.task_list_title)) },
+        navigationIcon = {
+            IconButton(onClick = openDrawer) {
+                Icon(Icons.Filled.Menu, null)
+            }
+        },
+        actions = {
+            if (isEditing) {
+                IconButton(onClick = onFinishClicked) {
+                    Icon(Icons.Filled.Done, stringResource(id = R.string.menu_finish))
+                }
+            } else {
+                MoreEditMenu(onEditClicked)
+            }
+        },
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun LogsChartTopAppBar(
+    openDrawer: () -> Unit,
+    onPickDateClicked: () -> Unit,
+    onFilterLogsClicked: () -> Unit,
+    onClearAll: () -> Unit,
+) {
+    TopAppBar(
+        title = { Text(text = stringResource(id = R.string.logs_title)) },
+        navigationIcon = {
+            IconButton(onClick = openDrawer) {
+                Icon(Icons.Filled.Menu, null)
+            }
+        },
+        actions = {
+            IconButton(onClick = onPickDateClicked) {
+                Icon(Icons.Filled.DateRange, stringResource(id = R.string.menu_date_picker))
+            }
+            IconButton(onClick = onFilterLogsClicked) {
+                Icon(Icons.AutoMirrored.Filled.List, stringResource(id = R.string.menu_filter))
+            }
+            LogsChartMoreMenu(onClearAll)
+        },
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun RoomDetailTopAppBar(
+    openDrawer: () -> Unit,
+    title: String,
+    isEditing: Boolean,
+    onEditClicked: () -> Unit,
+    onSave: () -> Unit,
+    onDiscard: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    TopAppBar(
+        title = {
+            Text(text = title)
+        },
+        navigationIcon = {
+            IconButton(onClick = openDrawer) {
+                Icon(Icons.Filled.Menu, null)
+            }
+        },
+
+        actions = {
+            if (isEditing) {
+                IconButton(onClick = onSave) {
+                    Icon(Icons.Filled.Done, stringResource(id = R.string.menu_finish))
+                }
+                IconButton(onClick = onDiscard) {
+                    Icon(Icons.Filled.Close, stringResource(id = R.string.menu_discard))
+                }
+                IconButton(onClick = onDelete) {
+                    Icon(Icons.Filled.Delete, stringResource(id = R.string.menu_delete))
+                }
+            } else {
+                MoreEditMenu(onEditClicked)
+            }
+        },
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun HomeUnitDetailTopAppBar(
+    onBack: () -> Unit,
+    isEditing: Boolean,
+    onEditClicked: () -> Unit,
+    onDone: () -> Unit,
+    onDiscard: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    TopAppBar(
+        title = {
+            Text(text = stringResource(id = R.string.room_details_title))
+        },
+        navigationIcon = {
+            IconButton(onClick = onBack) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+            }
+        },
+        actions = {
+            if (isEditing) {
+                IconButton(onClick = onDone) {
+                    Icon(Icons.Filled.Done, stringResource(id = R.string.menu_finish))
+                }
+                IconButton(onClick = onDiscard) {
+                    Icon(Icons.Filled.Close, stringResource(id = R.string.menu_discard))
+                }
+                IconButton(onClick = onDelete) {
+                    Icon(Icons.Filled.Delete, stringResource(id = R.string.menu_delete))
+                }
+            } else {
+                MoreEditMenu(onEditClicked)
+            }
+        },
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SettingsTopAppBar(onBack: () -> Unit) {
+    TopAppBar(
+        title = { Text(text = stringResource(R.string.settings_title)) },
+        navigationIcon = {
+            IconButton(onClick = onBack) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+            }
+        },
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AddEditTaskTopAppBar(@StringRes title: Int, onBack: () -> Unit) {
+    TopAppBar(
+        title = { Text(text = stringResource(title)) },
+        navigationIcon = {
+            IconButton(onClick = onBack) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+            }
+        },
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+
+// region private methods
+@Composable
+private fun LogsChartMoreMenu(
+    onClearAll: () -> Unit,
+) {
+    TopAppBarDropdownMenu(
+        iconContent = {
+            Icon(Icons.Filled.MoreVert, contentDescription = null)
+        }
+    ) { closeMenu ->
+        DropdownMenuItem(onClick = { onClearAll(); closeMenu() }, text = {
+            Text(text = stringResource(id = R.string.menu_clear_all))
+        })
+    }
+}
+
+@Composable
+private fun MoreEditMenu(
+    onEditClicked: () -> Unit,
+) {
+    TopAppBarDropdownMenu(
+        iconContent = {
+            Icon(Icons.Filled.MoreVert, contentDescription = null)
+        }
+    ) { closeMenu ->
+        DropdownMenuItem(onClick = { onEditClicked(); closeMenu() }, text = {
+            Text(text = stringResource(id = R.string.menu_edit))
+        })
+    }
+}
+
+@Composable
+private fun TopAppBarDropdownMenu(
+    iconContent: @Composable () -> Unit,
+    content: @Composable ColumnScope.(() -> Unit) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Box(modifier = Modifier.wrapContentSize(Alignment.TopEnd)) {
+        IconButton(onClick = { expanded = !expanded }) {
+            iconContent()
+        }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.wrapContentSize(Alignment.TopEnd)
+        ) {
+            content { expanded = !expanded }
+        }
+    }
+}
+
+// endregion
+
+// region preview
+@Preview
+@Composable
+private fun RoomListTopAppBarPreview() {
+    MaterialTheme {
+        Surface {
+            RoomListTopAppBar({}, false, {}, {})
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun RoomListTopAppBarPreviewEditing() {
+    MaterialTheme {
+        Surface {
+            RoomListTopAppBar({}, true, {}, {})
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun TaskListTopAppBarPreview() {
+    MaterialTheme {
+        Surface {
+            TaskListTopAppBar({}, false, {}, {})
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun TaskListTopAppBarPreviewEditing() {
+    MaterialTheme {
+        Surface {
+            TaskListTopAppBar({}, true, {}, {})
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun LogsTopAppBarPreview() {
+    MaterialTheme {
+        Surface {
+            LogsChartTopAppBar({ }, { }, {}, {})
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun RoomDetailTopAppBarPreview() {
+    MaterialTheme {
+        Surface {
+            RoomDetailTopAppBar({}, "Bedroom", false, {}, {}, {}, {})
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun RoomDetailTopAppBarPreviewEditing() {
+    MaterialTheme {
+        Surface {
+            RoomDetailTopAppBar({}, "Bedroom",true, {}, {}, {}, {})
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun SettingsTopAppBarPreview() {
+    MaterialTheme {
+        Surface {
+            SettingsTopAppBar() { }
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun AddEditTaskTopAppBarPreview() {
+    MaterialTheme {
+        Surface {
+            AddEditTaskTopAppBar(R.string.add_edit_hw_unit_name_title) { }
+        }
+    }
+}
+
+
+// endregion
