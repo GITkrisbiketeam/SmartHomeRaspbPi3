@@ -20,8 +20,10 @@ import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavHostController
@@ -49,12 +51,15 @@ fun SmartApp(
         SmartNavigationActions(navController)
     }
     val drawerState: DrawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val drawerGesturesEnabled = rememberSaveable { mutableStateOf(true) }
+
 
     val currentNavBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = currentNavBackStackEntry?.destination
 
     SmartModalDrawer(
         drawerState,
+        drawerGesturesEnabled.value,
         currentRoute?.route ?: startDestination,
         smartNavActions,
         currentNavBackStackEntry?.arguments?.getString(SmartDestinationsArgs.ROOM_NAME_ARG)
@@ -97,6 +102,7 @@ fun SmartApp(
                         coroutineScope,
                         smartNavActions,
                         drawerState,
+                        { enabled -> drawerGesturesEnabled.value = enabled },
                         startDestination
                     )
                 }
@@ -107,6 +113,9 @@ fun SmartApp(
                         coroutineScope,
                         smartNavActions,
                         drawerState,
+                        { enabled ->
+                            drawerGesturesEnabled.value = enabled
+                        },
                         startDestination
                     )
                 }

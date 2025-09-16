@@ -29,6 +29,7 @@ fun SmartNavGraph(
     coroutineScope: CoroutineScope,
     navActions: SmartNavigationActions,
     drawerState: DrawerState,
+    drawerGesturesEnabled: (Boolean) -> Unit,
     startDestination: String,
     modifier: Modifier = Modifier,
 ) {
@@ -42,6 +43,7 @@ fun SmartNavGraph(
             startDestination = SmartDestinations.ROOM_LIST_ROUTE,
         ) {
             composable(SmartDestinations.ROOM_LIST_ROUTE) {
+                drawerGesturesEnabled(true)
                 RoomListScreen(openDrawer = { coroutineScope.launch { drawerState.open() } },
                     onAddNewRoom = {},
                     onRoomClick = {
@@ -49,6 +51,7 @@ fun SmartNavGraph(
                     })
             }
             composable(SmartDestinations.ROOM_DETAIL_ROUTE) { backStackEntry ->
+                drawerGesturesEnabled(true)
                 RoomDetailScreen(
                     openDrawer = { coroutineScope.launch { drawerState.open() } },
                     onHomeUnitClick = { homeUnitType, homeUnitName ->
@@ -73,6 +76,7 @@ fun SmartNavGraph(
             startDestination = SmartDestinations.TAK_LIST_ROUTE,
         ) {
             composable(SmartDestinations.TAK_LIST_ROUTE) {
+                drawerGesturesEnabled(true)
                 TaskListScreen(openDrawer = { coroutineScope.launch { drawerState.open() } },
                     onAddNewHomeUnit = {},
                     onTaskClick = { homeUnitType, homeUnitName ->
@@ -97,6 +101,8 @@ fun SmartNavGraph(
 
             val homeUnitType = backStackEntry.arguments?.getString(HOME_UNIT_TYPE)
             val hwUnitName = backStackEntry.arguments?.getString(HW_UNIT_NAME)
+
+            drawerGesturesEnabled(false)
             LogsChartScreen(
                 openDrawer = { coroutineScope.launch { drawerState.open() } },
                 preselection = if (homeUnitType != null && hwUnitName != null) hwUnitName to homeUnitType else null

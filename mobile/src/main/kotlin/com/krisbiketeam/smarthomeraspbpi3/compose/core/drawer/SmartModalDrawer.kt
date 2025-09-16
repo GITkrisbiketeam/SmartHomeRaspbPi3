@@ -47,6 +47,7 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun SmartModalDrawer(
     drawerState: DrawerState,
+    drawerGesturesEnabled: Boolean,
     currentRoute: String,
     navigationActions: SmartNavigationActions,
     currentRouteArgs: String? = null,
@@ -56,6 +57,7 @@ fun SmartModalDrawer(
 ) {
     ModalNavigationDrawer(
         drawerState = drawerState,
+        gesturesEnabled = drawerGesturesEnabled,
         drawerContent = {
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
             ModalDrawerSheet {

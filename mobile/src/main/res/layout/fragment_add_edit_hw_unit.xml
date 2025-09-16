@@ -245,7 +245,7 @@
 
                 </com.google.android.material.textfield.TextInputLayout>
 
-                <androidx.appcompat.widget.SwitchCompat
+                <com.google.android.material.switchmaterial.SwitchMaterial
                     android:id="@+id/hw_unit_pin_inverse_switch"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -269,6 +269,18 @@
                     android:visibility="@{BoardConfig.IO_EXTENDER_MCP23017_INPUT.equals(viewModel.type) ? View.VISIBLE : View.GONE}"
                     app:layout_constraintTop_toBottomOf="@id/hw_unit_pin_inverse_switch" />
 
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/hw_unit_ignore_errors_switch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_normal"
+                    android:checked="@={viewModel.ignoreErrors}"
+                    android:clickable="@{viewModel.isEditMode}"
+                    android:text="@string/add_edit_hw_unit_ignore_errors_title"
+                    android:textColor="@color/colorSecondary"
+                    android:visibility="@{BoardConfig.TEMP_SENSOR_MCP9808.equals(viewModel.type) ? View.VISIBLE : View.GONE}"
+                    app:layout_constraintTop_toBottomOf="@id/hw_unit_pin_pull_up_switch" />
+
                 <androidx.constraintlayout.widget.Group
                     android:id="@+id/hw_unit_sensor_refresh_rate_group"
                     android:layout_width="0dp"
@@ -283,7 +295,7 @@
                     android:layout_marginTop="@dimen/margin_normal"
                     android:text="@string/add_edit_hw_unit_refresh_rate_title"
                     android:textColor="@color/colorSecondary"
-                    app:layout_constraintTop_toBottomOf="@id/hw_unit_soft_address_spinner_layout" />
+                    app:layout_constraintTop_toBottomOf="@id/hw_unit_ignore_errors_switch" />
 
                 <TextView
                     android:id="@+id/hw_unit_sensor_refresh_rate"
