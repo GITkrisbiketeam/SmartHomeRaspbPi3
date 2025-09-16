@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.LightSwitchHomeUnit
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.MCP23017WatchDogHomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.WaterCirculationHomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.LAST_TRIGGER_SOURCE_TASK_LIST
@@ -53,6 +54,9 @@ class TaskListAdapter(private val homeInformationRepository: FirebaseHomeInforma
                 homeUnit != null && homeUnit.type == HomeUnitType.HOME_WATER_CIRCULATION -> TaskListFragmentDirections.actionTaskListFragmentToHomeUnitWaterCirculationDetailFragment(
                     "", homeUnit.name
                 )
+                homeUnit != null && homeUnit.type == HomeUnitType.HOME_MCP23017_WATCH_DOG -> TaskListFragmentDirections.actionTaskListFragmentToHomeUnitMcp23017WatchDogDetailFragment(
+                    "", homeUnit.name
+                )
                 homeUnit != null -> TaskListFragmentDirections.actionTaskListFragmentToHomeUnitGenericDetailFragment(
                     "", homeUnit.name, homeUnit.type
                 )
@@ -83,21 +87,31 @@ class TaskListAdapter(private val homeInformationRepository: FirebaseHomeInforma
                             homeUnit.switchValue.toString()
                         } else if (homeUnit.type == HomeUnitType.HOME_WATER_CIRCULATION && homeUnit is WaterCirculationHomeUnit) {
                             homeUnit.motionValue.toString()
+                        } else if (homeUnit.type == HomeUnitType.HOME_MCP23017_WATCH_DOG && homeUnit is MCP23017WatchDogHomeUnit) {
+                            homeUnit.inputValue.toString()
                         } else {
                             homeUnit.value.toString()
                         }
                     } ?: "N/A"
+                    secondValue = item.homeUnit?.let { homeUnit ->
+                        if (homeUnit.type == HomeUnitType.HOME_WATER_CIRCULATION && homeUnit is WaterCirculationHomeUnit && homeUnit.temperatureValue is Float) {
+                            String.format("%.2f", homeUnit.temperatureValue)
+                        } else {
+                            null
+                        }
+                    }
+                    secondValueVisible = secondValue != null
 
                     taskItemValueSwitch.setOnCheckedChangeListener { _, isChecked ->
                         Timber.d("OnCheckedChangeListener isChecked: $isChecked item: $item")
                         item.homeUnit?.let { homeUnit ->
                             if (homeUnit.value != isChecked) {
-                                homeUnit.copy().also { unit ->
-                                    unit.value = isChecked
-                                    unit.lastUpdateTime = System.currentTimeMillis()
-                                    unit.lastTriggerSource = LAST_TRIGGER_SOURCE_TASK_LIST
-                                    homeInformationRepository.updateHomeUnitValue(unit)
-                                }
+                                homeInformationRepository.updateHomeUnitValue(
+                                    homeUnit.type, homeUnit.name,
+                                    isChecked,
+                                    System.currentTimeMillis(),
+                                    LAST_TRIGGER_SOURCE_TASK_LIST
+                                )
                             }
                         }
 

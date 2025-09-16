@@ -355,14 +355,14 @@ class MCP9808(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS) : Aut
             // Wait 250 ms for conversion to complete (110% ot typ time for reliability)
             delay((POWER_ON_CONVERSION_DELAY * 1.1).toLong())
             // check if conversion finished by reading OS bit to '1'
-            val temp = readThreeTimesAndGetMedian()
+            val temp = readTemperature()
             Timber.d("readOneShotTemperature conversion finished temp? $temp")
             //TODO: find better solution as some external action can reset this flag
             //restore shutdown mode
             shutdownMode = true
             temp
         } else {
-            readThreeTimesAndGetMedian()
+            readTemperature()
         }
     }
 
@@ -424,7 +424,12 @@ class MCP9808(bus: String? = null, address: Int = DEFAULT_I2C_000_ADDRESS) : Aut
      */
     @VisibleForTesting
     internal fun calculateTemperature(rawTemp: Int?): Float? {
-        if (rawTemp == null) return null
+        if (rawTemp == null
+            || rawTemp == 65535 //-0.0625
+            || rawTemp == 0
+            || rawTemp == 7429 //-47.6875
+            //|| rawTemp == 1285 // 80.0625
+        ) return null
         Timber.d("calculateTemperature rawTemp:$rawTemp")
         val tempRaw = rawTemp and MCO9808_REG_SIGNED_TEMP_MASK
         Timber.d("calculateTemperature tempRaw:$tempRaw")

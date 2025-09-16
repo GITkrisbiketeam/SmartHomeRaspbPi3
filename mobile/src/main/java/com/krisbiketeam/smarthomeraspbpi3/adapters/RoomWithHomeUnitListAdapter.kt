@@ -47,6 +47,9 @@ class RoomWithHomeUnitListAdapter : ListAdapter<RoomListAdapterModel, RoomWithHo
                         HomeUnitType.HOME_WATER_CIRCULATION -> RoomListFragmentDirections.actionRoomListFragmentToHomeUnitWaterCirculationDetailFragment(
                             "", homeUnit.name
                         )
+                        HomeUnitType.HOME_MCP23017_WATCH_DOG -> RoomListFragmentDirections.actionRoomListFragmentToHomeUnitMcp23017WatchDogDetailFragment(
+                            "", homeUnit.name
+                        )
                         else -> RoomListFragmentDirections.actionRoomListFragmentToHomeUnitGenericDetailFragment(
                             "", homeUnit.name, homeUnit.type
                         )

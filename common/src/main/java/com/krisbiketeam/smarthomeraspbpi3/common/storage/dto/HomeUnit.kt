@@ -14,6 +14,8 @@ typealias LightSwitchType = Boolean
 typealias LightSwitch = LightSwitchHomeUnit<LightSwitchType>
 typealias WaterCirculationType = Boolean
 typealias WaterCirculation = WaterCirculationHomeUnit<WaterCirculationType>
+typealias MCP23017WatchDogType = Boolean
+typealias MCP23017WatchDog = MCP23017WatchDogHomeUnit<MCP23017WatchDogType>
 typealias ReedSwitchType = Boolean
 typealias ReedSwitch = GenericHomeUnit<ReedSwitchType>
 typealias MotionType = Boolean
@@ -43,6 +45,7 @@ fun getHomeUnitTypeIndicatorMap(type: HomeUnitType): GenericTypeIndicator<HomeUn
         HomeUnitType.HOME_ACTUATORS -> object : GenericTypeIndicator<Actuator>() {}
         HomeUnitType.HOME_LIGHT_SWITCHES -> object : GenericTypeIndicator<LightSwitch>() {}
         HomeUnitType.HOME_WATER_CIRCULATION -> object : GenericTypeIndicator<WaterCirculation>() {}
+        HomeUnitType.HOME_MCP23017_WATCH_DOG -> object : GenericTypeIndicator<MCP23017WatchDog>() {}
         HomeUnitType.HOME_REED_SWITCHES -> object : GenericTypeIndicator<ReedSwitch>() {}
         HomeUnitType.HOME_MOTIONS -> object : GenericTypeIndicator<Motion>() {}
         HomeUnitType.HOME_TEMPERATURES -> object : GenericTypeIndicator<Temperature>() {}
@@ -66,6 +69,7 @@ val HOME_ACTION_STORAGE_UNITS: List<HomeUnitType> =
     listOf(
         HomeUnitType.HOME_LIGHT_SWITCHES,
         HomeUnitType.HOME_WATER_CIRCULATION,
+        HomeUnitType.HOME_MCP23017_WATCH_DOG,
         HomeUnitType.HOME_BLINDS,
         HomeUnitType.HOME_ACTUATORS,
     )
@@ -79,37 +83,38 @@ val HOME_FIREBASE_NOTIFY_STORAGE_UNITS: List<HomeUnitType> =
         HomeUnitType.HOME_WATER_CIRCULATION,
     )
 
-interface HomeUnit<T : Any> {
-    var name: String // Name should be unique for all units
-    var type: HomeUnitType
-    var room: String
-    var hwUnitName: String?
-    var value: T?
-    var lastUpdateTime: Long?
+sealed interface HomeUnit<T : Any>  {
+    val name: String // Name should be unique for all units
+    val type: HomeUnitType
+    val room: String
+    val hwUnitName: String?
+    val value: T?
+    val lastUpdateTime: Long?
 
-    var lastTriggerSource: String?
-    var firebaseNotify: Boolean
+    val lastTriggerSource: String?
+    val firebaseNotify: Boolean
 
     @TriggerType
-    var firebaseNotifyTrigger: String?
-    var showInTaskList: Boolean
-    var unitsTasks: Map<String, UnitTask>
+    val firebaseNotifyTrigger: String?
+    val showInTaskList: Boolean
+    val unitsTasks: Map<String, UnitTask>
+    val unitJobs: MutableMap<String, Job>
 
     suspend fun applyFunction(
-        scope: CoroutineScope,
         newVal: T,
-        booleanApplyAction: suspend HomeUnit<T>.(actionVal: Boolean, taskHomeUnitType: HomeUnitType, taskHomeUnitName: String, taskName: String, periodicallyOnlyHw: Boolean) -> Unit
+        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> HomeUnit<T>?
     ) {
         unitsTasks.values.forEach { task ->
             when (type) {
                 HomeUnitType.HOME_ACTUATORS,
                 HomeUnitType.HOME_LIGHT_SWITCHES,
                 HomeUnitType.HOME_WATER_CIRCULATION,
+                HomeUnitType.HOME_MCP23017_WATCH_DOG,
                 HomeUnitType.HOME_REED_SWITCHES,
                 HomeUnitType.HOME_MOTIONS,
                 HomeUnitType.HOME_BLINDS -> {
                     if (newVal is Boolean) {
-                        booleanTaskApply(scope, newVal, task, booleanApplyAction)
+                        booleanTaskApply(newVal, task, booleanApplyAction)
                     } else {
                         Timber.e("applyFunction new value is not Boolean or is null")
                     }
@@ -124,7 +129,7 @@ interface HomeUnit<T : Any> {
                 HomeUnitType.HOME_CO2,
                 HomeUnitType.HOME_BREATH_VOC -> {
                     if (newVal is Float) {
-                        sensorTaskApply(scope, newVal, task, booleanApplyAction)
+                        sensorTaskApply(newVal, task, booleanApplyAction)
                     } else {
                         Timber.e("applyFunction new value is not Float or is null")
                     }
@@ -144,10 +149,15 @@ interface HomeUnit<T : Any> {
         hwUnit: HwUnit,
         unitValue: Any?,
         updateTime: Long,
-        booleanApplyAction: suspend HomeUnit<T>.(actionVal: Boolean, taskHomeUnitType: HomeUnitType, taskHomeUnitName: String, taskName: String, periodicallyOnlyHw: Boolean) -> Unit
-    )
+        lastTriggerSource: String,
+        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> HomeUnit<T>?
+    ): HomeUnit<T>
 
-    fun copy(): HomeUnit<T>
+    fun copyWithValues(
+        value: T? = this.value,
+        lastUpdateTime: Long? = this.lastUpdateTime,
+        lastTriggerSource: String? = this.lastTriggerSource,
+    ): HomeUnit<T>
 
     fun shouldFirebaseNotify(newVal: Any?): Boolean {
         return firebaseNotify && (newVal !is Boolean || ((firebaseNotifyTrigger == null ||
@@ -159,34 +169,35 @@ interface HomeUnit<T : Any> {
     // region applyFunction helper methods
 
     private suspend fun booleanTaskApply(
-        scope: CoroutineScope,
         newVal: Boolean,
         task: UnitTask,
-        booleanApplyAction: suspend HomeUnit<T>.(actionVal: Boolean, taskHomeUnitType: HomeUnitType, taskHomeUnitName: String, taskName: String, periodicallyOnlyHw: Boolean) -> Unit
+        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> HomeUnit<T>?
     ) {
-        scope.launch {
-            Timber.v("booleanTaskApply before cancel task.taskJob:${task.taskJob} isActive:${task.taskJob?.isActive} isCancelled:${task.taskJob?.isCancelled} isCompleted:${task.taskJob?.isCompleted}")
-            task.taskJob?.cancel()
-            Timber.v("booleanTaskApply after cancel task.taskJob:${task.taskJob} isActive:${task.taskJob?.isActive} isCancelled:${task.taskJob?.isCancelled} isCompleted:${task.taskJob?.isCompleted}")
+        supervisorScope {
+            launch {
+                Timber.v("booleanTaskApply before cancel task.taskJob:${task.taskJob} isActive:${task.taskJob?.isActive} isCancelled:${task.taskJob?.isCancelled} isCompleted:${task.taskJob?.isCompleted}")
+                task.taskJob?.cancel()
+                Timber.v("booleanTaskApply after cancel task.taskJob:${task.taskJob} isActive:${task.taskJob?.isActive} isCancelled:${task.taskJob?.isCancelled} isCompleted:${task.taskJob?.isCompleted}")
 
-            if (task.disabled == true) {
-                Timber.d("booleanTaskApply task not enabled $task")
-            } else {
-                if ((task.trigger == null || task.trigger == BOTH)
-                    || (task.trigger == RISING_EDGE && newVal)
-                    || (task.trigger == FALLING_EDGE && !newVal)
-                ) {
-                    task.taskJob = scope.launch(Dispatchers.IO) {
-                        do {
-                            booleanTaskTimed(newVal, task, booleanApplyAction)
-                        } while (this.isActive && task.periodically == true && ((task.delay.isValidTime() && task.duration.isValidTime())
-                                    || (task.startTime.isValidTime() && task.endTime.isValidTime())
-                                    || (task.startTime.isValidTime() && task.duration.isValidTime()))
-                        )
+                if (task.disabled == true) {
+                    Timber.d("booleanTaskApply task not enabled $task")
+                } else {
+                    if ((task.trigger == null || task.trigger == BOTH)
+                        || (task.trigger == RISING_EDGE && newVal)
+                        || (task.trigger == FALLING_EDGE && !newVal)
+                    ) {
+                        task.taskJob = launch(Dispatchers.IO) {
+                            do {
+                                booleanTaskTimed(newVal, task, booleanApplyAction)
+                            } while (this.isActive && task.periodically == true && ((task.delay.isValidTime() && task.duration.isValidTime())
+                                        || (task.startTime.isValidTime() && task.endTime.isValidTime())
+                                        || (task.startTime.isValidTime() && task.duration.isValidTime()))
+                            )
+                        }
+                        Timber.v("booleanTaskApply after booleanTaskTimed task.taskJob:${task.taskJob} isActive:${task.taskJob?.isActive} isCancelled:${task.taskJob?.isCancelled} isCompleted:${task.taskJob?.isCompleted}")
+                    } else if (task.resetOnInverseTrigger == true) {
+                        booleanApplyAction(newVal, task, booleanApplyAction)
                     }
-                    Timber.v("booleanTaskApply after booleanTaskTimed task.taskJob:${task.taskJob} isActive:${task.taskJob?.isActive} isCancelled:${task.taskJob?.isCancelled} isCompleted:${task.taskJob?.isCompleted}")
-                } else if (task.resetOnInverseTrigger == true) {
-                    booleanApplyAction(newVal, task, booleanApplyAction)
                 }
             }
         }
@@ -194,32 +205,33 @@ interface HomeUnit<T : Any> {
     }
 
     private suspend fun sensorTaskApply(
-        scope: CoroutineScope,
         newVal: Float,
         task: UnitTask,
-        booleanApplyAction: suspend HomeUnit<T>.(actionVal: Boolean, taskHomeUnitType: HomeUnitType, taskHomeUnitName: String, taskName: String, periodicallyOnlyHw: Boolean) -> Unit
+        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> HomeUnit<T>?
     ) {
-        scope.launch {
-            if (task.disabled == true) {
-                Timber.d("sensorTaskApply task not enabled $task")
-                task.taskJob?.cancel()
-            } else {
-                task.threshold?.let { threshold ->
-                    if ((task.trigger == null || task.trigger == BOTH
-                                || task.trigger == RISING_EDGE) && newVal >= threshold + (task.hysteresis
-                            ?: 0f)
-                    ) {
-                        task.taskJob?.cancel()
-                        task.taskJob = scope.launch(Dispatchers.IO) {
-                            booleanTaskTimed(true, task, booleanApplyAction)
-                        }
-                    } else if ((task.trigger == null || task.trigger == BOTH
-                                || task.trigger == FALLING_EDGE) && newVal <= threshold - (task.hysteresis
-                            ?: 0f)
-                    ) {
-                        task.taskJob?.cancel()
-                        task.taskJob = scope.launch(Dispatchers.IO) {
-                            booleanTaskTimed(false, task, booleanApplyAction)
+        supervisorScope {
+            launch {
+                if (task.disabled == true) {
+                    Timber.d("sensorTaskApply task not enabled $task")
+                    task.taskJob?.cancel()
+                } else {
+                    task.threshold?.let { threshold ->
+                        if ((task.trigger == null || task.trigger == BOTH
+                                    || task.trigger == RISING_EDGE) && newVal >= threshold + (task.hysteresis
+                                ?: 0f)
+                        ) {
+                            task.taskJob?.cancel()
+                            task.taskJob = launch(Dispatchers.IO) {
+                                booleanTaskTimed(true, task, booleanApplyAction)
+                            }
+                        } else if ((task.trigger == null || task.trigger == BOTH
+                                    || task.trigger == FALLING_EDGE) && newVal <= threshold - (task.hysteresis
+                                ?: 0f)
+                        ) {
+                            task.taskJob?.cancel()
+                            task.taskJob = launch(Dispatchers.IO) {
+                                booleanTaskTimed(false, task, booleanApplyAction)
+                            }
                         }
                     }
                 }
@@ -230,7 +242,7 @@ interface HomeUnit<T : Any> {
     private suspend fun booleanTaskTimed(
         newVal: Boolean,
         task: UnitTask,
-        booleanApplyAction: suspend HomeUnit<T>.(actionVal: Boolean, taskHomeUnitType: HomeUnitType, taskHomeUnitName: String, taskName: String, periodicallyOnlyHw: Boolean) -> Unit
+        booleanApplyAction: suspend (applyData: BooleanApplyActionData) -> HomeUnit<T>?
     ) {
         task.startTime.takeIf { it.isValidTime() }?.let { startTime ->
             val currTime = System.currentTimeMillis().getOnlyTodayLocalTime()
@@ -305,22 +317,33 @@ interface HomeUnit<T : Any> {
     private suspend fun booleanApplyAction(
         actionVal: Boolean,
         task: UnitTask,
-        booleanApplyAction: suspend HomeUnit<T>.(actionVal: Boolean, taskHomeUnitType: HomeUnitType, taskHomeUnitName: String, taskName: String, periodicallyOnlyHw: Boolean) -> Unit
+        booleanApplyAction: suspend (applyData:BooleanApplyActionData) -> HomeUnit<T>?
     ) {
         val newActionVal: Boolean = (task.inverse ?: false) xor actionVal
         task.homeUnitsList.forEach {
-            booleanApplyAction(
-                newActionVal,
-                it.type.toHomeUnitType(),
-                it.name,
-                task.name,
-                task.periodicallyOnlyHw ?: false
+            booleanApplyAction(BooleanApplyActionData(
+                newActionVal = newActionVal,
+                taskHomeUnitType = it.type.toHomeUnitType(),
+                taskHomeUnitName = it.name,
+                taskName = task.name,
+                sourceHomeUnitName = name,
+                periodicallyOnlyHw = task.periodicallyOnlyHw ?: false
+            )
             )
         }
     }
 
     // endregion
 }
+
+data class BooleanApplyActionData(
+    val newActionVal: Boolean,
+    val taskHomeUnitType: HomeUnitType,
+    val taskHomeUnitName: String,
+    val taskName: String,
+    val sourceHomeUnitName: String,
+    val periodicallyOnlyHw: Boolean,
+)
 
 private fun Long?.isValidTime(): Boolean {
     return this != null && this > 0

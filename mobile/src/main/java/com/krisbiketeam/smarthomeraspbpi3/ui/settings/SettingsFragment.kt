@@ -3,7 +3,9 @@ package com.krisbiketeam.smarthomeraspbpi3.ui.settings
 import android.os.Bundle
 import android.view.View
 import androidx.core.os.bundleOf
-import androidx.lifecycle.asLiveData
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
@@ -13,6 +15,7 @@ import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
+import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import timber.log.Timber
 
@@ -39,12 +42,16 @@ class SettingsFragment : PreferenceFragmentCompat() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        homeRepository.restartAppFlow().asLiveData().observe(viewLifecycleOwner,
-                { restart ->
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                homeRepository.restartAppFlow().collect { restart ->
                     if (restart) {
-                        findPreference<Preference>(getString(R.string.settings_restart_rpi_things_app))?.summary = getString(R.string.settings_restarting)
+                        findPreference<Preference>(getString(R.string.settings_restart_rpi_things_app))?.summary =
+                            getString(R.string.settings_restarting)
                     }
-                })
+                }
+            }
+        }
 
         // TODO: This will not be secure
         val alarmSwitch:SwitchPreferenceCompat? = findPreference(resources
@@ -61,14 +68,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
 
     override fun onPreferenceTreeClick(preference: Preference): Boolean {
         Timber.d("onPreferenceTreeClick preference: $preference")
-        when (preference?.key) {
-            getString(R.string.settings_wifi_fragment_key) -> {
-                Timber.d("onPreferenceTreeClick go to WifiSettings")
-                val direction =
-                        SettingsFragmentDirections.actionSettingsFragmentToWifiSettingsFragment()
-                findNavController().navigate(direction)
-                return true
-            }
+        when (preference.key) {
             getString(R.string.settings_login_fragment_key) -> {
                 Timber.d("onPreferenceTreeClick go to LoginSettings")
                 val direction =
@@ -100,7 +100,14 @@ class SettingsFragment : PreferenceFragmentCompat() {
             getString(R.string.settings_things_app_logs_fragment_key) -> {
                 Timber.d("onPreferenceTreeClick go to ThingsAppLogsFragment")
                 val direction =
-                        SettingsFragmentDirections.actionSettingsFragmentToThingsAppLogsFragment()
+                    SettingsFragmentDirections.actionSettingsFragmentToThingsAppLogsFragment()
+                findNavController().navigate(direction)
+                return true
+            }
+            getString(R.string.settings_hw_unit_error_logs_fragment_key) -> {
+                Timber.d("onPreferenceTreeClick go to HwUnitErrorLogsFragment")
+                val direction =
+                    SettingsFragmentDirections.actionSettingsFragmentToHwUnitErrorLogsFragment()
                 findNavController().navigate(direction)
                 return true
             }

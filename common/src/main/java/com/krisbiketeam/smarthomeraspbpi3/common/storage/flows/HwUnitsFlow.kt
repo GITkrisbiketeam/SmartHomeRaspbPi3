@@ -14,7 +14,7 @@ import timber.log.Timber
 
 @ExperimentalCoroutinesApi
 fun getHwUnitsFlow(databaseReference: DatabaseReference?) = callbackFlow<Pair<ChildEventType, HwUnit>> {
-    Timber.e("getHwUnitsFlow init on ${databaseReference?.toString()}")
+    Timber.i("getHwUnitsFlow init on ${databaseReference?.toString()}")
     val eventListener = databaseReference?.addChildEventListener(object : ChildEventListener {
 
         override fun onChildAdded(dataSnapshot: DataSnapshot, previousChildName: String?) {
@@ -65,7 +65,7 @@ fun getHwUnitsFlow(databaseReference: DatabaseReference?) = callbackFlow<Pair<Ch
         }
     })
     awaitClose {
-        Timber.e("getHwUnitsFlow  awaitClose on ${databaseReference?.toString()}")
+        Timber.w("getHwUnitsFlow  awaitClose on ${databaseReference?.toString()}")
         eventListener?.run(databaseReference::removeEventListener)
     }
 }.buffer(UNLIMITED)

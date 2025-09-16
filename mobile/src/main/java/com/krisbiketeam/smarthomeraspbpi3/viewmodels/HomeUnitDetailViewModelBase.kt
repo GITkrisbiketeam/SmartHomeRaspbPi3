@@ -58,10 +58,10 @@ abstract class HomeUnitDetailViewModelBase<T : HomeUnit<Any>>(
     val name: MutableStateFlow<String> = MutableStateFlow(unitName ?: "")
 
     open val typeList =
-        HOME_STORAGE_UNITS.filterNot { it == HomeUnitType.HOME_LIGHT_SWITCHES || it == HomeUnitType.HOME_WATER_CIRCULATION }
+        HOME_STORAGE_UNITS.filterNot { it == HomeUnitType.HOME_LIGHT_SWITCHES || it == HomeUnitType.HOME_WATER_CIRCULATION || it == HomeUnitType.HOME_MCP23017_WATCH_DOG }
     val type: MutableStateFlow<HomeUnitType> = MutableStateFlow(unitType)
     val isTypeVisible: StateFlow<Boolean> =
-        MutableStateFlow(unitType != HomeUnitType.HOME_LIGHT_SWITCHES && unitType != HomeUnitType.HOME_WATER_CIRCULATION)
+        MutableStateFlow(unitType != HomeUnitType.HOME_LIGHT_SWITCHES && unitType != HomeUnitType.HOME_WATER_CIRCULATION && unitType != HomeUnitType.HOME_MCP23017_WATCH_DOG)
 
     val roomList: StateFlow<List<String>> =
         isEditMode.flatMapLatest { isEdit ->
@@ -95,6 +95,7 @@ abstract class HomeUnitDetailViewModelBase<T : HomeUnit<Any>>(
                             HomeUnitType.HOME_ACTUATORS,
                             HomeUnitType.HOME_LIGHT_SWITCHES,
                             HomeUnitType.HOME_WATER_CIRCULATION,
+                            HomeUnitType.HOME_MCP23017_WATCH_DOG,
                             HomeUnitType.HOME_BLINDS ->
                                 it.type == BoardConfig.IO_EXTENDER_MCP23017_OUTPUT
                             HomeUnitType.HOME_MOTIONS, HomeUnitType.HOME_REED_SWITCHES ->
@@ -268,6 +269,8 @@ abstract class HomeUnitDetailViewModelBase<T : HomeUnit<Any>>(
             homeUnit.value?.let { unit ->
                 return if (name.value.trim().isEmpty()) {
                     Pair(R.string.add_edit_home_unit_empty_name, null)
+                } else if (name.value.trim().contains(Regex("[.#$\\[\\]]"))) {
+                    Pair(R.string.add_edit_home_unit_name_illegal_character, null)
                 } else if (name.value.trim() != unit.name && homeUnitOfSelectedTypeList.find { it.name == name.value.trim() } != null) {
                     return Pair(R.string.add_edit_home_unit_name_already_used, null)
                 } else if (name.value.trim() != unit.name || type.value != unit.type) {

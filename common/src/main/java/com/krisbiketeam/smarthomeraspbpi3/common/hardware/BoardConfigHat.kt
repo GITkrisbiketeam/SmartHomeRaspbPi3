@@ -1,6 +1,5 @@
 package com.krisbiketeam.smarthomeraspbpi3.common.hardware
 
-import com.google.android.things.contrib.driver.bmx280.Bmx280
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver.MCP23017
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver.MCP23017Pin
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver.TMP102
@@ -51,11 +50,6 @@ object BoardConfigHat {
             MCP9808.DEFAULT_I2C_110_ADDRESS,
             MCP9808.DEFAULT_I2C_111_ADDRESS)
 
-    const val TEMP_PRESS_SENSOR_BMP280 = "Temperature and Pressure Sensor"
-    const val TEMP_PRESS_SENSOR_BMP280_PIN = I2C
-    const val TEMP_PRESS_SENSOR_BMP280_ADDR = Bmx280.DEFAULT_I2C_ADDRESS
-    val TEMP_PRESS_SENSOR_BMP280_ADDR_LIST = listOf(Bmx280.DEFAULT_I2C_ADDRESS)
-
     const val IO_EXTENDER_MCP23017_INPUT = "16-bit IO Extender Input"
     const val IO_EXTENDER_MCP23017_OUTPUT = "16-bit IO Extender Output"
     val IO_EXTENDER_MCP23017_ADDR_LIST = listOf(
@@ -95,7 +89,7 @@ object BoardConfigHat {
     val IO_EXTENDER_MCP23017_2_IN_B0_PIN = MCP23017Pin.Pin.GPIO_B0
     val IO_EXTENDER_MCP23017_2_IN_B0 = IO_EXTENDER_MCP23017_INPUT.plus(IO_EXTENDER_MCP23017_2_ADDR).plus(IO_EXTENDER_MCP23017_2_IN_B0_PIN.name)
 
-    val IO_HW_UNIT_TYPE_LIST = listOf(TEMP_SENSOR_TMP102, TEMP_PRESS_SENSOR_BMP280, IO_EXTENDER_MCP23017_INPUT, IO_EXTENDER_MCP23017_OUTPUT, GPIO_INPUT, GPIO_OUTPUT, FOUR_CHAR_DISP)
+    val IO_HW_UNIT_TYPE_LIST = listOf(TEMP_SENSOR_TMP102, IO_EXTENDER_MCP23017_INPUT, IO_EXTENDER_MCP23017_OUTPUT, GPIO_INPUT, GPIO_OUTPUT, FOUR_CHAR_DISP)
 
     val IO_GPIO_PIN_NAME_LIST = listOf(LED_A_PIN, LED_B_PIN, LED_C_PIN,
             BUTTON_A_PIN, BUTTON_B_PIN, BUTTON_C_PIN)

@@ -1,11 +1,11 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
+apply plugin: 'kotlinx-serialization'
 // Apply the Crashlytics Gradle plugin
 apply plugin: 'com.google.firebase.crashlytics'
 // Apply the Performance Monitoring plugin
 apply plugin: 'com.google.firebase.firebase-perf'
-apply plugin: 'koin'
 
 android {
     signingConfigs {
@@ -16,11 +16,11 @@ android {
             keyPassword 'krisbiketeam'
         }
     }
-    compileSdkVersion compileWithSDK
+    compileSdk compileWithSDK
     defaultConfig {
         applicationId "com.krisbiketeam.smarthomeraspbpi3"
         minSdkVersion minSdkVersionThings
-        targetSdkVersion targetedSDK
+        targetSdkVersion targetedSdkVersionThings
         versionCode 2
         versionName "2.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -41,10 +41,6 @@ android {
         }
     }
 
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
-
     buildFeatures {
         // Determines whether to generate a BuildConfig class.
         buildConfig = true
@@ -62,12 +58,15 @@ android {
             path file('src/main/cpp/CMakeLists.txt')
         }
     }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
     namespace 'com.krisbiketeam.smarthomeraspbpi3'
 }
 
 dependencies {
     implementation project(':common')
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinxCoroutinesAndroid"
     // Google dependencies
     implementation "androidx.legacy:legacy-support-v4:$androidxLegacySupportV4"
@@ -75,12 +74,11 @@ dependencies {
     implementation "androidx.constraintlayout:constraintlayout:$androidxConstraintLayoutVersion"
     implementation "androidx.annotation:annotation:$androidxAnnotationVersion"
     implementation "androidx.core:core-ktx:$androidxCoreKtx"
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinxSerialization"
 
     implementation "com.google.android.gms:play-services-base:$playServicesVersion"
-    implementation "com.google.android.gms:play-services-nearby:$playServicesNearbyVersion"
 
     implementation platform("com.google.firebase:firebase-bom:$firebaseBom")
-    implementation 'com.google.firebase:firebase-core'
     implementation 'com.google.firebase:firebase-database-ktx'
     implementation 'com.google.firebase:firebase-auth-ktx'
     // Add the Firebase Crashlytics SDK.
@@ -92,12 +90,9 @@ dependencies {
 
     implementation "io.insert-koin:koin-android:$koin_version"
 
-    implementation "com.squareup.moshi:moshi:$moshiVersion"
     implementation "com.jakewharton.timber:timber:$timberVersion"
 
     compileOnly "com.google.android.things:androidthings:$thingsVersion"
-    implementation "com.google.android.things.contrib:driver-rainbowhat:$rainbowhatVersion"
-    implementation "com.knobtviker.android.things.contrib.community.driver:bme680:$bme680Version"
 
     implementation 'com.jakewharton:process-phoenix:2.0.0'
 

@@ -14,7 +14,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.textfield.MaterialAutoCompleteTextView
 import com.google.android.material.textfield.TextInputLayout
-import com.krisbiketeam.smarthomeraspbpi3.common.MyLiveDataState
+import com.krisbiketeam.smarthomeraspbpi3.common.RemoteConnectionState
 import timber.log.Timber
 
 
@@ -38,17 +38,20 @@ fun visibility(view: View, visible: Boolean?) {
     view.visibility = if (visible == true) View.VISIBLE else View.GONE
 }
 
-@BindingAdapter("stateBasedVisibility")
-fun stateBasedVisibility(view: View, pair: Pair<MyLiveDataState, Any>?) {
-    Timber.d("stateBasedVisibility pair: $pair; view: $view")
-    pair?.let {
-        when (it.first) {
-            MyLiveDataState.CONNECTING -> {
-                view.visibility = if (view is ProgressBar) View.VISIBLE else View.GONE
-            }
-            MyLiveDataState.INIT, MyLiveDataState.ERROR, MyLiveDataState.DONE -> {
-                view.visibility = if (view is ProgressBar) View.GONE else View.VISIBLE
-            }
+@BindingAdapter("bleStateBasedVisibility")
+fun bleStateBasedVisibility(view: View, state: RemoteConnectionState) {
+    Timber.d("stateBasedVisibility state: $state; view: $view")
+    when (state) {
+        RemoteConnectionState.CONNECTING -> {
+            view.visibility = if (view is ProgressBar) View.VISIBLE else View.GONE
+        }
+
+        RemoteConnectionState.INIT, RemoteConnectionState.ERROR, RemoteConnectionState.DONE -> {
+            view.visibility = if (view is ProgressBar) View.GONE else View.VISIBLE
+        }
+
+        else -> {
+            view.visibility = if (view is ProgressBar) View.GONE else View.VISIBLE
         }
     }
 }
@@ -57,7 +60,8 @@ fun stateBasedVisibility(view: View, pair: Pair<MyLiveDataState, Any>?) {
 fun addDivider(recyclerView: RecyclerView, add: Boolean?) {
     Timber.d("addDivider recyclerView: $recyclerView; view: $add")
     if (add == null || add) recyclerView.addItemDecoration(
-            DividerItemDecoration(recyclerView.context, DividerItemDecoration.VERTICAL))
+        DividerItemDecoration(recyclerView.context, DividerItemDecoration.VERTICAL)
+    )
 }
 
 @BindingAdapter("setChecked")
@@ -131,7 +135,7 @@ var MaterialAutoCompleteTextView.selectedValue: Any?
 
 @BindingAdapter("entriesAutoComplete", "entriesWithEmpty", "entriesUsed", requireAll = false)
 fun MaterialAutoCompleteTextView.setItems(entries: List<Any>?, withEmpty: Boolean = false, entriesUsed:Boolean = false) {
-    // This is for dynamic entries list, like form ViewModel LiveData
+    // This is for dynamic entries list, like form ViewModel Flow
     Timber.d("bindEntriesData entriesAutoComplete: $entries tag: $tag")
     if (entries != null) {
         setAdapter(AutoCompleteAdapter(context, entries, entriesUsed,  withEmpty))
@@ -140,7 +144,7 @@ fun MaterialAutoCompleteTextView.setItems(entries: List<Any>?, withEmpty: Boolea
 
 @BindingAdapter("entries")
 fun MultiAutoCompleteTextView.setItems(entries: List<Any>?) {
-    // This is for dynamic entries list, like form ViewModel LiveData
+    // This is for dynamic entries list, like form ViewModel Flow
     Timber.d("bindEntriesData entriesAutoComplete: $entries tag: $tag")
     if (entries != null) {
         setAdapter(AutoCompleteAdapter(context, entries, false,  false))

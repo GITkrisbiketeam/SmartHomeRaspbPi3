@@ -14,7 +14,6 @@
 
     <!-- Strings related to email -->
     <string name="prompt_email">Email</string>
-    <string name="prompt_wifi">SSID Name</string>
     <string name="prompt_password">Password</string>
     <string name="action_sign_in">Sign in or register</string>
     <string name="action_sign_in_short">Sign in</string>
@@ -25,17 +24,16 @@
     <string name="error_field_required">This field is required</string>
 
     <string name="settings_title">Settings</string>
-    <string name="settings_wifi_fragment_key">wifi_screen_key</string>
     <string name="settings_login_fragment_key">login_screen_key</string>
     <string name="settings_home_fragment_key">home_screen_key</string>
     <string name="settings_hw_unit_list_fragment_key">hw_unit_list_key</string>
     <string name="settings_hw_unit_error_event_list_fragment_key">hw_unit_error_event_list_key</string>
     <string name="settings_things_app_logs_fragment_key">things_app_logs_fragment_key</string>
+    <string name="settings_hw_unit_error_logs_fragment_key">hw_unit_error_logs_fragment_key</string>
     <string name="settings_restart_rpi_things_app">restart_rpi_things_app</string>
     <string name="settings_alarm_enabled_key">alarmEnabledKey</string>
     <string name="settings_restarting">Restarting…</string>
 
-    <string name="settings_wifi_title">WiFi Connect</string>
     <string name="settings_login_title">Firebase Login</string>
     <string name="settings_home_title">Setup Home</string>
     <string name="settings_login_remote_device_login_checkbox_text">Remote Device Login</string>
@@ -51,6 +49,7 @@
     <string name="cancel">Cancel</string>
     <string name="overwrite">Overwrite</string>
     <string name="menu_clear_all">Clear All</string>
+    <string name="menu_select_all">Select All</string>
     <string name="menu_restart_all">Restart All</string>
     <string name="menu_finish">Finish</string>
     <string name="menu_filter">Filter</string>
@@ -72,11 +71,15 @@
     <string name="add_edit_home_unit_text_room_title">Room:</string>
     <string name="add_edit_home_unit_text_hw_unit_title">Hardware Unit:</string>
     <string name="add_edit_home_unit_text_second_hw_unit_title">Switch hardware Unit:</string>
+    <string name="add_edit_home_unit_text_input_hw_unit_title">Input hardware Unit:</string>
     <string name="add_edit_home_unit_text_motion_hw_unit_title">Motion hardware Unit:</string>
     <string name="add_edit_home_unit_text_temperature_hw_unit_title">Temperature hardware Unit:</string>
     <string name="add_edit_home_unit_text_circulation_duration_title">Circulation duration:</string>
+    <string name="add_edit_home_unit_text_watch_dog_timeout_title">WatchDog timeout:</string>
+    <string name="add_edit_home_unit_text_watch_dog_delay_title">WatchDog delay:</string>
     <string name="add_edit_home_unit_text_value">Value: </string>
     <string name="add_edit_home_unit_text_second_value">Switch value: </string>
+    <string name="add_edit_home_unit_text_input_value">Input value: </string>
     <string name="add_edit_home_unit_text_motion_value">Motion value: </string>
     <string name="add_edit_home_unit_text_temperature_value">Temperature value: </string>
     <string name="add_edit_home_unit_text_min_value">Min value: </string>
@@ -87,6 +90,7 @@
     <string name="add_edit_home_unit_overwrite_changes">Do you want to overwrite changes?</string>
     <string name="add_edit_home_unit_save_changes">Do you want to save new HomeUnit?</string>
     <string name="add_edit_home_unit_empty_name">Home Unit name cannot be empty</string>
+    <string name="add_edit_home_unit_name_illegal_character">Home Unit name cannot contain \'.\', \'#\', \'$\', \'[\', or \']\'</string>
     <string name="add_edit_home_unit_empty_unit_type">Unit Type cannot be empty</string>
     <string name="add_edit_home_unit_empty_unit_hw_unit">Hardware Unit cannot be empty</string>
     <string name="add_edit_home_unit_empty_unit_second_hw_unit">Switch hardware Unit cannot be empty</string>
@@ -114,6 +118,8 @@
     <string name="logs_title">Logs</string>
 
     <string name="things_app_logs_title">Things App Logs</string>
+
+    <string name="hw_unit_error_logs_title">HwUnit Error Logs</string>
 
     <string name="unit_task_title">Unit Task Details</string>
 
@@ -176,6 +182,7 @@
     <string name="add_edit_hw_unit_pin_interrupt_title">I2C GPIO Pin Interrupt:</string>
     <string name="add_edit_hw_unit_pit_interrupt_title_spinner_prompt">Select I2C GPIO Pin Interrupt:</string>
     <string name="add_edit_hw_unit_pin_pull_up_title">Extended Pin PullUp Resistor?</string>
+    <string name="add_edit_hw_unit_ignore_errors_title">Ignore HW Unit Errors?</string>
     <string name="add_edit_hw_unit_pin_extender_io_pin_spinner_title">Extender pin Name</string>
     <string name="add_edit_hw_unit_pin_extender_io_pin_spinner_prompt">Select I2C GPIO extender pin</string>
     <string name="add_edit_hw_unit_pin_inverse_title">Extended Pin Inverse Logic?</string>

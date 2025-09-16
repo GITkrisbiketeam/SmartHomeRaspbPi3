@@ -41,6 +41,7 @@ class AddEditHwUnitViewModel(private val homeRepository: FirebaseHomeInformation
                 pinInterrupt.value = hwUnit.pinInterrupt
                 internalPullUp.value = hwUnit.internalPullUp
                 inverse.value = hwUnit.inverse
+                ignoreErrors.value = hwUnit.ignoreErrors
             }.flowOn(Dispatchers.IO).stateIn(viewModelScope, SharingStarted.WhileSubscribed(), null)
 
     // This is for checking if given name is not already used
@@ -103,7 +104,6 @@ class AddEditHwUnitViewModel(private val homeRepository: FirebaseHomeInformation
                     BoardConfig.AIR_QUALITY_SENSOR_BME680 -> BoardConfig.AIR_QUALITY_SENSOR_BME680_ADDR_LIST
                     BoardConfig.LIGHT_SENSOR_BH1750 -> BoardConfig.LIGHT_SENSOR_BH1750_ADDR_LIST
                     BoardConfig.PRESS_TEMP_SENSOR_LPS331 -> BoardConfig.PRESS_TEMP_SENSOR_LPS331_ADDR_LIST
-                    BoardConfig.TEMP_PRESS_SENSOR_BMP280 -> BoardConfig.TEMP_PRESS_SENSOR_BMP280_ADDR_LIST
                     BoardConfig.IO_EXTENDER_MCP23017_INPUT, BoardConfig.IO_EXTENDER_MCP23017_OUTPUT -> BoardConfig.IO_EXTENDER_MCP23017_ADDR_LIST
                     else -> emptyList()
                 }.also { softAddressList ->
@@ -121,7 +121,7 @@ class AddEditHwUnitViewModel(private val homeRepository: FirebaseHomeInformation
         Timber.d("init ioPinList type: $type hwUnitList: $hwUnitList softAddress: $softAddress hwUnit:$hwUnit")
         when (type) {
             BoardConfig.IO_EXTENDER_MCP23017_OUTPUT, BoardConfig.IO_EXTENDER_MCP23017_INPUT -> {
-                MCP23017Pin.Pin.values().map { pin ->
+                MCP23017Pin.Pin.entries.map { pin ->
                     if (pin.name == hwUnit?.ioPin) {
                         ioPin.value = pin.name
                     }
@@ -171,6 +171,9 @@ class AddEditHwUnitViewModel(private val homeRepository: FirebaseHomeInformation
     // This is only valid for IO_Extender Output type HwUnits
     val inverse: MutableStateFlow<Boolean?> = MutableStateFlow(null)
 
+    // Ignore HW (I2C) Error no to stop hw Unit from stopping working
+    val ignoreErrors: MutableStateFlow<Boolean?> = MutableStateFlow(null)
+
 
     fun noChangesMade(): Boolean {
         return hwUnit.value?.let { unit ->
@@ -184,6 +187,7 @@ class AddEditHwUnitViewModel(private val homeRepository: FirebaseHomeInformation
                     && unit.ioPin == ioPin.value
                     && unit.internalPullUp == internalPullUp.value
                     && unit.inverse == inverse.value
+                    && unit.ignoreErrors == ignoreErrors.value
                     && unit.refreshRate == refreshRate.value
         } ?: true
     }
@@ -208,6 +212,7 @@ class AddEditHwUnitViewModel(private val homeRepository: FirebaseHomeInformation
             ioPin.value = unit.ioPin
             internalPullUp.value = unit.internalPullUp
             inverse.value = unit.inverse
+            ignoreErrors.value = unit.ignoreErrors
             refreshRate.value = unit.refreshRate
             false
         } ?: true
@@ -271,7 +276,7 @@ class AddEditHwUnitViewModel(private val homeRepository: FirebaseHomeInformation
 
     fun saveChanges(): Task<Void>? {
         Timber.d(
-                "saveChanges hwUnitLiveData: ${hwUnit.value} homeRepositoryTask.isComplete: ${homeRepositoryTask?.isComplete}")
+                "saveChanges hwUnitData: ${hwUnit.value} homeRepositoryTask.isComplete: ${homeRepositoryTask?.isComplete}")
         homeRepositoryTask = hwUnit.value?.let { unit ->
             showProgress.value = true
             Timber.e("Save all changes")
@@ -294,12 +299,21 @@ class AddEditHwUnitViewModel(private val homeRepository: FirebaseHomeInformation
             pinName.value?.let { pinName ->
                 showProgress.value = true
                 homeRepository.saveHardwareUnit(
-                        HwUnit(name = name.value, location = location.value, type = type,
-                                pinName = pinName, connectionType = connectionType.value,
-                                softAddress = softAddress.value,
-                                pinInterrupt = pinInterrupt.value, ioPin = ioPin.value,
-                                internalPullUp = internalPullUp.value,
-                                inverse = inverse.value, refreshRate = refreshRate.value))
+                    HwUnit(
+                        name = name.value,
+                        location = location.value,
+                        type = type,
+                        pinName = pinName,
+                        connectionType = connectionType.value,
+                        softAddress = softAddress.value,
+                        pinInterrupt = pinInterrupt.value,
+                        ioPin = ioPin.value,
+                        internalPullUp = internalPullUp.value,
+                        inverse = inverse.value,
+                        ignoreErrors = ignoreErrors.value,
+                        refreshRate = refreshRate.value
+                    )
+                )
             }
         }
     }

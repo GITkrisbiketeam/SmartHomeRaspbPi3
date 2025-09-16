@@ -122,7 +122,7 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
     private val mIntCallback = object : GpioCallback {
         override fun onGpioEdge(gpio: Gpio): Boolean {
             if (debounceDelay != NO_DEBOUNCE_DELAY) {
-                Timber.d("mIntCallback addr:$address onGpioEdge ${gpio.value}")
+                Timber.i("mIntCallback addr:$address onGpioEdge ${gpio.value}")
                 debounceIntCallbackJob?.cancel()
                 debounceIntCallbackJob = GlobalScope.launch(Dispatchers.IO) {
                     delay(debounceDelay.toLong())
@@ -151,7 +151,7 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
             recheckIntCallbackJob = GlobalScope.launch(Dispatchers.IO) {
                 delay(RECHECK_INT_DELAY)
                 try {
-                    Timber.e("mIntCallback addr:$address recheckIntCallbackJob mGpioInt: ${mGpioInt?.value}")
+                    Timber.i("mIntCallback addr:$address recheckIntCallbackJob mGpioInt: ${mGpioInt?.value}")
                     if (this.isActive) {
                         checkInterrupt()
                     }
@@ -231,7 +231,7 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
     @Throws(Exception::class)
     @MainThread
     private fun resetToDefaults(i2cDevice: I2cDevice?) {
-        Timber.e("resetToDefaults addr:$address")
+        Timber.d("resetToDefaults addr:$address")
         // set all default pins directions
         writeRegister(i2cDevice, REGISTER_IODIR_A, 0)
         writeRegister(i2cDevice, REGISTER_IODIR_B, 0)
@@ -594,21 +594,16 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
     // endregion
 
     // Suppress NewApi for computeIfAbsent this is only used on Things that are Android 8.0+
+    @Throws(Exception::class)
     @SuppressLint("NewApi")
-    suspend fun registerPinListener(pin: Pin, listener: MCP23017PinStateChangeListener): Boolean {
-        return if (getMode(pin) == PinMode.DIGITAL_INPUT) {
+    suspend fun registerPinListener(pin: Pin, listener: MCP23017PinStateChangeListener) {
+        if (getMode(pin) == PinMode.DIGITAL_INPUT) {
             val pinListeners = mListeners.computeIfAbsent(pin) { ArrayList(1) }
             pinListeners.add(listener)
-            try {
-                checkInterrupt()
-                true
-            } catch (e: Exception) {
-                dispatchCheckInterruptError(e)
-                false
-            }
+            checkInterrupt()
         } else {
             // Given pin not set for input
-            false
+            throw Exception("Given pin not set for input")
         }
     }
 
@@ -683,6 +678,6 @@ class MCP23017(private val bus: String? = null, private val address: Int = DEFAU
         mListeners.flatMap { it.value }.forEach {
             Timber.d("dispatchCheckInterruptError dispatch onError to: $it")
             it.onError("dispatchCheckInterruptError Exception: $e")
-        }//throw Exception("dispatchCheckInterruptError Exception", e)
+        }
     }
 }

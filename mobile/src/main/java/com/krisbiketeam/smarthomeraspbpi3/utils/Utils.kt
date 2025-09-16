@@ -2,7 +2,6 @@ package com.krisbiketeam.smarthomeraspbpi3.utils
 
 import android.content.Context
 import androidx.annotation.ColorInt
-import androidx.lifecycle.MutableLiveData
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.FULL_DAY_IN_MILLIS
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.RemoteLog
@@ -40,19 +39,6 @@ fun getDayTime(lastUpdateTime: Long?): String {
     val hours = (lastUpdateTime / (1000 * 60 * 60) % 25)
 
     return String.format("%d:%02d:%02d",hours, minutes, seconds)
-}
-
-fun showTimePicker(context: Context?, liveData: MutableLiveData<Long?>) {
-    context?.let {
-        val (currentHours, currentMinutes, currentSeconds) = liveData.value?.run {
-            Triple((this / (1000 * 60 * 60) % 24).toInt(),
-                    ((this / (1000 * 60) % 60)).toInt(),
-                    ((this / 1000) % 60).toInt())
-        } ?: Triple(0, 0, 0)
-        TimeDurationPicker(context, { hours: Int, minutes: Int, seconds: Int ->
-            liveData.value = (seconds * 1000 + minutes * 1000 * 60 + hours * 60 * 60 * 1000).toLong()
-        }, currentHours, currentMinutes, currentSeconds).show()
-    }
 }
 
 fun showTimePicker(context: Context?, stateFlow: MutableStateFlow<Long?>) {

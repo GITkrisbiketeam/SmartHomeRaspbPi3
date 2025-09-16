@@ -49,6 +49,7 @@ enum class HomeUnitType(private val firebaseTableName: String) {
     // combined actuator/sensor
     HOME_LIGHT_SWITCHES("light_switches"),
     HOME_WATER_CIRCULATION("water_circulation"),
+    HOME_MCP23017_WATCH_DOG("mcp23017_watch_dog"),
     // float sensors
     HOME_TEMPERATURES("temperatures"),
     HOME_PRESSURES("pressures"),
@@ -73,9 +74,14 @@ const val HOME_VAL = "value"
 const val HOME_VAL_LAST_UPDATE = "lastUpdateTime"
 const val HOME_MIN_VAL = "min"
 const val HOME_MIN_VAL_LAST_UPDATE = "minLastUpdateTime"
+const val HOME_MIN_TEMPERATURE_VAL = "temperatureMin"
+const val HOME_MIN_TEMPERATURE_VAL_LAST_UPDATE = "temperatureMinLastUpdateTime"
 const val HOME_MAX_VAL = "max"
 const val HOME_MAX_VAL_LAST_UPDATE = "maxLastUpdateTime"
+const val HOME_MAX_TEMPERATURE_VAL = "temperatureMax"
+const val HOME_MAX_TEMPERATURE_VAL_LAST_UPDATE = "temperatureMaxLastUpdateTime"
 const val HOME_LAST_TRIGGER_SOURCE = "lastTriggerSource"
+const val HOME_ROOM = "room"
 
 const val LAST_TRIGGER_SOURCE_DEVICE_CONTROL = "device_control"
 const val LAST_TRIGGER_SOURCE_ROOM_HOME_UNITS_LIST = "room_home_units_list"

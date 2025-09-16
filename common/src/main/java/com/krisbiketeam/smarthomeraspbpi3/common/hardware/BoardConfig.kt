@@ -1,6 +1,5 @@
 package com.krisbiketeam.smarthomeraspbpi3.common.hardware
 
-import com.google.android.things.contrib.driver.bmx280.Bmx280
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver.*
 
 object BoardConfig {
@@ -57,11 +56,6 @@ object BoardConfig {
         MCP9808.DEFAULT_I2C_110_ADDRESS,
         MCP9808.DEFAULT_I2C_111_ADDRESS
     )
-
-    const val TEMP_PRESS_SENSOR_BMP280 = "Temperature and Pressure Sensor"
-    const val TEMP_PRESS_SENSOR_BMP280_PIN = I2C
-    const val TEMP_PRESS_SENSOR_BMP280_ADDR = Bmx280.DEFAULT_I2C_ADDRESS
-    val TEMP_PRESS_SENSOR_BMP280_ADDR_LIST = listOf(Bmx280.DEFAULT_I2C_ADDRESS)
 
     const val TEMP_RH_SENSOR_SI7021 = "Temperature and Humidity Sensor Si7021"
     const val TEMP_RH_SENSOR_SI7021_PIN = I2C
@@ -132,7 +126,6 @@ object BoardConfig {
         IO_EXTENDER_MCP23017_OUTPUT,
         GPIO_INPUT,
         GPIO_OUTPUT,
-        TEMP_PRESS_SENSOR_BMP280
     )
 
     val I2C_HW_UNIT_LIST = listOf(
@@ -145,7 +138,6 @@ object BoardConfig {
         PRESS_TEMP_SENSOR_LPS331,
         IO_EXTENDER_MCP23017_INPUT,
         IO_EXTENDER_MCP23017_OUTPUT,
-        TEMP_PRESS_SENSOR_BMP280,
         FOUR_CHAR_DISP
     )
 
@@ -156,7 +148,6 @@ object BoardConfig {
         TEMP_RH_SENSOR_AM2320,
         AIR_QUALITY_SENSOR_BME680,
         PRESS_TEMP_SENSOR_LPS331,
-        TEMP_PRESS_SENSOR_BMP280
     )
 
     val HUMIDITY_HW_UNIT_LIST = listOf(
@@ -168,7 +159,6 @@ object BoardConfig {
     val PRESSURE_HW_UNIT_LIST = listOf(
         AIR_QUALITY_SENSOR_BME680,
         PRESS_TEMP_SENSOR_LPS331,
-        TEMP_PRESS_SENSOR_BMP280,
     )
 
     val GPIO_HW_UNIT_LIST = listOf(

@@ -1,6 +1,6 @@
 package com.krisbiketeam.smarthomeraspbpi3.common
 
-enum class MyLiveDataState {
+enum class RemoteConnectionState {
     INIT,
     CONNECTING,
     ERROR,

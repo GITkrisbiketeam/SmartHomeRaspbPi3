@@ -1,15 +1,15 @@
 package com.krisbiketeam.smarthomeraspbpi3.adapters
 
 import androidx.recyclerview.widget.DiffUtil
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
+import com.krisbiketeam.smarthomeraspbpi3.model.RoomDetailListAdapterModel
 
-class RoomDetailHomeUnitListAdapterDiffCallback : DiffUtil.ItemCallback<HomeUnit<Any>>() {
+class RoomDetailHomeUnitListAdapterDiffCallback : DiffUtil.ItemCallback<RoomDetailListAdapterModel>() {
 
-    override fun areItemsTheSame(oldItem: HomeUnit<Any>, newItem: HomeUnit<Any>): Boolean {
-        return oldItem.name == newItem.name
+    override fun areItemsTheSame(oldItem: RoomDetailListAdapterModel, newItem: RoomDetailListAdapterModel): Boolean {
+        return oldItem.homeUnit.name == newItem.homeUnit.name
     }
 
-    override fun areContentsTheSame(oldItem: HomeUnit<Any>, newItem: HomeUnit<Any>): Boolean {
+    override fun areContentsTheSame(oldItem: RoomDetailListAdapterModel, newItem: RoomDetailListAdapterModel): Boolean {
         return oldItem == newItem
     }
 }

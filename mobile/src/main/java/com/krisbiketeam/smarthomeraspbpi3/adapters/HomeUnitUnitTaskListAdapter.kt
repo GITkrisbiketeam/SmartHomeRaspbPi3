@@ -12,10 +12,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.UnitTask
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentHomeUnitDetailUnitTaskListItemAddBinding
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentHomeUnitDetailUnitTaskListItemBinding
-import com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitGenericDetailFragment
-import com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitGenericDetailFragmentDirections
-import com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitLightSwitchDetailFragmentDirections
-import com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitWaterCirculationDetailFragmentDirections
+import com.krisbiketeam.smarthomeraspbpi3.ui.*
 import timber.log.Timber
 
 private const val VIEW_TYPE_NORMAL = 0
@@ -70,6 +67,11 @@ class UnitTaskListAdapter(
                             unitType
                         )
                         HomeUnitType.HOME_WATER_CIRCULATION -> HomeUnitWaterCirculationDetailFragmentDirections.actionHomeUnitWaterCirculationDetailFragmentToUnitTaskFragment(
+                            taskName,
+                            unitName,
+                            unitType
+                        )
+                        HomeUnitType.HOME_MCP23017_WATCH_DOG -> HomeUnitMCP23017WatchDogDetailFragmentDirections.actionHomeUnitMcp23017WatchDogDetailFragmentToUnitTaskFragment(
                             taskName,
                             unitName,
                             unitType

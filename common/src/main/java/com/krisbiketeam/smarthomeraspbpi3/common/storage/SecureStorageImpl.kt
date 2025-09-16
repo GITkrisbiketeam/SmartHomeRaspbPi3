@@ -11,6 +11,9 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
 import com.krisbiketeam.smarthomeraspbpi3.common.auth.FirebaseCredentials
+import com.krisbiketeam.smarthomeraspbpi3.common.ble.data.FirebaseState
+import com.krisbiketeam.smarthomeraspbpi3.common.ble.data.HomeState
+import com.krisbiketeam.smarthomeraspbpi3.common.ble.data.NetworkState
 import com.krisbiketeam.smarthomeraspbpi3.common.decodeHex
 import com.krisbiketeam.smarthomeraspbpi3.common.toHex
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -47,20 +50,26 @@ class SecureStorageImpl(private val context: Context, homeInformationRepository:
 
     override var bme680State: ByteArray by encryptedSharedPreferences.bme680State()
 
+    override var networkState: NetworkState = NetworkState.NONE
+    override var networkIpAddress: String = ""
+    override var firebaseState: FirebaseState = loginState()
+    override val homeState: HomeState
+        get() = if (homeName.isNotEmpty()) HomeState.SET else HomeState.NONE
+
     @ExperimentalCoroutinesApi
     override val firebaseCredentialsFlow = callbackFlow {
         val preferenceChangeListener =
-                SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-                    Timber.e("homeNameFlow  changed $key")
-                    if (key == EMAIL_KEY || key == PASSWORD_KEY || key == UID_KEY) {
-                        this@callbackFlow.trySendBlocking(firebaseCredentials)
-                    }
+            SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+                Timber.i("homeNameFlow  changed $key")
+                if (key == EMAIL_KEY || key == PASSWORD_KEY || key == UID_KEY) {
+                    this@callbackFlow.trySendBlocking(firebaseCredentials)
                 }
+            }
         this@callbackFlow.trySendBlocking(firebaseCredentials)
-        Timber.e("firebaseCredentialsFlow  register")
+        Timber.i("firebaseCredentialsFlow  register")
         encryptedSharedPreferences.registerOnSharedPreferenceChangeListener(preferenceChangeListener)
         awaitClose {
-            Timber.e("firebaseCredentialsFlow  awaitClose")
+            Timber.w("firebaseCredentialsFlow  awaitClose")
             encryptedSharedPreferences.unregisterOnSharedPreferenceChangeListener(preferenceChangeListener)
         }
     }.shareIn(
@@ -73,16 +82,16 @@ class SecureStorageImpl(private val context: Context, homeInformationRepository:
     override val homeNameFlow = callbackFlow {
         val preferenceChangeListener =
                 SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-                    Timber.e("homeNameFlow  changed $key")
+                    Timber.i("homeNameFlow  changed $key")
                     if (key == HOME_NAME_KEY) {
                         this@callbackFlow.trySendBlocking(homeName)
                     }
                 }
         this@callbackFlow.trySendBlocking(homeName)
-        Timber.e("homeNameFlow  register")
+        Timber.i("homeNameFlow  register")
         encryptedSharedPreferences.registerOnSharedPreferenceChangeListener(preferenceChangeListener)
         awaitClose {
-            Timber.e("homeNameFlow  awaitClose")
+            Timber.w("homeNameFlow  awaitClose")
             encryptedSharedPreferences.unregisterOnSharedPreferenceChangeListener(preferenceChangeListener)
         }
     }.shareIn(
@@ -96,7 +105,7 @@ class SecureStorageImpl(private val context: Context, homeInformationRepository:
     override val alarmEnabledFlow = callbackFlow {
         val preferenceChangeListener =
                 SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-                    Timber.e("alarmEnabledFlow changed $key")
+                    Timber.i("alarmEnabledFlow changed $key")
                     if (key == ALARM_ENABLED_KEY) {
                         homeInformationRepository.setHomePreference(ALARM_ENABLED_KEY, alarmEnabled)
                     }
@@ -121,10 +130,10 @@ class SecureStorageImpl(private val context: Context, homeInformationRepository:
 
         this@callbackFlow.trySendBlocking(alarmEnabled)
         homeInformationRepository.getHomePreference(ALARM_ENABLED_KEY)?.addValueEventListener(alarmListener)
-        Timber.e("alarmEnabledFlow  register")
+        Timber.i("alarmEnabledFlow  register")
         encryptedSharedPreferences.registerOnSharedPreferenceChangeListener(preferenceChangeListener)
         awaitClose {
-            Timber.e("alarmEnabledFlow  awaitClose")
+            Timber.w("alarmEnabledFlow  awaitClose")
             encryptedSharedPreferences.unregisterOnSharedPreferenceChangeListener(preferenceChangeListener)
             homeInformationRepository.getHomePreference(ALARM_ENABLED_KEY)?.removeEventListener(alarmListener)
         }
@@ -138,7 +147,7 @@ class SecureStorageImpl(private val context: Context, homeInformationRepository:
     override val remoteLoggingLevelFlow: Flow<Int> = callbackFlow {
         val preferenceChangeListener =
                 SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-                    Timber.e("remoteLoggingLevelFlow changed $key")
+                    Timber.i("remoteLoggingLevelFlow changed $key")
                     if (key == REMOTE_LOGGING_LEVEL_KEY) {
                         homeInformationRepository.setHomePreference(REMOTE_LOGGING_LEVEL_KEY, remoteLoggingLevel)
                     }
@@ -164,10 +173,10 @@ class SecureStorageImpl(private val context: Context, homeInformationRepository:
 
         this@callbackFlow.trySendBlocking(remoteLoggingLevel)
         homeInformationRepository.getHomePreference(REMOTE_LOGGING_LEVEL_KEY)?.addValueEventListener(remoteLoggingLevelListener)
-        Timber.e("remoteLoggingLevelFlow  register")
+        Timber.i("remoteLoggingLevelFlow  register")
         encryptedSharedPreferences.registerOnSharedPreferenceChangeListener(preferenceChangeListener)
         awaitClose {
-            Timber.e("remoteLoggingLevelFlow  awaitClose")
+            Timber.w("remoteLoggingLevelFlow  awaitClose")
             encryptedSharedPreferences.unregisterOnSharedPreferenceChangeListener(preferenceChangeListener)
             homeInformationRepository.getHomePreference(REMOTE_LOGGING_LEVEL_KEY)?.removeEventListener(remoteLoggingLevelListener)
         }
@@ -281,13 +290,34 @@ class SecureStorageImpl(private val context: Context, homeInformationRepository:
                         getEncryptedSharedPreferences()
                     } else {
                         Timber.e("Permanently failed to instantiate EncryptedSharedPreferences $e")
-                        context.getSharedPreferences(SHARED_PREFERENCES_FILE_NAME, Context.MODE_PRIVATE)
+                        context.getSharedPreferences(
+                            SHARED_PREFERENCES_FILE_NAME,
+                            Context.MODE_PRIVATE
+                        )
                     }
                 }
+
                 else -> {
                     Timber.e("Permanently failed to instantiate EncryptedSharedPreferences $e")
                     context.getSharedPreferences(SHARED_PREFERENCES_FILE_NAME, Context.MODE_PRIVATE)
                 }
+            }
+        }
+    }
+
+    private fun loginState(): FirebaseState {
+        return when {
+            isAuthenticated() -> {
+                FirebaseState.LOGGED
+            }
+
+            firebaseCredentials.email.isNotEmpty()
+                    && firebaseCredentials.password.isNotEmpty() -> {
+                FirebaseState.SET
+            }
+
+            else -> {
+                FirebaseState.NONE
             }
         }
     }

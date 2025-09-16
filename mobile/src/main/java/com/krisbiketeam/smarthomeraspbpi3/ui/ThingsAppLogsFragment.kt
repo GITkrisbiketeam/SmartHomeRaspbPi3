@@ -14,10 +14,7 @@ import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
 import com.krisbiketeam.smarthomeraspbpi3.databinding.FragmentThingsAppLogsBinding
 import com.krisbiketeam.smarthomeraspbpi3.viewmodels.ThingsAppLogsViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -68,7 +65,7 @@ class ThingsAppLogsFragment : androidx.fragment.app.Fragment() {
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.menu_things_app_logs, menu)
 
-        menu.findItem(R.id.action_remote_log_level).subMenu.apply {
+        menu.findItem(R.id.action_remote_log_level).subMenu?.apply {
             clear()
             logsViewModel.menuItemRemoteLogListFlow.value.forEach { (levelName, itemId, checked) ->
                 val menuItem = add(R.id.action_remote_log_level, itemId, Menu.NONE, levelName)

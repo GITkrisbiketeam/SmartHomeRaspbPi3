@@ -1,4 +1,4 @@
-package com.krisbiketeam.smarthomeraspbpi3.ui
+package com.krisbiketeam.smarthomeraspbpi3.utils
 
 import android.app.Activity
 import android.content.Context
@@ -27,7 +27,8 @@ class NetworkConnectionMonitor(activity: Activity) : ConnectivityManager.Network
 
     private var networkConnectionListener: NetworkConnectionListener? = null
 
-    val isNetworkConnected =
+    val isNetworkConnected
+        get() =
             connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)?.run {
                 (hasTransport(NetworkCapabilities.TRANSPORT_WIFI) || hasTransport(
                         NetworkCapabilities.TRANSPORT_CELLULAR) || hasTransport(
@@ -47,16 +48,15 @@ class NetworkConnectionMonitor(activity: Activity) : ConnectivityManager.Network
     }
 
     override fun onLost(network: Network) {
-        Timber.e("onLost network: $network")
+        Timber.w("onLost network: $network")
         networkConnectionListener?.onNetworkAvailable(false)
     }
 
     override fun onUnavailable() {
-        Timber.e("onUnavailable")
+        Timber.w("onUnavailable")
         networkConnectionListener?.onNetworkAvailable(false)
     }
 
-    @Suppress("DEPRECATION")
     override fun onAvailable(network: Network) {
         networkConnectionListener?.onNetworkAvailable(true)
     }

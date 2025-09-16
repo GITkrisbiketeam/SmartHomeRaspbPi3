@@ -6,7 +6,6 @@ apply plugin: 'androidx.navigation.safeargs.kotlin'
 apply plugin: 'com.google.firebase.crashlytics'
 // Apply the Performance Monitoring plugin
 apply plugin: 'com.google.firebase.firebase-perf'
-apply plugin: 'koin'
 
 android {
     signingConfigs {
@@ -23,7 +22,7 @@ android {
             keyPassword 'testpassword'
         }
     }
-    compileSdkVersion compileWithSDK
+    compileSdk compileWithSDK
     defaultConfig {
         applicationId "com.krisbiketeam.smarthomeraspbpi3"
         minSdkVersion minSdkVersionApp
@@ -40,10 +39,6 @@ android {
         }
     }
 
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
-
     buildFeatures {
         // Determines whether to generate a BuildConfig class.
         buildConfig = true
@@ -57,18 +52,17 @@ android {
         aidl = true
     }
 
-    useLibrary 'android.test.mock'
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_9
-        targetCompatibility JavaVersion.VERSION_1_9
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
+    useLibrary 'android.test.mock'
     namespace 'com.krisbiketeam.smarthomeraspbpi3'
 }
 
 dependencies {
     implementation project(':common')
 
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinxCoroutinesAndroid"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-reactive:$kotlinxCoroutinesReactive"
 
@@ -79,7 +73,6 @@ dependencies {
     implementation "androidx.appcompat:appcompat:$androidxAppcompatVersion"
     implementation "androidx.preference:preference-ktx:$androidxPreferenceVersion"
     implementation "androidx.constraintlayout:constraintlayout:$androidxConstraintLayoutVersion"
-    implementation "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycleKtxVersion"
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycleKtxVersion"
     implementation "androidx.lifecycle:lifecycle-runtime-ktx:$lifecycleKtxVersion"
 
@@ -88,7 +81,6 @@ dependencies {
     implementation "com.google.android.gms:play-services-base:$playServicesVersion"
 
     implementation platform("com.google.firebase:firebase-bom:$firebaseBom")
-    implementation 'com.google.firebase:firebase-core'
     implementation 'com.google.firebase:firebase-database-ktx'
     implementation 'com.google.firebase:firebase-auth-ktx'
     implementation 'com.google.firebase:firebase-messaging'
@@ -102,11 +94,8 @@ dependencies {
     implementation "androidx.navigation:navigation-fragment-ktx:$navigationVersion"
     implementation "androidx.navigation:navigation-ui-ktx:$navigationVersion"
 
-    // Koin AndroidX Scope features
-    implementation "io.insert-koin:koin-androidx-scope:$koin_version"
-    // Koin AndroidX ViewModel features
-    implementation "io.insert-koin:koin-androidx-viewmodel:$koin_version"
-
+    implementation "io.insert-koin:koin-android:$koin_version"
+    
     implementation "com.jakewharton.timber:timber:$timberVersion"
 
     implementation "com.squareup.moshi:moshi:$moshiVersion"
@@ -115,7 +104,7 @@ dependencies {
 
     testImplementation "junit:junit:$junitVersion"
 
-    testImplementation "org.koin:koin-test:$koin_version"
+    testImplementation "io.insert-koin:koin-test:$koin_version"
     testImplementation "org.mockito:mockito-core:$mockito_version"
     testImplementation 'androidx.arch.core:core-testing:2.1.0'
 

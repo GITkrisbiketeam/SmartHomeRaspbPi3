@@ -31,7 +31,7 @@ fun getHomeUnitsFlow(homeNamePath: String?) = callbackFlow<Pair<ChildEventType, 
     }
 
     awaitClose {
-        Timber.e("getHwUnitsFlow  awaitClose on $homeNamePath")
+        Timber.w("getHwUnitsFlow  awaitClose on $homeNamePath")
         unitsList.forEach {
             it.reference.removeEventListener(it)
         }
@@ -78,7 +78,7 @@ class MyChildEventListener(
             } catch (e: DatabaseException) {
                 Timber.e(
                     e,
-                    "getHomeUnitsFlow onChildChanged (key=$key)(storageUnit=$storageUnitType) could not get HomeUnit"
+                    "getHomeUnitsFlow onChildChanged (key=$key)(storageUnit=$storageUnitType) could not get HomeUnit; dataSnapshot:$dataSnapshot"
                 )
                 null
             }

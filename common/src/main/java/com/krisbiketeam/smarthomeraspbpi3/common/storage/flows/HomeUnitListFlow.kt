@@ -69,7 +69,7 @@ private fun genericListReferenceFlow(
         }
     })
     awaitClose {
-        Timber.e("genericListReferenceFlow  awaitClose on ${databaseReference?.toString()}")
+        Timber.w("genericListReferenceFlow  awaitClose on ${databaseReference?.toString()}")
         eventListener?.let { eventListener ->
             databaseReference.removeEventListener(eventListener)
         }

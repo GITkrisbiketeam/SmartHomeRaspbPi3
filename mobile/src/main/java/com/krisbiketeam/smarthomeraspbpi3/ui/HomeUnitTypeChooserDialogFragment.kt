@@ -53,6 +53,11 @@ class HomeUnitTypeChooserDialogFragment : Fragment() {
                                     args.roomName
                                 )
                             )
+                            HomeUnitType.HOME_MCP23017_WATCH_DOG -> navigate(
+                                HomeUnitTypeChooserDialogFragmentDirections.actionHomeUnitTypeChooserDialogFragmentToHomeUnitMcp23017WatchDogDetailFragment(
+                                    args.roomName
+                                )
+                            )
                             HomeUnitType.UNKNOWN -> Unit
                             else -> navigate(
                                 HomeUnitTypeChooserDialogFragmentDirections.actionHomeUnitTypeChooserDialogFragmentToHomeUnitGenericDetailFragment(

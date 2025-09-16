@@ -1,5 +1,6 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
+apply plugin: 'kotlinx-serialization'
 
 android {
     signingConfigs {
@@ -10,7 +11,7 @@ android {
             keyPassword 'krisbiketeam'
         }
     }
-    compileSdkVersion compileWithSDK
+    compileSdk compileWithSDK
     defaultConfig {
         minSdkVersion minSdkVersionApp
         targetSdkVersion targetedSDK
@@ -24,19 +25,17 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-
-    kotlinOptions {
-        jvmTarget = "1.8"
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     namespace 'com.krisbiketeam.smarthomeraspbpi3.common'
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinxCoroutinesAndroid"
 
     implementation "com.jakewharton.timber:timber:$timberVersion"
-    implementation "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycleKtxVersion"
     implementation "androidx.lifecycle:lifecycle-process:$lifecycleKtxVersion"
 
     implementation "androidx.legacy:legacy-support-v4:$androidxLegacySupportV4"
@@ -47,18 +46,17 @@ dependencies {
     implementation "androidx.security:security-crypto:$androidxSecurityCrypto"
 
     implementation "com.google.android.gms:play-services-base:$playServicesVersion"
-    implementation "com.google.android.gms:play-services-nearby:$playServicesNearbyVersion"
 
     implementation platform("com.google.firebase:firebase-bom:$firebaseBom")
-    implementation 'com.google.firebase:firebase-core'
     implementation 'com.google.firebase:firebase-database-ktx'
     implementation 'com.google.firebase:firebase-auth-ktx'
     // Recommended: Add the Firebase SDK for Google Analytics.
     implementation 'com.google.firebase:firebase-analytics-ktx'
 
-    implementation "com.squareup.moshi:moshi:$moshiVersion"
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinxSerialization"
 
-    implementation "com.google.android.things.contrib:driver-bmx280:$bmx280Version"
+    implementation "io.insert-koin:koin-core:$koin_version"
+
     implementation "com.google.android.things:androidthings:$thingsVersion"
 
     testImplementation "junit:junit:$junitVersion"
