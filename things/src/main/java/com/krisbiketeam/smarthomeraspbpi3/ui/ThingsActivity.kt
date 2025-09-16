@@ -659,7 +659,9 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
                         connectAndSetupJob?.cancel()
                         connectAndSetupJob = lifecycleScope.launch {
                             ledB.setValueWithException(false)
-                            startFirebaseCredentialsReceiver()
+                            withBluetoothContext {
+                                startFirebaseCredentialsReceiver()
+                            }
                             Timber.i("startFirebaseCredentialsReceiver finished")
                         }
                         return true
@@ -693,7 +695,9 @@ class ThingsActivity : AppCompatActivity(), Sensor.HwUnitListener<Boolean> {
                         connectAndSetupJob = lifecycleScope.launch {
                             ledC.setValueWithException(false)
                             home.stop()
-                            startHomeNameReceiver()
+                            withBluetoothContext {
+                                startHomeNameReceiver()
+                            }
                             home.start()
                             Timber.i("startHomeNameReceiver finished")
                         }
