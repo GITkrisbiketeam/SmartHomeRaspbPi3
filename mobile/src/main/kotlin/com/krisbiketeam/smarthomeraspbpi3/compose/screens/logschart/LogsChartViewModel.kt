@@ -29,7 +29,7 @@ class LogsChartViewModel(
     ViewModel() {
 
     init {
-        Timber.e("plotczyk $preselection")
+        Timber.e("LogsChartViewModel preselection:$preselection")
     }
 
     private val colorFloatArray = FloatArray(3) { idx ->

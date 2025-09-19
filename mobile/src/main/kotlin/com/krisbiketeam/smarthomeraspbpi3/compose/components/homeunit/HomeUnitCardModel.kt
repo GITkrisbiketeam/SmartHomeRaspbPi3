@@ -43,6 +43,18 @@ sealed interface HomeUnitCardModel {
         val switchUpdateTime: Long?,
         override val isError: Boolean = false
     ) : HomeUnitCardModel
+
+    data class WaterCirculationHomeUnitCardModel(
+        override val id: HomeUnitCardModelId,
+        override val title: String,
+        val value: Boolean?,
+        override val updateTime: Long?,
+        val motionValue: Boolean?,
+        val motionUpdateTime: Long?,
+        val temperatureValue: Number?,
+        val temperatureUpdateTime: Long?,
+        override val isError: Boolean = false
+    ) : HomeUnitCardModel
 }
 
 data class HomeUnitCardModelId(

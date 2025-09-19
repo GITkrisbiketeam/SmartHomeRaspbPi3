@@ -6,9 +6,11 @@ import androidx.lifecycle.viewModelScope
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.Tasks
 import com.krisbiketeam.smarthomeraspbpi3.R
+import com.krisbiketeam.smarthomeraspbpi3.common.isInError
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.LightSwitchHomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.Room
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.WaterCirculationHomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.LAST_TRIGGER_SOURCE_ROOM_HOME_UNITS_LIST
 import com.krisbiketeam.smarthomeraspbpi3.compose.components.alertdialog.SmartAlertDialogModel
@@ -76,7 +78,7 @@ class RoomDetailScreenViewModel(
                 if (it.room == room.value?.name) {
                     //Timber.i("homeUnitsMap Flow filter")
                     val isError =
-                        hwUnitErrorEventList.firstOrNull { hwUnitLog -> hwUnitLog.name == it.hwUnitName } != null
+                        hwUnitErrorEventList.firstOrNull { hwUnitLog -> it.isInError(hwUnitLog.name) } != null
                     map[it.type.toString() + '.' + it.name] = when (it.type) {
                         HomeUnitType.HOME_TEMPERATURES,
                         HomeUnitType.HOME_PRESSURES,
@@ -157,9 +159,33 @@ class RoomDetailScreenViewModel(
                             }
                         }
 
+                        HomeUnitType.HOME_WATER_CIRCULATION -> {
+                            if (it is WaterCirculationHomeUnit<*>) {
+                                val switchValue = it.value
+                                val motionValue = it.motionValue
+                                val temperatureValue = it.temperatureValue
+                                if (switchValue is Boolean?) {
+                                    HomeUnitCardModel.WaterCirculationHomeUnitCardModel(
+                                        HomeUnitCardModelId(it.type, it.name, it.hwUnitName),
+                                        title = it.name,
+                                        value = switchValue,
+                                        updateTime = it.lastUpdateTime,
+                                        motionValue = motionValue,
+                                        motionUpdateTime = it.motionLastUpdateTime,
+                                        temperatureValue = temperatureValue,
+                                        temperatureUpdateTime = it.temperatureLastUpdateTime,
+                                        isError = isError
+                                    )
+                                } else {
+                                    null
+                                }
+                            } else {
+                                null
+                            }
+                        }
+
                         HomeUnitType.UNKNOWN,
                         HomeUnitType.HOME_BLINDS,
-                        HomeUnitType.HOME_WATER_CIRCULATION,
                         HomeUnitType.HOME_MCP23017_WATCH_DOG -> null
                     }
                 }

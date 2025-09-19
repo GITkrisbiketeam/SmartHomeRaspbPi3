@@ -1,6 +1,7 @@
 package com.krisbiketeam.smarthomeraspbpi3.compose.screens.roomlist
 
 import androidx.lifecycle.ViewModel
+import com.krisbiketeam.smarthomeraspbpi3.common.isInError
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.GenericHomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.LightSwitchHomeUnit
@@ -77,8 +78,10 @@ class RoomListScreenViewModel(
                     }
 
                 }
-                if (hwUnitErrorEventList.firstOrNull { hwUnitLog -> hwUnitLog.name == homeUnit.hwUnitName } != null) {
-                    updatedModel = model.copy(background =  CardColorState.ERROR)
+                if (hwUnitErrorEventList.firstOrNull { hwUnitLog ->
+                        homeUnit.isInError(hwUnitLog.name)
+                    } != null) {
+                    updatedModel = model.copy(background = CardColorState.ERROR)
                 }
                 updatedModel
             }

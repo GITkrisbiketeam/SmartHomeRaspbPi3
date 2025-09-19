@@ -1,5 +1,9 @@
 package com.krisbiketeam.smarthomeraspbpi3.common
 
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.LightSwitchHomeUnit
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.MCP23017WatchDogHomeUnit
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.WaterCirculationHomeUnit
 import java.util.*
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.reflect.KProperty
@@ -54,4 +58,14 @@ fun String?.decodeHex(): ByteArray {
 
         ByteArray(length / 2) { byteIterator.next() }
     }
+}
+
+fun HomeUnit<*>.isInError(hwUnitName: String): Boolean {
+    return hwUnitName == this.hwUnitName
+            || (this is LightSwitchHomeUnit
+                && hwUnitName == this.switchHwUnitName)
+            || (this is WaterCirculationHomeUnit
+                && (hwUnitName == this.motionHwUnitName || hwUnitName == this.temperatureHwUnitName))
+            || (this is MCP23017WatchDogHomeUnit
+                && hwUnitName == this.inputHwUnitName)
 }

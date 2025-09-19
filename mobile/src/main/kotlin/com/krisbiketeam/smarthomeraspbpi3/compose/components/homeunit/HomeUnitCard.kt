@@ -1,6 +1,7 @@
 package com.krisbiketeam.smarthomeraspbpi3.compose.components.homeunit
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
@@ -73,6 +74,14 @@ fun HomeUnitCard(
                         onSwitch = onSwitch
                     )
                 }
+
+                is HomeUnitCardModel.WaterCirculationHomeUnitCardModel -> {
+
+                    WaterCirculationHomeUnitCard(
+                        model = homeUnitModel,
+                        onSwitch = onSwitch
+                    )
+                }
             }
 
             HomeUnitCardBottomRow(
@@ -87,7 +96,7 @@ fun HomeUnitCard(
 private fun HomeUnitCardPreview() {
     MaterialTheme {
         Surface {
-            Column(modifier = Modifier.widthIn(max = 200.dp)) {
+            Column(modifier = Modifier.widthIn(max = 200.dp).fillMaxHeight()) {
                 HomeUnitCard(
                     HomeUnitCardModel.FloatHomeUnitCardModel(
                         HomeUnitCardModelId(HomeUnitType.HOME_TEMPERATURES, "temp", "hwTemp"),
@@ -108,6 +117,19 @@ private fun HomeUnitCardPreview() {
                     modifier = Modifier.padding(8.dp)
                 )
 
+                HomeUnitCard(
+                    HomeUnitCardModel.WaterCirculationHomeUnitCardModel(
+                        HomeUnitCardModelId(HomeUnitType.HOME_ACTUATORS, "Water circulation", "hwUnit"),
+                        "Water circulation",
+                        true,
+                        123456789,
+                        false,
+                        1234567890,
+                        27,
+                        1234567890,
+                    ), {}, {}, {},
+                    modifier = Modifier.padding(8.dp)
+                )
                 HomeUnitCard(
                     HomeUnitCardModel.SwitchHomeUnitCardModel(
                         HomeUnitCardModelId(HomeUnitType.HOME_ACTUATORS, "Switch", "hwUnit"),

@@ -1,6 +1,7 @@
 package com.krisbiketeam.smarthomeraspbpi3.compose.screens.tasklist
 
 import androidx.lifecycle.ViewModel
+import com.krisbiketeam.smarthomeraspbpi3.common.isInError
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.LightSwitchHomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.MCP23017WatchDogHomeUnit
@@ -67,7 +68,7 @@ class TaskListScreenViewModel(
             }
             val background = when {
                 homeUnit.type == HomeUnitType.HOME_MOTIONS && homeUnit.value == true -> CardColorState.MOTION
-                hwUnitErrorEventList.firstOrNull { hwUnitLog -> hwUnitLog.name == homeUnit.hwUnitName } != null -> CardColorState.ERROR
+                hwUnitErrorEventList.firstOrNull { hwUnitLog -> homeUnit.isInError(hwUnitLog.name) } != null -> CardColorState.ERROR
                 else -> CardColorState.NONE
             }
 
