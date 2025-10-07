@@ -32,17 +32,16 @@ import androidx.navigation.compose.rememberNavController
 import com.krisbiketeam.smarthomeraspbpi3.compose.components.bottomnavigationbar.SmartBottomBar
 import com.krisbiketeam.smarthomeraspbpi3.compose.components.sidenavigationrail.SmartSideNavigationRail
 import com.krisbiketeam.smarthomeraspbpi3.compose.core.drawer.SmartModalDrawer
-import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartDestinationsArgs
-import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartGraphs
+import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.RoomListGraph
 import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartNavGraph
 import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartNavigationActions
-import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartTopLevelDestination
+import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.smartTopLevelRoutes
 import kotlinx.coroutines.CoroutineScope
 
 @Composable
 fun SmartApp(
     windowSizeClass: WindowSizeClass,
-    startDestination: String = SmartGraphs.ROOM_LIST_GRAPH_ROOT
+    startDestination: Any = RoomListGraph
 ) {
 
     val navController: NavHostController = rememberNavController()
@@ -60,10 +59,8 @@ fun SmartApp(
     SmartModalDrawer(
         drawerState,
         drawerGesturesEnabled.value,
-        currentRoute?.route ?: startDestination,
         smartNavActions,
-        currentNavBackStackEntry?.arguments?.getString(SmartDestinationsArgs.ROOM_NAME_ARG)
-            ?: "null"
+        currentNavBackStackEntry
     ) {
         Scaffold(
             containerColor = Color.Transparent,
@@ -72,7 +69,7 @@ fun SmartApp(
             bottomBar = {
                 if (windowSizeClass.widthSizeClass == WindowWidthSizeClass.Compact) {
                     SmartBottomBar(
-                        destinations = SmartTopLevelDestination.entries,
+                        smartTopLevelRoutes = smartTopLevelRoutes,
                         smartNavigationActions = smartNavActions,
                         currentDestination = currentRoute,
                     )
@@ -92,7 +89,7 @@ fun SmartApp(
                         ),
                 ) {
                     SmartSideNavigationRail(
-                        destinations = SmartTopLevelDestination.entries,
+                        smartTopLevelRoutes = smartTopLevelRoutes,
                         smartNavigationActions = smartNavActions,
                         currentDestination = currentRoute,
                         modifier = Modifier.safeDrawingPadding(),

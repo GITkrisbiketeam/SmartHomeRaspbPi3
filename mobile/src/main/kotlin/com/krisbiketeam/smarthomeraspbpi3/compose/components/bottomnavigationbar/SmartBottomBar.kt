@@ -12,12 +12,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination
 import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartNavigationActions
-import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartTopLevelDestination
+import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartTopLevelRoute
 import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.isTopLevelDestinationInHierarchy
 
 @Composable
 fun SmartBottomBar(
-    destinations: List<SmartTopLevelDestination>,
+    smartTopLevelRoutes: List<SmartTopLevelRoute<*>>,
     smartNavigationActions: SmartNavigationActions,
     currentDestination: NavDestination?,
     modifier: Modifier = Modifier,
@@ -28,7 +28,7 @@ fun SmartBottomBar(
         tonalElevation = 0.dp
     ) {
 
-        destinations.forEach { destination ->
+        smartTopLevelRoutes.forEach { destination ->
             NavigationBarItem(
                 selected = currentDestination.isTopLevelDestinationInHierarchy(destination),
                 onClick = { smartNavigationActions.navigateToSmartTopLevelDestination(destination) },

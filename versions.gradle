@@ -1,19 +1,19 @@
 ext {
-    targetedSDK = 34
-    compileWithSDK = 34
+    targetedSDK = 35
+    compileWithSDK = 35
     minSdkVersionApp = 24
     minSdkVersionThings = 27
     targetedSdkVersionThings = 32
 
     // Languages
-    kotlinVersion = '1.9.21'
-    kotlinGradlVersion = '1.9.21'
+    kotlinVersion = '2.2.0'
+    kotlinGradlVersion = '2.2.0'
 
     kotlinxCoroutinesAndroid = '1.7.3'
     kotlinxCoroutinesReactive = '1.6.3'
 
     // ClassPath
-    gradlePluginVersion = '8.2.1'
+    gradlePluginVersion = '8.6.0'
     googleServicesClassVersion = '4.3.10'
 
     // Google
@@ -34,15 +34,15 @@ ext {
     supportLibraryVersion = '28.0.0'
     contraintLayoutVersion = '1.1.3'
     androidArchComponentsVersion = '1.1.1'
-    navigationVersion = '2.7.6'
+    navigationVersion = '2.9.5'
 
     // Things
     thingsVersion = '1.0'
 
     // Tooling
     timberVersion = '5.0.1'
-    kotlinxSerialization = '1.5.1'
-    kotlinSerializationPlugin = '1.9.10'
+    kotlinxSerialization = '1.9.0'
+    kotlinSerializationPlugin = '2.2.0'
 
     // Koin DI
     koin_version = '3.4.3'

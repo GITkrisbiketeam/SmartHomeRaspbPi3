@@ -1,12 +1,13 @@
-apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-kapt'
-apply plugin: 'kotlinx-serialization'
-// Apply the Crashlytics Gradle plugin
-apply plugin: 'com.google.firebase.crashlytics'
-// Apply the Performance Monitoring plugin
-apply plugin: 'com.google.firebase.firebase-perf'
-
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.kotlin.kapt'
+    id("org.jetbrains.kotlin.plugin.serialization")
+    // Apply the Crashlytics Gradle plugin
+    id 'com.google.firebase.crashlytics'
+    // Apply the Performance Monitoring plugin
+    id 'com.google.firebase.firebase-perf'
+}
 android {
     signingConfigs {
         debug {

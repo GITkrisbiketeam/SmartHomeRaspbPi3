@@ -2,23 +2,23 @@
 
 buildscript {
     apply from: 'versions.gradle'
-    repositories {
-        google()
-        mavenCentral()
-    }
-    dependencies {
-        classpath "com.android.tools.build:gradle:$gradlePluginVersion"
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinGradlVersion"
-        classpath "org.jetbrains.kotlin:kotlin-serialization:$kotlinSerializationPlugin"
-        classpath "com.google.gms:google-services:$googleServicesClassVersion"
-        classpath "androidx.navigation:navigation-safe-args-gradle-plugin:$navigationVersion"
+}
 
-        // Add the Crashlytics Gradle plugin (be sure to add version
-        // 2.0.0 or later if you built your app with Android Studio 4.1).
-        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.9.4'
-        // Add the dependency for the Performance Monitoring plugin
-        classpath 'com.google.firebase:perf-plugin:1.4.2'  // Performance Monitoring plugin
-    }
+plugins {
+    id 'com.android.application' version '8.6.0' apply false
+    id 'org.jetbrains.kotlin.android' version '1.8.0' apply false
+    id 'org.jetbrains.kotlin.kapt' version '2.2.20'  apply false
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.2.20"  apply false
+    // Apply the Kotlin Compose plugin
+    id 'org.jetbrains.kotlin.plugin.compose' version '2.2.0'  apply false
+
+    id 'androidx.navigation.safeargs.kotlin' version '2.9.5'  apply false
+    // Apply the Crashlytics Gradle plugin
+    id 'com.google.firebase.crashlytics' version '2.9.4'  apply false
+    // Apply the Performance Monitoring plugin
+    id 'com.google.firebase.firebase-perf' version '1.4.2'  apply false
+    // Add the dependency for the Google services Gradle plugin
+    id("com.google.gms.google-services") version "4.4.3" apply false
 }
 
 allprojects {

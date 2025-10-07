@@ -1,13 +1,18 @@
 package com.krisbiketeam.smarthomeraspbpi3.ui
 
 import android.os.Bundle
-import android.view.*
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
+import android.view.View
+import android.view.ViewGroup
 import androidx.core.os.bundleOf
 import androidx.core.util.Pair
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import com.github.mikephil.charting.charts.Chart
+import com.github.mikephil.charting.charts.CombinedChart
 import com.github.mikephil.charting.components.AxisBase
 import com.github.mikephil.charting.formatter.ValueFormatter
 import com.google.android.material.datepicker.CalendarConstraints
@@ -29,7 +34,8 @@ import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import timber.log.Timber
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
 
 
 @ExperimentalCoroutinesApi
@@ -131,11 +137,11 @@ class LogsFragment : androidx.fragment.app.Fragment() {
     }
 
     @ExperimentalCoroutinesApi
-    private fun subscribeLogsData(combinedChart: Chart<*>) {
+    private fun subscribeLogsData(combinedChart: CombinedChart) {
         lifecycleScope.launch {
             logsViewModel.logsData.flowWithLifecycle(lifecycle, Lifecycle.State.RESUMED).flowOn(Dispatchers.IO).collect { lineData ->
                 Timber.d("subscribeLogsData lineData: $lineData")
-                combinedChart.data = lineData
+                combinedChart.setData(lineData)
                 combinedChart.xAxis.axisMinimum = lineData.xMin.toLogsLong().getOnlyDateLocalTime().toLogsFloat()
                 combinedChart.xAxis.axisMaximum = (lineData.xMax.toLogsLong().getOnlyDateLocalTime() + FULL_DAY_IN_MILLIS).toLogsFloat()
                 combinedChart.invalidate() // refresh

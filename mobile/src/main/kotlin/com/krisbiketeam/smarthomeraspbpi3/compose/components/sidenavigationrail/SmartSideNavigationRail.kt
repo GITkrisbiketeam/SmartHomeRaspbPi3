@@ -10,12 +10,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavDestination
 import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartNavigationActions
-import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartTopLevelDestination
+import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartTopLevelRoute
 import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.isTopLevelDestinationInHierarchy
 
 @Composable
 fun SmartSideNavigationRail(
-    destinations: List<SmartTopLevelDestination>,
+    smartTopLevelRoutes: List<SmartTopLevelRoute<*>>,
     smartNavigationActions: SmartNavigationActions,
     currentDestination: NavDestination?,
     modifier: Modifier = Modifier,
@@ -24,7 +24,7 @@ fun SmartSideNavigationRail(
     NavigationRail(
         modifier = modifier
     ) {
-        destinations.forEach { destination ->
+        smartTopLevelRoutes.forEach { destination ->
             NavigationRailItem(
                 selected = currentDestination.isTopLevelDestinationInHierarchy(destination),
                 onClick = { smartNavigationActions.navigateToSmartTopLevelDestination(destination) },

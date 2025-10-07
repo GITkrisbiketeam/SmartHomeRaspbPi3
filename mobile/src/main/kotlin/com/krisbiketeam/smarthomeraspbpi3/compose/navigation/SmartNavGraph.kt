@@ -5,16 +5,11 @@ import androidx.compose.material3.DrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.navArgument
 import androidx.navigation.navigation
-import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartDestinationsArgs.HOME_UNIT_TYPE
-import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartDestinationsArgs.HW_UNIT_NAME
-import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartDestinationsArgs.ROOM_NAME_ARG
-import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartGraphs.ROOM_LIST_GRAPH_ROOT
-import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartGraphs.TASK_LIST_GRAPH_ROOT
+import androidx.navigation.toRoute
+import com.krisbiketeam.smarthomeraspbpi3.compose.screens.homeunit.HomeUnitScreen
 import com.krisbiketeam.smarthomeraspbpi3.compose.screens.logschart.LogsChartScreen
 import com.krisbiketeam.smarthomeraspbpi3.compose.screens.roomdetails.RoomDetailScreen
 import com.krisbiketeam.smarthomeraspbpi3.compose.screens.roomlist.RoomListScreen
@@ -30,7 +25,7 @@ fun SmartNavGraph(
     navActions: SmartNavigationActions,
     drawerState: DrawerState,
     drawerGesturesEnabled: (Boolean) -> Unit,
-    startDestination: String,
+    startDestination: Any,
     modifier: Modifier = Modifier,
 ) {
     NavHost(
@@ -38,32 +33,47 @@ fun SmartNavGraph(
         startDestination = startDestination,
         modifier = modifier
     ) {
-        navigation(
-            route = ROOM_LIST_GRAPH_ROOT,
-            startDestination = SmartDestinations.ROOM_LIST_ROUTE,
+        navigation<RoomListGraph>(
+            startDestination = RoomList,
         ) {
-            composable(SmartDestinations.ROOM_LIST_ROUTE) {
+            composable<RoomList> {
                 drawerGesturesEnabled(true)
-                RoomListScreen(openDrawer = { coroutineScope.launch { drawerState.open() } },
+                RoomListScreen(
+                    openDrawer = { coroutineScope.launch { drawerState.open() } },
                     onAddNewRoom = {},
                     onRoomClick = {
-                        navActions.navigateToRoomDetail(it)
+                        navActions.navigateToRoomDetail(RoomRoute(it))
                     })
             }
-            composable(SmartDestinations.ROOM_DETAIL_ROUTE) { backStackEntry ->
+            composable<RoomRoute> { backStackEntry ->
                 drawerGesturesEnabled(true)
+                val roomRoute: RoomRoute = backStackEntry.toRoute()
                 RoomDetailScreen(
                     openDrawer = { coroutineScope.launch { drawerState.open() } },
-                    onHomeUnitClick = { homeUnitType, homeUnitName ->
-                        navActions.navigateToHomeUnitDetail(homeUnitType, homeUnitName)
-                    },
+                    onHomeUnitClick = navActions::navigateToHomeUnitDetail,
                     onNewHomeUnitClick = { roomName ->
                         //navActions.navigateToToHomeUnitTypeChooserDialogFragment(roomName)
                     },
                     showLogs = { hwUnitName, homeUnitType ->
-                        navActions.navigateToLogsChart(hwUnitName to homeUnitType)
+                        navActions.navigateToLogsChart(
+                            LogsChartRoute(
+                                homeUnitType.firebaseTableName,
+                                hwUnitName
+                            )
+                        )
                     },
-                    roomName = backStackEntry.arguments?.getString(ROOM_NAME_ARG) ?: "null",
+                    roomName = roomRoute.name,
+                    navigateUp = {
+                        navActions.navigateUp()
+                    }
+                )
+            }
+            composable<HomeUnitRoute> { backStackEntry ->
+                drawerGesturesEnabled(false)
+                val homeUnitRoute: HomeUnitRoute = backStackEntry.toRoute()
+                HomeUnitScreen(
+                    homeUnitRoute.homeUnitType,
+                    homeUnitRoute.homeUnitName,
                     navigateUp = {
                         navActions.navigateUp()
                     }
@@ -71,36 +81,24 @@ fun SmartNavGraph(
             }
         }
 
-        navigation(
-            route = TASK_LIST_GRAPH_ROOT,
-            startDestination = SmartDestinations.TAK_LIST_ROUTE,
+        navigation<TaskListGraph>(
+            startDestination = TaskList
         ) {
-            composable(SmartDestinations.TAK_LIST_ROUTE) {
+            composable<TaskList> {
                 drawerGesturesEnabled(true)
-                TaskListScreen(openDrawer = { coroutineScope.launch { drawerState.open() } },
+                TaskListScreen(
+                    openDrawer = { coroutineScope.launch { drawerState.open() } },
                     onAddNewHomeUnit = {},
-                    onTaskClick = { homeUnitType, homeUnitName ->
-                        // TODO navigate to proper HomeUnit Detail screen
-                        navActions.navigateToRoomDetail(homeUnitName)
-                    })
+                    onTaskClick = navActions::navigateToHomeUnitDetail
+                )
             }
         }
 
-        composable(
-            SmartDestinations.LOGS_CHART_ROUTE,
-            arguments = listOf(navArgument(HW_UNIT_NAME) { type = NavType.StringType },
-                navArgument(HW_UNIT_NAME) {
-                    type = NavType.StringType
-                    nullable = true
-                },
-                navArgument(HOME_UNIT_TYPE) {
-                    type = NavType.StringType
-                    nullable = true
-                })
-        ) { backStackEntry ->
+        composable<LogsChartRoute> { backStackEntry ->
+            val logsChartRoute: LogsChartRoute = backStackEntry.toRoute()
 
-            val homeUnitType = backStackEntry.arguments?.getString(HOME_UNIT_TYPE)
-            val hwUnitName = backStackEntry.arguments?.getString(HW_UNIT_NAME)
+            val homeUnitType = logsChartRoute.homeUnitType
+            val hwUnitName = logsChartRoute.hwUnitName
 
             drawerGesturesEnabled(false)
             LogsChartScreen(
@@ -109,9 +107,7 @@ fun SmartNavGraph(
             )
         }
 
-        composable(
-            SmartDestinations.SETTINGS_ROUTE
-        ) {
+        composable<Settings> {
             SettingsScreen(
                 navigateUp = { navActions.navigateUp() },
                 navigateToLogin = {},
@@ -123,8 +119,3 @@ fun SmartNavGraph(
         }
     }
 }
-
-// Keys for navigation
-const val ADD_EDIT_RESULT_OK = Activity.RESULT_FIRST_USER + 1
-const val DELETE_RESULT_OK = Activity.RESULT_FIRST_USER + 2
-const val EDIT_RESULT_OK = Activity.RESULT_FIRST_USER + 3

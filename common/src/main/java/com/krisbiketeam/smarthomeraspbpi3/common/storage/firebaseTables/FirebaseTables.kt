@@ -1,5 +1,7 @@
 package com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables
 
+import kotlinx.serialization.Serializable
+
 // region "users"
 const val USER_INFORMATION_BASE = "users"
 
@@ -37,6 +39,7 @@ const val HOME_TASKS_ORDER = "tasksOrder"
 // region HomeUnits
 const val HOME_UNITS_BASE = "home_units"
 
+@Serializable
 enum class HomeUnitType(val firebaseTableName: String) {
     UNKNOWN(""),
     HOME_ACTUATORS("actuators"),

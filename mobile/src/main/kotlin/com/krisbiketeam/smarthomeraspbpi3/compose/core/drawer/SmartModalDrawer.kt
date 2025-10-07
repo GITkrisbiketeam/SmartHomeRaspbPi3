@@ -1,5 +1,6 @@
 package com.krisbiketeam.smarthomeraspbpi3.compose.core.drawer
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -36,10 +37,18 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.toRoute
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.Room
-import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartDestinations
+import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.LogsChartRoute
+import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.RoomList
+import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.RoomRoute
+import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.Settings
 import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartNavigationActions
+import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.TaskList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
@@ -48,12 +57,11 @@ import org.koin.androidx.compose.koinViewModel
 fun SmartModalDrawer(
     drawerState: DrawerState,
     drawerGesturesEnabled: Boolean,
-    currentRoute: String,
     navigationActions: SmartNavigationActions,
-    currentRouteArgs: String? = null,
+    navBackStackEntry: NavBackStackEntry? = null,
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
     viewModel: SmartDrawerViewModel = koinViewModel(),
-    content: @Composable () -> Unit
+    content: @Composable (() -> Unit)
 ) {
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -63,13 +71,12 @@ fun SmartModalDrawer(
             ModalDrawerSheet {
                 AppDrawer(
                     uiState,
-                    currentRoute = currentRoute,
-                    currentRouteArgs = currentRouteArgs,
-                    navigateToRoomList = { navigationActions.navigateToRoomList() },
+                    navBackStackEntry = navBackStackEntry,
+                    navigateToRoomList = { navigationActions.navigateToRoomList(true) },
                     navigateToTaskList = { navigationActions.navigateToTaskList() },
-                    navigateToLogsChart = { navigationActions.navigateToLogsChart() },
+                    navigateToLogsChart = { navigationActions.navigateToLogsChart(LogsChartRoute()) },
                     navigateToSettings = { navigationActions.navigateToSettings() },
-                    navigateToRoomDetail = { navigationActions.navigateToRoomDetail(it) },
+                    navigateToRoomDetail = { roomName ->  navigationActions.navigateToRoomDetail(RoomRoute(roomName)) },
                     closeDrawer = { coroutineScope.launch { drawerState.close() } }
                 )
             }
@@ -79,11 +86,11 @@ fun SmartModalDrawer(
     }
 }
 
+@SuppressLint("RestrictedApi")
 @Composable
 private fun AppDrawer(
     uiState: SmartDrawerUiState,
-    currentRoute: String,
-    currentRouteArgs: String?,
+    navBackStackEntry: NavBackStackEntry?,
     navigateToRoomList: () -> Unit,
     navigateToTaskList: () -> Unit,
     navigateToLogsChart: () -> Unit,
@@ -100,7 +107,7 @@ private fun AppDrawer(
         DrawerHeader(uiState)
 
         uiState.roomList?.let { rooms ->
-            DrawerRoomList(rooms, currentRoute, currentRouteArgs, navigateToRoomDetail, closeDrawer)
+            DrawerRoomList(rooms, navBackStackEntry, navigateToRoomDetail, closeDrawer)
 
             HorizontalDivider(
                 modifier = Modifier.padding(horizontal = 28.dp),
@@ -111,7 +118,9 @@ private fun AppDrawer(
         DrawerButton(
             painter = painterResource(id = R.drawable.ic_baseline_settings_24),
             label = stringResource(id = R.string.settings_title),
-            isSelected = currentRoute == SmartDestinations.SETTINGS_ROUTE,
+            isSelected = navBackStackEntry?.destination?.hierarchy?.any {
+                it.hasRoute(Settings::class)
+            } == true,
             action = {
                 navigateToSettings()
                 closeDrawer()
@@ -121,7 +130,9 @@ private fun AppDrawer(
         DrawerButton(
             painter = painterResource(id = R.drawable.ic_baseline_other_houses_24),
             label = stringResource(id = R.string.room_list_title),
-            isSelected = currentRoute == SmartDestinations.ROOM_LIST_ROUTE,
+            isSelected = navBackStackEntry?.destination?.hierarchy?.any {
+                it.hasRoute(RoomList::class)
+            } == true,
             action = {
                 navigateToRoomList()
                 closeDrawer()
@@ -131,7 +142,9 @@ private fun AppDrawer(
         DrawerButton(
             painter = painterResource(id = R.drawable.ic_baseline_view_headline_24),
             label = stringResource(id = R.string.task_list_title),
-            isSelected = currentRoute == SmartDestinations.TAK_LIST_ROUTE,
+            isSelected = navBackStackEntry?.destination?.hierarchy?.any {
+                it.hasRoute(TaskList::class)
+            } == true,
             action = {
                 navigateToTaskList()
                 closeDrawer()
@@ -141,7 +154,7 @@ private fun AppDrawer(
         DrawerButton(
             painter = painterResource(id = R.drawable.ic_statistics),
             label = stringResource(id = R.string.logs_title),
-            isSelected = currentRoute == SmartDestinations.LOGS_CHART_ROUTE,
+            isSelected = navBackStackEntry?.destination?.hierarchy?.any { it.hasRoute(LogsChartRoute::class)} == true,
             action = {
                 navigateToLogsChart()
                 closeDrawer()
@@ -204,8 +217,7 @@ private fun DrawerHeader(
 @Composable
 private fun DrawerRoomList(
     rooms: List<Room>,
-    currentRoute: String,
-    currentRouteArgs: String?,
+    navBackStackEntry: NavBackStackEntry?,
     navigateToRoomDetail: (String) -> Unit,
     closeDrawer: () -> Unit,
     modifier: Modifier = Modifier,
@@ -219,10 +231,12 @@ private fun DrawerRoomList(
             .padding(dimensionResource(id = R.dimen.margin_normal))
     ) {
         rooms.forEach { room ->
+            val roomRoute: RoomRoute? = runCatching { navBackStackEntry?.toRoute<RoomRoute>()}.getOrNull()
+            val selected = roomRoute?.name == room.name
             DrawerButton(
-                painter = painterResource(id = R.drawable.ic_outline_label_24),
+                painter = painterResource(id = if(selected) R.drawable.label_filled_24dp else R.drawable.label_24dp),
                 label = room.name,
-                isSelected = currentRoute == SmartDestinations.ROOM_DETAIL_ROUTE && currentRouteArgs == room.name,
+                isSelected = selected,
                 action = {
                     navigateToRoomDetail(room.name)
                     closeDrawer()
@@ -281,8 +295,7 @@ fun PreviewAppDrawer() {
         Surface {
             AppDrawer(
                 SmartDrawerUiState("someuyser@gmail.com", "Home Name"),
-                currentRoute = SmartDestinations.ROOM_LIST_ROUTE,
-                currentRouteArgs = null,
+                navBackStackEntry = null,
                 navigateToRoomList = {},
                 navigateToTaskList = {},
                 navigateToLogsChart = {},

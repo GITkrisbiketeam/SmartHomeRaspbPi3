@@ -1,4 +1,4 @@
-package com.krisbiketeam.smarthomeraspbpi3.compose.screens.roomdetails
+package com.krisbiketeam.smarthomeraspbpi3.compose.screens.homeunit
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -40,36 +40,34 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.compose.components.alertdialog.SmartAlertDialog
 import com.krisbiketeam.smarthomeraspbpi3.compose.components.homeunit.HomeUnitCard
 import com.krisbiketeam.smarthomeraspbpi3.compose.components.homeunit.HomeUnitCardModel
+import com.krisbiketeam.smarthomeraspbpi3.compose.components.topappbat.HomeUnitDetailTopAppBar
 import com.krisbiketeam.smarthomeraspbpi3.compose.components.topappbat.RoomDetailTopAppBar
-import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.HomeUnitRoute
+import com.krisbiketeam.smarthomeraspbpi3.compose.screens.roomdetails.RoomDetailScreenViewModel
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 
 @Composable
-fun RoomDetailScreen(
-    openDrawer: () -> Unit,
-    onHomeUnitClick: (HomeUnitRoute) -> Unit,
-    onNewHomeUnitClick: (String) -> Unit,
-    showLogs: (String, HomeUnitType) -> Unit,
+fun HomeUnitScreen(
+    homeUnitType: String,
+    homeUnitName: String,
     navigateUp: () -> Unit,
     modifier: Modifier = Modifier,
-    roomName: String,
-    viewModel: RoomDetailScreenViewModel = koinViewModel { parametersOf(roomName) },
+    viewModel: HomeUnitScreenViewModel = koinViewModel { parametersOf("roomName") },
 ) {
     var isEditing by rememberSaveable { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
-    Scaffold(
+    /*Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
-            RoomDetailTopAppBar(openDrawer = openDrawer,
+            HomeUnitDetailTopAppBar(onBack = navigateUp,
                 title = roomName,
                 isEditing = isEditing,
                 onEditClicked = { isEditing = true },
-                onSave = {
+                onDone = {
                     viewModel.actionSave()?.let {
                         scope.launch {
                             snackbarHostState.showSnackbar(context.getString(it))
@@ -86,13 +84,7 @@ fun RoomDetailScreen(
                 })
         },
         modifier = modifier.fillMaxSize(),
-        floatingActionButton = {
-            if (isEditing) {
-                FloatingActionButton(onClick = { onNewHomeUnitClick(roomName) }) {
-                    Icon(Icons.Filled.Add, stringResource(id = R.string.menu_add))
-                }
-            }
-        }) { paddingValues ->
+        ) { paddingValues ->
         val uiState by viewModel.homeUnitsList.collectAsStateWithLifecycle(emptyList())
 
         Column(
@@ -117,7 +109,7 @@ fun RoomDetailScreen(
                 modifier = modifier
                     .fillMaxSize(),
                 homeUnits = uiState,
-                onHomeUnitClick = { onHomeUnitClick(HomeUnitRoute(it.first.firebaseTableName, it.second)) },
+                onHomeUnitClick = { onHomeUnitClick(it.first, it.second) },
                 showLogs = { showLogs(it.first, it.second) },
                 switchHomeUnitState = { homeUnit, switchState ->
                     viewModel.switchHomeUnitState(
@@ -155,7 +147,7 @@ fun RoomDetailScreen(
                 trackColor = MaterialTheme.colorScheme.surfaceVariant,
             )
         }
-    }
+    }*/
 }
 
 @Composable

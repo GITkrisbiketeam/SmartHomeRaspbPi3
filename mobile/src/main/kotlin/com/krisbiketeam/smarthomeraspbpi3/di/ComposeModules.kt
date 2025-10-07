@@ -1,6 +1,8 @@
 package com.krisbiketeam.smarthomeraspbpi3.di
 
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
 import com.krisbiketeam.smarthomeraspbpi3.compose.core.drawer.SmartDrawerViewModel
+import com.krisbiketeam.smarthomeraspbpi3.compose.screens.homeunit.HomeUnitScreenViewModel
 import com.krisbiketeam.smarthomeraspbpi3.compose.screens.logschart.LogsChartViewModel
 import com.krisbiketeam.smarthomeraspbpi3.compose.screens.roomdetails.RoomDetailScreenViewModel
 import com.krisbiketeam.smarthomeraspbpi3.compose.screens.roomlist.RoomListScreenViewModel
@@ -22,6 +24,9 @@ val composeModule: Module = module {
     }
     viewModel { (roomName: String) ->
         RoomDetailScreenViewModel(get(), roomName)
+    }
+    viewModel { (roomName: String?, unitName: String?, unitType: HomeUnitType) ->
+        HomeUnitScreenViewModel(get(), roomName, unitName, unitType)
     }
     viewModel { SettingsViewModel(get(), get()) }
     factory<ReloginLastUserWithHomeUseCase> { ReloginLastUserWithHomeUseCaseImpl(get(), get()) }

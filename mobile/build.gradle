@@ -1,11 +1,16 @@
-apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-kapt'
-apply plugin: 'androidx.navigation.safeargs.kotlin'
-// Apply the Crashlytics Gradle plugin
-apply plugin: 'com.google.firebase.crashlytics'
-// Apply the Performance Monitoring plugin
-apply plugin: 'com.google.firebase.firebase-perf'
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.kotlin.kapt'
+    id("org.jetbrains.kotlin.plugin.serialization")
+    id 'androidx.navigation.safeargs.kotlin'
+    // Apply the Crashlytics Gradle plugin
+    id 'com.google.firebase.crashlytics'
+    // Apply the Performance Monitoring plugin
+    id 'com.google.firebase.firebase-perf'
+    // Apply the Kotlin Compose plugin
+    id 'org.jetbrains.kotlin.plugin.compose'
+}
 
 android {
     signingConfigs {
@@ -74,6 +79,7 @@ dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinxCoroutinesAndroid"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-reactive:$kotlinxCoroutinesReactive"
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.5.0")
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinxSerialization"
 
     implementation 'org.reactivestreams:reactive-streams:1.0.3'
 

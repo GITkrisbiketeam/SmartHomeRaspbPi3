@@ -19,6 +19,7 @@ import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
 import com.krisbiketeam.smarthomeraspbpi3.compose.components.grid.SmartStaggeredGrid
 import com.krisbiketeam.smarthomeraspbpi3.compose.components.topappbat.TaskListTopAppBar
+import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.HomeUnitRoute
 import org.koin.androidx.compose.koinViewModel
 import timber.log.Timber
 
@@ -26,7 +27,7 @@ import timber.log.Timber
 fun TaskListScreen(
     openDrawer: () -> Unit,
     onAddNewHomeUnit: () -> Unit,
-    onTaskClick: (HomeUnitType, String) -> Unit,
+    onTaskClick: (HomeUnitRoute) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: TaskListScreenViewModel = koinViewModel(),
 ) {
@@ -56,10 +57,7 @@ fun TaskListScreen(
             uiState,
             { model ->
                 model.switchUnit?.let { (homeUnitType, homeUnitName) ->
-                    onTaskClick(
-                        homeUnitType,
-                        homeUnitName
-                    )
+                    onTaskClick(HomeUnitRoute(homeUnitType.firebaseTableName, homeUnitName))
                 }
             },
             { model, isChecked ->

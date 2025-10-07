@@ -84,7 +84,7 @@ class LogsViewModel(private val homeRepository: FirebaseHomeInformationRepositor
             )
 
     @ExperimentalCoroutinesApi
-    val logsData: Flow<ChartData<*>> =
+    val logsData: Flow<CombinedData> =
             combine(startRangeFlow, endRangeFlow, filteredHwUnitListFlow) { startRange, endRange, filteredHwUnitList ->
                 Triple(startRange, endRange, filteredHwUnitList)
             }.flatMapLatest { (startRange, endRange, filteredHwUnitList) ->

@@ -3,105 +3,70 @@ package com.krisbiketeam.smarthomeraspbpi3.compose.navigation
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.navigation.NavDestination
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import com.krisbiketeam.smarthomeraspbpi3.R
-import com.krisbiketeam.smarthomeraspbpi3.SmartActivity
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
-import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartDestinationsArgs.HOME_UNIT_TYPE
-import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartDestinationsArgs.HW_UNIT_NAME
-import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartDestinationsArgs.ROOM_NAME_ARG
-import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartScreens.LOGS_CHART_SCREEN
-import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartScreens.ROOM_DETAIL_SCREEN
-import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartScreens.ROOM_LIST_SCREEN
-import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartScreens.SETTINGS_SCREEN
-import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.SmartScreens.TASK_LIST_SCREEN
+import kotlinx.serialization.Serializable
 import timber.log.Timber
 
-/**
- * Screens used in [SmartDestinations]
- */
-object SmartGraphs {
-    const val ROOM_LIST_GRAPH_ROOT = "roomListGraphRoot"
-    const val TASK_LIST_GRAPH_ROOT = "taskListGraphRoot"
-}
+@Serializable
+data object RoomListGraph
+@Serializable
+data object TaskListGraph
 
-object SmartScreens {
-    const val ROOM_LIST_SCREEN = "roomList"
-    const val TASK_LIST_SCREEN = "taskList"
-    const val SETTINGS_SCREEN = "settings"
-    const val LOGS_CHART_SCREEN = "logsChart"
-    const val ROOM_DETAIL_SCREEN = "roomDetail"
-}
+@Serializable
+data object RoomList
+@Serializable
+data class RoomRoute(val name: String)
 
-/**
- * Arguments used in [SmartDestinations] routes
- */
-object SmartDestinationsArgs {
-    const val ROOM_NAME_ARG = "roomName"
-    const val HOME_UNIT_TYPE = "homeUnitType"
-    const val HW_UNIT_NAME = "hwUnitName"
-    const val TITLE_ARG = "title"
-}
+@Serializable
+data object TaskList
+@Serializable
+data class HomeUnitRoute(val homeUnitType: String, val homeUnitName: String)
 
-/**
- * Destinations used in the [SmartActivity]
- */
-object SmartDestinations {
-    const val ROOM_LIST_ROUTE = ROOM_LIST_SCREEN
-    const val TAK_LIST_ROUTE = TASK_LIST_SCREEN
-    const val SETTINGS_ROUTE = SETTINGS_SCREEN
-    const val LOGS_CHART_ROUTE =
-        "$LOGS_CHART_SCREEN?$HW_UNIT_NAME={$HW_UNIT_NAME}?$HOME_UNIT_TYPE={$HOME_UNIT_TYPE}"
-    const val ROOM_DETAIL_ROUTE = "$ROOM_DETAIL_SCREEN/{$ROOM_NAME_ARG}"
-    //const val ADD_EDIT_TASK_ROUTE = "$ADD_EDIT_TASK_SCREEN/{$TITLE_ARG}?$TASK_ID_ARG={$TASK_ID_ARG}"
-}
+@Serializable
+data class LogsChartRoute(val hwUnitName: String? = null, val homeUnitType: String? = null)
 
-enum class SmartTopLevelDestination(
-    val destination: String,
-    @DrawableRes val icon: Int,
-    @StringRes val titleTextId: Int,
-) {
-    ROOM_LIST_ROUTE(
-        destination = SmartGraphs.ROOM_LIST_GRAPH_ROOT,
+@Serializable
+data object Settings
+
+data class SmartTopLevelRoute<T : Any>(val route: T,
+                                       @DrawableRes val icon: Int,
+                                       @StringRes val titleTextId: Int)
+
+val smartTopLevelRoutes = listOf(
+    SmartTopLevelRoute(
+        route = RoomListGraph,
         icon = R.drawable.ic_baseline_other_houses_24,
-        titleTextId = R.string.room_list_title,
-    ),
-    TAK_LIST_ROUTE(
-        destination = SmartGraphs.TASK_LIST_GRAPH_ROOT,
+        titleTextId = R.string.room_list_title),
+    SmartTopLevelRoute(
+        route = TaskListGraph,
         icon = R.drawable.ic_baseline_view_headline_24,
-        titleTextId = R.string.task_list_title,
-    ),
-    LOGS_CHART_ROUTE(
-        destination = SmartDestinations.LOGS_CHART_ROUTE,
+        titleTextId = R.string.task_list_title),
+    SmartTopLevelRoute(
+        route = LogsChartRoute(),
         icon = R.drawable.ic_statistics,
-        titleTextId = R.string.logs_title,
-    ),
-}
+        titleTextId = R.string.logs_title)
+)
 
-fun NavDestination?.isTopLevelDestinationInHierarchy(destination: SmartTopLevelDestination): Boolean {
+fun NavDestination?.isTopLevelDestinationInHierarchy(smartTopLevelRoute: SmartTopLevelRoute<*>): Boolean {
     Timber.v(
-        "isTopLevelDestinationInHierarchy destination:${destination.destination}\n" +
+        "isTopLevelDestinationInHierarchy smartTopLevelRoute:$smartTopLevelRoute\n" +
                 "currentDestination:$this\n" +
                 "currentDestination hierarchy:\n    ${this?.hierarchy?.joinToString("\n    ")}"
     )
-    return this?.hierarchy?.any {
-        it.route?.contains(destination.destination, true) ?: false
-    } ?: false
+    return this?.hierarchy?.any { it.hasRoute(smartTopLevelRoute.route::class) } == true
 }
-
-fun NavDestination?.isSelectedDestination(destination: String) =
-    this?.route == destination
-
 
 /**
  * Models the navigation actions in the app.
  */
 class SmartNavigationActions(private val navController: NavHostController) {
 
-    fun navigateToRoomList() {
-        navController.navigate(SmartGraphs.ROOM_LIST_GRAPH_ROOT) {
+    fun navigateToRoomList(resetState: Boolean = false) {
+        navController.navigate(RoomList) {
             // Pop up to the start destination of the graph to
             // avoid building up a large stack of destinations
             // on the back stack as users select items
@@ -112,12 +77,12 @@ class SmartNavigationActions(private val navController: NavHostController) {
             // reselecting the same item
             launchSingleTop = true
             // Restore state when reselecting a previously selected item
-            restoreState = true
+            restoreState = !resetState
         }
     }
 
     fun navigateToTaskList() {
-        navController.navigate(SmartGraphs.TASK_LIST_GRAPH_ROOT) {
+        navController.navigate(TaskListGraph) {
             // Pop up to the start destination of the graph to
             // avoid building up a large stack of destinations
             // on the back stack as users select items
@@ -134,16 +99,11 @@ class SmartNavigationActions(private val navController: NavHostController) {
 
     fun navigateToSettings() {
         Timber.e("navigateToSettings")
-        navController.navigate(SETTINGS_SCREEN)
+        navController.navigate(Settings)
     }
 
-    fun navigateToLogsChart(preselection: Pair<String, HomeUnitType>? = null) {
-        val route = if (preselection != null) {
-            "$LOGS_CHART_SCREEN?$HW_UNIT_NAME=${preselection.first}?$HOME_UNIT_TYPE=${preselection.second.firebaseTableName}"
-        } else {
-            SmartDestinations.LOGS_CHART_ROUTE
-        }
-        navController.navigate(route) {
+    fun navigateToLogsChart(logsChartRoute: LogsChartRoute) {
+        navController.navigate(logsChartRoute) {
             // Pop up to the start destination of the graph to
             // avoid building up a large stack of destinations
             // on the back stack as users select items
@@ -158,9 +118,9 @@ class SmartNavigationActions(private val navController: NavHostController) {
         }
     }
 
-    fun navigateToRoomDetail(roomName: String) {
-        Timber.e("navigateToRoomDetail $roomName")
-        navController.navigate("$ROOM_DETAIL_SCREEN/$roomName") {
+    fun navigateToRoomDetail(roomRoute: RoomRoute) {
+        Timber.e("navigateToRoomDetail $roomRoute")
+        navController.navigate(roomRoute) {
             // Pop up to the start destination of the graph to
             // avoid building up a large stack of destinations
             // on the back stack as users select items
@@ -168,34 +128,23 @@ class SmartNavigationActions(private val navController: NavHostController) {
         }
     }
 
-    fun navigateToHomeUnitDetail(homeUnitName: HomeUnitType, homeUnitType: String) {
-        // TODO add proper ROOM_DETAIL_SCREEN
-        navController.navigate("$ROOM_DETAIL_SCREEN/$homeUnitName") {
-            // Pop up to the start destination of the graph to
-            // avoid building up a large stack of destinations
-            // on the back stack as users select items
-            popUpTo(navController.graph.findStartDestination().id) {
-                saveState = true
-            }
-            // Avoid multiple copies of the same destination when
-            // reselecting the same item
-            launchSingleTop = true
-            // Restore state when reselecting a previously selected item
-            restoreState = true
-        }
+    fun navigateToHomeUnitDetail(homeUnitRoute: HomeUnitRoute) {
+        Timber.e("navigateToHomeUnitDetail $homeUnitRoute")
+        navController.navigate(homeUnitRoute)
     }
 
     fun navigateUp() {
         navController.navigateUp()
     }
 
-    fun navigateToSmartTopLevelDestination(topLevelDestination: SmartTopLevelDestination) {
-        Timber.d("Navigation: ${topLevelDestination.name}")
+    fun navigateToSmartTopLevelDestination(smartTopLevelRoute: SmartTopLevelRoute<*>) {
+        Timber.d("Navigation: $smartTopLevelRoute")
 
-        when (topLevelDestination) {
-            SmartTopLevelDestination.ROOM_LIST_ROUTE -> navigateToRoomList()
-            SmartTopLevelDestination.TAK_LIST_ROUTE -> navigateToTaskList()
-            SmartTopLevelDestination.LOGS_CHART_ROUTE -> navigateToLogsChart()
+        when (smartTopLevelRoute.route) {
+            is RoomListGraph -> navigateToRoomList()
+            is TaskListGraph -> navigateToTaskList()
+            is LogsChartRoute -> navigateToLogsChart(LogsChartRoute())
+            else -> Unit
         }
     }
 }
