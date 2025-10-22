@@ -63,11 +63,12 @@ fun SmartModalDrawer(
     viewModel: SmartDrawerViewModel = koinViewModel(),
     content: @Composable (() -> Unit)
 ) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
     ModalNavigationDrawer(
         drawerState = drawerState,
         gesturesEnabled = drawerGesturesEnabled,
         drawerContent = {
-            val uiState by viewModel.uiState.collectAsStateWithLifecycle()
             ModalDrawerSheet {
                 AppDrawer(
                     uiState,
@@ -222,6 +223,7 @@ private fun DrawerRoomList(
     closeDrawer: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val roomRoute: RoomRoute? = runCatching { navBackStackEntry?.toRoute<RoomRoute>()}.getOrNull()
     Column(
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.Center,
@@ -231,7 +233,6 @@ private fun DrawerRoomList(
             .padding(dimensionResource(id = R.dimen.margin_normal))
     ) {
         rooms.forEach { room ->
-            val roomRoute: RoomRoute? = runCatching { navBackStackEntry?.toRoute<RoomRoute>()}.getOrNull()
             val selected = roomRoute?.name == room.name
             DrawerButton(
                 painter = painterResource(id = if(selected) R.drawable.label_filled_24dp else R.drawable.label_24dp),

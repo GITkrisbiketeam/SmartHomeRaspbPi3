@@ -2,32 +2,243 @@ package com.krisbiketeam.smarthomeraspbpi3.compose.screens.homeunit
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.android.gms.tasks.Task
-import com.krisbiketeam.smarthomeraspbpi3.R
-import com.krisbiketeam.smarthomeraspbpi3.adapters.UnitTaskListAdapter
-import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.*
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_MAX_TEMPERATURE_VAL
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_MAX_TEMPERATURE_VAL_LAST_UPDATE
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_MIN_TEMPERATURE_VAL
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_MIN_TEMPERATURE_VAL_LAST_UPDATE
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.LAST_TRIGGER_SOURCE_HOME_UNIT_DETAILS
 import com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitGenericDetailFragment
-import com.krisbiketeam.smarthomeraspbpi3.ui.RoomDetailFragment
 import com.krisbiketeam.smarthomeraspbpi3.utils.getLastUpdateTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import timber.log.Timber
-import kotlin.collections.set
 
 /**
  * The ViewModel used in [HomeUnitScreen].
  */
 @ExperimentalCoroutinesApi
 class HomeUnitScreenViewModel/*<T : HomeUnit<Any>>*/(
+    private val application: Application,
     private val homeRepository: FirebaseHomeInformationRepository,
-    roomName: String?, unitName: String?, unitType: HomeUnitType
-) : ViewModel() {
+    roomName: String?, unitName: String, unitType: HomeUnitType
+) : AndroidViewModel(application) {
+
+
+    val uiState: StateFlow<HomeUnitScreenUiState> =
+        when (unitType) {
+            HomeUnitType.HOME_LIGHT_SWITCHES -> {
+                homeRepository.lightSwitchHomeUnitFlow(unitName).map { homeUnit ->
+                    HomeUnitScreenUiState(
+                        showProgress = false,
+                        unitName = homeUnit.name,
+                        unitType = homeUnit.type.firebaseTableName,
+                        roomName = homeUnit.room,
+                        hwUnitName = homeUnit.hwUnitName.toString(),
+                        value = getLightSwitchHomeUnitValue(homeUnit),
+                        firebaseNotify = homeUnit.firebaseNotify,
+                        firebaseNotifyTrigger = homeUnit.firebaseNotifyTrigger,
+                        showInTaskList = homeUnit.showInTaskList
+                    )
+                }
+            }
+
+            HomeUnitType.HOME_WATER_CIRCULATION -> {
+                homeRepository.waterCirculationHomeUnitFlow(unitName).map { homeUnit ->
+                    HomeUnitScreenUiState(
+                        showProgress = false,
+                        unitName = homeUnit.name,
+                        unitType = homeUnit.type.firebaseTableName,
+                        roomName = homeUnit.room,
+                        hwUnitName = homeUnit.hwUnitName.toString(),
+                        value = getWaterCirculationHomeUnitValue(homeUnit),
+                        firebaseNotify = homeUnit.firebaseNotify,
+                        firebaseNotifyTrigger = homeUnit.firebaseNotifyTrigger,
+                        showInTaskList = homeUnit.showInTaskList
+                    )
+                }
+            }
+
+            HomeUnitType.HOME_MCP23017_WATCH_DOG -> {
+                homeRepository.mcp23017WatchDogHomeUnitFlow(unitName).map { homeUnit ->
+                    HomeUnitScreenUiState(
+                        showProgress = false,
+                        unitName = homeUnit.name,
+                        unitType = homeUnit.type.firebaseTableName,
+                        roomName = homeUnit.room,
+                        hwUnitName = homeUnit.hwUnitName.toString(),
+                        value = getWatchDogHomeUnitValue(homeUnit),
+                        firebaseNotify = homeUnit.firebaseNotify,
+                        firebaseNotifyTrigger = homeUnit.firebaseNotifyTrigger,
+                        showInTaskList = homeUnit.showInTaskList
+                    )
+                }
+            }
+
+            else -> {
+                homeRepository.genericHomeUnitFlow(unitType, unitName).map { homeUnit ->
+
+                    HomeUnitScreenUiState(
+                        showProgress = false,
+                        unitName = homeUnit.name,
+                        unitType = homeUnit.type.firebaseTableName,
+                        roomName = homeUnit.room,
+                        hwUnitName = homeUnit.hwUnitName.toString(),
+                        value = getGenericHomeUnitValue(homeUnit),
+                        firebaseNotify = homeUnit.firebaseNotify,
+                        firebaseNotifyTrigger = homeUnit.firebaseNotifyTrigger,
+                        showInTaskList = homeUnit.showInTaskList
+                    )
+                }
+            }
+        }.flowOn(Dispatchers.IO).stateIn(
+            viewModelScope, SharingStarted.WhileSubscribed(5000), HomeUnitScreenUiState(
+                showProgress = true,
+                unitName = unitName,
+                unitType = unitType.firebaseTableName,
+                roomName = roomName,
+                hwUnitName = "",
+                value = null,
+                firebaseNotify = false,
+                firebaseNotifyTrigger = null,
+                showInTaskList = false
+            )
+        )
+
+    private fun getGenericHomeUnitValue(homeUnit: GenericHomeUnit<Any>): HomeUnitScreenValueUiState<*>? {
+        return if (HOME_ACTION_STORAGE_UNITS.contains(homeUnit.type) && homeUnit.value is Boolean?) {
+            return HomeUnitScreenValueUiState.HomeUnitScreenSwitchValueUiState(
+                value = homeUnit.value as? Boolean,
+                lastUpdateTime = getLastUpdateTime(application, homeUnit.lastUpdateTime),
+                { isChecked ->
+                    Timber.d("OnCheckedChangeListener isChecked: $isChecked")
+                    if (homeUnit.value != isChecked) {
+                        homeRepository.updateHomeUnitValue(
+                            homeUnit.type, homeUnit.name,
+                            isChecked,
+                            System.currentTimeMillis(),
+                            LAST_TRIGGER_SOURCE_HOME_UNIT_DETAILS
+                        )
+                    }
+                }
+            )
+        } else if (homeUnit.value is Number?) {
+            HomeUnitScreenValueUiState.HomeUnitScreenNumberedValueUiState(
+                value = homeUnit.value as? Number,
+                lastUpdateTime = getLastUpdateTime(application, homeUnit.lastUpdateTime),
+                minValue = homeUnit.min as? Number,
+                minLastUpdateTime = getLastUpdateTime(application, homeUnit.minLastUpdateTime),
+                maxValue = homeUnit.max as? Number,
+                maxLastUpdateTime = getLastUpdateTime(application, homeUnit.maxLastUpdateTime),
+                clearMinValue = {
+                    Timber.d("clearMinValue homeUnit: $homeUnit")
+                    homeRepository.clearMinHomeUnitValue(homeUnit)
+                },
+                clearMaxValue = {
+                    Timber.d("clearMaxValue homeUnit: $homeUnit")
+                    homeRepository.clearMaxHomeUnitValue(homeUnit)
+                }
+            )
+        } else {
+            null
+        }
+    }
+
+    private fun getLightSwitchHomeUnitValue(homeUnit: LightSwitchHomeUnit<Any>): HomeUnitScreenValueUiState<*>? {
+        return HomeUnitScreenValueUiState.HomeUnitScreenLightSwitchValueUiState(
+            value = homeUnit.value as? Boolean,
+            lastUpdateTime = getLastUpdateTime(application, homeUnit.lastUpdateTime),
+            { isChecked ->
+                Timber.d("OnCheckedChangeListener isChecked: $isChecked")
+                if (homeUnit.value != isChecked) {
+                    homeRepository.updateHomeUnitValue(
+                        homeUnit.type, homeUnit.name,
+                        isChecked,
+                        System.currentTimeMillis(),
+                        LAST_TRIGGER_SOURCE_HOME_UNIT_DETAILS
+                    )
+                }
+            },
+            switchValue = homeUnit.switchValue as? Boolean,
+            switchLastUpdateTime = getLastUpdateTime(application, homeUnit.switchLastUpdateTime)
+        )
+    }
+
+    private fun getWatchDogHomeUnitValue(homeUnit: MCP23017WatchDogHomeUnit<Any>): HomeUnitScreenValueUiState<*>? {
+        return HomeUnitScreenValueUiState.HomeUnitScreenWatchDogValueUiState(
+            value = homeUnit.value as? Boolean,
+            lastUpdateTime = getLastUpdateTime(application, homeUnit.lastUpdateTime),
+            { isChecked ->
+                Timber.d("OnCheckedChangeListener isChecked: $isChecked")
+                if (homeUnit.value != isChecked) {
+                    homeRepository.updateHomeUnitValue(
+                        homeUnit.type, homeUnit.name,
+                        isChecked,
+                        System.currentTimeMillis(),
+                        LAST_TRIGGER_SOURCE_HOME_UNIT_DETAILS
+                    )
+                }
+            },
+            inputValue = homeUnit.inputValue as? Boolean,
+            inputLastUpdateTime = getLastUpdateTime(application, homeUnit.inputLastUpdateTime)
+        )
+    }
+
+    private fun getWaterCirculationHomeUnitValue(homeUnit: WaterCirculationHomeUnit<Any>): HomeUnitScreenValueUiState<*>? {
+        return HomeUnitScreenValueUiState.HomeUnitScreenWaterCirculationValueUiState(
+            value = homeUnit.value as? Boolean,
+            lastUpdateTime = getLastUpdateTime(application, homeUnit.lastUpdateTime),
+            { isChecked ->
+                Timber.d("OnCheckedChangeListener isChecked: $isChecked")
+                if (homeUnit.value != isChecked) {
+                    homeRepository.updateHomeUnitValue(
+                        homeUnit.type, homeUnit.name,
+                        isChecked,
+                        System.currentTimeMillis(),
+                        LAST_TRIGGER_SOURCE_HOME_UNIT_DETAILS
+                    )
+                }
+            },
+            motionValue = homeUnit.motionValue,
+            motionLastUpdateTime = getLastUpdateTime(application, homeUnit.motionLastUpdateTime),
+            temperatureValue = homeUnit.temperatureValue,
+            temperatureLastUpdateTime = getLastUpdateTime(
+                application,
+                homeUnit.temperatureLastUpdateTime
+            ),
+
+            temperatureMinValue = homeUnit.temperatureMin,
+            temperatureMinLastUpdateTime = getLastUpdateTime(
+                application,
+                homeUnit.temperatureMinLastUpdateTime
+            ),
+            temperatureMaxValue = homeUnit.temperatureMax,
+            temperatureMaxLastUpdateTime = getLastUpdateTime(
+                application,
+                homeUnit.temperatureMaxLastUpdateTime
+            ),
+            clearTemperatureMinValue = {
+                Timber.d("clearMinValue homeUnit: $homeUnit")
+                homeRepository.clearMinHomeUnitValue(
+                    homeUnit,
+                    HOME_MIN_TEMPERATURE_VAL,
+                    HOME_MIN_TEMPERATURE_VAL_LAST_UPDATE
+                )
+            },
+            clearTemperatureMaxValue = {
+                Timber.d("clearMaxValue homeUnit: $homeUnit")
+                homeRepository.clearMaxHomeUnitValue(
+                    homeUnit,
+                    HOME_MAX_TEMPERATURE_VAL,
+                    HOME_MAX_TEMPERATURE_VAL_LAST_UPDATE
+                )
+            }
+        )
+    }
 
     /*val unitTaskListAdapter = UnitTaskListAdapter(homeRepository, unitName, unitType)
 

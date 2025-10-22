@@ -1,6 +1,5 @@
 package com.krisbiketeam.smarthomeraspbpi3.compose.navigation
 
-import android.app.Activity
 import androidx.compose.material3.DrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -72,8 +71,9 @@ fun SmartNavGraph(
                 drawerGesturesEnabled(false)
                 val homeUnitRoute: HomeUnitRoute = backStackEntry.toRoute()
                 HomeUnitScreen(
-                    homeUnitRoute.homeUnitType,
-                    homeUnitRoute.homeUnitName,
+                    roomName = homeUnitRoute.roomName,
+                    homeUnitName = homeUnitRoute.homeUnitName,
+                    homeUnitType = homeUnitRoute.homeUnitType,
                     navigateUp = {
                         navActions.navigateUp()
                     }

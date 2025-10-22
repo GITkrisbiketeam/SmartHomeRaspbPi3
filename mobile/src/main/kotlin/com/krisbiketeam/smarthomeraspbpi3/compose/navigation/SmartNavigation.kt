@@ -24,7 +24,7 @@ data class RoomRoute(val name: String)
 @Serializable
 data object TaskList
 @Serializable
-data class HomeUnitRoute(val homeUnitType: String, val homeUnitName: String)
+data class HomeUnitRoute(val roomName: String? = null, val homeUnitType: String, val homeUnitName: String)
 
 @Serializable
 data class LogsChartRoute(val hwUnitName: String? = null, val homeUnitType: String? = null)

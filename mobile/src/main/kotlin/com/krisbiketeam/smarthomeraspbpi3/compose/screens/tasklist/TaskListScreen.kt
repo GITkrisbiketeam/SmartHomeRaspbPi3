@@ -16,7 +16,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.krisbiketeam.smarthomeraspbpi3.R
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
 import com.krisbiketeam.smarthomeraspbpi3.compose.components.grid.SmartStaggeredGrid
 import com.krisbiketeam.smarthomeraspbpi3.compose.components.topappbat.TaskListTopAppBar
 import com.krisbiketeam.smarthomeraspbpi3.compose.navigation.HomeUnitRoute
@@ -57,7 +56,10 @@ fun TaskListScreen(
             uiState,
             { model ->
                 model.switchUnit?.let { (homeUnitType, homeUnitName) ->
-                    onTaskClick(HomeUnitRoute(homeUnitType.firebaseTableName, homeUnitName))
+                    onTaskClick(HomeUnitRoute(
+                        homeUnitType = homeUnitType.firebaseTableName,
+                        homeUnitName = homeUnitName
+                    ))
                 }
             },
             { model, isChecked ->

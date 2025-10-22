@@ -25,8 +25,8 @@ val composeModule: Module = module {
     viewModel { (roomName: String) ->
         RoomDetailScreenViewModel(get(), roomName)
     }
-    viewModel { (roomName: String?, unitName: String?, unitType: HomeUnitType) ->
-        HomeUnitScreenViewModel(get(), roomName, unitName, unitType)
+    viewModel { (roomName: String?, unitName: String, unitType: HomeUnitType) ->
+        HomeUnitScreenViewModel(get(), get(), roomName, unitName, unitType)
     }
     viewModel { SettingsViewModel(get(), get()) }
     factory<ReloginLastUserWithHomeUseCase> { ReloginLastUserWithHomeUseCaseImpl(get(), get()) }

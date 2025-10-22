@@ -117,7 +117,15 @@ fun RoomDetailScreen(
                 modifier = modifier
                     .fillMaxSize(),
                 homeUnits = uiState,
-                onHomeUnitClick = { onHomeUnitClick(HomeUnitRoute(it.first.firebaseTableName, it.second)) },
+                onHomeUnitClick = {
+                    onHomeUnitClick(
+                        HomeUnitRoute(
+                            roomName = roomName,
+                            homeUnitType = it.first.firebaseTableName,
+                            homeUnitName = it.second
+                        )
+                    )
+                },
                 showLogs = { showLogs(it.first, it.second) },
                 switchHomeUnitState = { homeUnit, switchState ->
                     viewModel.switchHomeUnitState(
@@ -129,7 +137,8 @@ fun RoomDetailScreen(
     }
     val alertDialog by viewModel.showDialog.collectAsStateWithLifecycle()
     alertDialog?.let {
-        SmartAlertDialog(model = it,
+        SmartAlertDialog(
+            model = it,
             onOkClick = {
                 viewModel.showDialog.value = null
                 isEditing = false
@@ -173,20 +182,25 @@ private fun HomeUnitList(
         contentPadding = PaddingValues(horizontal = 8.dp),
         content = {
             items(homeUnits) { homeUnitModel ->
-                HomeUnitCard(homeUnitModel,
-                    onClick = { onHomeUnitClick(homeUnitModel.id.homeUnitType to homeUnitModel.id.homeUnitName) },
-                    showLogs = {
-                        homeUnitModel.id.hwUnitName?.let { hwUnitName ->
-                            showLogs(
-                                hwUnitName to homeUnitModel.id.homeUnitType
-                            )
+                HomeUnitCard(
+                    homeUnitModel,
+                    onClick = remember(homeUnitModel) { { onHomeUnitClick(homeUnitModel.id.homeUnitType to homeUnitModel.id.homeUnitName) } },
+                    showLogs = remember(homeUnitModel) {
+                        {
+                            homeUnitModel.id.hwUnitName?.let { hwUnitName ->
+                                showLogs(
+                                    hwUnitName to homeUnitModel.id.homeUnitType
+                                )
+                            } ?: Unit
                         }
                     },
-                    onSwitch = {
-                        switchHomeUnitState(
-                            homeUnitModel.id.homeUnitType to homeUnitModel.id.homeUnitName,
-                            it
-                        )
+                    onSwitch = remember {
+                        {
+                            switchHomeUnitState(
+                                homeUnitModel.id.homeUnitType to homeUnitModel.id.homeUnitName,
+                                it
+                            )
+                        }
                     })
             }
         },
