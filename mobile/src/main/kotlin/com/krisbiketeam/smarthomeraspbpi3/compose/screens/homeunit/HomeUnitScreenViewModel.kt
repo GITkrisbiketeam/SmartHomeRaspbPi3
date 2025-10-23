@@ -36,10 +36,14 @@ class HomeUnitScreenViewModel/*<T : HomeUnit<Any>>*/(
                     HomeUnitScreenUiState(
                         showProgress = false,
                         unitName = homeUnit.name,
+                        value = getLightSwitchHomeUnitValue(homeUnit),
                         unitType = homeUnit.type.firebaseTableName,
                         roomName = homeUnit.room,
-                        hwUnitName = homeUnit.hwUnitName.toString(),
-                        value = getLightSwitchHomeUnitValue(homeUnit),
+                        hwUnit = HomeUnitScreenHwUnitUiState.LightSwitchHwUnitUiState(
+                            hwUnitName = homeUnit.hwUnitName.toString(),
+                            switchHwUnitName = homeUnit.switchHwUnitName.toString()
+                        ),
+                        additionalSettings = null,
                         firebaseNotify = homeUnit.firebaseNotify,
                         firebaseNotifyTrigger = homeUnit.firebaseNotifyTrigger,
                         showInTaskList = homeUnit.showInTaskList
@@ -52,10 +56,18 @@ class HomeUnitScreenViewModel/*<T : HomeUnit<Any>>*/(
                     HomeUnitScreenUiState(
                         showProgress = false,
                         unitName = homeUnit.name,
+                        value = getWaterCirculationHomeUnitValue(homeUnit),
                         unitType = homeUnit.type.firebaseTableName,
                         roomName = homeUnit.room,
-                        hwUnitName = homeUnit.hwUnitName.toString(),
-                        value = getWaterCirculationHomeUnitValue(homeUnit),
+                        hwUnit = HomeUnitScreenHwUnitUiState.WaterCirculationHwUnitUiState(
+                            hwUnitName = homeUnit.hwUnitName.toString(),
+                            motionHwUnitName = homeUnit.motionHwUnitName.toString(),
+                            temperatureHwUnitName = homeUnit.temperatureHwUnitName.toString()
+                        ),
+                        additionalSettings = HomeUnitScreenAdditionalSettingsUiState.WaterCirculationAdditionalSettingsUiState(
+                            circulationDuration = homeUnit.actionTimeout,
+                            temperatureThreshold = homeUnit.temperatureThreshold
+                        ),
                         firebaseNotify = homeUnit.firebaseNotify,
                         firebaseNotifyTrigger = homeUnit.firebaseNotifyTrigger,
                         showInTaskList = homeUnit.showInTaskList
@@ -68,10 +80,17 @@ class HomeUnitScreenViewModel/*<T : HomeUnit<Any>>*/(
                     HomeUnitScreenUiState(
                         showProgress = false,
                         unitName = homeUnit.name,
+                        value = getWatchDogHomeUnitValue(homeUnit),
                         unitType = homeUnit.type.firebaseTableName,
                         roomName = homeUnit.room,
-                        hwUnitName = homeUnit.hwUnitName.toString(),
-                        value = getWatchDogHomeUnitValue(homeUnit),
+                        hwUnit = HomeUnitScreenHwUnitUiState.LightSwitchHwUnitUiState(
+                            hwUnitName = homeUnit.hwUnitName.toString(),
+                            switchHwUnitName = homeUnit.inputHwUnitName.toString()
+                        ),
+                        additionalSettings = HomeUnitScreenAdditionalSettingsUiState.WatchDogAdditionalSettingsUiState(
+                            watchDogDelay = homeUnit.watchDogDelay,
+                            watchDogTimeout = homeUnit.watchDogTimeout
+                        ),
                         firebaseNotify = homeUnit.firebaseNotify,
                         firebaseNotifyTrigger = homeUnit.firebaseNotifyTrigger,
                         showInTaskList = homeUnit.showInTaskList
@@ -85,10 +104,13 @@ class HomeUnitScreenViewModel/*<T : HomeUnit<Any>>*/(
                     HomeUnitScreenUiState(
                         showProgress = false,
                         unitName = homeUnit.name,
+                        value = getGenericHomeUnitValue(homeUnit),
                         unitType = homeUnit.type.firebaseTableName,
                         roomName = homeUnit.room,
-                        hwUnitName = homeUnit.hwUnitName.toString(),
-                        value = getGenericHomeUnitValue(homeUnit),
+                        hwUnit = HomeUnitScreenHwUnitUiState.GeneralHwUnitUiState(
+                            homeUnit.hwUnitName.toString()
+                        ),
+                        additionalSettings = null,
                         firebaseNotify = homeUnit.firebaseNotify,
                         firebaseNotifyTrigger = homeUnit.firebaseNotifyTrigger,
                         showInTaskList = homeUnit.showInTaskList
@@ -99,10 +121,11 @@ class HomeUnitScreenViewModel/*<T : HomeUnit<Any>>*/(
             viewModelScope, SharingStarted.WhileSubscribed(5000), HomeUnitScreenUiState(
                 showProgress = true,
                 unitName = unitName,
+                value = null,
                 unitType = unitType.firebaseTableName,
                 roomName = roomName,
-                hwUnitName = "",
-                value = null,
+                hwUnit = null,
+                additionalSettings = null,
                 firebaseNotify = false,
                 firebaseNotifyTrigger = null,
                 showInTaskList = false
@@ -111,7 +134,7 @@ class HomeUnitScreenViewModel/*<T : HomeUnit<Any>>*/(
 
     private fun getGenericHomeUnitValue(homeUnit: GenericHomeUnit<Any>): HomeUnitScreenValueUiState<*>? {
         return if (HOME_ACTION_STORAGE_UNITS.contains(homeUnit.type) && homeUnit.value is Boolean?) {
-            return HomeUnitScreenValueUiState.HomeUnitScreenSwitchValueUiState(
+            return HomeUnitScreenValueUiState.SwitchValueUiState(
                 value = homeUnit.value as? Boolean,
                 lastUpdateTime = getLastUpdateTime(application, homeUnit.lastUpdateTime),
                 { isChecked ->
@@ -127,7 +150,7 @@ class HomeUnitScreenViewModel/*<T : HomeUnit<Any>>*/(
                 }
             )
         } else if (homeUnit.value is Number?) {
-            HomeUnitScreenValueUiState.HomeUnitScreenNumberedValueUiState(
+            HomeUnitScreenValueUiState.NumberedValueUiState(
                 value = homeUnit.value as? Number,
                 lastUpdateTime = getLastUpdateTime(application, homeUnit.lastUpdateTime),
                 minValue = homeUnit.min as? Number,
@@ -149,7 +172,7 @@ class HomeUnitScreenViewModel/*<T : HomeUnit<Any>>*/(
     }
 
     private fun getLightSwitchHomeUnitValue(homeUnit: LightSwitchHomeUnit<Any>): HomeUnitScreenValueUiState<*>? {
-        return HomeUnitScreenValueUiState.HomeUnitScreenLightSwitchValueUiState(
+        return HomeUnitScreenValueUiState.LightSwitchValueUiState(
             value = homeUnit.value as? Boolean,
             lastUpdateTime = getLastUpdateTime(application, homeUnit.lastUpdateTime),
             { isChecked ->
@@ -169,7 +192,7 @@ class HomeUnitScreenViewModel/*<T : HomeUnit<Any>>*/(
     }
 
     private fun getWatchDogHomeUnitValue(homeUnit: MCP23017WatchDogHomeUnit<Any>): HomeUnitScreenValueUiState<*>? {
-        return HomeUnitScreenValueUiState.HomeUnitScreenWatchDogValueUiState(
+        return HomeUnitScreenValueUiState.WatchDogValueUiState(
             value = homeUnit.value as? Boolean,
             lastUpdateTime = getLastUpdateTime(application, homeUnit.lastUpdateTime),
             { isChecked ->
@@ -189,7 +212,7 @@ class HomeUnitScreenViewModel/*<T : HomeUnit<Any>>*/(
     }
 
     private fun getWaterCirculationHomeUnitValue(homeUnit: WaterCirculationHomeUnit<Any>): HomeUnitScreenValueUiState<*>? {
-        return HomeUnitScreenValueUiState.HomeUnitScreenWaterCirculationValueUiState(
+        return HomeUnitScreenValueUiState.WaterCirculationValueUiState(
             value = homeUnit.value as? Boolean,
             lastUpdateTime = getLastUpdateTime(application, homeUnit.lastUpdateTime),
             { isChecked ->
@@ -429,7 +452,8 @@ class HomeUnitScreenViewModel/*<T : HomeUnit<Any>>*/(
         isEditMode.value = true
     }
 
-    *//**
+    */
+    /**
      * return true if we want to exit [HomeUnitGenericDetailFragment]
      *//*
     fun actionDiscard(): Boolean {
@@ -454,7 +478,8 @@ class HomeUnitScreenViewModel/*<T : HomeUnit<Any>>*/(
 
     abstract fun restoreAdditionalHomeUnitInitialStates(homeUnit: T)
 
-    *//**
+    */
+    /**
      * first return param is message Res Id, second return param if present will show dialog with this resource Id as a confirm button text, if not present Snackbar will be show.
      *//*
     fun actionSave(): Pair<Int, Int?> {

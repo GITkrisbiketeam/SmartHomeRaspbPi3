@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.CircularProgressIndicator
@@ -51,6 +53,7 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.toHomeUn
 import com.krisbiketeam.smarthomeraspbpi3.compose.components.homeunit.HomeUnitCard
 import com.krisbiketeam.smarthomeraspbpi3.compose.components.homeunit.HomeUnitCardModel
 import com.krisbiketeam.smarthomeraspbpi3.compose.components.topappbat.HomeUnitDetailTopAppBar
+import com.krisbiketeam.smarthomeraspbpi3.utils.getDayTime
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -117,6 +120,7 @@ fun HomeUnitScreenImpl(
 
         Column(
             modifier = Modifier
+                .verticalScroll(rememberScrollState())
                 .fillMaxSize()
                 .padding(paddingValues)
                 .consumeWindowInsets(paddingValues)
@@ -188,23 +192,14 @@ fun HomeUnitScreenImpl(
             // endregion
 
             // region HW Unit Name
-            Text(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = dimensionResource(id = R.dimen.margin_normal)),
-                text = stringResource(id = R.string.add_edit_home_unit_text_hw_unit_title),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.titleMedium,
-            )
-            Text(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(
-                        start = dimensionResource(id = R.dimen.margin_large),
-                        end = dimensionResource(id = R.dimen.margin_normal)
-                    ), text = uiState.hwUnitName
-            )
+            if (uiState.hwUnit != null) {
+                HomeUnitHWUnits(uiState.hwUnit)
+            }
+            // endregion
+            // region Additional Settings
+            if (uiState.additionalSettings != null) {
+                HomeUnitAdditionalSettings(uiState.additionalSettings)
+            }
             // endregion
 
             // region FirebaseNotify Switch
@@ -232,7 +227,7 @@ fun HomeUnitScreenImpl(
             // endregion
 
             // region Show in Task List Switch
-            if (uiState.value is HomeUnitScreenValueUiState.HomeUnitScreenSwitchValueUiState) {
+            if (uiState.value is HomeUnitScreenValueUiState.SwitchValueUiState) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -382,7 +377,7 @@ private fun GeneralHomeUnitValue(
                     style = MaterialTheme.typography.bodySmall,
                 )
             }
-            if (homeUnitValue is HomeUnitScreenValueUiState.HomeUnitScreenActuatorValueUiState) {
+            if (homeUnitValue is HomeUnitScreenValueUiState.ActuatorValueUiState) {
                 Switch(
                     modifier =
                         Modifier.padding(start = dimensionResource(id = R.dimen.margin_small)),
@@ -396,7 +391,7 @@ private fun GeneralHomeUnitValue(
 
         when (homeUnitValue) {
             // Min/Max Values
-            is HomeUnitScreenValueUiState.HomeUnitScreenNumberedValueUiState -> {
+            is HomeUnitScreenValueUiState.NumberedValueUiState -> {
                 Spacer(Modifier.size(dimensionResource(id = R.dimen.margin_small)))
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -476,7 +471,7 @@ private fun GeneralHomeUnitValue(
                 }
             }
 
-            is HomeUnitScreenValueUiState.HomeUnitScreenLightSwitchValueUiState -> {
+            is HomeUnitScreenValueUiState.LightSwitchValueUiState -> {
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
@@ -510,7 +505,7 @@ private fun GeneralHomeUnitValue(
                 )
             }
 
-            is HomeUnitScreenValueUiState.HomeUnitScreenWaterCirculationValueUiState -> {
+            is HomeUnitScreenValueUiState.WaterCirculationValueUiState -> {
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
@@ -652,7 +647,7 @@ private fun GeneralHomeUnitValue(
                 }
             }
 
-            is HomeUnitScreenValueUiState.HomeUnitScreenWatchDogValueUiState -> {
+            is HomeUnitScreenValueUiState.WatchDogValueUiState -> {
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
@@ -694,6 +689,210 @@ private fun GeneralHomeUnitValue(
     }
 }
 
+@Composable
+private fun HomeUnitHWUnits(
+    hwUnitState: HomeUnitScreenHwUnitUiState,
+) {
+    Text(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = dimensionResource(id = R.dimen.margin_normal)),
+        text = stringResource(id = R.string.add_edit_home_unit_text_hw_unit_title),
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        style = MaterialTheme.typography.titleMedium,
+    )
+    Text(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(
+                start = dimensionResource(id = R.dimen.margin_large),
+                end = dimensionResource(id = R.dimen.margin_normal)
+            ), text = hwUnitState.hwUnitName
+    )
+    when (hwUnitState) {
+        is HomeUnitScreenHwUnitUiState.GeneralHwUnitUiState -> {
+            // nothing to add here
+        }
+
+        is HomeUnitScreenHwUnitUiState.LightSwitchHwUnitUiState -> {
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = dimensionResource(id = R.dimen.margin_normal)),
+                text = stringResource(id = R.string.add_edit_home_unit_text_second_hw_unit_title),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.titleMedium,
+            )
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        start = dimensionResource(id = R.dimen.margin_large),
+                        end = dimensionResource(id = R.dimen.margin_normal)
+                    ), text = hwUnitState.switchHwUnitName
+            )
+        }
+
+        is HomeUnitScreenHwUnitUiState.WatchDogHwUnitUiState -> {
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = dimensionResource(id = R.dimen.margin_normal)),
+                text = stringResource(id = R.string.add_edit_home_unit_text_input_hw_unit_title),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.titleMedium,
+            )
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        start = dimensionResource(id = R.dimen.margin_large),
+                        end = dimensionResource(id = R.dimen.margin_normal)
+                    ), text = hwUnitState.inputHwUnitName
+            )
+        }
+
+        is HomeUnitScreenHwUnitUiState.WaterCirculationHwUnitUiState -> {
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = dimensionResource(id = R.dimen.margin_normal)),
+                text = stringResource(id = R.string.add_edit_home_unit_text_motion_hw_unit_title),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.titleMedium,
+            )
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        start = dimensionResource(id = R.dimen.margin_large),
+                        end = dimensionResource(id = R.dimen.margin_normal)
+                    ), text = hwUnitState.motionHwUnitName
+            )
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = dimensionResource(id = R.dimen.margin_normal)),
+                text = stringResource(id = R.string.add_edit_home_unit_text_temperature_hw_unit_title),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.titleMedium,
+            )
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        start = dimensionResource(id = R.dimen.margin_large),
+                        end = dimensionResource(id = R.dimen.margin_normal)
+                    ), text = hwUnitState.temperatureHwUnitName
+            )
+        }
+    }
+}
+
+@Composable
+private fun HomeUnitAdditionalSettings(
+    additionalSettings: HomeUnitScreenAdditionalSettingsUiState,
+) {
+    Spacer(Modifier.size(dimensionResource(id = R.dimen.margin_small)))
+    when (additionalSettings) {
+
+        is HomeUnitScreenAdditionalSettingsUiState.WaterCirculationAdditionalSettingsUiState -> {
+            Row(
+                modifier = Modifier.padding(horizontal = dimensionResource(id = R.dimen.margin_normal)),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+
+            ) {
+                Text(
+                    modifier = Modifier
+                        .wrapContentWidth(),
+                    text = stringResource(id = R.string.add_edit_home_unit_text_circulation_duration_title),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                Text(
+                    modifier = Modifier
+                        .wrapContentWidth()
+                        .padding(
+                            start = dimensionResource(id = R.dimen.margin_small)
+                        ), text = getDayTime(additionalSettings.circulationDuration)
+                )
+            }
+            Row(
+                modifier = Modifier.padding(horizontal = dimensionResource(id = R.dimen.margin_normal)),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    modifier = Modifier
+                        .wrapContentWidth(),
+                    text = stringResource(id = R.string.unit_task_text_threshold_title),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                Text(
+                    modifier = Modifier
+                        .wrapContentWidth()
+                        .padding(
+                            start = dimensionResource(id = R.dimen.margin_small)
+                        ), text = additionalSettings.temperatureThreshold.toString()
+                )
+            }
+        }
+
+        is HomeUnitScreenAdditionalSettingsUiState.WatchDogAdditionalSettingsUiState -> {
+            Row(
+                modifier = Modifier.padding(horizontal = dimensionResource(id = R.dimen.margin_normal)),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    modifier = Modifier
+                        .wrapContentWidth(),
+                    text = stringResource(id = R.string.add_edit_home_unit_text_watch_dog_delay_title),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                Text(
+                    modifier = Modifier
+                        .wrapContentWidth()
+                        .padding(
+                            start = dimensionResource(id = R.dimen.margin_small)
+                        ), text = getDayTime(additionalSettings.watchDogDelay)
+                )
+            }
+            Row(
+                modifier = Modifier.padding(horizontal = dimensionResource(id = R.dimen.margin_normal)),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    modifier = Modifier
+                        .wrapContentWidth(),
+                    text = stringResource(id = R.string.add_edit_home_unit_text_watch_dog_timeout_title),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                Text(
+                    modifier = Modifier
+                        .wrapContentWidth()
+                        .padding(
+                            start = dimensionResource(id = R.dimen.margin_small)
+                        ), text = getDayTime(additionalSettings.watchDogTimeout)
+                )
+            }
+        }
+    }
+}
 
 @Composable
 private fun HomeUnitList(
@@ -742,10 +941,7 @@ private fun HomeUnitScreenImplPreview1() {
             HomeUnitScreenUiState(
                 false,
                 unitName = "Home Unit Name",
-                unitType = "temperatures",
-                roomName = "Living Room",
-                hwUnitName = "HW Unit Name",
-                value = HomeUnitScreenValueUiState.HomeUnitScreenNumberedValueUiState(
+                value = HomeUnitScreenValueUiState.NumberedValueUiState(
                     value = 23.5,
                     lastUpdateTime = "Updated 5 minutes ago",
                     minValue = 19.0,
@@ -754,6 +950,10 @@ private fun HomeUnitScreenImplPreview1() {
                     maxLastUpdateTime = "Updated 3 days ago",
                     {}, {}
                 ),
+                unitType = "temperatures",
+                roomName = "Living Room",
+                hwUnit = HomeUnitScreenHwUnitUiState.GeneralHwUnitUiState("HW Unit Name"),
+                additionalSettings = null,
                 firebaseNotify = true,
                 firebaseNotifyTrigger = RISING_EDGE,
                 showInTaskList = false
@@ -771,14 +971,15 @@ private fun HomeUnitScreenImplPreview2() {
             HomeUnitScreenUiState(
                 false,
                 unitName = "Actuator",
-                unitType = "temperatures",
-                roomName = "Living Room",
-                hwUnitName = "HW Unit Name",
-                value = HomeUnitScreenValueUiState.HomeUnitScreenSwitchValueUiState(
+                value = HomeUnitScreenValueUiState.SwitchValueUiState(
                     value = false,
                     lastUpdateTime = "Updated 5 minutes ago",
                     setValueFromSwitch = {}
                 ),
+                unitType = "temperatures",
+                roomName = "Living Room",
+                hwUnit = HomeUnitScreenHwUnitUiState.GeneralHwUnitUiState("HW Unit Name"),
+                additionalSettings = null,
                 firebaseNotify = true,
                 firebaseNotifyTrigger = RISING_EDGE,
                 showInTaskList = false
@@ -796,16 +997,20 @@ private fun HomeUnitScreenImplPreview3() {
             HomeUnitScreenUiState(
                 false,
                 unitName = "Light Switch",
-                unitType = "temperatures",
-                roomName = "Living Room",
-                hwUnitName = "HW Unit Name",
-                value = HomeUnitScreenValueUiState.HomeUnitScreenLightSwitchValueUiState(
+                value = HomeUnitScreenValueUiState.LightSwitchValueUiState(
                     value = false,
                     lastUpdateTime = "Updated 5 minutes ago",
                     setValueFromSwitch = {},
                     switchValue = true,
                     switchLastUpdateTime = "Updated 15 minutes ago"
                 ),
+                unitType = "temperatures",
+                roomName = "Living Room",
+                hwUnit = HomeUnitScreenHwUnitUiState.LightSwitchHwUnitUiState(
+                    "HW Unit Name",
+                    "Switch HW Unit Name"
+                ),
+                additionalSettings = null,
                 firebaseNotify = true,
                 firebaseNotifyTrigger = RISING_EDGE,
                 showInTaskList = false
@@ -822,11 +1027,8 @@ private fun HomeUnitScreenImplPreview4() {
         HomeUnitScreenImpl(
             HomeUnitScreenUiState(
                 false,
-                unitName = "Light Switch",
-                unitType = "temperatures",
-                roomName = "Living Room",
-                hwUnitName = "HW Unit Name",
-                value = HomeUnitScreenValueUiState.HomeUnitScreenWaterCirculationValueUiState(
+                unitName = "Water Circulation",
+                value = HomeUnitScreenValueUiState.WaterCirculationValueUiState(
                     value = false,
                     lastUpdateTime = "Updated 5 minutes ago",
                     setValueFromSwitch = {},
@@ -839,6 +1041,17 @@ private fun HomeUnitScreenImplPreview4() {
                     temperatureMaxValue = 28.0,
                     temperatureMaxLastUpdateTime = "Updated 3 days ago",
                     {}, {}
+                ),
+                unitType = "temperatures",
+                roomName = "Living Room",
+                hwUnit = HomeUnitScreenHwUnitUiState.WaterCirculationHwUnitUiState(
+                    "HW Unit Name",
+                    "Motion HW Unit Name",
+                    "Temperature HW Unit Name"
+                ),
+                additionalSettings = HomeUnitScreenAdditionalSettingsUiState.WaterCirculationAdditionalSettingsUiState(
+                    circulationDuration = 120000L,
+                    temperatureThreshold = 30.0f
                 ),
                 firebaseNotify = true,
                 firebaseNotifyTrigger = RISING_EDGE,
@@ -857,15 +1070,22 @@ private fun HomeUnitScreenImplPreview5() {
             HomeUnitScreenUiState(
                 false,
                 unitName = "Watch Dog",
-                unitType = "temperatures",
-                roomName = "Living Room",
-                hwUnitName = "HW Unit Name",
-                value = HomeUnitScreenValueUiState.HomeUnitScreenWatchDogValueUiState(
+                value = HomeUnitScreenValueUiState.WatchDogValueUiState(
                     value = true,
                     lastUpdateTime = "Updated 5 minutes ago",
                     setValueFromSwitch = {},
                     inputValue = true,
                     inputLastUpdateTime = "Updated 5 minutes ago"
+                ),
+                unitType = "temperatures",
+                roomName = "Living Room",
+                hwUnit = HomeUnitScreenHwUnitUiState.WatchDogHwUnitUiState(
+                    "HW Unit Name",
+                    "Switch HW Unit Name"
+                ),
+                additionalSettings = HomeUnitScreenAdditionalSettingsUiState.WatchDogAdditionalSettingsUiState(
+                    watchDogDelay = 60000L,
+                    watchDogTimeout = 300000L
                 ),
                 firebaseNotify = true,
                 firebaseNotifyTrigger = RISING_EDGE,
@@ -884,10 +1104,11 @@ private fun HomeUnitScreenImplPreview42() {
             HomeUnitScreenUiState(
                 false,
                 unitName = "Home Unit Name",
+                value = null,
                 unitType = "temperatures",
                 roomName = "Living Room",
-                hwUnitName = "HW Unit Name",
-                value = null,
+                hwUnit = null,
+                additionalSettings = null,
                 firebaseNotify = false,
                 firebaseNotifyTrigger = null,
                 showInTaskList = false
