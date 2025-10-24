@@ -102,6 +102,7 @@
     <string name="add_edit_home_unit_empty_unit_hw_unit">Hardware Unit cannot be empty</string>
     <string name="add_edit_home_unit_empty_unit_second_hw_unit">Switch hardware Unit cannot be empty</string>
     <string name="add_edit_home_unit_empty_unit_temperature_hw_unit">Temperature hardware Unit cannot be empty</string>
+    <string name="add_edit_home_unit_delete_title">Delete Home Unit</string>
     <string name="add_edit_home_unit_delete_home_unit_prompt">Do you really want to delete this Home Unit?</string>
     <string name="add_edit_home_unit_notify_firebase_switch_text">Notify remote App about this Home Unit changes?</string>
     <string name="add_edit_home_unit_show_in_task_list_switch_text">Show in Task List</string>

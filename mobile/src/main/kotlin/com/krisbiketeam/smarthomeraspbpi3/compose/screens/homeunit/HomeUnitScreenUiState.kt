@@ -1,6 +1,7 @@
 package com.krisbiketeam.smarthomeraspbpi3.compose.screens.homeunit
 
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.TriggerType
+import com.krisbiketeam.smarthomeraspbpi3.compose.components.alertdialog.SmartAlertDialogModel
 
 data class HomeUnitScreenUiState(
     val showProgress: Boolean,
@@ -13,7 +14,9 @@ data class HomeUnitScreenUiState(
     val firebaseNotify: Boolean,
     @TriggerType
     val firebaseNotifyTrigger: String?,
-    val showInTaskList: Boolean
+    val showInTaskList: Boolean,
+    val unitTasks: List<String>,
+    val alertDialog: SmartAlertDialogModel? = null
 )
 
 sealed interface HomeUnitScreenValueUiState<T : Any> {

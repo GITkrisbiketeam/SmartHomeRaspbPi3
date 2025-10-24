@@ -318,6 +318,12 @@ class FirebaseHomeInformationRepository {
                 .removeValue()
         }
     }
+    fun deleteHomeUnit(homeUnitType: HomeUnitType, homeUnitName: String): Task<Void>? {
+        return homePathReference?.let {
+            Firebase.database.getReference("$it/$HOME_UNITS_BASE/${homeUnitType}/${homeUnitName}")
+                .removeValue()
+        }
+    }
 
     /**
      *  Clears givens @see[HomeUnit] min value from DB

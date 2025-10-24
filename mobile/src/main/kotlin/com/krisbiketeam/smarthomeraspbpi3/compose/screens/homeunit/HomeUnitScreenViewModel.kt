@@ -3,19 +3,37 @@ package com.krisbiketeam.smarthomeraspbpi3.compose.screens.homeunit
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.android.gms.tasks.Task
+import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.*
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.GenericHomeUnit
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HOME_ACTION_STORAGE_UNITS
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.LightSwitchHomeUnit
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.MCP23017WatchDogHomeUnit
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.WaterCirculationHomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_MAX_TEMPERATURE_VAL
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_MAX_TEMPERATURE_VAL_LAST_UPDATE
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_MIN_TEMPERATURE_VAL
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_MIN_TEMPERATURE_VAL_LAST_UPDATE
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.LAST_TRIGGER_SOURCE_HOME_UNIT_DETAILS
-import com.krisbiketeam.smarthomeraspbpi3.ui.HomeUnitGenericDetailFragment
+import com.krisbiketeam.smarthomeraspbpi3.compose.components.alertdialog.SmartAlertDialogModel
 import com.krisbiketeam.smarthomeraspbpi3.utils.getLastUpdateTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 /**
@@ -25,112 +43,261 @@ import timber.log.Timber
 class HomeUnitScreenViewModel/*<T : HomeUnit<Any>>*/(
     private val application: Application,
     private val homeRepository: FirebaseHomeInformationRepository,
-    roomName: String?, unitName: String, unitType: HomeUnitType
+    roomName: String?, private val unitName: String, private val unitType: HomeUnitType
 ) : AndroidViewModel(application) {
 
+    private var homeUnitUiStateBeforeEditing: HomeUnitScreenUiState? = null
 
-    val uiState: StateFlow<HomeUnitScreenUiState> =
-        when (unitType) {
-            HomeUnitType.HOME_LIGHT_SWITCHES -> {
-                homeRepository.lightSwitchHomeUnitFlow(unitName).map { homeUnit ->
-                    HomeUnitScreenUiState(
-                        showProgress = false,
-                        unitName = homeUnit.name,
-                        value = getLightSwitchHomeUnitValue(homeUnit),
-                        unitType = homeUnit.type.firebaseTableName,
-                        roomName = homeUnit.room,
-                        hwUnit = HomeUnitScreenHwUnitUiState.LightSwitchHwUnitUiState(
-                            hwUnitName = homeUnit.hwUnitName.toString(),
-                            switchHwUnitName = homeUnit.switchHwUnitName.toString()
-                        ),
-                        additionalSettings = null,
-                        firebaseNotify = homeUnit.firebaseNotify,
-                        firebaseNotifyTrigger = homeUnit.firebaseNotifyTrigger,
-                        showInTaskList = homeUnit.showInTaskList
-                    )
-                }
-            }
+    private val _isEditMode: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
-            HomeUnitType.HOME_WATER_CIRCULATION -> {
-                homeRepository.waterCirculationHomeUnitFlow(unitName).map { homeUnit ->
-                    HomeUnitScreenUiState(
-                        showProgress = false,
-                        unitName = homeUnit.name,
-                        value = getWaterCirculationHomeUnitValue(homeUnit),
-                        unitType = homeUnit.type.firebaseTableName,
-                        roomName = homeUnit.room,
-                        hwUnit = HomeUnitScreenHwUnitUiState.WaterCirculationHwUnitUiState(
-                            hwUnitName = homeUnit.hwUnitName.toString(),
-                            motionHwUnitName = homeUnit.motionHwUnitName.toString(),
-                            temperatureHwUnitName = homeUnit.temperatureHwUnitName.toString()
-                        ),
-                        additionalSettings = HomeUnitScreenAdditionalSettingsUiState.WaterCirculationAdditionalSettingsUiState(
-                            circulationDuration = homeUnit.actionTimeout,
-                            temperatureThreshold = homeUnit.temperatureThreshold
-                        ),
-                        firebaseNotify = homeUnit.firebaseNotify,
-                        firebaseNotifyTrigger = homeUnit.firebaseNotifyTrigger,
-                        showInTaskList = homeUnit.showInTaskList
-                    )
-                }
-            }
-
-            HomeUnitType.HOME_MCP23017_WATCH_DOG -> {
-                homeRepository.mcp23017WatchDogHomeUnitFlow(unitName).map { homeUnit ->
-                    HomeUnitScreenUiState(
-                        showProgress = false,
-                        unitName = homeUnit.name,
-                        value = getWatchDogHomeUnitValue(homeUnit),
-                        unitType = homeUnit.type.firebaseTableName,
-                        roomName = homeUnit.room,
-                        hwUnit = HomeUnitScreenHwUnitUiState.LightSwitchHwUnitUiState(
-                            hwUnitName = homeUnit.hwUnitName.toString(),
-                            switchHwUnitName = homeUnit.inputHwUnitName.toString()
-                        ),
-                        additionalSettings = HomeUnitScreenAdditionalSettingsUiState.WatchDogAdditionalSettingsUiState(
-                            watchDogDelay = homeUnit.watchDogDelay,
-                            watchDogTimeout = homeUnit.watchDogTimeout
-                        ),
-                        firebaseNotify = homeUnit.firebaseNotify,
-                        firebaseNotifyTrigger = homeUnit.firebaseNotifyTrigger,
-                        showInTaskList = homeUnit.showInTaskList
-                    )
-                }
-            }
-
-            else -> {
-                homeRepository.genericHomeUnitFlow(unitType, unitName).map { homeUnit ->
-
-                    HomeUnitScreenUiState(
-                        showProgress = false,
-                        unitName = homeUnit.name,
-                        value = getGenericHomeUnitValue(homeUnit),
-                        unitType = homeUnit.type.firebaseTableName,
-                        roomName = homeUnit.room,
-                        hwUnit = HomeUnitScreenHwUnitUiState.GeneralHwUnitUiState(
-                            homeUnit.hwUnitName.toString()
-                        ),
-                        additionalSettings = null,
-                        firebaseNotify = homeUnit.firebaseNotify,
-                        firebaseNotifyTrigger = homeUnit.firebaseNotifyTrigger,
-                        showInTaskList = homeUnit.showInTaskList
-                    )
-                }
-            }
-        }.flowOn(Dispatchers.IO).stateIn(
-            viewModelScope, SharingStarted.WhileSubscribed(5000), HomeUnitScreenUiState(
-                showProgress = true,
-                unitName = unitName,
-                value = null,
-                unitType = unitType.firebaseTableName,
-                roomName = roomName,
-                hwUnit = null,
-                additionalSettings = null,
-                firebaseNotify = false,
-                firebaseNotifyTrigger = null,
-                showInTaskList = false
-            )
+    private val _uiState: MutableStateFlow<HomeUnitScreenUiState> = MutableStateFlow(
+        HomeUnitScreenUiState(
+            showProgress = true,
+            unitName = unitName,
+            value = null,
+            unitType = unitType.firebaseTableName,
+            roomName = roomName,
+            hwUnit = null,
+            additionalSettings = null,
+            firebaseNotify = false,
+            firebaseNotifyTrigger = null,
+            showInTaskList = false,
+            unitTasks = emptyList()
         )
+    )
+
+    private val _navigateUp: Channel<Unit> = Channel()
+
+    val isEditMode: StateFlow<Boolean> = _isEditMode.flatMapLatest { isEditing ->
+        if (!isEditing) {
+            when (unitType) {
+                HomeUnitType.HOME_LIGHT_SWITCHES -> {
+                    homeRepository.lightSwitchHomeUnitFlow(unitName)
+                }
+
+                HomeUnitType.HOME_WATER_CIRCULATION -> {
+                    homeRepository.waterCirculationHomeUnitFlow(
+                        unitName
+                    )
+                }
+
+                HomeUnitType.HOME_MCP23017_WATCH_DOG -> {
+                    homeRepository.mcp23017WatchDogHomeUnitFlow(
+                        unitName
+                    )
+                }
+
+                else -> {
+                    homeRepository.genericHomeUnitFlow(unitType, unitName)
+                }
+            }.map { homeUnit ->
+                val uiState = when (homeUnit) {
+                    is LightSwitchHomeUnit<*> -> {
+                        HomeUnitScreenUiState(
+                            showProgress = false,
+                            unitName = homeUnit.name,
+                            value = getLightSwitchHomeUnitValue(homeUnit as LightSwitchHomeUnit<Any>),
+                            unitType = homeUnit.type.firebaseTableName,
+                            roomName = homeUnit.room,
+                            hwUnit = HomeUnitScreenHwUnitUiState.LightSwitchHwUnitUiState(
+                                hwUnitName = homeUnit.hwUnitName.toString(),
+                                switchHwUnitName = homeUnit.switchHwUnitName.toString()
+                            ),
+                            additionalSettings = null,
+                            firebaseNotify = homeUnit.firebaseNotify,
+                            firebaseNotifyTrigger = homeUnit.firebaseNotifyTrigger,
+                            showInTaskList = homeUnit.showInTaskList,
+                            unitTasks = homeUnit.unitsTasks.keys.toList()
+                        )
+                    }
+
+                    is WaterCirculationHomeUnit<*> -> {
+                        HomeUnitScreenUiState(
+                            showProgress = false,
+                            unitName = homeUnit.name,
+                            value = getWaterCirculationHomeUnitValue(homeUnit as WaterCirculationHomeUnit<Any>),
+                            unitType = homeUnit.type.firebaseTableName,
+                            roomName = homeUnit.room,
+                            hwUnit = HomeUnitScreenHwUnitUiState.WaterCirculationHwUnitUiState(
+                                hwUnitName = homeUnit.hwUnitName.toString(),
+                                motionHwUnitName = homeUnit.motionHwUnitName.toString(),
+                                temperatureHwUnitName = homeUnit.temperatureHwUnitName.toString()
+                            ),
+                            additionalSettings = HomeUnitScreenAdditionalSettingsUiState.WaterCirculationAdditionalSettingsUiState(
+                                circulationDuration = homeUnit.actionTimeout,
+                                temperatureThreshold = homeUnit.temperatureThreshold
+                            ),
+                            firebaseNotify = homeUnit.firebaseNotify,
+                            firebaseNotifyTrigger = homeUnit.firebaseNotifyTrigger,
+                            showInTaskList = homeUnit.showInTaskList,
+                            unitTasks = homeUnit.unitsTasks.keys.toList()
+                        )
+                    }
+
+                    is MCP23017WatchDogHomeUnit<*> -> {
+                        HomeUnitScreenUiState(
+                            showProgress = false,
+                            unitName = homeUnit.name,
+                            value = getWatchDogHomeUnitValue(homeUnit as MCP23017WatchDogHomeUnit<Any>),
+                            unitType = homeUnit.type.firebaseTableName,
+                            roomName = homeUnit.room,
+                            hwUnit = HomeUnitScreenHwUnitUiState.LightSwitchHwUnitUiState(
+                                hwUnitName = homeUnit.hwUnitName.toString(),
+                                switchHwUnitName = homeUnit.inputHwUnitName.toString()
+                            ),
+                            additionalSettings = HomeUnitScreenAdditionalSettingsUiState.WatchDogAdditionalSettingsUiState(
+                                watchDogDelay = homeUnit.watchDogDelay,
+                                watchDogTimeout = homeUnit.watchDogTimeout
+                            ),
+                            firebaseNotify = homeUnit.firebaseNotify,
+                            firebaseNotifyTrigger = homeUnit.firebaseNotifyTrigger,
+                            showInTaskList = homeUnit.showInTaskList,
+                            unitTasks = homeUnit.unitsTasks.keys.toList()
+                        )
+                    }
+
+                    is GenericHomeUnit<*> -> {
+                        HomeUnitScreenUiState(
+                            showProgress = false,
+                            unitName = homeUnit.name,
+                            value = getGenericHomeUnitValue(homeUnit as GenericHomeUnit<Any>),
+                            unitType = homeUnit.type.firebaseTableName,
+                            roomName = homeUnit.room,
+                            hwUnit = HomeUnitScreenHwUnitUiState.GeneralHwUnitUiState(
+                                homeUnit.hwUnitName.toString()
+                            ),
+                            additionalSettings = null,
+                            firebaseNotify = homeUnit.firebaseNotify,
+                            firebaseNotifyTrigger = homeUnit.firebaseNotifyTrigger,
+                            showInTaskList = homeUnit.showInTaskList,
+                            unitTasks = homeUnit.unitsTasks.keys.toList()
+                        )
+                    }
+                }
+                homeUnitUiStateBeforeEditing = uiState
+                _uiState.value = uiState
+                false
+            }
+        } else {
+            flowOf(true)
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), _isEditMode.value)
+
+    val uiState: StateFlow<HomeUnitScreenUiState> = _uiState
+
+    val navigateUp: Flow<Unit> = _navigateUp.receiveAsFlow()
+
+    init {
+        viewModelScope.launch {
+            /*isEditMode.filter { !it }.flatMapMerge {
+                when (unitType) {
+                    HomeUnitType.HOME_LIGHT_SWITCHES -> {
+                        homeRepository.lightSwitchHomeUnitFlow(unitName)
+                    }
+
+                    HomeUnitType.HOME_WATER_CIRCULATION -> {
+                        homeRepository.waterCirculationHomeUnitFlow(
+                            unitName
+                        )
+                    }
+
+                    HomeUnitType.HOME_MCP23017_WATCH_DOG -> {
+                        homeRepository.mcp23017WatchDogHomeUnitFlow(
+                            unitName
+                        )
+                    }
+
+                    else -> {
+                        homeRepository.genericHomeUnitFlow(unitType, unitName)
+                    }
+                }
+            }.collect { homeUnit ->
+                _uiState.value = when (homeUnit) {
+                    is LightSwitchHomeUnit<*> -> {
+                        HomeUnitScreenUiState(
+                            showProgress = false,
+                            unitName = homeUnit.name,
+                            value = getLightSwitchHomeUnitValue(homeUnit as LightSwitchHomeUnit<Any>),
+                            unitType = homeUnit.type.firebaseTableName,
+                            roomName = homeUnit.room,
+                            hwUnit = HomeUnitScreenHwUnitUiState.LightSwitchHwUnitUiState(
+                                hwUnitName = homeUnit.hwUnitName.toString(),
+                                switchHwUnitName = homeUnit.switchHwUnitName.toString()
+                            ),
+                            additionalSettings = null,
+                            firebaseNotify = homeUnit.firebaseNotify,
+                            firebaseNotifyTrigger = homeUnit.firebaseNotifyTrigger,
+                            showInTaskList = homeUnit.showInTaskList,
+                            unitTasks = homeUnit.unitsTasks.keys.toList()
+                        )
+                    }
+
+                    is WaterCirculationHomeUnit<*> -> {
+                        HomeUnitScreenUiState(
+                            showProgress = false,
+                            unitName = homeUnit.name,
+                            value = getWaterCirculationHomeUnitValue(homeUnit as WaterCirculationHomeUnit<Any>),
+                            unitType = homeUnit.type.firebaseTableName,
+                            roomName = homeUnit.room,
+                            hwUnit = HomeUnitScreenHwUnitUiState.WaterCirculationHwUnitUiState(
+                                hwUnitName = homeUnit.hwUnitName.toString(),
+                                motionHwUnitName = homeUnit.motionHwUnitName.toString(),
+                                temperatureHwUnitName = homeUnit.temperatureHwUnitName.toString()
+                            ),
+                            additionalSettings = HomeUnitScreenAdditionalSettingsUiState.WaterCirculationAdditionalSettingsUiState(
+                                circulationDuration = homeUnit.actionTimeout,
+                                temperatureThreshold = homeUnit.temperatureThreshold
+                            ),
+                            firebaseNotify = homeUnit.firebaseNotify,
+                            firebaseNotifyTrigger = homeUnit.firebaseNotifyTrigger,
+                            showInTaskList = homeUnit.showInTaskList,
+                            unitTasks = homeUnit.unitsTasks.keys.toList()
+                        )
+                    }
+
+                    is MCP23017WatchDogHomeUnit<*> -> {
+                        HomeUnitScreenUiState(
+                            showProgress = false,
+                            unitName = homeUnit.name,
+                            value = getWatchDogHomeUnitValue(homeUnit as MCP23017WatchDogHomeUnit<Any>),
+                            unitType = homeUnit.type.firebaseTableName,
+                            roomName = homeUnit.room,
+                            hwUnit = HomeUnitScreenHwUnitUiState.LightSwitchHwUnitUiState(
+                                hwUnitName = homeUnit.hwUnitName.toString(),
+                                switchHwUnitName = homeUnit.inputHwUnitName.toString()
+                            ),
+                            additionalSettings = HomeUnitScreenAdditionalSettingsUiState.WatchDogAdditionalSettingsUiState(
+                                watchDogDelay = homeUnit.watchDogDelay,
+                                watchDogTimeout = homeUnit.watchDogTimeout
+                            ),
+                            firebaseNotify = homeUnit.firebaseNotify,
+                            firebaseNotifyTrigger = homeUnit.firebaseNotifyTrigger,
+                            showInTaskList = homeUnit.showInTaskList,
+                            unitTasks = homeUnit.unitsTasks.keys.toList()
+                        )
+                    }
+
+                    is GenericHomeUnit<*> -> {
+                        HomeUnitScreenUiState(
+                            showProgress = false,
+                            unitName = homeUnit.name,
+                            value = getGenericHomeUnitValue(homeUnit as GenericHomeUnit<Any>),
+                            unitType = homeUnit.type.firebaseTableName,
+                            roomName = homeUnit.room,
+                            hwUnit = HomeUnitScreenHwUnitUiState.GeneralHwUnitUiState(
+                                homeUnit.hwUnitName.toString()
+                            ),
+                            additionalSettings = null,
+                            firebaseNotify = homeUnit.firebaseNotify,
+                            firebaseNotifyTrigger = homeUnit.firebaseNotifyTrigger,
+                            showInTaskList = homeUnit.showInTaskList,
+                            unitTasks = homeUnit.unitsTasks.keys.toList()
+                        )
+                    }
+                }
+            }*/
+        }
+    }
 
     private fun getGenericHomeUnitValue(homeUnit: GenericHomeUnit<Any>): HomeUnitScreenValueUiState<*>? {
         return if (HOME_ACTION_STORAGE_UNITS.contains(homeUnit.type) && homeUnit.value is Boolean?) {
@@ -263,9 +430,9 @@ class HomeUnitScreenViewModel/*<T : HomeUnit<Any>>*/(
         )
     }
 
-    /*val unitTaskListAdapter = UnitTaskListAdapter(homeRepository, unitName, unitType)
+    //val unitTaskListAdapter = UnitTaskListAdapter(homeRepository, unitName, unitType)
 
-    val homeUnit: StateFlow<T?>? =
+    /*val homeUnit: StateFlow<T?>? =
         if (unitName.isNullOrEmpty() || unitType == HomeUnitType.UNKNOWN) null else getHomeUnitFlow(
             unitType, unitName
         ).onEach { homeUnit ->
@@ -284,11 +451,7 @@ class HomeUnitScreenViewModel/*<T : HomeUnit<Any>>*/(
             initializeAdditionalHomeUnitStates(homeUnit)
         }.flowOn(Dispatchers.IO).stateIn(viewModelScope, SharingStarted.WhileSubscribed(), null)
 
-    val showProgress: MutableStateFlow<Boolean> = MutableStateFlow(homeUnit != null)
-
-    val isEditMode: MutableStateFlow<Boolean> = MutableStateFlow(homeUnit == null)
-
-    // TODO check if possible nullable
+   // TODO check if possible nullable
     val name: MutableStateFlow<String> = MutableStateFlow(unitName ?: "")
 
     open val typeList =
@@ -406,83 +569,91 @@ class HomeUnitScreenViewModel/*<T : HomeUnit<Any>>*/(
         } else {
             MutableStateFlow(emptyMap())
         }
-
+*/
     private var homeRepositoryTask: Task<Void>? = null
 
     // used for checking if given homeUnit name is not already used this is populated in hwUnitNameList
     private var homeUnitOfSelectedTypeList: List<HomeUnit<Any>> = emptyList()
 
-    init {
-        Timber.d("init unitName: $unitName unitType: $unitType roomName: $roomName")
+    fun startEditing() {
+        _isEditMode.value = true
+    }
 
-        if (homeUnit != null) {
-            Timber.d("init Editing existing HomeUnit")
+    fun updateUiState(editedUiState: HomeUnitScreenUiState) {
+        _uiState.value = editedUiState
+    }
 
-            showProgress.value = true
+    fun closeAlertDialog() {
+        _uiState.update { it.copy(alertDialog = null) }
+    }
+
+    fun actionDiscard() {
+        Timber.d(
+            "actionDiscard homeUnit: $unitName of $unitType"
+        )
+        if (noChangesMade()) {
+            _isEditMode.value = false
         } else {
-            Timber.d("init Adding new HomeUnit")
-        }
-    }
-
-    abstract fun getHomeUnitFlow(unitType: HomeUnitType, unitName: String): Flow<T>
-
-    abstract fun initializeAdditionalHomeUnitStates(homeUnit: T)
-
-    fun noChangesMade(): Boolean {
-        return homeUnit?.value?.let { unit ->
-            unit.name == name.value
-                    && unit.type == type.value
-                    && unit.room == room.value
-                    && unit.hwUnitName == hwUnitName.value
-                    && unit.firebaseNotify == firebaseNotify.value
-                    && unit.firebaseNotifyTrigger == firebaseNotifyTrigger.value
-                    && unit.showInTaskList == showInTaskList.value*//* &&
-            unit.unitsTasks == unitTaskList.value*//*
-                    && additionalNoChangesMade(unit)
-        } ?: true
-        *//*name.value.isNullOrEmpty()
-        ?: type.value.isNullOrEmpty()
-        ?: roomName.value.isNullOrEmpty()
-        ?: hwUnitName.value.isNullOrEmpty() ?: true*//*
-    }
-
-    abstract fun additionalNoChangesMade(homeUnit: T): Boolean
-
-    fun actionEdit() {
-        isEditMode.value = true
-    }
-
-    */
-    /**
-     * return true if we want to exit [HomeUnitGenericDetailFragment]
-     *//*
-    fun actionDiscard(): Boolean {
-        return if (homeUnit == null) {
-            true
-        } else {
-            isEditMode.value = false
-            homeUnit.value?.let { unit ->
-                name.value = unit.name
-                type.value = unit.type
-                room.value = unit.room
-                hwUnitName.value = unit.hwUnitName
-                firebaseNotify.value = unit.firebaseNotify
-                firebaseNotifyTrigger.value = unit.firebaseNotifyTrigger
-                showInTaskList.value = unit.showInTaskList
-
-                restoreAdditionalHomeUnitInitialStates(unit)
+            _uiState.update {
+                it.copy(
+                    alertDialog = SmartAlertDialogModel(
+                        title = R.string.menu_discard,
+                        description = R.string.add_edit_home_unit_discard_changes,
+                        positiveButtonTextId = R.string.menu_discard,
+                        positiveButtonAction = ::doDiscardChanges
+                    )
+                )
             }
-            false
         }
     }
 
-    abstract fun restoreAdditionalHomeUnitInitialStates(homeUnit: T)
+    private fun doDiscardChanges() {
+        Timber.d(
+            "doDiscardChanges homeUnit: $unitName of $unitType"
+        )
+        _isEditMode.value = false
+        homeUnitUiStateBeforeEditing?.let {
+            _uiState.value = it
+        }
+    }
 
-    */
+    fun actionDeleteHomeUnit() {
+        Timber.d(
+            "actionDeleteHomeUnit homeUnit: $unitName of $unitType"
+        )
+        _uiState.update {
+            it.copy(
+                alertDialog = SmartAlertDialogModel(
+                    title = R.string.add_edit_home_unit_delete_title,
+                    description = R.string.add_edit_home_unit_delete_home_unit_prompt,
+                    positiveButtonTextId = R.string.menu_delete,
+                    positiveButtonAction = ::doDeleteHomeUnit
+                )
+            )
+        }
+    }
+
+    private fun doDeleteHomeUnit() {
+        Timber.d(
+            "doDeleteHomeUnit homeUnit: $unitName of $unitType homeRepositoryTask.isComplete: ${homeRepositoryTask?.isComplete}"
+        )
+        viewModelScope.launch(Dispatchers.IO) {
+            homeRepositoryTask =
+                homeRepository.deleteHomeUnit(homeUnitType = unitType, homeUnitName = unitName)
+                    ?.also {
+                        _uiState.update { it.copy(showProgress = true) }
+                    }?.addOnCompleteListener {
+                        Timber.d("doDeleteHomeUnit Task completed")
+                        _uiState.update { it.copy(showProgress = false) }
+                        _navigateUp.trySend(Unit)
+                    }
+        }
+    }
+
     /**
      * first return param is message Res Id, second return param if present will show dialog with this resource Id as a confirm button text, if not present Snackbar will be show.
-     *//*
-    fun actionSave(): Pair<Int, Int?> {
+     */
+    /*fun actionSave(): Pair<Int, Int?> {
         Timber.d("actionSave addingNewUnit: ${homeUnit == null} name.value: ${name.value}")
         if (homeUnit == null) {
             // Adding new HomeUnit
@@ -520,53 +691,41 @@ class HomeUnitScreenViewModel/*<T : HomeUnit<Any>>*/(
         }
         // new Home Unit adding just show Save Dialog
         return Pair(R.string.add_edit_home_unit_save_changes, R.string.menu_save)
-    }
+    }*/
 
-    abstract fun actionSaveGetCustomSavePair(): Pair<Int, Int?>?
+    /*private fun saveChanges(): Task<Void>? {
+         Timber.d(
+             "saveChanges homeUnit: ${homeUnit?.value} homeRepositoryTask.isComplete: ${homeRepositoryTask?.isComplete}"
+         )
+         homeRepositoryTask = (homeUnit?.value?.let { unit ->
+             showProgress.value = true
+             Timber.e("Save all changes")
+             doSaveChanges().apply {
+                 if (name.value != unit.name || type.value != unit.type) {
+                     Timber.d(
+                         "Name or type changed will need to delete old value name=${name.value}, type = ${type.value}"
+                     )
+                     // delete old HomeUnit
+                     this?.continueWithTask { homeRepository.deleteHomeUnit(unit) ?: it }
+                 }
+             }
+         } ?: doSaveChanges())?.addOnCompleteListener {
+             Timber.d("Task completed")
+             showProgress.value = false
+         }
+         return homeRepositoryTask
+     }*/
 
-    fun deleteHomeUnit(): Task<Void>? {
-        Timber.d(
-            "deleteHomeUnit homeUnit: ${homeUnit?.value} homeRepositoryTask.isComplete: ${homeRepositoryTask?.isComplete}"
-        )
-        homeRepositoryTask = homeUnit?.value?.let { unit ->
-            showProgress.value = true
-            homeRepository.deleteHomeUnit(unit)
-        }?.addOnCompleteListener {
-            Timber.d("Task completed")
-            showProgress.value = false
-        }
-        return homeRepositoryTask
-    }
-
-    fun saveChanges(): Task<Void>? {
-        Timber.d(
-            "saveChanges homeUnit: ${homeUnit?.value} homeRepositoryTask.isComplete: ${homeRepositoryTask?.isComplete}"
-        )
-        homeRepositoryTask = (homeUnit?.value?.let { unit ->
-            showProgress.value = true
-            Timber.e("Save all changes")
-            doSaveChanges().apply {
-                if (name.value != unit.name || type.value != unit.type) {
-                    Timber.d(
-                        "Name or type changed will need to delete old value name=${name.value}, type = ${type.value}"
-                    )
-                    // delete old HomeUnit
-                    this?.continueWithTask { homeRepository.deleteHomeUnit(unit) ?: it }
-                }
-            }
-        } ?: doSaveChanges())?.addOnCompleteListener {
-            Timber.d("Task completed")
-            showProgress.value = false
-        }
-        return homeRepositoryTask
-    }
-
-    private fun doSaveChanges(): Task<Void>? {
+    /*private fun doSaveChanges(): Task<Void>? {
         showProgress.value = true
         return homeRepository.saveHomeUnit(
             getHomeUnitToSave()
         )
+    }*/
+
+    private fun noChangesMade(): Boolean {
+        return _uiState.value == homeUnitUiStateBeforeEditing
     }
 
-    abstract fun getHomeUnitToSave(): T*/
+    //abstract fun getHomeUnitToSave(): T
 }

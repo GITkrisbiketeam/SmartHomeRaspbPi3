@@ -74,6 +74,13 @@ fun SmartNavGraph(
                     roomName = homeUnitRoute.roomName,
                     homeUnitName = homeUnitRoute.homeUnitName,
                     homeUnitType = homeUnitRoute.homeUnitType,
+                    navigateToUnitTask = { taskName ->
+                        //navActions.navigateToUnitTaskDialogFragment(
+                        //    homeUnitRoute.roomName,
+                        //    homeUnitRoute.homeUnitName,
+                        //    taskName
+                        //)
+                    },
                     navigateUp = {
                         navActions.navigateUp()
                     }

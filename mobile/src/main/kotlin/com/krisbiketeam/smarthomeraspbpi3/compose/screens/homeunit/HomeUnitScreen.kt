@@ -1,9 +1,9 @@
 package com.krisbiketeam.smarthomeraspbpi3.compose.screens.homeunit
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.consumeWindowInsets
@@ -14,11 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
-import androidx.compose.foundation.lazy.staggeredgrid.items
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.CircularProgressIndicator
@@ -31,7 +27,9 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,20 +46,21 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.RISING_EDGE
-import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.toHomeUnitType
-import com.krisbiketeam.smarthomeraspbpi3.compose.components.homeunit.HomeUnitCard
-import com.krisbiketeam.smarthomeraspbpi3.compose.components.homeunit.HomeUnitCardModel
+import com.krisbiketeam.smarthomeraspbpi3.compose.components.alertdialog.SmartAlertDialog
 import com.krisbiketeam.smarthomeraspbpi3.compose.components.topappbat.HomeUnitDetailTopAppBar
 import com.krisbiketeam.smarthomeraspbpi3.utils.getDayTime
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @Composable
 fun HomeUnitScreen(
     roomName: String?,
     homeUnitName: String,
     homeUnitType: String,
+    navigateToUnitTask: (String) -> Unit,
     navigateUp: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeUnitScreenViewModel = koinViewModel {
@@ -71,8 +70,23 @@ fun HomeUnitScreen(
     },
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val isEditing by viewModel.isEditMode.collectAsStateWithLifecycle()
+
+    LaunchedEffect("navigateUp") {
+        viewModel.navigateUp.collect {
+            navigateUp.invoke()
+        }
+    }
+
     HomeUnitScreenImpl(
         uiState = uiState,
+        isEditing,
+        startEditing = viewModel::startEditing,
+        updateUiState = viewModel::updateUiState,
+        closeAlertDialog = viewModel::closeAlertDialog,
+        actionDiscard = viewModel::actionDiscard,
+        actionDeleteRoom = viewModel::actionDeleteHomeUnit,
+        navigateToUnitTask = navigateToUnitTask,
         navigateUp = navigateUp,
         modifier = modifier,
     )
@@ -81,15 +95,18 @@ fun HomeUnitScreen(
 @Composable
 fun HomeUnitScreenImpl(
     uiState: HomeUnitScreenUiState,
+    isEditing: Boolean,
+    startEditing: () -> Unit,
+    updateUiState: (HomeUnitScreenUiState) -> Unit,
+    closeAlertDialog: () -> Unit,
+    actionDiscard: () -> Unit,
+    actionDeleteRoom: () -> Unit,
+    navigateToUnitTask: (String) -> Unit,
     navigateUp: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    //val scope = rememberCoroutineScope()
     //val context = LocalContext.current
     val snackBarHostState = remember { SnackbarHostState() }
-
-    var isEditing by rememberSaveable { mutableStateOf(false) }
-
 
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
@@ -97,7 +114,7 @@ fun HomeUnitScreenImpl(
             HomeUnitDetailTopAppBar(
                 onBack = navigateUp,
                 isEditing = isEditing,
-                onEditClicked = { isEditing = true },
+                onEditClicked = { startEditing() },
                 onDone = {
                     /*viewModel.actionSave()?.let {
                         scope.launch {
@@ -105,129 +122,124 @@ fun HomeUnitScreenImpl(
                         }
                     }*/
                 },
-                onDiscard = {
-                    /*if (viewModel.actionDiscard()) {
-                        isEditing = false
-                    }*/
-                    isEditing = false
-                },
-                onDelete = {
-                    /*viewModel.actionDeleteRoom()*/
-                })
+                onDiscard = actionDiscard,
+                onDelete = actionDeleteRoom
+            )
         },
         modifier = modifier.fillMaxSize(),
     ) { paddingValues ->
 
-        Column(
+        LazyColumn(
             modifier = Modifier
-                .verticalScroll(rememberScrollState())
                 .fillMaxSize()
                 .padding(paddingValues)
                 .consumeWindowInsets(paddingValues)
         ) {
             // region Unit Name
-            Text(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = dimensionResource(id = R.dimen.margin_normal)),
-                text = uiState.unitName,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                fontWeight = FontWeight.Bold,
-                style = MaterialTheme.typography.titleLarge,
-            )
-            Spacer(Modifier.size(dimensionResource(id = R.dimen.margin_normal)))
+            item {
+                if (isEditing) {
+                    var text by rememberSaveable { mutableStateOf(uiState.unitName) }
+
+                    TextField(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(dimensionResource(id = R.dimen.margin_normal)),
+                        value = text,
+                        onValueChange = {
+                            text = it
+                            updateUiState(uiState.copy(unitName = it))
+                        })
+                } else {
+                    Text(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = dimensionResource(id = R.dimen.margin_normal)),
+                        text = uiState.unitName,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleLarge,
+                    )
+                }
+                Spacer(Modifier.size(dimensionResource(id = R.dimen.margin_normal)))
+            }
             // endregion
 
             // region value
 
             if (uiState.value != null) {
-                GeneralHomeUnitValue(homeUnitValue = uiState.value)
+                item {
+                    GeneralHomeUnitValue(homeUnitValue = uiState.value)
+                }
             }
 
             // endregion
 
             // region Unit Type
-            Text(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = dimensionResource(id = R.dimen.margin_normal)),
-                text = stringResource(id = R.string.add_edit_home_unit_text_unit_type_title),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.titleMedium,
-            )
+            item {
+                Text(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = dimensionResource(id = R.dimen.margin_normal)),
+                    text = stringResource(id = R.string.add_edit_home_unit_text_unit_type_title),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.titleMedium,
+                )
 
-            Text(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(
-                        start = dimensionResource(id = R.dimen.margin_large),
-                        end = dimensionResource(id = R.dimen.margin_normal)
-                    ), text = uiState.unitType
-            )
-            // endregion
-
-            // region Room Name
-            Text(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = dimensionResource(id = R.dimen.margin_normal)),
-                text = stringResource(id = R.string.add_edit_home_unit_text_room_title),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.titleMedium,
-            )
-            val roomName = uiState.roomName
-            if (roomName != null) {
                 Text(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(
                             start = dimensionResource(id = R.dimen.margin_large),
                             end = dimensionResource(id = R.dimen.margin_normal)
-                        ), text = roomName
+                        ), text = uiState.unitType
                 )
+            }
+            // endregion
+
+            // region Room Name
+            item {
+                Text(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = dimensionResource(id = R.dimen.margin_normal)),
+                    text = stringResource(id = R.string.add_edit_home_unit_text_room_title),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                val roomName = uiState.roomName
+                if (roomName != null) {
+                    Text(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(
+                                start = dimensionResource(id = R.dimen.margin_large),
+                                end = dimensionResource(id = R.dimen.margin_normal)
+                            ), text = roomName
+                    )
+                }
             }
             // endregion
 
             // region HW Unit Name
             if (uiState.hwUnit != null) {
-                HomeUnitHWUnits(uiState.hwUnit)
+                item {
+                    HomeUnitHWUnits(uiState.hwUnit)
+                }
             }
             // endregion
             // region Additional Settings
             if (uiState.additionalSettings != null) {
-                HomeUnitAdditionalSettings(uiState.additionalSettings)
+                item {
+                    HomeUnitAdditionalSettings(uiState.additionalSettings)
+                }
             }
             // endregion
 
             // region FirebaseNotify Switch
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = dimensionResource(id = R.dimen.margin_normal)),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                        .padding(end = dimensionResource(id = R.dimen.margin_small)),
-                    text = stringResource(id = R.string.add_edit_home_unit_notify_firebase_switch_text),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                Switch(
-                    checked = uiState.firebaseNotify,
-                    onCheckedChange = { /*viewModel.setFirebaseNotify(it)*/ })
-            }
-            // endregion
-
-            // region Show in Task List Switch
-            if (uiState.value is HomeUnitScreenValueUiState.SwitchValueUiState) {
+            item {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -240,75 +252,102 @@ fun HomeUnitScreenImpl(
                             .fillMaxWidth()
                             .weight(1f)
                             .padding(end = dimensionResource(id = R.dimen.margin_small)),
-                        text = stringResource(id = R.string.add_edit_home_unit_show_in_task_list_switch_text),
+                        text = stringResource(id = R.string.add_edit_home_unit_notify_firebase_switch_text),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         style = MaterialTheme.typography.titleMedium,
                     )
                     Switch(
-                        checked = uiState.showInTaskList,
+                        checked = uiState.firebaseNotify,
                         onCheckedChange = { /*viewModel.setFirebaseNotify(it)*/ })
                 }
             }
             // endregion
 
+            // region Show in Task List Switch
+            if (uiState.value is HomeUnitScreenValueUiState.SwitchValueUiState) {
+                item {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = dimensionResource(id = R.dimen.margin_normal)),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f)
+                                .padding(end = dimensionResource(id = R.dimen.margin_small)),
+                            text = stringResource(id = R.string.add_edit_home_unit_show_in_task_list_switch_text),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            style = MaterialTheme.typography.titleMedium,
+                        )
+                        Switch(
+                            checked = uiState.showInTaskList,
+                            onCheckedChange = { /*viewModel.setFirebaseNotify(it)*/ })
+                    }
+                }
+            }
+            // endregion
+
             // region Task List
-            Text(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = dimensionResource(id = R.dimen.margin_normal)),
-                text = stringResource(id = R.string.add_edit_home_unit_text_task_list_title),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.titleMedium,
-            )
-
-            //endregion
-
-            /*if (isEditing) {
-                var text by rememberSaveable { mutableStateOf(roomName) }
-
-                TextField(
+            item {
+                Text(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(dimensionResource(id = R.dimen.margin_normal)),
-                    value = text,
-                    onValueChange = {
-                        text = it
-                        viewModel.setRoomName(it)
-                    })
-            }*/
-
-            /*HomeUnitList(
-                modifier = modifier
-                    .fillMaxSize(),
-                homeUnits = uiState,
-                onHomeUnitClick = { onHomeUnitClick(it.first, it.second) },
-                showLogs = { showLogs(it.first, it.second) },
-                switchHomeUnitState = { homeUnit, switchState ->
-                    viewModel.switchHomeUnitState(
-                        homeUnit, switchState
+                        .padding(horizontal = dimensionResource(id = R.dimen.margin_normal)),
+                    text = stringResource(id = R.string.add_edit_home_unit_text_task_list_title),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                uiState.unitTasks.forEach { taskListItem ->
+                    Text(
+                        modifier = Modifier
+                            .wrapContentWidth()
+                            .padding(
+                                start = dimensionResource(id = R.dimen.margin_large),
+                                end = dimensionResource(id = R.dimen.margin_normal),
+                                top = dimensionResource(id = R.dimen.margin_small)
+                            )
+                            .clickable { navigateToUnitTask(taskListItem) },
+                        text = taskListItem,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.titleMedium,
                     )
                 }
-            )*/
+                if (isEditing) {
+                    Text(
+                        modifier = Modifier
+                            .wrapContentWidth()
+                            .padding(
+                                start = dimensionResource(id = R.dimen.margin_large),
+                                end = dimensionResource(id = R.dimen.margin_normal),
+                                top = dimensionResource(id = R.dimen.margin_small)
+                            )
+                            .clickable { navigateToUnitTask("") },
+                        text = stringResource(id = R.string.add_edit_home_unit_task_list_add_new_task),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                }
+            }
+
+            //endregion
         }
     }
 
-    /*val alertDialog by viewModel.showDialog.collectAsStateWithLifecycle()
-    alertDialog?.let {
-        SmartAlertDialog(model = it,
-            onOkClick = {
-                viewModel.showDialog.value = null
-                isEditing = false
-            }, onDismissClick = {
-                viewModel.showDialog.value = null
-            })
-    }*/
-
-    /*val navigateUp by viewModel.navigateUp.collectAsStateWithLifecycle()
-    if (navigateUp) {
-        navigateUp()
-    }*/
+    uiState.alertDialog?.let {
+        SmartAlertDialog(
+            model = it,
+            onOkClick = it.positiveButtonAction,
+            onDismissClick = closeAlertDialog
+        )
+    }
 
     if (uiState.showProgress) {
         Box(
@@ -894,42 +933,6 @@ private fun HomeUnitAdditionalSettings(
     }
 }
 
-@Composable
-private fun HomeUnitList(
-    modifier: Modifier = Modifier,
-    homeUnits: List<HomeUnitCardModel>,
-    onHomeUnitClick: (Pair<HomeUnitType, String>) -> Unit,
-    switchHomeUnitState: (Pair<HomeUnitType, String>, Boolean) -> Unit,
-    showLogs: (Pair<String, HomeUnitType>) -> Unit
-) {
-    LazyVerticalStaggeredGrid(
-        columns = StaggeredGridCells.Adaptive(150.dp),
-        verticalItemSpacing = 8.dp,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        contentPadding = PaddingValues(horizontal = 8.dp),
-        content = {
-            items(homeUnits) { homeUnitModel ->
-                HomeUnitCard(
-                    homeUnitModel,
-                    onClick = { onHomeUnitClick(homeUnitModel.id.homeUnitType to homeUnitModel.id.homeUnitName) },
-                    showLogs = {
-                        homeUnitModel.id.hwUnitName?.let { hwUnitName ->
-                            showLogs(
-                                hwUnitName to homeUnitModel.id.homeUnitType
-                            )
-                        }
-                    },
-                    onSwitch = {
-                        switchHomeUnitState(
-                            homeUnitModel.id.homeUnitType to homeUnitModel.id.homeUnitName, it
-                        )
-                    })
-            }
-        },
-        modifier = modifier.fillMaxSize()
-    )
-}
-
 // region previews
 
 // region Number Value preview
@@ -939,7 +942,7 @@ private fun HomeUnitScreenImplPreview1() {
     MaterialTheme {
         HomeUnitScreenImpl(
             HomeUnitScreenUiState(
-                false,
+                showProgress = false,
                 unitName = "Home Unit Name",
                 value = HomeUnitScreenValueUiState.NumberedValueUiState(
                     value = 23.5,
@@ -956,8 +959,10 @@ private fun HomeUnitScreenImplPreview1() {
                 additionalSettings = null,
                 firebaseNotify = true,
                 firebaseNotifyTrigger = RISING_EDGE,
-                showInTaskList = false
-            ), {})
+                showInTaskList = false,
+                unitTasks = listOf("Auto Off", "Notify on High Temp")
+            ), false, {}, {}, {}, {}, {}, {}, {}
+        )
     }
 }
 // endregion
@@ -982,8 +987,10 @@ private fun HomeUnitScreenImplPreview2() {
                 additionalSettings = null,
                 firebaseNotify = true,
                 firebaseNotifyTrigger = RISING_EDGE,
-                showInTaskList = false
-            ), {})
+                showInTaskList = false,
+                unitTasks = emptyList()
+            ), false, {}, {}, {}, {}, {}, {}, {}
+        )
     }
 }
 // endregion
@@ -1013,8 +1020,10 @@ private fun HomeUnitScreenImplPreview3() {
                 additionalSettings = null,
                 firebaseNotify = true,
                 firebaseNotifyTrigger = RISING_EDGE,
-                showInTaskList = false
-            ), {})
+                showInTaskList = false,
+                unitTasks = emptyList()
+            ), false, {}, {}, {}, {}, {}, {}, {}
+        )
     }
 }
 // endregion
@@ -1055,8 +1064,10 @@ private fun HomeUnitScreenImplPreview4() {
                 ),
                 firebaseNotify = true,
                 firebaseNotifyTrigger = RISING_EDGE,
-                showInTaskList = false
-            ), {})
+                showInTaskList = false,
+                unitTasks = emptyList()
+            ), false, {}, {}, {}, {}, {}, {}, {}
+        )
     }
 }
 // endregion
@@ -1089,8 +1100,10 @@ private fun HomeUnitScreenImplPreview5() {
                 ),
                 firebaseNotify = true,
                 firebaseNotifyTrigger = RISING_EDGE,
-                showInTaskList = false
-            ), {})
+                showInTaskList = false,
+                unitTasks = emptyList()
+            ), false, {}, {}, {}, {}, {}, {}, {}
+        )
     }
 }
 // endregion
@@ -1111,9 +1124,9 @@ private fun HomeUnitScreenImplPreview42() {
                 additionalSettings = null,
                 firebaseNotify = false,
                 firebaseNotifyTrigger = null,
-                showInTaskList = false
-            ),
-            {}
+                showInTaskList = false,
+                unitTasks = emptyList()
+            ), false, {}, {}, {}, {}, {}, {}, {}
         )
     }
 }
