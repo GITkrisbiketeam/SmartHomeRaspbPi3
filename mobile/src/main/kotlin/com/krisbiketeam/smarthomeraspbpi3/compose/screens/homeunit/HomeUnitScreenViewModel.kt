@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.google.android.gms.tasks.Task
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.DEFAULT_WATCH_DOG_DELAY
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.DEFAULT_WATCH_DOG_TIMEOUT
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.GenericHomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HOME_ACTION_STORAGE_UNITS
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
@@ -18,8 +20,8 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_MIN
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HOME_MIN_TEMPERATURE_VAL_LAST_UPDATE
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.LAST_TRIGGER_SOURCE_HOME_UNIT_DETAILS
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.toHomeUnitType
 import com.krisbiketeam.smarthomeraspbpi3.compose.components.alertdialog.SmartAlertDialogModel
-import com.krisbiketeam.smarthomeraspbpi3.utils.getLastUpdateTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
@@ -40,8 +42,8 @@ import timber.log.Timber
  * The ViewModel used in [HomeUnitScreen].
  */
 @ExperimentalCoroutinesApi
-class HomeUnitScreenViewModel/*<T : HomeUnit<Any>>*/(
-    private val application: Application,
+class HomeUnitScreenViewModel(
+    application: Application,
     private val homeRepository: FirebaseHomeInformationRepository,
     roomName: String?, private val unitName: String, private val unitType: HomeUnitType
 ) : AndroidViewModel(application) {
@@ -62,11 +64,14 @@ class HomeUnitScreenViewModel/*<T : HomeUnit<Any>>*/(
             firebaseNotify = false,
             firebaseNotifyTrigger = null,
             showInTaskList = false,
+            lastTriggerSource = null,
             unitTasks = emptyList()
         )
     )
 
     private val _navigateUp: Channel<Unit> = Channel()
+
+    private val _snackBarText: Channel<Int> = Channel()
 
     val isEditMode: StateFlow<Boolean> = _isEditMode.flatMapLatest { isEditing ->
         if (!isEditing) {
@@ -107,6 +112,7 @@ class HomeUnitScreenViewModel/*<T : HomeUnit<Any>>*/(
                             firebaseNotify = homeUnit.firebaseNotify,
                             firebaseNotifyTrigger = homeUnit.firebaseNotifyTrigger,
                             showInTaskList = homeUnit.showInTaskList,
+                            lastTriggerSource = homeUnit.lastTriggerSource,
                             unitTasks = homeUnit.unitsTasks.keys.toList()
                         )
                     }
@@ -130,6 +136,7 @@ class HomeUnitScreenViewModel/*<T : HomeUnit<Any>>*/(
                             firebaseNotify = homeUnit.firebaseNotify,
                             firebaseNotifyTrigger = homeUnit.firebaseNotifyTrigger,
                             showInTaskList = homeUnit.showInTaskList,
+                            lastTriggerSource = homeUnit.lastTriggerSource,
                             unitTasks = homeUnit.unitsTasks.keys.toList()
                         )
                     }
@@ -152,6 +159,7 @@ class HomeUnitScreenViewModel/*<T : HomeUnit<Any>>*/(
                             firebaseNotify = homeUnit.firebaseNotify,
                             firebaseNotifyTrigger = homeUnit.firebaseNotifyTrigger,
                             showInTaskList = homeUnit.showInTaskList,
+                            lastTriggerSource = homeUnit.lastTriggerSource,
                             unitTasks = homeUnit.unitsTasks.keys.toList()
                         )
                     }
@@ -170,6 +178,7 @@ class HomeUnitScreenViewModel/*<T : HomeUnit<Any>>*/(
                             firebaseNotify = homeUnit.firebaseNotify,
                             firebaseNotifyTrigger = homeUnit.firebaseNotifyTrigger,
                             showInTaskList = homeUnit.showInTaskList,
+                            lastTriggerSource = homeUnit.lastTriggerSource,
                             unitTasks = homeUnit.unitsTasks.keys.toList()
                         )
                     }
@@ -186,6 +195,8 @@ class HomeUnitScreenViewModel/*<T : HomeUnit<Any>>*/(
     val uiState: StateFlow<HomeUnitScreenUiState> = _uiState
 
     val navigateUp: Flow<Unit> = _navigateUp.receiveAsFlow()
+
+    val snackBarText: Flow<Int> = _snackBarText.receiveAsFlow()
 
     init {
         viewModelScope.launch {
@@ -303,7 +314,7 @@ class HomeUnitScreenViewModel/*<T : HomeUnit<Any>>*/(
         return if (HOME_ACTION_STORAGE_UNITS.contains(homeUnit.type) && homeUnit.value is Boolean?) {
             return HomeUnitScreenValueUiState.SwitchValueUiState(
                 value = homeUnit.value as? Boolean,
-                lastUpdateTime = getLastUpdateTime(application, homeUnit.lastUpdateTime),
+                lastUpdateTime = homeUnit.lastUpdateTime,
                 { isChecked ->
                     Timber.d("OnCheckedChangeListener isChecked: $isChecked")
                     if (homeUnit.value != isChecked) {
@@ -319,11 +330,11 @@ class HomeUnitScreenViewModel/*<T : HomeUnit<Any>>*/(
         } else if (homeUnit.value is Number?) {
             HomeUnitScreenValueUiState.NumberedValueUiState(
                 value = homeUnit.value as? Number,
-                lastUpdateTime = getLastUpdateTime(application, homeUnit.lastUpdateTime),
+                lastUpdateTime = homeUnit.lastUpdateTime,
                 minValue = homeUnit.min as? Number,
-                minLastUpdateTime = getLastUpdateTime(application, homeUnit.minLastUpdateTime),
+                minLastUpdateTime = homeUnit.minLastUpdateTime,
                 maxValue = homeUnit.max as? Number,
-                maxLastUpdateTime = getLastUpdateTime(application, homeUnit.maxLastUpdateTime),
+                maxLastUpdateTime = homeUnit.maxLastUpdateTime,
                 clearMinValue = {
                     Timber.d("clearMinValue homeUnit: $homeUnit")
                     homeRepository.clearMinHomeUnitValue(homeUnit)
@@ -341,7 +352,7 @@ class HomeUnitScreenViewModel/*<T : HomeUnit<Any>>*/(
     private fun getLightSwitchHomeUnitValue(homeUnit: LightSwitchHomeUnit<Any>): HomeUnitScreenValueUiState<*>? {
         return HomeUnitScreenValueUiState.LightSwitchValueUiState(
             value = homeUnit.value as? Boolean,
-            lastUpdateTime = getLastUpdateTime(application, homeUnit.lastUpdateTime),
+            lastUpdateTime = homeUnit.lastUpdateTime,
             { isChecked ->
                 Timber.d("OnCheckedChangeListener isChecked: $isChecked")
                 if (homeUnit.value != isChecked) {
@@ -354,14 +365,14 @@ class HomeUnitScreenViewModel/*<T : HomeUnit<Any>>*/(
                 }
             },
             switchValue = homeUnit.switchValue as? Boolean,
-            switchLastUpdateTime = getLastUpdateTime(application, homeUnit.switchLastUpdateTime)
+            switchLastUpdateTime = homeUnit.switchLastUpdateTime
         )
     }
 
     private fun getWatchDogHomeUnitValue(homeUnit: MCP23017WatchDogHomeUnit<Any>): HomeUnitScreenValueUiState<*>? {
         return HomeUnitScreenValueUiState.WatchDogValueUiState(
             value = homeUnit.value as? Boolean,
-            lastUpdateTime = getLastUpdateTime(application, homeUnit.lastUpdateTime),
+            lastUpdateTime = homeUnit.lastUpdateTime,
             { isChecked ->
                 Timber.d("OnCheckedChangeListener isChecked: $isChecked")
                 if (homeUnit.value != isChecked) {
@@ -374,14 +385,14 @@ class HomeUnitScreenViewModel/*<T : HomeUnit<Any>>*/(
                 }
             },
             inputValue = homeUnit.inputValue as? Boolean,
-            inputLastUpdateTime = getLastUpdateTime(application, homeUnit.inputLastUpdateTime)
+            inputLastUpdateTime = homeUnit.inputLastUpdateTime
         )
     }
 
     private fun getWaterCirculationHomeUnitValue(homeUnit: WaterCirculationHomeUnit<Any>): HomeUnitScreenValueUiState<*>? {
         return HomeUnitScreenValueUiState.WaterCirculationValueUiState(
             value = homeUnit.value as? Boolean,
-            lastUpdateTime = getLastUpdateTime(application, homeUnit.lastUpdateTime),
+            lastUpdateTime = homeUnit.lastUpdateTime,
             { isChecked ->
                 Timber.d("OnCheckedChangeListener isChecked: $isChecked")
                 if (homeUnit.value != isChecked) {
@@ -394,23 +405,14 @@ class HomeUnitScreenViewModel/*<T : HomeUnit<Any>>*/(
                 }
             },
             motionValue = homeUnit.motionValue,
-            motionLastUpdateTime = getLastUpdateTime(application, homeUnit.motionLastUpdateTime),
+            motionLastUpdateTime = homeUnit.motionLastUpdateTime,
             temperatureValue = homeUnit.temperatureValue,
-            temperatureLastUpdateTime = getLastUpdateTime(
-                application,
-                homeUnit.temperatureLastUpdateTime
-            ),
+            temperatureLastUpdateTime = homeUnit.temperatureLastUpdateTime,
 
             temperatureMinValue = homeUnit.temperatureMin,
-            temperatureMinLastUpdateTime = getLastUpdateTime(
-                application,
-                homeUnit.temperatureMinLastUpdateTime
-            ),
+            temperatureMinLastUpdateTime = homeUnit.temperatureMinLastUpdateTime,
             temperatureMaxValue = homeUnit.temperatureMax,
-            temperatureMaxLastUpdateTime = getLastUpdateTime(
-                application,
-                homeUnit.temperatureMaxLastUpdateTime
-            ),
+            temperatureMaxLastUpdateTime = homeUnit.temperatureMaxLastUpdateTime,
             clearTemperatureMinValue = {
                 Timber.d("clearMinValue homeUnit: $homeUnit")
                 homeRepository.clearMinHomeUnitValue(
@@ -443,7 +445,7 @@ class HomeUnitScreenViewModel/*<T : HomeUnit<Any>>*/(
             room.value = homeUnit.room
             hwUnitName.value = homeUnit.hwUnitName
             value.value = homeUnit.value.toString()
-            lastUpdateTime.value = getLastUpdateTime(application, homeUnit.lastUpdateTime)
+            lastUpdateTime.value = homeUnit.lastUpdateTime
             firebaseNotify.value = homeUnit.firebaseNotify
             firebaseNotifyTrigger.value = homeUnit.firebaseNotifyTrigger ?: RISING_EDGE
             showInTaskList.value = homeUnit.showInTaskList
@@ -587,6 +589,14 @@ class HomeUnitScreenViewModel/*<T : HomeUnit<Any>>*/(
         _uiState.update { it.copy(alertDialog = null) }
     }
 
+    fun setFirebaseNotify(firebaseNotify: Boolean) {
+        _uiState.update { it.copy(firebaseNotify = firebaseNotify) }
+    }
+
+    fun setShowInTaskList(showInTaskList: Boolean) {
+        _uiState.update { it.copy(showInTaskList = showInTaskList) }
+    }
+
     fun actionDiscard() {
         Timber.d(
             "actionDiscard homeUnit: $unitName of $unitType"
@@ -641,10 +651,16 @@ class HomeUnitScreenViewModel/*<T : HomeUnit<Any>>*/(
             homeRepositoryTask =
                 homeRepository.deleteHomeUnit(homeUnitType = unitType, homeUnitName = unitName)
                     ?.also {
-                        _uiState.update { it.copy(showProgress = true) }
+                        _uiState.update {
+                            it.copy(
+                                showProgress = true,
+                                alertDialog = null
+                            )
+                        }
                     }?.addOnCompleteListener {
                         Timber.d("doDeleteHomeUnit Task completed")
                         _uiState.update { it.copy(showProgress = false) }
+                        _isEditMode.value = false
                         _navigateUp.trySend(Unit)
                     }
         }
@@ -653,9 +669,9 @@ class HomeUnitScreenViewModel/*<T : HomeUnit<Any>>*/(
     /**
      * first return param is message Res Id, second return param if present will show dialog with this resource Id as a confirm button text, if not present Snackbar will be show.
      */
-    /*fun actionSave(): Pair<Int, Int?> {
-        Timber.d("actionSave addingNewUnit: ${homeUnit == null} name.value: ${name.value}")
-        if (homeUnit == null) {
+    fun actionSave() {
+        Timber.d("actionSave name: $unitName")
+        /*if (homeUnit == null) {
             // Adding new HomeUnit
             when {
                 name.value.trim().isEmpty() -> return Pair(
@@ -671,61 +687,330 @@ class HomeUnitScreenViewModel/*<T : HomeUnit<Any>>*/(
                 }
             }
             actionSaveGetCustomSavePair()?.let { return it }
+        } else {*/
+        // Editing existing HomeUnit
+        if (_uiState.value.unitName.trim().isEmpty()) {
+            _snackBarText.trySend(R.string.add_edit_home_unit_empty_name)
+        } else if (_uiState.value.unitName.trim().contains(Regex("[.#$\\[\\]]"))) {
+            _snackBarText.trySend(R.string.add_edit_home_unit_name_illegal_character)
+        } else if (_uiState.value.unitName.trim() != homeUnitUiStateBeforeEditing?.unitName
+            && homeUnitOfSelectedTypeList.find { it.name == _uiState.value.unitName.trim() } != null
+        ) {
+            _snackBarText.trySend(R.string.add_edit_home_unit_name_already_used)
+        } else if (_uiState.value.unitName.trim() != homeUnitUiStateBeforeEditing?.unitName
+            || _uiState.value.unitType != homeUnitUiStateBeforeEditing?.unitType
+        ) {
+            _uiState.update {
+                it.copy(
+                    alertDialog = SmartAlertDialogModel(
+                        title = R.string.overwrite,
+                        description = R.string.add_edit_home_unit_save_with_delete,
+                        positiveButtonTextId = R.string.overwrite,
+                        positiveButtonAction = ::saveChanges
+                    )
+                )
+            }
+        } else if (noChangesMade()) {
+            _snackBarText.trySend(R.string.add_edit_home_unit_no_changes)
         } else {
-            // Editing existing HomeUnit
-            homeUnit.value?.let { unit ->
-                return if (name.value.trim().isEmpty()) {
-                    Pair(R.string.add_edit_home_unit_empty_name, null)
-                } else if (name.value.trim().contains(Regex("[.#$\\[\\]]"))) {
-                    Pair(R.string.add_edit_home_unit_name_illegal_character, null)
-                } else if (name.value.trim() != unit.name && homeUnitOfSelectedTypeList.find { it.name == name.value.trim() } != null) {
-                    return Pair(R.string.add_edit_home_unit_name_already_used, null)
-                } else if (name.value.trim() != unit.name || type.value != unit.type) {
-                    Pair(R.string.add_edit_home_unit_save_with_delete, R.string.overwrite)
-                } else if (noChangesMade()) {
-                    Pair(R.string.add_edit_home_unit_no_changes, null)
-                } else {
-                    Pair(R.string.add_edit_home_unit_overwrite_changes, R.string.overwrite)
-                }
+            _uiState.update {
+                it.copy(
+                    alertDialog = SmartAlertDialogModel(
+                        title = R.string.overwrite,
+                        description = R.string.add_edit_home_unit_overwrite_changes,
+                        positiveButtonTextId = R.string.overwrite,
+                        positiveButtonAction = ::saveChanges
+                    )
+                )
             }
         }
         // new Home Unit adding just show Save Dialog
-        return Pair(R.string.add_edit_home_unit_save_changes, R.string.menu_save)
-    }*/
+        //return Pair(R.string.add_edit_home_unit_save_changes, R.string.menu_save)
+    }
 
-    /*private fun saveChanges(): Task<Void>? {
-         Timber.d(
-             "saveChanges homeUnit: ${homeUnit?.value} homeRepositoryTask.isComplete: ${homeRepositoryTask?.isComplete}"
-         )
-         homeRepositoryTask = (homeUnit?.value?.let { unit ->
-             showProgress.value = true
-             Timber.e("Save all changes")
-             doSaveChanges().apply {
-                 if (name.value != unit.name || type.value != unit.type) {
-                     Timber.d(
-                         "Name or type changed will need to delete old value name=${name.value}, type = ${type.value}"
-                     )
-                     // delete old HomeUnit
-                     this?.continueWithTask { homeRepository.deleteHomeUnit(unit) ?: it }
-                 }
-             }
-         } ?: doSaveChanges())?.addOnCompleteListener {
-             Timber.d("Task completed")
-             showProgress.value = false
-         }
-         return homeRepositoryTask
-     }*/
+    private fun saveChanges() {
+        Timber.d(
+            "saveChanges homeUnit: $unitName homeRepositoryTask.isComplete: ${homeRepositoryTask?.isComplete}"
+        )
+        homeRepositoryTask = if (unitName != null && unitType != null) {
+            _uiState.update { it.copy(showProgress = true) }
+            Timber.e("Save all changes")
+            doSaveChanges().apply {
+                if (_uiState.value.unitName != unitName || _uiState.value.unitType.toHomeUnitType() != unitType) {
+                    Timber.d(
+                        "Name or type changed will need to delete old value name=$unitName, type = $unitType"
+                    )
+                    // delete old HomeUnit
+                    this?.continueWithTask {
+                        homeRepository.deleteHomeUnit(unitType, unitName) ?: it
+                    }
+                }
+            }
+        } else {
+            doSaveChanges()
+        }?.addOnCompleteListener {
+            Timber.d("Task completed")
+            _uiState.update { it.copy(showProgress = false) }
+            _isEditMode.value = false
+        }
+    }
 
-    /*private fun doSaveChanges(): Task<Void>? {
-        showProgress.value = true
+    private fun doSaveChanges(): Task<Void>? {
+        _uiState.update { it.copy(showProgress = false) }
         return homeRepository.saveHomeUnit(
             getHomeUnitToSave()
         )
-    }*/
+    }
 
     private fun noChangesMade(): Boolean {
         return _uiState.value == homeUnitUiStateBeforeEditing
     }
 
-    //abstract fun getHomeUnitToSave(): T
+    private fun getHomeUnitToSave(): HomeUnit<Any> {
+        val currentUiState = _uiState.value
+        val currentValueUiState = _uiState.value.value
+        val currentHwUiState = _uiState.value.hwUnit
+        val currentAdditionalSettings = _uiState.value.additionalSettings
+        return when (currentUiState.unitType) {
+            HomeUnitType.HOME_LIGHT_SWITCHES.firebaseTableName -> {
+                LightSwitchHomeUnit(
+                    name = currentUiState.unitName,
+                    type = currentUiState.unitType.toHomeUnitType(),
+                    room = currentUiState.roomName ?: "",
+                    hwUnitName = currentUiState.hwUnit?.hwUnitName,
+                    value = currentValueUiState?.value,
+                    lastUpdateTime = currentValueUiState?.lastUpdateTime,
+                    switchHwUnitName = currentHwUiState?.let {
+                        if (it is HomeUnitScreenHwUnitUiState.LightSwitchHwUnitUiState) {
+                            it.switchHwUnitName
+                        } else {
+                            null
+                        }
+                    },
+                    switchValue = currentValueUiState?.let {
+                        if (it is HomeUnitScreenValueUiState.LightSwitchValueUiState) {
+                            it.switchValue
+                        } else {
+                            null
+                        }
+                    },
+                    switchLastUpdateTime = currentValueUiState?.let {
+                        if (it is HomeUnitScreenValueUiState.LightSwitchValueUiState) {
+                            it.switchLastUpdateTime
+                        } else {
+                            null
+                        }
+                    },
+                    lastTriggerSource = currentUiState.lastTriggerSource,
+                    firebaseNotify = currentUiState.firebaseNotify,
+                    firebaseNotifyTrigger = currentUiState.firebaseNotifyTrigger,
+                    showInTaskList = currentUiState.showInTaskList,
+                    /*unitsTasks = unitTaskList.value.toMutableMap().also {
+                        it.remove("")
+                    }*/
+                )
+            }
+
+            HomeUnitType.HOME_WATER_CIRCULATION.firebaseTableName -> {
+                WaterCirculationHomeUnit(
+                    name = currentUiState.unitName,
+                    type = currentUiState.unitType.toHomeUnitType(),
+                    room = currentUiState.roomName ?: "",
+                    hwUnitName = currentUiState.hwUnit?.hwUnitName,
+                    value = currentValueUiState?.value,
+                    lastUpdateTime = currentValueUiState?.lastUpdateTime,
+                    temperatureHwUnitName = currentHwUiState?.let {
+                        if (it is HomeUnitScreenHwUnitUiState.WaterCirculationHwUnitUiState) {
+                            it.temperatureHwUnitName
+                        } else {
+                            null
+                        }
+                    },
+                    temperatureValue = currentValueUiState?.let {
+                        if (it is HomeUnitScreenValueUiState.WaterCirculationValueUiState) {
+                            it.temperatureValue?.toFloat()
+                        } else {
+                            null
+                        }
+                    },
+                    temperatureLastUpdateTime = currentValueUiState?.let {
+                        if (it is HomeUnitScreenValueUiState.WaterCirculationValueUiState) {
+                            it.temperatureLastUpdateTime
+                        } else {
+                            null
+                        }
+                    },
+                    temperatureMin = currentValueUiState?.let {
+                        if (it is HomeUnitScreenValueUiState.WaterCirculationValueUiState) {
+                            it.temperatureMinValue?.toFloat()
+                        } else {
+                            null
+                        }
+                    },
+                    temperatureMinLastUpdateTime = currentValueUiState?.let {
+                        if (it is HomeUnitScreenValueUiState.WaterCirculationValueUiState) {
+                            it.temperatureMinLastUpdateTime
+                        } else {
+                            null
+                        }
+                    },
+                    temperatureMax = currentValueUiState?.let {
+                        if (it is HomeUnitScreenValueUiState.WaterCirculationValueUiState) {
+                            it.temperatureMaxValue?.toFloat()
+                        } else {
+                            null
+                        }
+                    },
+                    temperatureMaxLastUpdateTime = currentValueUiState?.let {
+                        if (it is HomeUnitScreenValueUiState.WaterCirculationValueUiState) {
+                            it.temperatureMaxLastUpdateTime
+                        } else {
+                            null
+                        }
+                    },
+                    temperatureThreshold = currentAdditionalSettings?.let {
+                        if (it is HomeUnitScreenAdditionalSettingsUiState.WaterCirculationAdditionalSettingsUiState) {
+                            it.temperatureThreshold
+                        } else {
+                            null
+                        }
+                    },
+                    motionHwUnitName = currentHwUiState?.let {
+                        if (it is HomeUnitScreenHwUnitUiState.WaterCirculationHwUnitUiState) {
+                            it.motionHwUnitName
+                        } else {
+                            null
+                        }
+                    },
+                    motionValue = currentValueUiState?.let {
+                        if (it is HomeUnitScreenValueUiState.WaterCirculationValueUiState) {
+                            it.motionValue
+                        } else {
+                            null
+                        }
+                    },
+                    motionLastUpdateTime = currentValueUiState?.let {
+                        if (it is HomeUnitScreenValueUiState.WaterCirculationValueUiState) {
+                            it.motionLastUpdateTime
+                        } else {
+                            null
+                        }
+                    },
+                    actionTimeout = currentAdditionalSettings?.let {
+                        if (it is HomeUnitScreenAdditionalSettingsUiState.WaterCirculationAdditionalSettingsUiState) {
+                            it.circulationDuration
+                        } else {
+                            null
+                        }
+                    },
+                    lastTriggerSource = currentUiState.lastTriggerSource,
+                    firebaseNotify = currentUiState.firebaseNotify,
+                    firebaseNotifyTrigger = currentUiState.firebaseNotifyTrigger,
+                    showInTaskList = currentUiState.showInTaskList,
+                    /*unitsTasks = unitTaskList.value.toMutableMap().also {
+                        it.remove("")
+                    }*/
+                )
+            }
+
+            HomeUnitType.HOME_MCP23017_WATCH_DOG.firebaseTableName -> {
+                MCP23017WatchDogHomeUnit(
+                    name = currentUiState.unitName,
+                    type = currentUiState.unitType.toHomeUnitType(),
+                    room = currentUiState.roomName ?: "",
+                    hwUnitName = currentUiState.hwUnit?.hwUnitName,
+                    value = currentValueUiState?.value,
+                    lastUpdateTime = currentValueUiState?.lastUpdateTime,
+                    inputHwUnitName = currentHwUiState?.let {
+                        if (it is HomeUnitScreenHwUnitUiState.WatchDogHwUnitUiState) {
+                            it.inputHwUnitName
+                        } else {
+                            null
+                        }
+                    },
+                    inputValue = currentValueUiState?.let {
+                        if (it is HomeUnitScreenValueUiState.WatchDogValueUiState) {
+                            it.inputValue
+                        } else {
+                            null
+                        }
+                    },
+                    inputLastUpdateTime = currentValueUiState?.let {
+                        if (it is HomeUnitScreenValueUiState.WatchDogValueUiState) {
+                            it.inputLastUpdateTime
+                        } else {
+                            null
+                        }
+                    },
+                    watchDogTimeout = currentAdditionalSettings?.let {
+                        if (it is HomeUnitScreenAdditionalSettingsUiState.WatchDogAdditionalSettingsUiState) {
+                            it.watchDogTimeout
+                        } else {
+                            null
+                        }
+                    } ?: DEFAULT_WATCH_DOG_TIMEOUT,
+                    watchDogDelay = currentAdditionalSettings?.let {
+                        if (it is HomeUnitScreenAdditionalSettingsUiState.WatchDogAdditionalSettingsUiState) {
+                            it.watchDogDelay
+                        } else {
+                            null
+                        }
+                    } ?: DEFAULT_WATCH_DOG_DELAY,
+                    lastTriggerSource = currentUiState.lastTriggerSource,
+                    firebaseNotify = currentUiState.firebaseNotify,
+                    firebaseNotifyTrigger = currentUiState.firebaseNotifyTrigger,
+                    showInTaskList = currentUiState.showInTaskList,
+                    /*unitsTasks = unitTaskList.value.toMutableMap().also {
+                        it.remove("")
+                    }*/
+                )
+            }
+
+            else -> {
+                GenericHomeUnit(
+                    name = currentUiState.unitName,
+                    type = currentUiState.unitType.toHomeUnitType(),
+                    room = currentUiState.roomName ?: "",
+                    hwUnitName = currentUiState.hwUnit?.hwUnitName,
+                    value = currentValueUiState?.value,
+                    lastUpdateTime = currentValueUiState?.lastUpdateTime,
+                    min = currentValueUiState?.let {
+                        if (it is HomeUnitScreenValueUiState.NumberedValueUiState) {
+                            it.minValue
+                        } else {
+                            null
+                        }
+                    },
+                    minLastUpdateTime = currentValueUiState?.let {
+                        if (it is HomeUnitScreenValueUiState.NumberedValueUiState) {
+                            it.minLastUpdateTime
+                        } else {
+                            null
+                        }
+                    },
+                    max = currentValueUiState?.let {
+                        if (it is HomeUnitScreenValueUiState.NumberedValueUiState) {
+                            it.maxValue
+                        } else {
+                            null
+                        }
+                    },
+                    maxLastUpdateTime = currentValueUiState?.let {
+                        if (it is HomeUnitScreenValueUiState.NumberedValueUiState) {
+                            it.maxLastUpdateTime
+                        } else {
+                            null
+                        }
+                    },
+                    lastTriggerSource = currentUiState.lastTriggerSource,
+                    firebaseNotify = currentUiState.firebaseNotify,
+                    firebaseNotifyTrigger = currentUiState.firebaseNotifyTrigger,
+                    showInTaskList = currentUiState.showInTaskList,
+                    /*unitsTasks = unitTaskList.value.toMutableMap().also {
+                        it.remove("")
+                    }*/
+                )
+            }
+        }
+    }
 }

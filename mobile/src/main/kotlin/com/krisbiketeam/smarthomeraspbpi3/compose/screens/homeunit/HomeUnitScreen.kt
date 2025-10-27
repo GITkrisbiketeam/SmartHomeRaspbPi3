@@ -1,5 +1,6 @@
 package com.krisbiketeam.smarthomeraspbpi3.compose.screens.homeunit
 
+import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -37,6 +38,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -46,10 +48,13 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.RISING_EDGE
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.LAST_TRIGGER_SOURCE_BOOLEAN_APPLY
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.LAST_TRIGGER_SOURCE_HW_UNIT
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.toHomeUnitType
 import com.krisbiketeam.smarthomeraspbpi3.compose.components.alertdialog.SmartAlertDialog
 import com.krisbiketeam.smarthomeraspbpi3.compose.components.topappbat.HomeUnitDetailTopAppBar
 import com.krisbiketeam.smarthomeraspbpi3.utils.getDayTime
+import com.krisbiketeam.smarthomeraspbpi3.utils.getLastUpdateTime
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -69,6 +74,10 @@ fun HomeUnitScreen(
         )
     },
 ) {
+
+    val context = LocalContext.current
+    val snackBarHostState = remember { SnackbarHostState() }
+
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isEditing by viewModel.isEditMode.collectAsStateWithLifecycle()
 
@@ -77,15 +86,24 @@ fun HomeUnitScreen(
             navigateUp.invoke()
         }
     }
+    LaunchedEffect("snackBar") {
+        viewModel.snackBarText.collect {
+            snackBarHostState.showSnackbar(context.getString(it))
+        }
+    }
 
     HomeUnitScreenImpl(
+        snackBarHostState = snackBarHostState,
         uiState = uiState,
         isEditing,
         startEditing = viewModel::startEditing,
         updateUiState = viewModel::updateUiState,
         closeAlertDialog = viewModel::closeAlertDialog,
+        actionSave = viewModel::actionSave,
         actionDiscard = viewModel::actionDiscard,
         actionDeleteRoom = viewModel::actionDeleteHomeUnit,
+        setFirebaseNotify = viewModel::setFirebaseNotify,
+        setShowInTaskList = viewModel::setShowInTaskList,
         navigateToUnitTask = navigateToUnitTask,
         navigateUp = navigateUp,
         modifier = modifier,
@@ -94,20 +112,21 @@ fun HomeUnitScreen(
 
 @Composable
 fun HomeUnitScreenImpl(
+    snackBarHostState: SnackbarHostState,
     uiState: HomeUnitScreenUiState,
     isEditing: Boolean,
     startEditing: () -> Unit,
     updateUiState: (HomeUnitScreenUiState) -> Unit,
     closeAlertDialog: () -> Unit,
+    actionSave: () -> Unit,
     actionDiscard: () -> Unit,
     actionDeleteRoom: () -> Unit,
+    setFirebaseNotify: (Boolean) -> Unit,
+    setShowInTaskList: (Boolean) -> Unit,
     navigateToUnitTask: (String) -> Unit,
     navigateUp: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    //val context = LocalContext.current
-    val snackBarHostState = remember { SnackbarHostState() }
-
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
         topBar = {
@@ -115,13 +134,7 @@ fun HomeUnitScreenImpl(
                 onBack = navigateUp,
                 isEditing = isEditing,
                 onEditClicked = { startEditing() },
-                onDone = {
-                    /*viewModel.actionSave()?.let {
-                        scope.launch {
-                            snackbarHostState.showSnackbar(context.getString(it))
-                        }
-                    }*/
-                },
+                onDone = actionSave,
                 onDiscard = actionDiscard,
                 onDelete = actionDeleteRoom
             )
@@ -169,7 +182,30 @@ fun HomeUnitScreenImpl(
 
             if (uiState.value != null) {
                 item {
-                    GeneralHomeUnitValue(homeUnitValue = uiState.value)
+                    GeneralHomeUnitValue(context = LocalContext.current, homeUnitValue = uiState.value)
+                }
+            }
+
+            if (uiState.lastTriggerSource != null) {
+                item {
+                    Text(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = dimensionResource(id = R.dimen.margin_normal)),
+                        text = stringResource(id = R.string.add_edit_home_unit_text_last_trigger_source_title),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+
+                    Text(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(
+                                start = dimensionResource(id = R.dimen.margin_large),
+                                end = dimensionResource(id = R.dimen.margin_normal)
+                            ), text = uiState.lastTriggerSource
+                    )
                 }
             }
 
@@ -259,7 +295,9 @@ fun HomeUnitScreenImpl(
                     )
                     Switch(
                         checked = uiState.firebaseNotify,
-                        onCheckedChange = { /*viewModel.setFirebaseNotify(it)*/ })
+                        enabled = isEditing,
+                        onCheckedChange = setFirebaseNotify
+                    )
                 }
             }
             // endregion
@@ -286,7 +324,9 @@ fun HomeUnitScreenImpl(
                         )
                         Switch(
                             checked = uiState.showInTaskList,
-                            onCheckedChange = { /*viewModel.setFirebaseNotify(it)*/ })
+                            enabled = isEditing,
+                            onCheckedChange = setShowInTaskList
+                        )
                     }
                 }
             }
@@ -344,7 +384,7 @@ fun HomeUnitScreenImpl(
     uiState.alertDialog?.let {
         SmartAlertDialog(
             model = it,
-            onOkClick = it.positiveButtonAction,
+            onOkClick = {}, // it is handled in SmartAlertDialogModel
             onDismissClick = closeAlertDialog
         )
     }
@@ -365,6 +405,7 @@ fun HomeUnitScreenImpl(
 @Composable
 private fun GeneralHomeUnitValue(
     homeUnitValue: HomeUnitScreenValueUiState<out Any>,
+    context: Context
 ) {
     Column(
         modifier = Modifier
@@ -412,7 +453,10 @@ private fun GeneralHomeUnitValue(
                             start = dimensionResource(id = R.dimen.margin_small),
                             end = dimensionResource(id = R.dimen.margin_normal)
                         ),
-                    text = homeUnitValue.lastUpdateTime,
+                    text = getLastUpdateTime(
+                        context = context,
+                        lastUpdateTime = homeUnitValue.lastUpdateTime
+                    ),
                     style = MaterialTheme.typography.bodySmall,
                 )
             }
@@ -462,7 +506,10 @@ private fun GeneralHomeUnitValue(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(start = dimensionResource(id = R.dimen.margin_normal)),
-                            text = homeUnitValue.minLastUpdateTime,
+                            text = getLastUpdateTime(
+                                context = context,
+                                homeUnitValue.minLastUpdateTime
+                            ),
                             style = MaterialTheme.typography.bodySmall,
                         )
                     }
@@ -500,7 +547,10 @@ private fun GeneralHomeUnitValue(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(start = dimensionResource(id = R.dimen.margin_normal)),
-                            text = homeUnitValue.maxLastUpdateTime,
+                            text = getLastUpdateTime(
+                                context = context,
+                                homeUnitValue.maxLastUpdateTime
+                            ),
                             style = MaterialTheme.typography.bodySmall,
                         )
                     }
@@ -539,7 +589,10 @@ private fun GeneralHomeUnitValue(
                             start = dimensionResource(id = R.dimen.margin_small),
                             end = dimensionResource(id = R.dimen.margin_normal)
                         ),
-                    text = homeUnitValue.switchLastUpdateTime,
+                    text = getLastUpdateTime(
+                        context = context,
+                        homeUnitValue.switchLastUpdateTime
+                    ),
                     style = MaterialTheme.typography.bodySmall,
                 )
             }
@@ -573,7 +626,10 @@ private fun GeneralHomeUnitValue(
                             start = dimensionResource(id = R.dimen.margin_small),
                             end = dimensionResource(id = R.dimen.margin_normal)
                         ),
-                    text = homeUnitValue.motionLastUpdateTime,
+                    text = getLastUpdateTime(
+                        context = context,
+                        homeUnitValue.motionLastUpdateTime
+                    ),
                     style = MaterialTheme.typography.bodySmall,
                 )
                 Spacer(Modifier.size(dimensionResource(id = R.dimen.margin_small)))
@@ -605,7 +661,10 @@ private fun GeneralHomeUnitValue(
                             start = dimensionResource(id = R.dimen.margin_small),
                             end = dimensionResource(id = R.dimen.margin_normal)
                         ),
-                    text = homeUnitValue.temperatureLastUpdateTime,
+                    text = getLastUpdateTime(
+                        context = context,
+                        homeUnitValue.temperatureLastUpdateTime
+                    ),
                     style = MaterialTheme.typography.bodySmall,
                 )
                 Row(
@@ -638,7 +697,10 @@ private fun GeneralHomeUnitValue(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(start = dimensionResource(id = R.dimen.margin_normal)),
-                            text = homeUnitValue.temperatureMinLastUpdateTime,
+                            text = getLastUpdateTime(
+                                context = context,
+                                homeUnitValue.temperatureMinLastUpdateTime
+                            ),
                             style = MaterialTheme.typography.bodySmall,
                         )
                     }
@@ -676,7 +738,10 @@ private fun GeneralHomeUnitValue(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(start = dimensionResource(id = R.dimen.margin_normal)),
-                            text = homeUnitValue.temperatureMaxLastUpdateTime,
+                            text = getLastUpdateTime(
+                                context = context,
+                                homeUnitValue.temperatureMaxLastUpdateTime
+                            ),
                             style = MaterialTheme.typography.bodySmall,
                         )
                     }
@@ -715,7 +780,10 @@ private fun GeneralHomeUnitValue(
                             start = dimensionResource(id = R.dimen.margin_small),
                             end = dimensionResource(id = R.dimen.margin_normal)
                         ),
-                    text = homeUnitValue.inputLastUpdateTime,
+                    text = getLastUpdateTime(
+                        context = context,
+                        homeUnitValue.inputLastUpdateTime
+                    ),
                     style = MaterialTheme.typography.bodySmall,
                 )
             }
@@ -941,16 +1009,17 @@ private fun HomeUnitAdditionalSettings(
 private fun HomeUnitScreenImplPreview1() {
     MaterialTheme {
         HomeUnitScreenImpl(
+            snackBarHostState = SnackbarHostState(),
             HomeUnitScreenUiState(
                 showProgress = false,
                 unitName = "Home Unit Name",
                 value = HomeUnitScreenValueUiState.NumberedValueUiState(
                     value = 23.5,
-                    lastUpdateTime = "Updated 5 minutes ago",
+                    lastUpdateTime = System.currentTimeMillis(),
                     minValue = 19.0,
-                    minLastUpdateTime = "Updated 2 days ago",
+                    minLastUpdateTime = System.currentTimeMillis() - 100000,
                     maxValue = 28.0,
-                    maxLastUpdateTime = "Updated 3 days ago",
+                    maxLastUpdateTime = System.currentTimeMillis() - 200000,
                     {}, {}
                 ),
                 unitType = "temperatures",
@@ -960,8 +1029,9 @@ private fun HomeUnitScreenImplPreview1() {
                 firebaseNotify = true,
                 firebaseNotifyTrigger = RISING_EDGE,
                 showInTaskList = false,
+                lastTriggerSource = LAST_TRIGGER_SOURCE_BOOLEAN_APPLY,
                 unitTasks = listOf("Auto Off", "Notify on High Temp")
-            ), false, {}, {}, {}, {}, {}, {}, {}
+            ), false, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
         )
     }
 }
@@ -973,12 +1043,13 @@ private fun HomeUnitScreenImplPreview1() {
 private fun HomeUnitScreenImplPreview2() {
     MaterialTheme {
         HomeUnitScreenImpl(
+            snackBarHostState = SnackbarHostState(),
             HomeUnitScreenUiState(
                 false,
                 unitName = "Actuator",
                 value = HomeUnitScreenValueUiState.SwitchValueUiState(
                     value = false,
-                    lastUpdateTime = "Updated 5 minutes ago",
+                    lastUpdateTime = System.currentTimeMillis() - 100000,
                     setValueFromSwitch = {}
                 ),
                 unitType = "temperatures",
@@ -988,8 +1059,9 @@ private fun HomeUnitScreenImplPreview2() {
                 firebaseNotify = true,
                 firebaseNotifyTrigger = RISING_EDGE,
                 showInTaskList = false,
+                lastTriggerSource = LAST_TRIGGER_SOURCE_HW_UNIT,
                 unitTasks = emptyList()
-            ), false, {}, {}, {}, {}, {}, {}, {}
+            ), false,{}, {}, {},  {}, {}, {}, {}, {}, {}, {}
         )
     }
 }
@@ -1001,15 +1073,16 @@ private fun HomeUnitScreenImplPreview2() {
 private fun HomeUnitScreenImplPreview3() {
     MaterialTheme {
         HomeUnitScreenImpl(
+            snackBarHostState = SnackbarHostState(),
             HomeUnitScreenUiState(
                 false,
                 unitName = "Light Switch",
                 value = HomeUnitScreenValueUiState.LightSwitchValueUiState(
                     value = false,
-                    lastUpdateTime = "Updated 5 minutes ago",
+                    lastUpdateTime = System.currentTimeMillis() - 100000,
                     setValueFromSwitch = {},
                     switchValue = true,
-                    switchLastUpdateTime = "Updated 15 minutes ago"
+                    switchLastUpdateTime = System.currentTimeMillis() - 300000
                 ),
                 unitType = "temperatures",
                 roomName = "Living Room",
@@ -1021,8 +1094,9 @@ private fun HomeUnitScreenImplPreview3() {
                 firebaseNotify = true,
                 firebaseNotifyTrigger = RISING_EDGE,
                 showInTaskList = false,
+                lastTriggerSource = LAST_TRIGGER_SOURCE_HW_UNIT,
                 unitTasks = emptyList()
-            ), false, {}, {}, {}, {}, {}, {}, {}
+            ), false, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
         )
     }
 }
@@ -1034,21 +1108,22 @@ private fun HomeUnitScreenImplPreview3() {
 private fun HomeUnitScreenImplPreview4() {
     MaterialTheme {
         HomeUnitScreenImpl(
+            snackBarHostState = SnackbarHostState(),
             HomeUnitScreenUiState(
                 false,
                 unitName = "Water Circulation",
                 value = HomeUnitScreenValueUiState.WaterCirculationValueUiState(
                     value = false,
-                    lastUpdateTime = "Updated 5 minutes ago",
+                    lastUpdateTime = System.currentTimeMillis(),
                     setValueFromSwitch = {},
                     motionValue = true,
-                    motionLastUpdateTime = "Updated 15 minutes ago",
+                    motionLastUpdateTime = System.currentTimeMillis() - 300000,
                     temperatureValue = 23.5,
-                    temperatureLastUpdateTime = "Updated 5 minutes ago",
+                    temperatureLastUpdateTime = System.currentTimeMillis() - 100000,
                     temperatureMinValue = 19.0,
-                    temperatureMinLastUpdateTime = "Updated 2 days ago",
+                    temperatureMinLastUpdateTime = System.currentTimeMillis() - 1000000,
                     temperatureMaxValue = 28.0,
-                    temperatureMaxLastUpdateTime = "Updated 3 days ago",
+                    temperatureMaxLastUpdateTime = System.currentTimeMillis() - 200000,
                     {}, {}
                 ),
                 unitType = "temperatures",
@@ -1065,8 +1140,9 @@ private fun HomeUnitScreenImplPreview4() {
                 firebaseNotify = true,
                 firebaseNotifyTrigger = RISING_EDGE,
                 showInTaskList = false,
+                lastTriggerSource = LAST_TRIGGER_SOURCE_HW_UNIT,
                 unitTasks = emptyList()
-            ), false, {}, {}, {}, {}, {}, {}, {}
+            ), false, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
         )
     }
 }
@@ -1078,15 +1154,16 @@ private fun HomeUnitScreenImplPreview4() {
 private fun HomeUnitScreenImplPreview5() {
     MaterialTheme {
         HomeUnitScreenImpl(
+            snackBarHostState = SnackbarHostState(),
             HomeUnitScreenUiState(
                 false,
                 unitName = "Watch Dog",
                 value = HomeUnitScreenValueUiState.WatchDogValueUiState(
                     value = true,
-                    lastUpdateTime = "Updated 5 minutes ago",
+                    lastUpdateTime = System.currentTimeMillis() - 100000,
                     setValueFromSwitch = {},
                     inputValue = true,
-                    inputLastUpdateTime = "Updated 5 minutes ago"
+                    inputLastUpdateTime = System.currentTimeMillis() - 100000
                 ),
                 unitType = "temperatures",
                 roomName = "Living Room",
@@ -1101,8 +1178,9 @@ private fun HomeUnitScreenImplPreview5() {
                 firebaseNotify = true,
                 firebaseNotifyTrigger = RISING_EDGE,
                 showInTaskList = false,
+                lastTriggerSource = LAST_TRIGGER_SOURCE_HW_UNIT,
                 unitTasks = emptyList()
-            ), false, {}, {}, {}, {}, {}, {}, {}
+            ), false, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
         )
     }
 }
@@ -1114,6 +1192,7 @@ private fun HomeUnitScreenImplPreview5() {
 private fun HomeUnitScreenImplPreview42() {
     MaterialTheme {
         HomeUnitScreenImpl(
+            snackBarHostState = SnackbarHostState(),
             HomeUnitScreenUiState(
                 false,
                 unitName = "Home Unit Name",
@@ -1125,8 +1204,9 @@ private fun HomeUnitScreenImplPreview42() {
                 firebaseNotify = false,
                 firebaseNotifyTrigger = null,
                 showInTaskList = false,
+                lastTriggerSource = LAST_TRIGGER_SOURCE_HW_UNIT,
                 unitTasks = emptyList()
-            ), false, {}, {}, {}, {}, {}, {}, {}
+            ), false, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
         )
     }
 }

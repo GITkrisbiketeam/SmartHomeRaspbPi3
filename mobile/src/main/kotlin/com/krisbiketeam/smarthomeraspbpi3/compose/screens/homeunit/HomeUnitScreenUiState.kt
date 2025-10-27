@@ -15,21 +15,22 @@ data class HomeUnitScreenUiState(
     @TriggerType
     val firebaseNotifyTrigger: String?,
     val showInTaskList: Boolean,
+    val lastTriggerSource: String?,
     val unitTasks: List<String>,
     val alertDialog: SmartAlertDialogModel? = null
 )
 
 sealed interface HomeUnitScreenValueUiState<T : Any> {
     val value: T?
-    val lastUpdateTime: String
+    val lastUpdateTime: Long?
 
     data class NumberedValueUiState(
         override val value: Number?,
-        override val lastUpdateTime: String,
+        override val lastUpdateTime: Long?,
         val minValue: Number?,
-        val minLastUpdateTime: String,
+        val minLastUpdateTime: Long?,
         val maxValue: Number?,
-        val maxLastUpdateTime: String,
+        val maxLastUpdateTime: Long?,
         val clearMinValue: () -> Unit,
         val clearMaxValue: () -> Unit,
     ) : HomeUnitScreenValueUiState<Number>
@@ -40,43 +41,43 @@ sealed interface HomeUnitScreenValueUiState<T : Any> {
 
     data class SwitchValueUiState(
         override val value: Boolean?,
-        override val lastUpdateTime: String,
+        override val lastUpdateTime: Long?,
         override val setValueFromSwitch: (Boolean) -> Unit,
     ) : ActuatorValueUiState
 
     data class LightSwitchValueUiState(
         override val value: Boolean?,
-        override val lastUpdateTime: String,
+        override val lastUpdateTime: Long?,
         override val setValueFromSwitch: (Boolean) -> Unit,
         val switchValue: Boolean?,
-        val switchLastUpdateTime: String,
+        val switchLastUpdateTime: Long?,
     ) : ActuatorValueUiState
 
     data class WaterCirculationValueUiState(
         override val value: Boolean?,
-        override val lastUpdateTime: String,
+        override val lastUpdateTime: Long?,
         override val setValueFromSwitch: (Boolean) -> Unit,
 
         val motionValue: Boolean?,
-        val motionLastUpdateTime: String,
+        val motionLastUpdateTime: Long?,
 
         val temperatureValue: Number?,
-        val temperatureLastUpdateTime: String,
+        val temperatureLastUpdateTime: Long?,
 
         val temperatureMinValue: Number?,
-        val temperatureMinLastUpdateTime: String,
+        val temperatureMinLastUpdateTime: Long?,
         val temperatureMaxValue: Number?,
-        val temperatureMaxLastUpdateTime: String,
+        val temperatureMaxLastUpdateTime: Long?,
         val clearTemperatureMinValue: () -> Unit,
         val clearTemperatureMaxValue: () -> Unit,
     ) : ActuatorValueUiState
 
     data class WatchDogValueUiState(
         override val value: Boolean?,
-        override val lastUpdateTime: String,
+        override val lastUpdateTime: Long?,
         override val setValueFromSwitch: (Boolean) -> Unit,
         val inputValue: Boolean?,
-        val inputLastUpdateTime: String,
+        val inputLastUpdateTime: Long?,
     ) : ActuatorValueUiState
 }
 

@@ -74,6 +74,7 @@
     <string name="add_edit_home_unit_text_title_hint">Name</string>
     <string name="add_edit_home_unit_text_unit_type_spinner_prompt">Select Unit Type:</string>
     <string name="add_edit_home_unit_text_unit_type_title">Unit Type:</string>
+    <string name="add_edit_home_unit_text_last_trigger_source_title">Last Trigger Source:</string>
     <string name="add_edit_home_unit_text_room_spinner_prompt">Select Room:</string>
     <string name="add_edit_home_unit_text_room_title">Room:</string>
     <string name="add_edit_home_unit_text_hw_unit_title">Hardware Unit:</string>
