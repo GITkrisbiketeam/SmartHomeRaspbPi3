@@ -77,6 +77,7 @@
     <string name="add_edit_home_unit_text_last_trigger_source_title">Last Trigger Source:</string>
     <string name="add_edit_home_unit_text_room_spinner_prompt">Select Room:</string>
     <string name="add_edit_home_unit_text_room_title">Room:</string>
+    <string name="add_edit_home_unit_text_hw_unit_spinner_prompt">Select Hardware Unit:</string>
     <string name="add_edit_home_unit_text_hw_unit_title">Hardware Unit:</string>
     <string name="add_edit_home_unit_text_second_hw_unit_title">Switch hardware Unit:</string>
     <string name="add_edit_home_unit_text_input_hw_unit_title">Input hardware Unit:</string>

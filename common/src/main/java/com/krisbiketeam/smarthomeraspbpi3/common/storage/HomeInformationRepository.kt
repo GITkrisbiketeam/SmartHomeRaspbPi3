@@ -319,6 +319,7 @@ class FirebaseHomeInformationRepository {
         }
     }
     fun deleteHomeUnit(homeUnitType: HomeUnitType, homeUnitName: String): Task<Void>? {
+        Timber.v("deleteHomeUnit $homeUnitType $homeUnitName")
         return homePathReference?.let {
             Firebase.database.getReference("$it/$HOME_UNITS_BASE/${homeUnitType}/${homeUnitName}")
                 .removeValue()

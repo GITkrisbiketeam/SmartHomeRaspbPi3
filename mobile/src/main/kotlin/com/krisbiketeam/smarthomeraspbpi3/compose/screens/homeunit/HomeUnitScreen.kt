@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -29,6 +30,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -52,7 +54,9 @@ import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.LAST_TRI
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.LAST_TRIGGER_SOURCE_HW_UNIT
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.toHomeUnitType
 import com.krisbiketeam.smarthomeraspbpi3.compose.components.alertdialog.SmartAlertDialog
+import com.krisbiketeam.smarthomeraspbpi3.compose.components.alertdialog.SmartListBottomSheet
 import com.krisbiketeam.smarthomeraspbpi3.compose.components.topappbat.HomeUnitDetailTopAppBar
+import com.krisbiketeam.smarthomeraspbpi3.compose.screens.Editable
 import com.krisbiketeam.smarthomeraspbpi3.utils.getDayTime
 import com.krisbiketeam.smarthomeraspbpi3.utils.getLastUpdateTime
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -99,6 +103,7 @@ fun HomeUnitScreen(
         startEditing = viewModel::startEditing,
         updateUiState = viewModel::updateUiState,
         closeAlertDialog = viewModel::closeAlertDialog,
+        closeListBottomSheet = viewModel::closeListBottomSheet,
         actionSave = viewModel::actionSave,
         actionDiscard = viewModel::actionDiscard,
         actionDeleteRoom = viewModel::actionDeleteHomeUnit,
@@ -110,6 +115,7 @@ fun HomeUnitScreen(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeUnitScreenImpl(
     snackBarHostState: SnackbarHostState,
@@ -118,6 +124,7 @@ fun HomeUnitScreenImpl(
     startEditing: () -> Unit,
     updateUiState: (HomeUnitScreenUiState) -> Unit,
     closeAlertDialog: () -> Unit,
+    closeListBottomSheet: () -> Unit,
     actionSave: () -> Unit,
     actionDiscard: () -> Unit,
     actionDeleteRoom: () -> Unit,
@@ -182,7 +189,10 @@ fun HomeUnitScreenImpl(
 
             if (uiState.value != null) {
                 item {
-                    GeneralHomeUnitValue(context = LocalContext.current, homeUnitValue = uiState.value)
+                    GeneralHomeUnitValue(
+                        context = LocalContext.current,
+                        homeUnitValue = uiState.value
+                    )
                 }
             }
 
@@ -229,7 +239,11 @@ fun HomeUnitScreenImpl(
                         .padding(
                             start = dimensionResource(id = R.dimen.margin_large),
                             end = dimensionResource(id = R.dimen.margin_normal)
-                        ), text = uiState.unitType
+                        )
+                        .clickable(enabled = isEditing) {
+                            uiState.unitType.editAction()
+                        },
+                    text = uiState.unitType.value ?: "N/A"
                 )
             }
             // endregion
@@ -246,26 +260,28 @@ fun HomeUnitScreenImpl(
                     style = MaterialTheme.typography.titleMedium,
                 )
                 val roomName = uiState.roomName
-                if (roomName != null) {
+                if (roomName.value != null || isEditing) {
                     Text(
                         modifier = Modifier
+                            .clickable(enabled = isEditing) {
+                                roomName.editAction()
+                            }
                             .fillMaxWidth()
                             .padding(
                                 start = dimensionResource(id = R.dimen.margin_large),
                                 end = dimensionResource(id = R.dimen.margin_normal)
-                            ), text = roomName
+                            ), text = roomName.value ?: "N/A"
                     )
                 }
             }
             // endregion
 
             // region HW Unit Name
-            if (uiState.hwUnit != null) {
-                item {
-                    HomeUnitHWUnits(uiState.hwUnit)
-                }
+            item {
+                HomeUnitHWUnits(hwUnitState = uiState.hwUnit, isEditing = isEditing)
             }
             // endregion
+
             // region Additional Settings
             if (uiState.additionalSettings != null) {
                 item {
@@ -386,6 +402,15 @@ fun HomeUnitScreenImpl(
             model = it,
             onOkClick = {}, // it is handled in SmartAlertDialogModel
             onDismissClick = closeAlertDialog
+        )
+    }
+
+    val sheetState = rememberModalBottomSheetState()
+    uiState.listBottomSheet?.let {
+        SmartListBottomSheet(
+            model = it,
+            sheetState = sheetState,
+            onDismissClick = closeListBottomSheet
         )
     }
 
@@ -799,6 +824,7 @@ private fun GeneralHomeUnitValue(
 @Composable
 private fun HomeUnitHWUnits(
     hwUnitState: HomeUnitScreenHwUnitUiState,
+    isEditing: Boolean
 ) {
     Text(
         modifier = Modifier
@@ -815,7 +841,11 @@ private fun HomeUnitHWUnits(
             .padding(
                 start = dimensionResource(id = R.dimen.margin_large),
                 end = dimensionResource(id = R.dimen.margin_normal)
-            ), text = hwUnitState.hwUnitName
+            )
+            .clickable(enabled = isEditing) {
+                hwUnitState.hwUnitName.editAction()
+            },
+        text = hwUnitState.hwUnitName.value ?: "N/A"
     )
     when (hwUnitState) {
         is HomeUnitScreenHwUnitUiState.GeneralHwUnitUiState -> {
@@ -838,7 +868,11 @@ private fun HomeUnitHWUnits(
                     .padding(
                         start = dimensionResource(id = R.dimen.margin_large),
                         end = dimensionResource(id = R.dimen.margin_normal)
-                    ), text = hwUnitState.switchHwUnitName
+                    )
+                    .clickable(enabled = isEditing) {
+                        hwUnitState.switchHwUnitName.editAction()
+                    },
+                text = hwUnitState.switchHwUnitName.value ?: "N/A"
             )
         }
 
@@ -858,7 +892,11 @@ private fun HomeUnitHWUnits(
                     .padding(
                         start = dimensionResource(id = R.dimen.margin_large),
                         end = dimensionResource(id = R.dimen.margin_normal)
-                    ), text = hwUnitState.inputHwUnitName
+                    )
+                    .clickable(enabled = isEditing) {
+                        hwUnitState.inputHwUnitName.editAction()
+                    },
+                text = hwUnitState.inputHwUnitName.value ?: "N/A"
             )
         }
 
@@ -878,7 +916,11 @@ private fun HomeUnitHWUnits(
                     .padding(
                         start = dimensionResource(id = R.dimen.margin_large),
                         end = dimensionResource(id = R.dimen.margin_normal)
-                    ), text = hwUnitState.motionHwUnitName
+                    )
+                    .clickable(enabled = isEditing) {
+                        hwUnitState.motionHwUnitName.editAction()
+                    },
+                text = hwUnitState.motionHwUnitName.value ?: "N/A"
             )
             Text(
                 modifier = Modifier
@@ -895,7 +937,11 @@ private fun HomeUnitHWUnits(
                     .padding(
                         start = dimensionResource(id = R.dimen.margin_large),
                         end = dimensionResource(id = R.dimen.margin_normal)
-                    ), text = hwUnitState.temperatureHwUnitName
+                    )
+                    .clickable(enabled = isEditing) {
+                        hwUnitState.temperatureHwUnitName.editAction()
+                    },
+                text = hwUnitState.temperatureHwUnitName.value ?: "N/A"
             )
         }
     }
@@ -1022,16 +1068,16 @@ private fun HomeUnitScreenImplPreview1() {
                     maxLastUpdateTime = System.currentTimeMillis() - 200000,
                     {}, {}
                 ),
-                unitType = "temperatures",
-                roomName = "Living Room",
-                hwUnit = HomeUnitScreenHwUnitUiState.GeneralHwUnitUiState("HW Unit Name"),
+                unitType = Editable("temperatures") {},
+                roomName = Editable("Living Room") {},
+                hwUnit = HomeUnitScreenHwUnitUiState.GeneralHwUnitUiState(Editable("HW Unit Name") {}),
                 additionalSettings = null,
                 firebaseNotify = true,
                 firebaseNotifyTrigger = RISING_EDGE,
                 showInTaskList = false,
                 lastTriggerSource = LAST_TRIGGER_SOURCE_BOOLEAN_APPLY,
                 unitTasks = listOf("Auto Off", "Notify on High Temp")
-            ), false, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+            ), false, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
         )
     }
 }
@@ -1052,16 +1098,16 @@ private fun HomeUnitScreenImplPreview2() {
                     lastUpdateTime = System.currentTimeMillis() - 100000,
                     setValueFromSwitch = {}
                 ),
-                unitType = "temperatures",
-                roomName = "Living Room",
-                hwUnit = HomeUnitScreenHwUnitUiState.GeneralHwUnitUiState("HW Unit Name"),
+                unitType = Editable("temperatures") {},
+                roomName = Editable("Living Room") {},
+                hwUnit = HomeUnitScreenHwUnitUiState.GeneralHwUnitUiState(Editable("HW Unit Name") {}),
                 additionalSettings = null,
                 firebaseNotify = true,
                 firebaseNotifyTrigger = RISING_EDGE,
                 showInTaskList = false,
                 lastTriggerSource = LAST_TRIGGER_SOURCE_HW_UNIT,
                 unitTasks = emptyList()
-            ), false,{}, {}, {},  {}, {}, {}, {}, {}, {}, {}
+            ), false, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
         )
     }
 }
@@ -1084,11 +1130,11 @@ private fun HomeUnitScreenImplPreview3() {
                     switchValue = true,
                     switchLastUpdateTime = System.currentTimeMillis() - 300000
                 ),
-                unitType = "temperatures",
-                roomName = "Living Room",
+                unitType = Editable("temperatures") {},
+                roomName = Editable("Living Room") {},
                 hwUnit = HomeUnitScreenHwUnitUiState.LightSwitchHwUnitUiState(
-                    "HW Unit Name",
-                    "Switch HW Unit Name"
+                    Editable("HW Unit Name") {},
+                    Editable("Switch HW Unit Name") {}
                 ),
                 additionalSettings = null,
                 firebaseNotify = true,
@@ -1096,7 +1142,7 @@ private fun HomeUnitScreenImplPreview3() {
                 showInTaskList = false,
                 lastTriggerSource = LAST_TRIGGER_SOURCE_HW_UNIT,
                 unitTasks = emptyList()
-            ), false, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+            ), false, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
         )
     }
 }
@@ -1126,12 +1172,12 @@ private fun HomeUnitScreenImplPreview4() {
                     temperatureMaxLastUpdateTime = System.currentTimeMillis() - 200000,
                     {}, {}
                 ),
-                unitType = "temperatures",
-                roomName = "Living Room",
+                unitType = Editable("temperatures") {},
+                roomName = Editable("Living Room") {},
                 hwUnit = HomeUnitScreenHwUnitUiState.WaterCirculationHwUnitUiState(
-                    "HW Unit Name",
-                    "Motion HW Unit Name",
-                    "Temperature HW Unit Name"
+                    Editable("HW Unit Name") {},
+                    Editable("Motion HW Unit Name") {},
+                    Editable("Temperature HW Unit Name") {}
                 ),
                 additionalSettings = HomeUnitScreenAdditionalSettingsUiState.WaterCirculationAdditionalSettingsUiState(
                     circulationDuration = 120000L,
@@ -1142,7 +1188,7 @@ private fun HomeUnitScreenImplPreview4() {
                 showInTaskList = false,
                 lastTriggerSource = LAST_TRIGGER_SOURCE_HW_UNIT,
                 unitTasks = emptyList()
-            ), false, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+            ), false, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
         )
     }
 }
@@ -1165,11 +1211,11 @@ private fun HomeUnitScreenImplPreview5() {
                     inputValue = true,
                     inputLastUpdateTime = System.currentTimeMillis() - 100000
                 ),
-                unitType = "temperatures",
-                roomName = "Living Room",
+                unitType = Editable("temperatures") {},
+                roomName = Editable("Living Room") {},
                 hwUnit = HomeUnitScreenHwUnitUiState.WatchDogHwUnitUiState(
-                    "HW Unit Name",
-                    "Switch HW Unit Name"
+                    Editable("HW Unit Name") {},
+                    Editable("Switch HW Unit Name") {}
                 ),
                 additionalSettings = HomeUnitScreenAdditionalSettingsUiState.WatchDogAdditionalSettingsUiState(
                     watchDogDelay = 60000L,
@@ -1180,7 +1226,7 @@ private fun HomeUnitScreenImplPreview5() {
                 showInTaskList = false,
                 lastTriggerSource = LAST_TRIGGER_SOURCE_HW_UNIT,
                 unitTasks = emptyList()
-            ), false, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+            ), false, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
         )
     }
 }
@@ -1197,16 +1243,16 @@ private fun HomeUnitScreenImplPreview42() {
                 false,
                 unitName = "Home Unit Name",
                 value = null,
-                unitType = "temperatures",
-                roomName = "Living Room",
-                hwUnit = null,
+                unitType = Editable("temperatures") {},
+                roomName = Editable("Living Room") {},
+                hwUnit = HomeUnitScreenHwUnitUiState.GeneralHwUnitUiState(Editable(null) {}),
                 additionalSettings = null,
                 firebaseNotify = false,
                 firebaseNotifyTrigger = null,
                 showInTaskList = false,
                 lastTriggerSource = LAST_TRIGGER_SOURCE_HW_UNIT,
                 unitTasks = emptyList()
-            ), false, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+            ), false, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
         )
     }
 }

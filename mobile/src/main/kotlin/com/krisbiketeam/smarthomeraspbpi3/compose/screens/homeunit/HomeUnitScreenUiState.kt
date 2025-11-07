@@ -2,14 +2,16 @@ package com.krisbiketeam.smarthomeraspbpi3.compose.screens.homeunit
 
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.TriggerType
 import com.krisbiketeam.smarthomeraspbpi3.compose.components.alertdialog.SmartAlertDialogModel
+import com.krisbiketeam.smarthomeraspbpi3.compose.components.alertdialog.SmartListBottomSheetModel
+import com.krisbiketeam.smarthomeraspbpi3.compose.screens.Editable
 
 data class HomeUnitScreenUiState(
     val showProgress: Boolean,
     val unitName: String,
     val value: HomeUnitScreenValueUiState<*>?,
-    val unitType: String,
-    val roomName: String?,
-    val hwUnit: HomeUnitScreenHwUnitUiState?,
+    val unitType: Editable<String>,
+    val roomName: Editable<String?>,
+    val hwUnit: HomeUnitScreenHwUnitUiState,
     val additionalSettings: HomeUnitScreenAdditionalSettingsUiState?,
     val firebaseNotify: Boolean,
     @TriggerType
@@ -17,7 +19,8 @@ data class HomeUnitScreenUiState(
     val showInTaskList: Boolean,
     val lastTriggerSource: String?,
     val unitTasks: List<String>,
-    val alertDialog: SmartAlertDialogModel? = null
+    val alertDialog: SmartAlertDialogModel? = null,
+    val listBottomSheet: SmartListBottomSheetModel<*,*>? = null
 )
 
 sealed interface HomeUnitScreenValueUiState<T : Any> {
@@ -82,26 +85,26 @@ sealed interface HomeUnitScreenValueUiState<T : Any> {
 }
 
 sealed interface HomeUnitScreenHwUnitUiState {
-    val hwUnitName: String
+    val hwUnitName: Editable<String?>
 
     data class GeneralHwUnitUiState(
-        override val hwUnitName: String
+        override val hwUnitName: Editable<String?>
     ) : HomeUnitScreenHwUnitUiState
 
     data class LightSwitchHwUnitUiState(
-        override val hwUnitName: String,
-        val switchHwUnitName: String
+        override val hwUnitName: Editable<String?>,
+        val switchHwUnitName: Editable<String?>
     ) : HomeUnitScreenHwUnitUiState
 
     data class WatchDogHwUnitUiState(
-        override val hwUnitName: String,
-        val inputHwUnitName: String
+        override val hwUnitName: Editable<String?>,
+        val inputHwUnitName: Editable<String?>
     ) : HomeUnitScreenHwUnitUiState
 
     data class WaterCirculationHwUnitUiState(
-        override val hwUnitName: String,
-        val motionHwUnitName: String,
-        val temperatureHwUnitName: String
+        override val hwUnitName: Editable<String?>,
+        val motionHwUnitName: Editable<String?>,
+        val temperatureHwUnitName: Editable<String?>
     ) : HomeUnitScreenHwUnitUiState
 }
 
