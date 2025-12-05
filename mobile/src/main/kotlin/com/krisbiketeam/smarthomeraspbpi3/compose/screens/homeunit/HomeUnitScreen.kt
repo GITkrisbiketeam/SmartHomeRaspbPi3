@@ -101,7 +101,7 @@ fun HomeUnitScreen(
         uiState = uiState,
         isEditing,
         startEditing = viewModel::startEditing,
-        updateUiState = viewModel::updateUiState,
+        changeUnitName = viewModel::changeUnitName,
         closeAlertDialog = viewModel::closeAlertDialog,
         closeListBottomSheet = viewModel::closeListBottomSheet,
         actionSave = viewModel::actionSave,
@@ -122,7 +122,7 @@ fun HomeUnitScreenImpl(
     uiState: HomeUnitScreenUiState,
     isEditing: Boolean,
     startEditing: () -> Unit,
-    updateUiState: (HomeUnitScreenUiState) -> Unit,
+    changeUnitName: (String) -> Unit,
     closeAlertDialog: () -> Unit,
     closeListBottomSheet: () -> Unit,
     actionSave: () -> Unit,
@@ -167,7 +167,7 @@ fun HomeUnitScreenImpl(
                         value = text,
                         onValueChange = {
                             text = it
-                            updateUiState(uiState.copy(unitName = it))
+                            changeUnitName(it)
                         })
                 } else {
                     Text(
@@ -270,7 +270,8 @@ fun HomeUnitScreenImpl(
                             .padding(
                                 start = dimensionResource(id = R.dimen.margin_large),
                                 end = dimensionResource(id = R.dimen.margin_normal)
-                            ), text = roomName.value ?: "N/A"
+                            ),
+                        text = roomName.value ?: "N/A"
                     )
                 }
             }
@@ -313,6 +314,30 @@ fun HomeUnitScreenImpl(
                         checked = uiState.firebaseNotify,
                         enabled = isEditing,
                         onCheckedChange = setFirebaseNotify
+                    )
+                }
+                if (uiState.firebaseNotifyTrigger != null && uiState.firebaseNotify) {
+                    Text(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = dimensionResource(id = R.dimen.margin_normal)),
+                        text = stringResource(id = R.string.unit_task_text_trigger_title),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+
+                    Text(
+                        modifier = Modifier
+                            .clickable(enabled = isEditing) {
+                                uiState.firebaseNotifyTrigger.editAction()
+                            }
+                            .fillMaxWidth()
+                            .padding(
+                                start = dimensionResource(id = R.dimen.margin_large),
+                                end = dimensionResource(id = R.dimen.margin_normal)
+                            ),
+                        text = uiState.firebaseNotifyTrigger.value ?: "N/A"
                     )
                 }
             }
@@ -1073,7 +1098,7 @@ private fun HomeUnitScreenImplPreview1() {
                 hwUnit = HomeUnitScreenHwUnitUiState.GeneralHwUnitUiState(Editable("HW Unit Name") {}),
                 additionalSettings = null,
                 firebaseNotify = true,
-                firebaseNotifyTrigger = RISING_EDGE,
+                firebaseNotifyTrigger = Editable(RISING_EDGE) {},
                 showInTaskList = false,
                 lastTriggerSource = LAST_TRIGGER_SOURCE_BOOLEAN_APPLY,
                 unitTasks = listOf("Auto Off", "Notify on High Temp")
@@ -1103,7 +1128,7 @@ private fun HomeUnitScreenImplPreview2() {
                 hwUnit = HomeUnitScreenHwUnitUiState.GeneralHwUnitUiState(Editable("HW Unit Name") {}),
                 additionalSettings = null,
                 firebaseNotify = true,
-                firebaseNotifyTrigger = RISING_EDGE,
+                firebaseNotifyTrigger = Editable(RISING_EDGE) {},
                 showInTaskList = false,
                 lastTriggerSource = LAST_TRIGGER_SOURCE_HW_UNIT,
                 unitTasks = emptyList()
@@ -1138,7 +1163,7 @@ private fun HomeUnitScreenImplPreview3() {
                 ),
                 additionalSettings = null,
                 firebaseNotify = true,
-                firebaseNotifyTrigger = RISING_EDGE,
+                firebaseNotifyTrigger = Editable(RISING_EDGE) {},
                 showInTaskList = false,
                 lastTriggerSource = LAST_TRIGGER_SOURCE_HW_UNIT,
                 unitTasks = emptyList()
@@ -1184,7 +1209,7 @@ private fun HomeUnitScreenImplPreview4() {
                     temperatureThreshold = 30.0f
                 ),
                 firebaseNotify = true,
-                firebaseNotifyTrigger = RISING_EDGE,
+                firebaseNotifyTrigger = Editable(RISING_EDGE) {},
                 showInTaskList = false,
                 lastTriggerSource = LAST_TRIGGER_SOURCE_HW_UNIT,
                 unitTasks = emptyList()
@@ -1222,7 +1247,7 @@ private fun HomeUnitScreenImplPreview5() {
                     watchDogTimeout = 300000L
                 ),
                 firebaseNotify = true,
-                firebaseNotifyTrigger = RISING_EDGE,
+                firebaseNotifyTrigger = Editable(RISING_EDGE) {},
                 showInTaskList = false,
                 lastTriggerSource = LAST_TRIGGER_SOURCE_HW_UNIT,
                 unitTasks = emptyList()
@@ -1248,7 +1273,7 @@ private fun HomeUnitScreenImplPreview42() {
                 hwUnit = HomeUnitScreenHwUnitUiState.GeneralHwUnitUiState(Editable(null) {}),
                 additionalSettings = null,
                 firebaseNotify = false,
-                firebaseNotifyTrigger = null,
+                firebaseNotifyTrigger = Editable(RISING_EDGE) {},
                 showInTaskList = false,
                 lastTriggerSource = LAST_TRIGGER_SOURCE_HW_UNIT,
                 unitTasks = emptyList()

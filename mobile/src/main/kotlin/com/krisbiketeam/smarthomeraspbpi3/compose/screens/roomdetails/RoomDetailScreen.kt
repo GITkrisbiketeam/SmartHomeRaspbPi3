@@ -126,7 +126,7 @@ fun RoomDetailScreen(
                         )
                     )
                 },
-                showLogs = { showLogs(it.first, it.second) },
+                showLogs = { (hwUnitName, homeUnitType) -> showLogs(hwUnitName, homeUnitType) },
                 switchHomeUnitState = { homeUnit, switchState ->
                     viewModel.switchHomeUnitState(
                         homeUnit, switchState

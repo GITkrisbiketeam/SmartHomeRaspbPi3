@@ -15,7 +15,7 @@ data class HomeUnitScreenUiState(
     val additionalSettings: HomeUnitScreenAdditionalSettingsUiState?,
     val firebaseNotify: Boolean,
     @TriggerType
-    val firebaseNotifyTrigger: String?,
+    val firebaseNotifyTrigger: Editable<String?>?,
     val showInTaskList: Boolean,
     val lastTriggerSource: String?,
     val unitTasks: List<String>,

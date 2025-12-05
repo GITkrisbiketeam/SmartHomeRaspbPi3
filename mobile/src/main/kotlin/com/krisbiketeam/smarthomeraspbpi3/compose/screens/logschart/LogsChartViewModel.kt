@@ -8,9 +8,12 @@ import com.github.mikephil.charting.data.*
 import com.krisbiketeam.smarthomeraspbpi3.common.FULL_DAY_IN_MILLIS
 import com.krisbiketeam.smarthomeraspbpi3.common.getOnlyDateLocalTime
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig
+import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig.IO_EXTENDER_MCP23017_INPUT
+import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig.IO_EXTENDER_MCP23017_OUTPUT
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnitLog
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.HomeUnitType
+import com.krisbiketeam.smarthomeraspbpi3.common.storage.firebaseTables.toHomeUnitType
 import com.krisbiketeam.smarthomeraspbpi3.ui.RoomListFragment
 import com.krisbiketeam.smarthomeraspbpi3.utils.toLogsFloat
 import kotlinx.coroutines.Dispatchers
@@ -42,8 +45,20 @@ class LogsChartViewModel(
 
     // List of HwUnits with their value name ex. temperature or humidity
     private val filteredHwUnitListFlow: MutableStateFlow<List<Pair<String, String>>> =
-        MutableStateFlow(preselection?.let { (hwUnitName, homeUnitType) -> listOf(hwUnitName to homeUnitType) }
-            ?: emptyList())
+        MutableStateFlow(preselection?.let { (hwUnitName, homeUnitType) ->
+            listOf(hwUnitName to homeUnitType.let {
+                when (it.toHomeUnitType()) {
+                    HomeUnitType.HOME_ACTUATORS -> IO_EXTENDER_MCP23017_OUTPUT
+                    HomeUnitType.HOME_BLINDS -> IO_EXTENDER_MCP23017_OUTPUT
+                    HomeUnitType.HOME_REED_SWITCHES -> IO_EXTENDER_MCP23017_INPUT
+                    HomeUnitType.HOME_MOTIONS -> IO_EXTENDER_MCP23017_INPUT
+                    HomeUnitType.HOME_LIGHT_SWITCHES -> IO_EXTENDER_MCP23017_OUTPUT
+                    HomeUnitType.HOME_WATER_CIRCULATION -> IO_EXTENDER_MCP23017_OUTPUT
+                    HomeUnitType.HOME_MCP23017_WATCH_DOG -> IO_EXTENDER_MCP23017_OUTPUT
+                    else -> it
+                }
+            })
+        } ?: emptyList())
 
     val startRangeFlow: MutableStateFlow<Long> =
         MutableStateFlow(System.currentTimeMillis().getOnlyDateLocalTime())

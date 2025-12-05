@@ -56,8 +56,8 @@ fun SmartNavGraph(
                     showLogs = { hwUnitName, homeUnitType ->
                         navActions.navigateToLogsChart(
                             LogsChartRoute(
-                                homeUnitType.firebaseTableName,
-                                hwUnitName
+                                hwUnitName,
+                                homeUnitType.firebaseTableName
                             )
                         )
                     },
