@@ -4,8 +4,8 @@ import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.tasks.Task
 import com.google.firebase.database.*
-import com.google.firebase.database.ktx.database
-import com.google.firebase.ktx.Firebase
+import com.google.firebase.database.database
+import com.google.firebase.Firebase
 import com.krisbiketeam.smarthomeraspbpi3.common.getOnlyDateLocalTime
 import com.krisbiketeam.smarthomeraspbpi3.common.resetableLazy
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.*
