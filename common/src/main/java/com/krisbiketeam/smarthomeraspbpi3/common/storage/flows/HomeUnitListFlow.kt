@@ -1,8 +1,8 @@
 package com.krisbiketeam.smarthomeraspbpi3.common.storage.flows
 
 import com.google.firebase.database.*
-import com.google.firebase.database.database
-import com.google.firebase.Firebase
+import com.google.firebase.database.ktx.database
+import com.google.firebase.ktx.Firebase
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HOME_STORAGE_UNITS
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.getHomeUnitTypeIndicatorMap

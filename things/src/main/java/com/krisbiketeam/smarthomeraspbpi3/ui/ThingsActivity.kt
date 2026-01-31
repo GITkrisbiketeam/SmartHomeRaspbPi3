@@ -14,8 +14,8 @@ import com.google.android.things.userdriver.UserDriverManager
 import com.google.android.things.userdriver.input.InputDriver
 import com.google.android.things.userdriver.input.InputDriverEvent
 import com.google.firebase.analytics.FirebaseAnalytics
-import com.google.firebase.crashlytics.crashlytics
-import com.google.firebase.Firebase
+import com.google.firebase.crashlytics.ktx.crashlytics
+import com.google.firebase.ktx.Firebase
 import com.krisbiketeam.smarthomeraspbpi3.Home
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.WATCH_DOG_RESTART_ACTION

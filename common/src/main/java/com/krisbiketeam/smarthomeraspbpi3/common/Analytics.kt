@@ -3,9 +3,9 @@ package com.krisbiketeam.smarthomeraspbpi3.common
 import android.os.Bundle
 import androidx.annotation.Size
 import com.google.firebase.analytics.FirebaseAnalytics
-import com.google.firebase.analytics.analytics
-import com.google.firebase.analytics.logEvent
-import com.google.firebase.Firebase
+import com.google.firebase.analytics.ktx.analytics
+import com.google.firebase.analytics.ktx.logEvent
+import com.google.firebase.ktx.Firebase
 
 class Analytics {
     private val firebaseAnalytics: FirebaseAnalytics? = Firebase.analytics
@@ -14,7 +14,7 @@ class Analytics {
         firebaseAnalytics?.logEvent(name, params)
     }
 
-    fun logEvent(name: String, block: com.google.firebase.analytics.ParametersBuilder.() -> Unit) {
+    fun logEvent(name: String, block: com.google.firebase.analytics.ktx.ParametersBuilder.() -> Unit) {
         firebaseAnalytics?.logEvent(name, block)
     }
 

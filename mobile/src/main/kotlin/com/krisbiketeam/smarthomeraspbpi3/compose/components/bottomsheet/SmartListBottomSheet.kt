@@ -190,9 +190,7 @@ private fun SmartAlertDialogPreview() {
                     preselection = "Item 2"
                 ),
                 sheetState = SheetState(
-                    skipPartiallyExpanded = true, initialValue = SheetValue.Expanded,
-                    positionalThreshold = { 0.0f },
-                    velocityThreshold =  { 0.0f }
+                    skipPartiallyExpanded = true, initialValue = SheetValue.Expanded
                 ),
                 onDismissClick = {},
             )

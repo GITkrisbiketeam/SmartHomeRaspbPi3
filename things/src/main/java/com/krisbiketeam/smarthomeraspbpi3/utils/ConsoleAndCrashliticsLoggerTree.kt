@@ -3,8 +3,8 @@ package com.krisbiketeam.smarthomeraspbpi3.utils
 import android.app.Activity
 import android.util.Log
 import androidx.databinding.DataBindingUtil
-import com.google.firebase.crashlytics.crashlytics
-import com.google.firebase.Firebase
+import com.google.firebase.crashlytics.ktx.crashlytics
+import com.google.firebase.ktx.Firebase
 import com.krisbiketeam.smarthomeraspbpi3.R
 import com.krisbiketeam.smarthomeraspbpi3.databinding.ActivityHomeBinding
 import timber.log.Timber

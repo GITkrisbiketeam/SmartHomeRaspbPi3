@@ -1,7 +1,7 @@
 package com.krisbiketeam.smarthomeraspbpi3
 
-import com.google.firebase.crashlytics.crashlytics
-import com.google.firebase.Firebase
+import com.google.firebase.crashlytics.ktx.crashlytics
+import com.google.firebase.ktx.Firebase
 import com.krisbiketeam.smarthomeraspbpi3.common.Analytics
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.BoardConfig
 import com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver.MCP23017Pin

@@ -1,7 +1,7 @@
 package com.krisbiketeam.smarthomeraspbpi3.common.storage.flows
 
 import com.google.firebase.database.*
-import com.google.firebase.database.getValue
+import com.google.firebase.database.ktx.getValue
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.ChildEventType
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HwUnit
 import kotlinx.coroutines.ExperimentalCoroutinesApi
