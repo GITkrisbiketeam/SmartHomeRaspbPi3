@@ -525,6 +525,13 @@ class Home(
                     hwUnit.refreshRate
                 ) as BaseHwUnit<Any>
             }
+            BoardConfig.TEMP_RH_SENSOR_SHT30 -> {
+                HwUnitI2CTempRhSht30Sensor(
+                    hwUnit.name, hwUnit.location, hwUnit.pinName,
+                    hwUnit.softAddress ?: 0,
+                    hwUnit.refreshRate
+                ) as BaseHwUnit<Any>
+            }
             BoardConfig.AIR_QUALITY_SENSOR_BME680 -> {
                 HwUnitI2CAirQualityBme680Sensor(
                     secureStorage, hwUnit.name, hwUnit.location, hwUnit.pinName,

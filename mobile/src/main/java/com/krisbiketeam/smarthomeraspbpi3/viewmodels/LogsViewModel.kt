@@ -48,7 +48,8 @@ class LogsViewModel(private val homeRepository: FirebaseHomeInformationRepositor
                     hwUnitList.forEach { hwUnit ->
                         when (hwUnit.type) {
                             BoardConfig.TEMP_RH_SENSOR_SI7021,
-                            BoardConfig.TEMP_RH_SENSOR_AM2320 -> {
+                            BoardConfig.TEMP_RH_SENSOR_AM2320,
+                            BoardConfig.TEMP_RH_SENSOR_SHT30 -> {
                                 listOf("temperature", "humidity").forEach {
                                     val pair = hwUnit to it
                                     add(Triple(pair, pair.hashCode(), filteredHwUnitList.contains(pair)))

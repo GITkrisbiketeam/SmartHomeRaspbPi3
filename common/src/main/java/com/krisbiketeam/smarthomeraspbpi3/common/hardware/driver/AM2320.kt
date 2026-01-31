@@ -227,7 +227,7 @@ class AM2320(bus: String? = null) : AutoCloseable {
         mWriteBuffer[1] = register
         mWriteBuffer[2] = 0x02
 
-        mDevice?.write(mWriteBuffer, 1)
+        mDevice?.write(mWriteBuffer, 3)
 
         delay(2)
 
@@ -292,7 +292,7 @@ class AM2320(bus: String? = null) : AutoCloseable {
 
         if (mBuffer[0] != READ_REG_CODE) return null // must be 0x03 modbus reply
 
-        if (mBuffer[1].toInt().and(0xff) != 4) return null // must be 2 bytes reply
+        if (mBuffer[1].toInt().and(0xff) != 4) return null // must be 4 bytes reply
 
 
         var sensorCrc: Int = mBuffer[7].toInt().and(0xff)

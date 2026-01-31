@@ -146,8 +146,8 @@ class LogsChartViewModel(
                     // check type of hwUnit from first HwUnitLog
                     hwUnitLogsList.firstOrNull()?.let { hwUnitLog ->
                         when (hwUnitLog.type) {
-                            BoardConfig.IO_EXTENDER_MCP23017_OUTPUT,
-                            BoardConfig.IO_EXTENDER_MCP23017_INPUT -> {
+                            IO_EXTENDER_MCP23017_OUTPUT,
+                            IO_EXTENDER_MCP23017_INPUT -> {
                                 lineGradDataSetList.add(
                                     getBooleanGradSensorData(
                                         hwUnitLog.name, hwUnitLogsList
@@ -226,7 +226,9 @@ class LogsChartViewModel(
             buildMap<String, MutableList<String>> {
                 hwUnitList.map { hwUnit ->
                     when (hwUnit.type) {
-                        BoardConfig.TEMP_RH_SENSOR_SI7021, BoardConfig.TEMP_RH_SENSOR_AM2320 -> {
+                        BoardConfig.TEMP_RH_SENSOR_SI7021,
+                        BoardConfig.TEMP_RH_SENSOR_AM2320,
+                        BoardConfig.TEMP_RH_SENSOR_SHT30,  -> {
                             listOf(
                                 HomeUnitType.HOME_TEMPERATURES.firebaseTableName,
                                 HomeUnitType.HOME_HUMIDITY.firebaseTableName
@@ -318,7 +320,9 @@ class LogsChartViewModel(
         hwUnitTypeGroup: String, hwUnitType: String
     ): String? {
         return when (hwUnitType) {
-            BoardConfig.TEMP_RH_SENSOR_SI7021, BoardConfig.TEMP_RH_SENSOR_AM2320 -> {
+            BoardConfig.TEMP_RH_SENSOR_SI7021,
+            BoardConfig.TEMP_RH_SENSOR_AM2320,
+            BoardConfig.TEMP_RH_SENSOR_SHT30, -> {
                 when (hwUnitTypeGroup) {
                     HomeUnitType.HOME_TEMPERATURES.firebaseTableName -> "temperature"
                     HomeUnitType.HOME_HUMIDITY.firebaseTableName -> "humidity"

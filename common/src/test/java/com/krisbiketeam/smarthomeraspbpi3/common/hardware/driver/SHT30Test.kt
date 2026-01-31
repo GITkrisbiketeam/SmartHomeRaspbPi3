@@ -1,31 +1,45 @@
 package com.krisbiketeam.smarthomeraspbpi3.common.hardware.driver
 
 import com.google.android.things.pio.I2cDevice
-import io.mockk.every
 import io.mockk.mockk
-import io.mockk.verify
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import org.mockito.Matchers.any
+import org.mockito.Matchers.anyInt
+import org.mockito.Matchers.eq
+import org.mockito.Mockito
+import org.mockito.Mockito.doAnswer
 
 private const val DEF_Si7021_CONFIG = 0x64A0
 
-class Si7021Test {
+class SHT30Test {
 
     private val mI2c: I2cDevice = mockk()
 
+    //@Rule
+    //var mMockitoRule: MockitoRule = MockitoJUnit.rule()
+
+    @Test
+    fun calculateCRC() {
+        val result = sht30Crc8(ubyteArrayOf(0xBE.toUByte(), 0xEF.toUByte()))
+        val expected = 0x92.toUByte()
+
+        assertEquals(expected, result)
+    }
+
     @Test
     fun calculateTemperature() {
-        val si7021 = Si7021(mI2c, DEF_Si7021_CONFIG)
-        val actual = si7021.calculateTemperature(0xffff) ?: 0f
+        val sht30 = SHT30(mI2c)
+        val actual = sht30.calculateTemperature(0xffff) ?: 0f
         val expectedValue = 25.0f
         assertEquals(expectedValue, actual, 0f)
     }
 
     @Test
     fun calculateTemperature_Negative() {
-        val si7021 = Si7021(mI2c, DEF_Si7021_CONFIG)
-        val actual = si7021.calculateTemperature(0x1FC0) ?: 0f
+        val sht30 = SHT30(mI2c)
+        val actual = sht30.calculateTemperature(0x1FC0) ?: 0f
         val expectedValue = -4.0f
         assertEquals(expectedValue, actual, 0f)
     }
@@ -71,11 +85,10 @@ class Si7021Test {
     }
 
     private fun readSample16_prevTemp(msb: Byte, lsb: Byte, crc: Byte) {
-        every {mI2c.readRegBuffer(any(), any(), any()) } answers {
-
-            val arg0: Any? = it.invocation.args[0]
-            val arg1: Any? = it.invocation.args[1]
-            val arg2: Any? = it.invocation.args[2]
+        doAnswer { invocation ->
+            val arg0: Any = invocation.arguments[0]
+            val arg1: Any = invocation.arguments[1]
+            val arg2: Any = invocation.arguments[2]
 
             assertEquals(0xE0, arg0)
             assertEquals(3, arg2)
@@ -84,12 +97,11 @@ class Si7021Test {
             buffer[0] = msb //-88
             buffer[1] = lsb //22
             buffer[2] = crc //45
-        }
+        }.`when`(mI2c).readRegBuffer(anyInt(), any(ByteArray::class.java), anyInt())
 
-        val si7021 = Si7021(mI2c, DEF_Si7021_CONFIG)
-        val value: Float? = si7021.readPrevTemperature()
-        verify{
-            mI2c.readRegBuffer(eq(0xE0), any(), eq(3))}
+        val sht30 = SHT30(mI2c)
+val value: Float? = sht30.calculateTemperature(0)
+        Mockito.verify(mI2c).readRegBuffer(eq(0xE0), any(ByteArray::class.java), eq(3))
         assertTrue(value != null)
         //assertEquals(68.52524f, value)
     }

@@ -4,6 +4,7 @@ import androidx.annotation.MainThread
 import androidx.annotation.VisibleForTesting
 import com.google.android.things.pio.I2cDevice
 import com.google.android.things.pio.PeripheralManager
+import kotlinx.coroutines.delay
 import timber.log.Timber
 
 /**
@@ -53,18 +54,13 @@ private const val CONTROL_REG_HEATER_MASK = 0b00000100
  *  10: 10 bit  13 bit
  *  11: 11 bit  11 bit
  */
-private const val HEATER_REG_RES_3_MA   = 0b00000000        //Default
-private const val HEATER_REG_RES_9_MA   = 0b00000001
-private const val HEATER_REG_RES_15_MA  = 0b00000010
-private const val HEATER_REG_RES_27_MA  = 0b00000100
-private const val HEATER_REG_RES_52_MA  = 0b00001000
-private const val HEATER_REG_RES_94_MA  = 0b00001111
-private const val HEATER_REG_MASK       = 0b00001111
-
-private const val MCO9808_REG_SIGNED_TEMP_MASK = 0x1FFF
-private const val MCO9808_REG_TEMP_MASK = 0x0FFF
-private const val MCO9808_REG_TEMP_SIGN_BIT = 0x1000
-private const val MCO9808_REG_TEMP_SIGN_BIT_SHIFT = 0x0C
+private const val HEATER_REG_RES_3_MA = 0b00000000        //Default
+private const val HEATER_REG_RES_9_MA = 0b00000001
+private const val HEATER_REG_RES_15_MA = 0b00000010
+private const val HEATER_REG_RES_27_MA = 0b00000100
+private const val HEATER_REG_RES_52_MA = 0b00001000
+private const val HEATER_REG_RES_94_MA = 0b00001111
+private const val HEATER_REG_MASK = 0b00001111
 
 // Registers
 private const val MEASURE_RH_HOLD_MASTER_MODE = 0xE5
@@ -80,8 +76,6 @@ private const val READ_HEATER_REG = 0x11
 private const val READ_ID_1 = 0xFA // 0x0F
 private const val READ_ID_2 = 0xFC // 0xC9
 private const val READ_FW = 0x84 // 0xB8
-
-private const val TEMP_REG_FACTOR = 0.0625f
 
 
 /**
@@ -158,12 +152,22 @@ class Si7021(bus: String? = null) : AutoCloseable {
      *  01: 8 bit   12 bit
      *  10: 10 bit  13 bit
      *  11: 11 bit  11 bit
+     *
+     * Conversion Time1 tCONV ms
+     *  12-bit RH — typ 10 max 12
+     *  11-bit RH — typ 5.8 max 7
+     *  10-bit RH — typ 3.7 max 4.5
+     *  8-bit RH — typ 2.6 max 3.1
+     *  14-bit temperature — typ 7 max 10.8
+     *  13-bit temperature — typ 4 max 6.2
+     *  12-bit temperature — typ 2.4 max 3.8
+     *  11-bit temperature — typ 1.5 max 2.4
      */
-    enum class MeasurementResolution(var value: Int) {
-        RH_12_TEMP_14_BIT(CONTROL_REG_RES_12_14_BIT),
-        RH_8_TEMP_11_BIT(CONTROL_REG_RES_8_11_BIT),
-        RH_10_TEMP_13_BIT(CONTROL_REG_RES_10_13_BIT),
-        RH_11_TEMP11_BIT(CONTROL_REG_RES_11_11_BIT);
+    enum class MeasurementResolution(val value: Int, val convTimeRh: Long, val convTimeTemp: Long) {
+        RH_12_TEMP_14_BIT(CONTROL_REG_RES_12_14_BIT, 12, 11),
+        RH_11_TEMP11_BIT(CONTROL_REG_RES_11_11_BIT, 7, 7),
+        RH_10_TEMP_13_BIT(CONTROL_REG_RES_10_13_BIT, 5, 4),
+        RH_8_TEMP_11_BIT(CONTROL_REG_RES_8_11_BIT, 4, 3)
     }
 
     var measurementResolution: MeasurementResolution
@@ -267,7 +271,7 @@ class Si7021(bus: String? = null) : AutoCloseable {
          */
         @MainThread
         set(value) {
-            value.value.let{
+            value.value.let {
                 if (it == null) {
                     mConfig = mConfig and CONTROL_REG_HEATER_MASK.inv()
                     mConfig = mConfig or CONTROL_REG_HEATER_OFF
@@ -348,7 +352,7 @@ class Si7021(bus: String? = null) : AutoCloseable {
      */
     @Throws(Exception::class)
     @MainThread
-    fun readOneShotTemperature(): Float? {
+    suspend fun readOneShotTemperature(): Float? {
         Timber.d("readOneShotTemperature start")
         val temp = readTemperature()
         Timber.d("readOneShotTemperature conversion finished temp? $temp")
@@ -362,7 +366,7 @@ class Si7021(bus: String? = null) : AutoCloseable {
      */
     @Throws(Exception::class)
     @MainThread
-    fun readOneShotRh(): Float? {
+    suspend fun readOneShotRh(): Float? {
         Timber.d("readOneShotRh start")
         val rh = readRH()
         Timber.d("readOneShotRh conversion finished rh? $rh")
@@ -376,24 +380,18 @@ class Si7021(bus: String? = null) : AutoCloseable {
      */
     @Throws(Exception::class)
     @MainThread
-    fun readOneShotTempAndRh(): Pair<Float?, Float?> {
+    suspend fun readOneShotTempAndRh(): Pair<Float?, Float?> {
         Timber.i("readOneShotTempAndRh start")
         val rh = readRH()
-        val temperature = readTemperature()
+        val temperature = readPrevTemperature()
         Timber.d("readOneShotTempAndRh conversion finished rh? $rh temperature? $temperature")
         return Pair(temperature, rh)
     }
 
-
-    /**
-     * Read the temperature.
-     *
-     * @return the current temperature in degrees Celsius
-     * @throws Exception
-     */
     @Throws(Exception::class)
     @MainThread
-    private fun readTemperature(): Float? = calculateTemperature(readSample16CRC(MEASURE_TEMP_HOLD_MASTER_MODE))
+    private suspend fun readTemperature(): Float? =
+        calculateTemperature(readRawSample16CRC(MEASURE_TEMP_NO_HOLD_MASTER_MODE))
 
     /**
      * Read the RH.
@@ -403,7 +401,29 @@ class Si7021(bus: String? = null) : AutoCloseable {
      */
     @Throws(Exception::class)
     @MainThread
-    private fun readRH(): Float? = calculateRh(readSample16CRC(MEASURE_RH_HOLD_MASTER_MODE))
+    private suspend fun readRH(): Float? =
+        calculateRh(readRawSample16CRC(MEASURE_RH_NO_HOLD_MASTER_MODE))
+
+    /**
+     * Read the temperature.
+     *
+     * @return the current temperature in degrees Celsius
+     * @throws Exception
+     */
+    @Throws(Exception::class)
+    @MainThread
+    private fun readHoldTemperature(): Float? =
+        calculateTemperature(readSample16CRC(MEASURE_TEMP_HOLD_MASTER_MODE))
+
+    /**
+     * Read the RH.
+     *
+     * @return the current temperature in degrees Celsius
+     * @throws Exception
+     */
+    @Throws(Exception::class)
+    @MainThread
+    private fun readHoldRH(): Float? = calculateRh(readSample16CRC(MEASURE_RH_HOLD_MASTER_MODE))
 
     @Throws(Exception::class)
     @MainThread
@@ -453,6 +473,37 @@ class Si7021(bus: String? = null) : AutoCloseable {
         }
     }
 
+
+    /**
+     * Reads 16 bits from the given address.
+     * @throws Exception
+     */
+    @Throws(Exception::class)
+    @MainThread
+    private suspend fun readRawSample16CRC(register: Int): Int? {
+        Timber.d("readSample16CRC")
+        val command = (register shr 8).toByte()
+
+        // wakeup
+        mDevice?.write(byteArrayOf(command), 1)
+
+        delay(getDelayTime(register))
+
+        mDevice?.read(mBuffer, 3) ?: return null
+
+        val sensorMsb: Int = mBuffer[0].toInt().and(0xff)
+        val sensorLsb: Int = mBuffer[1].toInt().and(0xff)
+        val sensorCrc: Int = mBuffer[2].toInt().and(0xff)
+
+        val sht30CalcCrc = si7021Crc8(ubyteArrayOf(sensorMsb.toUByte(), sensorLsb.toUByte()))
+
+        return if (sht30CalcCrc == sensorCrc.toUByte()) {
+            sensorMsb shl 8 or sensorLsb
+        } else {
+            null
+        }
+    }
+
     /**
      * Calculate real temperature in Celsius degree from Raw temp value
      *
@@ -494,17 +545,30 @@ class Si7021(bus: String? = null) : AutoCloseable {
         }*/
         return rhRaw
     }
+
+    private fun getDelayTime(register: Int): Long {
+        return if (register == MEASURE_RH_NO_HOLD_MASTER_MODE) {
+            val delayTime = measurementResolution.convTimeRh
+            Timber.d("getDelayTime RH for conversion $delayTime ms")
+            delayTime
+        } else if (register == MEASURE_TEMP_NO_HOLD_MASTER_MODE) {
+            val delayTime = measurementResolution.convTimeTemp
+            Timber.d("getDelayTime Temp for conversion $delayTime ms")
+            delayTime
+        } else {
+            Timber.d("getDelayTime no delay needed")
+            0L
+        }
+    }
 }
 
 @ExperimentalUnsignedTypes
 private fun si7021Crc8(data: UByteArray/*, check:UByte*/): UByte {
-    var crc:UShort = 0u
-    for (i in 0 until 2)
-    {
+    var crc: UShort = 0u
+    for (i in 0 until 2) {
         crc = crc xor data[i].toUShort()
-        for (j in 8 downTo 1)
-        {
-            if ((crc and 0x80u) > 0u){
+        for (j in 8 downTo 1) {
+            if ((crc and 0x80u) > 0u) {
                 crc = (crc shl 1) xor 0x131u
             } else {
                 crc = (crc shl 1)
@@ -516,5 +580,5 @@ private fun si7021Crc8(data: UByteArray/*, check:UByte*/): UByte {
 }
 
 private infix fun UShort.shl(bitCount: Int): UShort =
-        (this.toUInt() shl bitCount).toUShort()
+    (this.toUInt() shl bitCount).toUShort()
 

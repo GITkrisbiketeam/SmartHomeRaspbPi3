@@ -100,6 +100,7 @@ class AddEditHwUnitViewModel(private val homeRepository: FirebaseHomeInformation
                     BoardConfig.TEMP_SENSOR_TMP102 -> BoardConfig.TEMP_SENSOR_TMP102_ADDR_LIST
                     BoardConfig.TEMP_SENSOR_MCP9808 -> BoardConfig.TEMP_SENSOR_MCP9808_ADDR_LIST
                     BoardConfig.TEMP_RH_SENSOR_SI7021 -> BoardConfig.TEMP_RH_SENSOR_SI7021_ADDR_LIST
+                    BoardConfig.TEMP_RH_SENSOR_SHT30 -> BoardConfig.TEMP_RH_SENSOR_SHT30_ADDR_LIST
                     BoardConfig.TEMP_RH_SENSOR_AM2320 -> BoardConfig.TEMP_RH_SENSOR_AM2320_ADDR_LIST
                     BoardConfig.AIR_QUALITY_SENSOR_BME680 -> BoardConfig.AIR_QUALITY_SENSOR_BME680_ADDR_LIST
                     BoardConfig.LIGHT_SENSOR_BH1750 -> BoardConfig.LIGHT_SENSOR_BH1750_ADDR_LIST
