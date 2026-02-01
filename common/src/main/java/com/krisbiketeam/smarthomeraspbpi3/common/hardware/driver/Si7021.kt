@@ -164,10 +164,10 @@ class Si7021(bus: String? = null) : AutoCloseable {
      *  11-bit temperature — typ 1.5 max 2.4
      */
     enum class MeasurementResolution(val value: Int, val convTimeRh: Long, val convTimeTemp: Long) {
-        RH_12_TEMP_14_BIT(CONTROL_REG_RES_12_14_BIT, 12, 11),
-        RH_11_TEMP11_BIT(CONTROL_REG_RES_11_11_BIT, 7, 7),
-        RH_10_TEMP_13_BIT(CONTROL_REG_RES_10_13_BIT, 5, 4),
-        RH_8_TEMP_11_BIT(CONTROL_REG_RES_8_11_BIT, 4, 3)
+        RH_12_TEMP_14_BIT(CONTROL_REG_RES_12_14_BIT, 10, 7),
+        RH_11_TEMP11_BIT(CONTROL_REG_RES_11_11_BIT, 6, 4),
+        RH_10_TEMP_13_BIT(CONTROL_REG_RES_10_13_BIT, 4, 3),
+        RH_8_TEMP_11_BIT(CONTROL_REG_RES_8_11_BIT, 3, 2)
     }
 
     var measurementResolution: MeasurementResolution
@@ -292,6 +292,11 @@ class Si7021(bus: String? = null) : AutoCloseable {
             try {
                 mDevice = PeripheralManager.getInstance()?.openI2cDevice(bus, I2C_ADDRESS)
                 mConfig = readRegister(READ_RH_T_USER_REG) ?: 0
+                Timber.d("connect mConfig: $mConfig")
+                if (measurementResolution != MeasurementResolution.RH_11_TEMP11_BIT) {
+                    measurementResolution = MeasurementResolution.RH_11_TEMP11_BIT
+                    mConfig = readRegister(READ_RH_T_USER_REG) ?: 0
+                }
                 Timber.d("connect mConfig: $mConfig")
             } catch (e: Exception) {
                 close()
@@ -455,6 +460,7 @@ class Si7021(bus: String? = null) : AutoCloseable {
     @MainThread
     private fun readSample16CRC(register: Int): Int? {
         synchronized(mBuffer) {
+            Timber.d("readRawSample16CRC $register ${register.toByte()}")
             // Reading a byte buffer instead of a short to avoid having to deal with
             // platform-specific endianness.
             mDevice?.readRegBuffer(register, mBuffer, 3) ?: return null
@@ -481,15 +487,17 @@ class Si7021(bus: String? = null) : AutoCloseable {
     @Throws(Exception::class)
     @MainThread
     private suspend fun readRawSample16CRC(register: Int): Int? {
-        Timber.d("readSample16CRC")
-        val command = (register shr 8).toByte()
+        Timber.d("readRawSample16CRC $register ${register.toByte()}")
+        val command = register.toByte()
 
-        // wakeup
         mDevice?.write(byteArrayOf(command), 1)
 
-        delay(getDelayTime(register))
-
-        mDevice?.read(mBuffer, 3) ?: return null
+        val delay = getDelayTime(register)
+        delay(delay)
+        var i = 0L
+        while (readMBuffer() && i < delay){
+            delay(i++)
+        }
 
         val sensorMsb: Int = mBuffer[0].toInt().and(0xff)
         val sensorLsb: Int = mBuffer[1].toInt().and(0xff)
@@ -497,10 +505,28 @@ class Si7021(bus: String? = null) : AutoCloseable {
 
         val sht30CalcCrc = si7021Crc8(ubyteArrayOf(sensorMsb.toUByte(), sensorLsb.toUByte()))
 
+        Timber.d(
+            "readRawSample16CRC sht30CalcCrc:$sht30CalcCrc " +
+                    "sensorCrc: $sensorCrc " +
+                    "sensorMsb:$sensorMsb " +
+                    "sensorLsb:$sensorLsb " +
+                    "\n val:${sensorMsb shl 8 or sensorLsb}"
+        )
+
         return if (sht30CalcCrc == sensorCrc.toUByte()) {
             sensorMsb shl 8 or sensorLsb
         } else {
             null
+        }
+    }
+
+    private fun readMBuffer(): Boolean{
+        try {
+            mDevice?.read(mBuffer, 3)
+            return false
+        } catch (e:Exception){
+            Timber.w("readRawSample16CRC read Exception $e")
+            return true
         }
     }
 
@@ -548,7 +574,7 @@ class Si7021(bus: String? = null) : AutoCloseable {
 
     private fun getDelayTime(register: Int): Long {
         return if (register == MEASURE_RH_NO_HOLD_MASTER_MODE) {
-            val delayTime = measurementResolution.convTimeRh
+            val delayTime = measurementResolution.convTimeRh + measurementResolution.convTimeTemp
             Timber.d("getDelayTime RH for conversion $delayTime ms")
             delayTime
         } else if (register == MEASURE_TEMP_NO_HOLD_MASTER_MODE) {
