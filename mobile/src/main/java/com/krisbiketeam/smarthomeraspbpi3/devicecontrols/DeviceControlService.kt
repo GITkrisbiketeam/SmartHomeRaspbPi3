@@ -12,8 +12,8 @@ import android.service.controls.actions.ControlAction
 import android.service.controls.templates.ControlButton
 import android.service.controls.templates.ToggleTemplate
 import androidx.annotation.RequiresApi
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.Firebase
+import com.google.firebase.auth.auth
+import com.google.firebase.Firebase
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.FirebaseHomeInformationRepository
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.SecureStorage
 import com.krisbiketeam.smarthomeraspbpi3.common.storage.dto.HomeUnit

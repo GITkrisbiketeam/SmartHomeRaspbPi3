@@ -80,14 +80,14 @@ dependencies {
     implementation "com.google.android.gms:play-services-base:$playServicesVersion"
 
     implementation platform("com.google.firebase:firebase-bom:$firebaseBom")
-    implementation 'com.google.firebase:firebase-database-ktx'
-    implementation 'com.google.firebase:firebase-auth-ktx'
+    implementation 'com.google.firebase:firebase-database'
+    implementation 'com.google.firebase:firebase-auth'
     // Add the Firebase Crashlytics SDK.
-    implementation 'com.google.firebase:firebase-crashlytics-ktx'
+    implementation 'com.google.firebase:firebase-crashlytics'
     // Recommended: Add the Firebase SDK for Google Analytics.
-    implementation 'com.google.firebase:firebase-analytics-ktx'
+    implementation 'com.google.firebase:firebase-analytics'
     // Add the dependency for the Performance Monitoring library
-    implementation 'com.google.firebase:firebase-perf-ktx'
+    implementation 'com.google.firebase:firebase-perf'
 
     implementation "io.insert-koin:koin-android:$koin_version"
 

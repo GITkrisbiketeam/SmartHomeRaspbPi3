@@ -1,7 +1,7 @@
 package com.krisbiketeam.smarthomeraspbpi3.common.storage.flows
 
 import com.google.firebase.database.*
-import com.google.firebase.database.ktx.getValue
+import com.google.firebase.database.getValue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.trySendBlocking
